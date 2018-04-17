@@ -8,7 +8,7 @@ Each module can be checked out on it's own, however some are prepared to be run 
 
 ## Warning
 
-Please note everything developed in this repo is meant to be for development or test environments, to quickly get a system up and running with the latest edge code.  Thus it is an unstable environment and it should be expected to be unstable.
+Please note everything developed in this repo is meant to be for development or test environments, to quickly get a system up and running with the latest edge code.
 
 ### In case of emergency
 
