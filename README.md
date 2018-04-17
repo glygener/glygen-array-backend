@@ -36,3 +36,16 @@ aoki@bluegold:~/workspace/glygen-array$ docker-compose ps
 glygenarray_postgres_1   docker-entrypoint.sh postgres   Up      0.0.0.0:5432->5432/tcp
 
 ```
+
+shutdown:
+
+```
+docker-compose stop postgres
+```
+
+disable completely:
+
+```
+docker-compose rm postgres
+```
+otherwise it will startup again on next reboot
