@@ -1,0 +1,3 @@
+spring:
+  datasource:
+    url: jdbc://localhost:5432
