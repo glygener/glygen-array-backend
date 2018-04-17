@@ -21,13 +21,20 @@ services:
       - virtuoso:internal.virtuoso
       - postgres:internal.postgres
     restart: always
-  glycanbuilder:
-    build: docker-glycanbuilder
-#    image: glytoucan_glycanbuilder:v${GTC_VERSION}
+  virtuoso:
+    image: aokinobu/virtuoso:v7.2.4.2
     ports:
-     - "8080:80"
+      - 1111:1111
+      - 8890:8890
     volumes:
-     - /etc/localtime:/etc/localtime
+      - ${HOME}/${SITE_CODE}/virtuoso/data:/virtuoso
+      - /etc/localtime:/etc/localtime
+    environment:
+      - VIRTUAL_HOST=${VIRTUOSO_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST}
+      - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT}
+      - LETSENCRYPT_EMAIL=${SITE_EMAIL}
     restart: always
   postgres:
 # docker run --name psql-service -p 5432:5432 -d postgres
