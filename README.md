@@ -13,3 +13,26 @@ Please note everything developed in this repo is meant to be for development or 
 ### In case of emergency
 
 If unsure whom to contact with regards to problems of this environment, please raise an issue.
+
+### bashrc environment variables
+
+the bashrc file contains default environment variables that can be used to get rid of the docker-compose warnings.  it should contain default variables for a typical development environment to get it running on a local machine.
+
+### postgres commands
+
+startup the postgres instance:
+```
+docker-compose up -d postgres
+```
+
+localhost port 5432 should be available to connect
+
+to confirm it's running:
+
+```
+aoki@bluegold:~/workspace/glygen-array$ docker-compose ps
+         Name                       Command              State           Ports         
+---------------------------------------------------------------------------------------
+glygenarray_postgres_1   docker-entrypoint.sh postgres   Up      0.0.0.0:5432->5432/tcp
+
+```
