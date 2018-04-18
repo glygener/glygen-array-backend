@@ -1,4 +1,4 @@
-version: '2'
+version: '3.4'
 services:
 #  https:
   java:
@@ -9,7 +9,7 @@ services:
       - ${HOME}/nmr/maven:/root/.m2
       - ${HOME}/glytoucan/java/upload:/upload
       - /etc/localtime:/etc/localtime
-      - ./nmrboot:/workspace
+      - ./glygen-array-app:/workspace
     working_dir: /workspace/
     command: mvn -U -DskipTests=true spring-boot:run $SPRING_PROFILE
     environment:
@@ -27,17 +27,60 @@ services:
       - 1111:1111
       - 8890:8890
     volumes:
-      - ${HOME}/${SITE_CODE}/virtuoso/data:/virtuoso
+      - virtuoso-data:/virtuoso
       - /etc/localtime:/etc/localtime
     environment:
-      - VIRTUAL_HOST=${VIRTUOSO_VIRTUAL_HOST}
-      - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT}
-      - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST}
-      - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT}
-      - LETSENCRYPT_EMAIL=${SITE_EMAIL}
+      - VIRTUAL_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
+      - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
+      - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
+      - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
+      - LETSENCRYPT_EMAIL=${SITE_EMAIL:-glygen-array-uga@sparqlite.com}
     restart: always
   postgres:
-# docker run --name psql-service -p 5432:5432 -d postgres
     image: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  rsnapshot:
+    build: rsnapshot/
+    image: blacklabelops/rsnapshot
+    volumes:
+      - ${HOME}/${SITE_CODE:-glygen-app}/snapshots/:/snapshots
+      - jenkins-data:/var/jenkins_home
+      - postgres-data:/var/lib/postgresql/data
+      - log:/log/logs
+    environment:
+      - "BACKUP_DIRECTORIES=/var/jenkins_home/ jenkins_1/; /var/lib/postgresql/data postgres_1/"
+      - "RSNAPSHOT_HOURLY_TIMES=4"
+      - "RSNAPSHOT_DAILY_TIMES=7"
+      - "RSNAPSHOT_WEEKLY_TIMES=4"
+      - "RSNAPSHOT_MONTHLY_TIMES=12"
+volumes:
+  log:
+    external:
+       name: ${SITE_CODE}-log
+    driver: local-persist
+    driver_opts:
+      mountpoint: $HOME/$SITE_CODE/log/
+
+  jenkins-data:
+    external:
+       name: ${SITE_CODE}-jenkins
+    driver: local-persist
+    driver_opts:
+      mountpoint: $HOME/$SITE_CODE/jenkins/
+
+  virtuoso-data:
+    external:
+       name: ${SITE_CODE}-virtuoso
+    driver: local-persist
+    driver_opts:
+      mountpoint: $HOME/$SITE_CODE/virtuoso/
+
+  postgres-data:
+    external:
+       name: ${SITE_CODE}-postgres
+    driver: local-persist
+    driver_opts:
+      mountpoint: $HOME/$SITE_CODE/postgres/

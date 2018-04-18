@@ -1,0 +1,3 @@
+[submodule "rsnapshot"]
+	path = rsnapshot
+	url = https://github.com/blacklabelops/rsnapshot.git
