@@ -1,0 +1,20 @@
+version: '3.4'
+services:
+#  https:
+  java:
+    image: maven:3.3.9-jdk-8
+    ports:
+      - 81:8080
+    volumes:
+      - ${HOME}/glygen-array/maven:/root/.m2
+      - ${HOME}/glytoucan/java/upload:/upload
+      - /etc/localtime:/etc/localtime
+      - .:/workspace
+    working_dir: /workspace/
+    command: mvn -U -DskipTests=true spring-boot:run $SPRING_PROFILE
+    environment:
+      - GOOGLE_OAUTH2_CLIENTID
+      - GOOGLE_OAUTH2_CLIENTSECRET
+      - SPRING_TRIPLESTORE_PASSWORD
+      - SPRING_TRIPLESTORE_URL
+    restart: always
