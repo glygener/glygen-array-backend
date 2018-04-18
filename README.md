@@ -20,9 +20,10 @@ the bashrc file contains default environment variables that can be used to get r
 
 ### postgres commands
 
-startup the postgres instance:
+to startup postgres, please make sure the "glygen-array" folder is created in your $HOME.
+Then cd into the postgres folder, and execute the following:
 ```
-docker-compose up -d postgres
+docker-compose up
 ```
 
 localhost port 5432 should be available to connect
@@ -30,7 +31,7 @@ localhost port 5432 should be available to connect
 to confirm it's running:
 
 ```
-aoki@bluegold:~/workspace/glygen-array$ docker-compose ps
+docker-compose ps
          Name                       Command              State           Ports         
 ---------------------------------------------------------------------------------------
 glygenarray_postgres_1   docker-entrypoint.sh postgres   Up      0.0.0.0:5432->5432/tcp
@@ -40,12 +41,12 @@ glygenarray_postgres_1   docker-entrypoint.sh postgres   Up      0.0.0.0:5432->5
 shutdown:
 
 ```
-docker-compose stop postgres
+docker-compose stop
 ```
 
 disable completely:
 
 ```
-docker-compose rm postgres
+docker-compose rm
 ```
 otherwise it will startup again on next reboot
