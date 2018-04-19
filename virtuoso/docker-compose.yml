@@ -13,7 +13,7 @@ services:
       - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
       - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
       - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
-      - LETSENCRYPT_EMAIL=${SITE_EMAIL:-glygen@sparqlite.com}
+      - LETSENCRYPT_EMAIL=${SITE_EMAIL:-glygen-array-uga@sparqlite.com}
     restart: always
 
 networks:
