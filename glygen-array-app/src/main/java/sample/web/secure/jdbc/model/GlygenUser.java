@@ -11,6 +11,7 @@ public class GlygenUser extends User {
 
     private final String firstName;
     private final String lastName;
+    private final String email;
     private final String affiliation;
     private final String affiliationWebsite;
     private final Boolean publicFlag;
@@ -19,7 +20,7 @@ public class GlygenUser extends User {
         boolean accountNonExpired, boolean credentialsNonExpired,
         boolean accountNonLocked,
         Collection<? extends GrantedAuthority> authorities,
-        String firstName, String lastName, String affiliation,
+        String firstName, String lastName, String email, String affiliation,
         String affiliationWebsite, boolean publicFlag) {
 
             super(username, password, enabled, accountNonExpired,
@@ -27,6 +28,7 @@ public class GlygenUser extends User {
 
             this.firstName = firstName;
             this.lastName = lastName;
+            this.email = email;
             this.affiliation = affiliation;
             this.affiliationWebsite = affiliationWebsite;
             this.publicFlag = publicFlag;
@@ -54,5 +56,9 @@ public class GlygenUser extends User {
     
     public Boolean getPublicFlag() {
 		return publicFlag;
+	}
+    
+    public String getEmail() {
+		return email;
 	}
 }

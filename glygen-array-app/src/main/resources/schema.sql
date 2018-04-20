@@ -4,6 +4,7 @@ create table IF NOT EXISTS users (
   enabled boolean,
   firstname varchar(256),
   lastname varchar(256),
+  email varchar(256),
   affiliation varchar(256),
   affiliationWebsite varchar(256),
   publicflag boolean

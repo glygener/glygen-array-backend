@@ -14,7 +14,7 @@ import sample.web.secure.jdbc.model.GlygenUser;
 
 public class GlygenUserDetailsService extends JdbcUserDetailsManager {
 	
-	public static final String GLYGEN_DEF_USERS_BY_USERNAME_QUERY = "select username,password,enabled,firstname,lastname,affiliation,affiliationwebsite,publicflag "
+	public static final String GLYGEN_DEF_USERS_BY_USERNAME_QUERY = "select username,password,enabled,firstname,lastname,email,affiliation,affiliationwebsite,publicflag "
 			+ "from users " + "where username = ?";
 	
 	public GlygenUserDetailsService() {
@@ -37,11 +37,12 @@ public class GlygenUserDetailsService extends JdbcUserDetailsManager {
 						boolean enabled = rs.getBoolean(3);
 						String firstname = rs.getString(4);
 						String lastname = rs.getString(5);
-						String affiliation = rs.getString(6);
-						String affiliationWebsite = rs.getString(7);
-						boolean publicFlag = rs.getBoolean(8);
+						String email = rs.getString(6);
+						String affiliation = rs.getString(7);
+						String affiliationWebsite = rs.getString(8);
+						boolean publicFlag = rs.getBoolean(9);
 						return new GlygenUser(username, password, enabled, true, true, true,
-								AuthorityUtils.NO_AUTHORITIES, firstname, lastname, affiliation, affiliationWebsite, publicFlag);
+								AuthorityUtils.NO_AUTHORITIES, firstname, lastname, email, affiliation, affiliationWebsite, publicFlag);
 					}
 
 				});
@@ -60,6 +61,7 @@ public class GlygenUserDetailsService extends JdbcUserDetailsManager {
 				userFromUserQuery.isEnabled(), true, true, true, combinedAuthorities, 
 				((GlygenUser)userFromUserQuery).getFirstName(), 
 				((GlygenUser)userFromUserQuery).getLastName(), 
+				((GlygenUser)userFromUserQuery).getEmail(),
 				((GlygenUser)userFromUserQuery).getAffiliation(), 
 				((GlygenUser)userFromUserQuery).getAffiliationWebsite(), 
 				((GlygenUser)userFromUserQuery).getPublicFlag());
