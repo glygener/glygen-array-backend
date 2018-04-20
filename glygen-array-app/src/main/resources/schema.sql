@@ -1,7 +1,4 @@
-drop table users;
-drop table authorities;
-
-create table users (
+create table IF NOT EXISTS users (
   username varchar(256),
   password varchar(256),
   enabled boolean,
@@ -12,7 +9,7 @@ create table users (
   publicflag boolean
 );
 
-create table authorities (
+create table IF NOT EXISTS authorities (
   username varchar(256),
   authority varchar(256)
 );
