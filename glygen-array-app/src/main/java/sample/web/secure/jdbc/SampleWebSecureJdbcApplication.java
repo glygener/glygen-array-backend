@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import sample.web.secure.jdbc.service.GlygenUserDetailsService;
+
 @SpringBootApplication
 @Controller
 public class SampleWebSecureJdbcApplication implements WebMvcConfigurer {
@@ -72,7 +74,7 @@ public class SampleWebSecureJdbcApplication implements WebMvcConfigurer {
 
 		@Bean
 		public JdbcUserDetailsManager jdbcUserDetailsManager(DataSource dataSource) {
-			JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager();
+			JdbcUserDetailsManager jdbcUserDetailsManager = new GlygenUserDetailsService();
 			jdbcUserDetailsManager.setDataSource(dataSource);
 			return jdbcUserDetailsManager;
 		}
