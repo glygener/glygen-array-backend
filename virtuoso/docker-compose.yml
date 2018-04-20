@@ -1,0 +1,22 @@
+version: '3.4'
+services:
+  virtuoso:
+    image: aokinobu/virtuoso:v7.2.4.2
+    ports:
+      - 1111:1111
+      - 8890:8890
+    volumes:
+      - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso/data:/virtuoso
+      - /etc/localtime:/etc/localtime
+    environment:
+      - VIRTUAL_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
+      - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
+      - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
+      - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
+      - LETSENCRYPT_EMAIL=${SITE_EMAIL:-glygen-array-uga@sparqlite.com}
+    restart: always
+
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARARY_NETWORK:-glygen-array-network}
