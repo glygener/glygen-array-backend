@@ -1,4 +1,6 @@
 #!/bin/sh
+
+# This will create ALL volumes
 echo docker volume create -d local-persist -o mountpoint=$HOME/$SITE_CODE/log --name=$SITE_CODE-log
 docker volume create -d local-persist -o mountpoint=$HOME/$SITE_CODE/log --name=$SITE_CODE-log
 mkdir -p $HOME/$SITE_CODE/log/logs
