@@ -1,4 +1,4 @@
-package sample.web.secure.jdbc.model;
+package org.glygen.array.model;
 
 import java.util.Collection;
 

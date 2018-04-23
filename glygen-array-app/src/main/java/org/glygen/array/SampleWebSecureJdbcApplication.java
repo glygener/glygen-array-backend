@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package sample.web.secure.jdbc;
+package org.glygen.array;
 
 import java.util.Date;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.glygen.array.service.GlygenUserDetailsService;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +34,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import sample.web.secure.jdbc.service.GlygenUserDetailsService;
 
 @SpringBootApplication
 @Controller

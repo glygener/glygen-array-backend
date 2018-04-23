@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package sample.web.secure.jdbc;
+package org.glygen.array;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;

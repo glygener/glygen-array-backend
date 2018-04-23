@@ -14,3 +14,8 @@ create table IF NOT EXISTS authorities (
   username varchar(256),
   authority varchar(256)
 );
+
+create table IF NOT EXISTS settings (
+  name varchar(256),
+  value varchar(256)
+);

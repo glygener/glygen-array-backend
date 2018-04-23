@@ -1,4 +1,4 @@
-package sample.web.secure.jdbc;
+package org.glygen.array;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

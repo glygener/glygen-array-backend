@@ -1,16 +1,15 @@
-package sample.web.secure.jdbc.service;
+package org.glygen.array.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.glygen.array.model.GlygenUser;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
-
-import sample.web.secure.jdbc.model.GlygenUser;
 
 public class GlygenUserDetailsService extends JdbcUserDetailsManager {
 	
