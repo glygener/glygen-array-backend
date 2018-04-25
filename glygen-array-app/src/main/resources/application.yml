@@ -6,3 +6,7 @@ spring:
     username: postgres
     driver-class-name: org.postgresql.Driver
     initialization-mode: always
+  mail:
+    host: pod51004.outlook.com
+    port: 587
+    protocol: smtps

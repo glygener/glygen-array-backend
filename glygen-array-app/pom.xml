@@ -8,9 +8,8 @@
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.0.1.RELEASE</version>
 	</parent>
-	<artifactId>spring-boot-sample-web-secure-jdbc</artifactId>
-	<name>Spring Boot Web Secure JDBC Sample</name>
-	<description>Spring Boot Web Secure JDBC Sample</description>
+	<artifactId>glygen-array-app</artifactId>
+	<description>Glygen Array backend application</description>
 	<dependencies>
 		<!-- Compile -->
 		<dependency>
@@ -20,10 +19,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -39,11 +34,6 @@
 <!-- 		</dependency> -->
 		<!-- Test -->
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
@@ -52,6 +42,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
+		    <version>2.0.1.RELEASE</version>
+		</dependency>
+
+		
 	</dependencies>
 	<build>
 		<plugins>
@@ -61,4 +58,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	<name>Glygen Array</name>
 </project>

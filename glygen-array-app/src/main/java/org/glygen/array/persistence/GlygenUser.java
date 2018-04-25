@@ -1,6 +1,8 @@
-package org.glygen.array.model;
+package org.glygen.array.persistence;
 
 import java.util.Collection;
+
+import javax.persistence.Entity;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;

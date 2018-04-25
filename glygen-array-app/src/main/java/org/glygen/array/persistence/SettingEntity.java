@@ -1,4 +1,4 @@
-package org.glygen.array.model;
+package org.glygen.array.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +11,9 @@ public class SettingEntity {
 
 	String name;
 	String value;
+	
+	public SettingEntity() {
+	}
 	
 	public SettingEntity(String n, String v) {
 		this.name = n;
