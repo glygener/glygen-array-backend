@@ -132,6 +132,7 @@ public class SampleWebSecureJdbcApplication {
 		protected void configure(HttpSecurity http) throws Exception {
 			 http.authorizeRequests()
 	            .antMatchers("/signup").permitAll()
+	            .antMatchers("/registrationConfirm*").permitAll()
 	            .antMatchers("/login").hasAuthority("ROLE_USER")
 	            .anyRequest().fullyAuthenticated()
 	            .and().httpBasic()

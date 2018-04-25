@@ -1,9 +1,11 @@
-drop table verification_token;
-drop table user_roles;
-drop table roles;
-drop table users;
-drop sequence user_seq;
-drop sequence role_seq;
+drop table IF EXISTS settings;
+drop table IF EXISTS verification_token;
+drop table IF EXISTS user_roles;
+drop table IF EXISTS roles;
+drop table IF EXISTS users;
+drop sequence IF EXISTS user_seq;
+drop sequence IF EXISTS role_seq;
+drop sequence IF EXISTS TOKEN_SEQ;
 
 create table IF NOT EXISTS users (
   userId bigint not null,

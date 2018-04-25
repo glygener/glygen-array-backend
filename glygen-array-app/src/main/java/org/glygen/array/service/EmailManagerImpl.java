@@ -47,6 +47,11 @@ public class EmailManagerImpl implements EmailManager {
     		
     			((JavaMailSenderImpl)this.mailSender).setPassword(password);
     			((JavaMailSenderImpl)this.mailSender).setUsername(username);
+    			/*Properties props = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
+    		    props.put("mail.transport.protocol", "smtp");
+    		    props.put("mail.smtp.auth", "true");
+    		    props.put("mail.smtp.starttls.enable", "true");
+    		    props.put("mail.debug", "true");*/
     			//this.templateMessage.setFrom(username);
     		} else {
     			throw new RuntimeException("Internal Server Error: email server settings are not in the database");

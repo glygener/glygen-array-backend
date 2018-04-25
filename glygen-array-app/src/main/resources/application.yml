@@ -9,4 +9,3 @@ spring:
   mail:
     host: pod51004.outlook.com
     port: 587
-    protocol: smtps
