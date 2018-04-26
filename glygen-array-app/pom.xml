@@ -11,6 +11,11 @@
 	<artifactId>spring-boot-sample-web-secure-jdbc</artifactId>
 	<name>Spring Boot Web Secure JDBC Sample</name>
 	<description>Spring Boot Web Secure JDBC Sample</description>
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+	
 	<dependencies>
 		<!-- Compile -->
 		<dependency>
@@ -33,6 +38,7 @@
 		   	<groupId>org.postgresql</groupId>
   			<artifactId>postgresql</artifactId>
 		</dependency>
+	
 <!-- 		<dependency> -->
 <!-- 			<groupId>com.h2database</groupId> -->
 <!-- 			<artifactId>h2</artifactId> -->
