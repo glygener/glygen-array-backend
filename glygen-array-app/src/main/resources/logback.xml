@@ -1,0 +1,21 @@
+<configuration>
+
+<appender name="db" class="ch.qos.logback.classic.db.DBAppender">
+<connectionSource
+class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+<driverClass>org.postgresql.Driver</driverClass>
+<url>jdbc:postgresql://localhost:5432/postgres</url>
+<user>postgres</user>
+</connectionSource>
+</appender>
+
+<include resource="org/springframework/boot/logging/logback/base.xml" />
+
+<root level="INFO">
+	<appender-ref ref="db"/>
+</root>
+
+
+</configuration>
+
+
