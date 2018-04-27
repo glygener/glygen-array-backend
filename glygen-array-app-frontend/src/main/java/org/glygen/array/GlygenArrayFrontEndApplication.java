@@ -40,7 +40,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Controller
 public class GlygenArrayFrontEndApplication implements WebMvcConfigurer {
 
-	@GetMapping("/profile")
+	@GetMapping("/")
 	public String home(Map<String, Object> model) {
 		model.put("message", "Hello World");
 		model.put("title", "Hello Home");
