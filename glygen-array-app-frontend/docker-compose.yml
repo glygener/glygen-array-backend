@@ -1,7 +1,7 @@
 version: '3.4'
 services:
 #  https:
-  java:
+  glygen-array-frontend:
     image: maven:3.3.9-jdk-8
     ports:
       - 8081:8080
@@ -19,3 +19,8 @@ services:
       - ARRAY_VIRTUAL_HOST
       - ARRAY_VIRTUAL_PORT
     restart: always
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-glygen-array-network}
