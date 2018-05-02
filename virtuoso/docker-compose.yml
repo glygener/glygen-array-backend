@@ -19,4 +19,4 @@ services:
 networks:
   default:
     external:
-      name: ${GLYGEN_ARARY_NETWORK:-glygen-array-network}
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}

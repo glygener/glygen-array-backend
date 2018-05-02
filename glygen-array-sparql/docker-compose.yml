@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  batch:
+    image: maven:3.3.9-jdk-8
+    volumes:
+      - ${PWD}:/workspace
+      - ${MAVEN_DIR:-$HOME/glygen-array/maven/.m2}:/root/.m2
+    working_dir: /workspace/
+    command: mvn test
+    environment:
+     - SPRING_TRIPLESTORE_URL=jdbc:virtuoso://virtuoso:1111
+
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}
