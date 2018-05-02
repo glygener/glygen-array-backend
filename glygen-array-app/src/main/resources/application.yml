@@ -1,3 +1,5 @@
+server:
+  port: 8080
 spring:
   application:
     name: auth-service
@@ -9,3 +11,20 @@ spring:
   mail:
     host: pod51004.outlook.com
     port: 587
+  
+google:
+    client:
+        client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
+        client-secret: yTxCpETHfn7ZqXGyAw8M5idF
+        accessTokenUri: https://www.googleapis.com/oauth2/v3/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/auth
+        tokenName: oauth_token
+        authenticationScheme: query
+        clientAuthenticationScheme: form
+        pre-established-redirect-uri: http://localhost:8080/signin2
+        scope: profile
+    resource:
+        userInfoUri: https://www.googleapis.com/userinfo/v2/me
+        preferTokenInfo: false
+glygen:
+  baseURL: http://localhost:8080
