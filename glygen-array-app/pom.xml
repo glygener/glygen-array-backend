@@ -57,16 +57,11 @@
 	<groupId>org.springframework.security.oauth.boot</groupId>
 	<artifactId>spring-security-oauth2-autoconfigure</artifactId>
 	<version>2.0.0.RELEASE</version>
-</dependency>
-<dependency>
+       </dependency>
+       <dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-oauth2-client</artifactId>
 		</dependency>
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 7edfe32c655c7fffd5677e734cb2291bf7044350
 		<!-- Logback dependencies -->
 		<dependency>
 			    <groupId>javax.xml.bind</groupId>
