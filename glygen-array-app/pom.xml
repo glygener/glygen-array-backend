@@ -63,7 +63,10 @@
 			<artifactId>spring-security-oauth2-client</artifactId>
 		</dependency>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7edfe32c655c7fffd5677e734cb2291bf7044350
 		<!-- Logback dependencies -->
 		<dependency>
 			    <groupId>javax.xml.bind</groupId>

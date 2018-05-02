@@ -1,0 +1,17 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.glygen.array: DEBUG
+    org.glycoinfo: DEBUG
+#    org.springframework.boot.autoconfigure: DEBUG
+
+spring:
+    triplestore:
+        driverClassName: virtuoso.jdbc4.Driver
+        dialect: sparql
+        url: jdbc:virtuoso://virtuoso:1111
+        username: dba
+        password: dba
+        graph: graph

@@ -1,0 +1,13 @@
+version: '3.4'
+services:
+  httpd:
+    image: httpd:alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-glygen-array-network}
