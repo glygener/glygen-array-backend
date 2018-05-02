@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
+<meta name="google-signin-client_id" content="540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com"/>
+<script>
+    function signOut() {
+      var auth2 = gapi.auth2.getAuthInstance();
+      auth2.signOut().then(function () {
+        console.log('User signed out.');
+      });
+    }
+
+    function onLoad() {
+      gapi.load('auth2', function() {
+        gapi.auth2.init();
+      });
+    }
+</script>
+</head>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<body>
+<style>
+    /* Full-width inputs */
+input[type=text], input[type=password] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* Set a style for all buttons */
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Add a hover effect for buttons */
+button:hover {
+    opacity: 0.8;
+}
+.container {
+    padding: 16px;
+}
+</style>
+<h2>Login Form</h2> 
+
+<div class="container">
+    <label for="username"><b>Username</b></label>
+    <input type="text" placeholder="Enter Username" name="username" id="username" class="text"/>
+    <label for="password"><b>Password</b></label>
+    <input type="password" placeholder="Enter Password" name="password" id="password" class="text"/>
+    <button type="button" id='submit'>Sign in</button>
+<h2>Or Login with</h2>
+			<div class="g-signin2" data-onsuccess="onSignIn"
+                                   data-scope="https://www.googleapis.com/auth/plus.login"
+                                   data-accesstype="offline"
+                                   data-redirecturi="http://localhost:8080/login/google"></div>
+				<a href="#" onclick="signOut();">Sign out</a>
+		</div>
+</div>
+<script>
+   $(document).ready(function(){
+   $("#submit").on("click", function() {
+
+       var username = $("input#username").val();
+       var password = $("input#password").val();
+
+       $.ajax({
+           type: "GET",
+           url: "http://localhost:8080/signin",
+           data: {
+        	      format: 'json'
+           },
+           headers: {
+        	    'Authorization': 'Basic ' + btoa(username + ':' + password)
+           },
+           success:function(data) {
+        	   window.location.href = 'http://localhost:8080/';
+           },
+           error: function(xhr){
+        		alert('Request Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText);
+    	   }
+       });
+   })
+  });
+
+
+</script>
+</body>
+</html>
