@@ -52,9 +52,16 @@
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-mail</artifactId>
-		    <version>2.0.1.RELEASE</version>
 		</dependency>
-
+		<dependency>
+	<groupId>org.springframework.security.oauth.boot</groupId>
+	<artifactId>spring-security-oauth2-autoconfigure</artifactId>
+	<version>2.0.0.RELEASE</version>
+       </dependency>
+       <dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-client</artifactId>
+		</dependency>
 		<!-- Logback dependencies -->
 		<dependency>
 			    <groupId>javax.xml.bind</groupId>

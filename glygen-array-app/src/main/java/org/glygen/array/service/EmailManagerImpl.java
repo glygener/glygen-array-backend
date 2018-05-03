@@ -7,6 +7,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -18,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import util.RandomPasswordGenerator;
 
 @Service
+@ConfigurationProperties(prefix="glygen")
 public class EmailManagerImpl implements EmailManager {
+	String baseURL;
 	
 	@Autowired
 	UserManager userManager;
@@ -35,6 +38,14 @@ public class EmailManagerImpl implements EmailManager {
     private SimpleMailMessage templateMessage;
     private String username;
     private String password;
+    
+    public String getBaseURL() {
+		return baseURL;
+	}
+    
+    public void setBaseURL(String baseURL) {
+		this.baseURL = baseURL;
+	}
     
     public void init () {
     	if (username == null && password == null) { // load them from db the first time
@@ -90,19 +101,19 @@ public class EmailManagerImpl implements EmailManager {
     }
 
 	@Override
-	public void sendVerificationToken(UserEntity user, String baseUrl) {
+	public void sendVerificationToken(UserEntity user) {
 		init(); // if username/password have not been initialized, this will get them from DB
 		
 		final String token = UUID.randomUUID().toString();
         userManager.createVerificationTokenForUser(user, token);
-        final SimpleMailMessage email = constructEmailMessage(baseUrl, user, token);
+        final SimpleMailMessage email = constructEmailMessage(user, token);
         mailSender.send(email);
     }
 
-    private final SimpleMailMessage constructEmailMessage(String url, final UserEntity user, final String token) {
+    private final SimpleMailMessage constructEmailMessage(final UserEntity user, final String token) {
         final String recipientAddress = user.getEmail();
         final String subject = "Registration Confirmation";
-        final String confirmationUrl = url + "/registrationConfirm.html?token=" + token;
+        final String confirmationUrl = baseURL + "/registrationConfirm.html?token=" + token;
         //final String message = messages.getMessage("message.regSucc", null, event.getLocale());
         final String message = "Click on the link below to verify your email";
         final SimpleMailMessage email = new SimpleMailMessage();

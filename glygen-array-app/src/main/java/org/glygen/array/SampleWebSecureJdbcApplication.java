@@ -16,132 +16,305 @@
 
 package org.glygen.array;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.sql.DataSource;
+import javax.servlet.Filter;
 
-import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.dao.RoleRepository;
-import org.glygen.array.persistence.dao.VerificationTokenRepository;
-import org.glygen.array.service.EmailManager;
-import org.glygen.array.service.GlygenUserDetailsService;
-import org.glygen.array.service.UserManager;
-import org.glygen.array.view.Confirmation;
-import org.glygen.array.view.Greeting;
-import org.glygen.array.view.User;
-import org.slf4j.LoggerFactory;
+import org.glygen.array.security.MyBasicAuthenticationEntryPoint;
+import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import ch.qos.logback.classic.Logger;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
+import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
+import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.context.request.RequestContextListener;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CompositeFilter;
 
 @SpringBootApplication
-@RestController
 public class SampleWebSecureJdbcApplication {
 	
-	public static Logger logger=(Logger) LoggerFactory.getLogger(SampleWebSecureJdbcApplication.class);
-
-	@Autowired
-	UserManager userManager;
-	
-	@Autowired
-	RoleRepository roleRepository;
-	
-	@Autowired
-	EmailManager emailManager;
-	
-	@Autowired
-	VerificationTokenRepository tokenRepository;
-	
-	@GetMapping("/")
-	public Greeting home() {
-		Greeting greet = new Greeting("Hello World", "Hello Home", new Date());
-		return greet;
-	}
-
-	@RequestMapping("/foo")
-	public String foo() {
-		throw new RuntimeException("Expected exception in controller");
-	}
-	
-	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
-    		consumes={"application/xml", "application/json"})
-	public Confirmation signup (HttpServletRequest request, @RequestBody(required=true) User user) {
-		UserEntity newUser = new UserEntity();
-		newUser.setUsername(user.getUserName());		
-		newUser.setPassword(user.getPassword());
-		newUser.setEnabled(false);
-		newUser.setFirstName(user.getFirstName());
-		newUser.setLastName(user.getLastName());
-		newUser.setEmail(user.getEmail());
-		newUser.setAffiliation(user.getAffiliation());
-		newUser.setAffiliationWebsite(user.getAffiliationWebsite()); 
-		newUser.setPublicFlag(user.getPublicFlag());
-		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
-    	
-        userManager.createUser(newUser);  
-        // send email confirmation
-        emailManager.sendVerificationToken(newUser, request.getContextPath());
-        logger.info("New user {} is added to the system", newUser.getUsername());
-        return new Confirmation("User added successfully", HttpStatus.CREATED.value());
-	}
-	
-	@GetMapping(value = "/registrationConfirm")
-    public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException {
-        final String result = userManager.validateVerificationToken(token);
-        if (result.equals("valid")) {
-            final UserEntity user = userManager.getUserByToken(token);
-            return new Confirmation("User is confirmed", HttpStatus.OK.value());
-        }
-        return new Confirmation("User verification link is expired", HttpStatus.EXPECTATION_FAILED.value());
+	@Bean
+    public RequestContextListener requestContextListener() {
+        return new RequestContextListener();
     }
-	
-	@GetMapping("/login")
-	public @ResponseBody Confirmation signin() {
-		return new Confirmation("User is authorized", HttpStatus.ACCEPTED.value());
-	}
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(SampleWebSecureJdbcApplication.class).run(args);
 	}
+	
 
 	@Configuration
+	@EnableOAuth2Client
 	protected static class ApplicationSecurity extends WebSecurityConfigurerAdapter {
+		
+		@Autowired
+		OAuth2ClientContextFilter oAuth2ClientContextFilter;
+		
+		@Autowired
+		OAuth2ClientContext oauth2ClientContext;
+		
+		@Bean
+		@ConfigurationProperties("google")
+		public ClientResources google() {
+			return new ClientResources();
+		}
+		
+		@Bean
+		AuthenticationEntryPoint authenticationEntryPoint() {
+			return new MyOAuth2AuthenticationEntryPoint();
+		}
+		
+		@Bean
+		public FilterRegistrationBean<OAuth2ClientContextFilter> oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
+			FilterRegistrationBean<OAuth2ClientContextFilter> registration = new FilterRegistrationBean<OAuth2ClientContextFilter>();
+			registration.setFilter(filter);
+			registration.setOrder(-100);
+			return registration;
+		}
+		
+		private Filter ssoFilter() {
+			CompositeFilter filter = new CompositeFilter();
+			List<Filter> filters = new ArrayList<>();
+			filters.add(ssoFilter(google(), "/login/google"));
+			filter.setFilters(filters);
+			return filter;
+		}
+
+		private Filter ssoFilter(ClientResources client, String path) {
+			OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
+			OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
+			oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
+			UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
+					client.getClient().getClientId());
+			tokenServices.setRestTemplate(oAuth2RestTemplate);
+			oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
+			return oAuth2ClientAuthenticationFilter;
+		}
+	
+		@Bean
+	    CorsConfigurationSource corsConfigurationSource() {
+	        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+	        return source;
+	    }
 		
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			 http.authorizeRequests()
+
+			http.authorizeRequests()
 	            .antMatchers("/signup").permitAll()
+	            .antMatchers("/login**").permitAll()
 	            .antMatchers("/registrationConfirm*").permitAll()
-	            .antMatchers("/login").hasAuthority("ROLE_USER")
 	            .anyRequest().fullyAuthenticated()
-	            .and().httpBasic()
-	            .and().csrf().disable();
+	            .and().httpBasic().authenticationEntryPoint(new MyBasicAuthenticationEntryPoint())
+	            .and().cors()
+	            .and().csrf().disable()
+			    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+			
+		//			new GlygenOauth2AuthorizationFilter("/oauth/token") , BasicAuthenticationFilter.class);
 			//http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
 			//		.fullyAuthenticated().and().formLogin().loginPage("/login")
 			//		.failureUrl("/login?error").permitAll().and().logout().permitAll();
 		}
+		
+		class ClientResources {
 
+			@NestedConfigurationProperty
+			private AuthorizationCodeResourceDetails client = new AuthorizationCodeResourceDetails();
+
+			@NestedConfigurationProperty
+			private ResourceServerProperties resource = new ResourceServerProperties();
+
+			public AuthorizationCodeResourceDetails getClient() {
+				return client;
+			}
+
+			public ResourceServerProperties getResource() {
+				return resource;
+			}
+		}
 	}
+
+		
+	/*	@Configuration
+		@EnableOAuth2Sso
+		@Order(1)
+		static class OAuth2SecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {			
+			@Autowired
+			OAuth2ClientContextFilter oAuth2ClientContextFilter;
+			
+			@Autowired
+			OAuth2ClientContext oauth2ClientContext;
+			
+			@Bean
+			@ConfigurationProperties("google")
+			public ClientResources google() {
+				return new ClientResources();
+			}
+			
+			@Bean
+			AuthenticationEntryPoint authenticationEntryPoint() {
+				return new MyOAuth2AuthenticationEntryPoint();
+			}
+			
+			private Filter ssoFilter() {
+				CompositeFilter filter = new CompositeFilter();
+				List<Filter> filters = new ArrayList<>();
+				filters.add(ssoFilter(google(), "/login/google"));
+				filter.setFilters(filters);
+				return filter;
+			}
+
+			private Filter ssoFilter(ClientResources client, String path) {
+				OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
+				OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
+				oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
+				UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
+						client.getClient().getClientId());
+				tokenServices.setRestTemplate(oAuth2RestTemplate);
+				oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
+				return oAuth2ClientAuthenticationFilter;
+			}
+		//	@Bean
+		//	OpenIDConnectAuthenticationFilter openIdConnectAuthenticationFilter() {
+		// OpenIDConnectAuthenticationFilter(LOGIN_URL)
+		//	}
+			
+			@Override
+			protected void configure(HttpSecurity http) throws Exception {
+				http
+					.antMatcher("/oauth2*")
+					.addFilterAfter(oAuth2ClientContextFilter, AbstractPreAuthenticatedProcessingFilter.class)
+				//	.addFilterAfter(openIdConnectAuthenticationFilter(), OAuth2ClientContextFilter.class)
+				.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+				.and()
+					.authorizeRequests()
+						.anyRequest().fullyAuthenticated();
+			}
+			
+			class ClientResources {
+
+				@NestedConfigurationProperty
+				private AuthorizationCodeResourceDetails client = new AuthorizationCodeResourceDetails();
+
+				@NestedConfigurationProperty
+				private ResourceServerProperties resource = new ResourceServerProperties();
+
+				public AuthorizationCodeResourceDetails getClient() {
+					return client;
+				}
+
+				public ResourceServerProperties getResource() {
+					return resource;
+				}
+			}
+		}
+		
+		
+		
+		@Configuration
+		@Order(2)
+		static class BasicAuthWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+			
+			@Autowired
+			OAuth2ClientContextFilter oAuth2ClientContextFilter;
+			
+			@Autowired
+			OAuth2ClientContext oauth2ClientContext;
+			
+			@Bean
+			@ConfigurationProperties("google")
+			public ClientResources google() {
+				return new ClientResources();
+			}
+			
+			@Bean
+			AuthenticationEntryPoint authenticationEntryPoint() {
+				return new MyOAuth2AuthenticationEntryPoint();
+			}
+			
+			private Filter ssoFilter() {
+				CompositeFilter filter = new CompositeFilter();
+				List<Filter> filters = new ArrayList<>();
+				filters.add(ssoFilter(google(), "/login/google"));
+				filter.setFilters(filters);
+				return filter;
+			}
+
+			private Filter ssoFilter(ClientResources client, String path) {
+				OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
+				OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
+				oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
+				UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
+						client.getClient().getClientId());
+				tokenServices.setRestTemplate(oAuth2RestTemplate);
+				oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
+				return oAuth2ClientAuthenticationFilter;
+			}
+		
+			@Bean
+		    CorsConfigurationSource corsConfigurationSource() {
+		        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+		        return source;
+		    }
+			
+			@Override
+			protected void configure(HttpSecurity http) throws Exception {
+	
+				http.authorizeRequests()
+		            .antMatchers("/signup").permitAll()
+		            .antMatchers("/login**").permitAll()
+		            .antMatchers("/registrationConfirm*").permitAll()
+		            .anyRequest().fullyAuthenticated()
+		            .and().httpBasic().authenticationEntryPoint(new MyBasicAuthenticationEntryPoint())
+		            .and().cors()
+		            .and().csrf().disable()
+				    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
+				
+			//			new GlygenOauth2AuthorizationFilter("/oauth/token") , BasicAuthenticationFilter.class);
+				//http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
+				//		.fullyAuthenticated().and().formLogin().loginPage("/login")
+				//		.failureUrl("/login?error").permitAll().and().logout().permitAll();
+			}
+			
+			class ClientResources {
+
+				@NestedConfigurationProperty
+				private AuthorizationCodeResourceDetails client = new AuthorizationCodeResourceDetails();
+
+				@NestedConfigurationProperty
+				private ResourceServerProperties resource = new ResourceServerProperties();
+
+				public AuthorizationCodeResourceDetails getClient() {
+					return client;
+				}
+
+				public ResourceServerProperties getResource() {
+					return resource;
+				}
+			}
+		}
+		
+		*/
 
 }
