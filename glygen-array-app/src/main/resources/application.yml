@@ -9,3 +9,11 @@ spring:
   mail:
     host: pod51004.outlook.com
     port: 587
+
+  triplestore:
+    driverClassName: virtuoso.jdbc4.Driver
+    dialect: sparql
+    url: jdbc:virtuoso://localhost:1111
+    username: dba
+    password: dba
+    graph: graph
