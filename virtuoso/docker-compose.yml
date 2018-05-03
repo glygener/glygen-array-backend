@@ -7,12 +7,6 @@ services:
       - 8890:8890
     volumes:
       - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso/data:/virtuoso
-    environment:
-      - VIRTUAL_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
-      - VIRTUAL_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
-      - LETSENCRYPT_HOST=${VIRTUOSO_VIRTUAL_HOST:-sparql.glygen.org}
-      - LETSENCRYPT_PORT=${VIRTUOSO_VIRTUAL_PORT:-8890}
-      - LETSENCRYPT_EMAIL=${SITE_EMAIL:-glygen-array-uga@sparqlite.com}
     restart: always
 
 networks:
