@@ -10,7 +10,7 @@ services:
       - /etc/localtime:/etc/localtime
       - .:/workspace
     working_dir: /workspace/
-    command: mvn -U -DskipTests=true spring-boot:run $SPRING_PROFILE
+    command: mvn -U -DskipTests=true spring-boot:run
     environment:
       - GOOGLE_OAUTH2_CLIENTID
       - GOOGLE_OAUTH2_CLIENTSECRET

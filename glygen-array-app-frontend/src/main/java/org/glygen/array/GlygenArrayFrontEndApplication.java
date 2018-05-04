@@ -21,7 +21,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.glytoucan.web.model.SequenceInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -141,9 +140,15 @@ public class GlygenArrayFrontEndApplication implements WebMvcConfigurer {
 		 */
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
-					.fullyAuthenticated().and().formLogin().loginPage("/login").failureUrl("/login?error").and()
-					.oauth2Login().loginPage("/login").failureUrl("/login?error").permitAll().and().logout().permitAll();
+			http.authorizeRequests()
+.antMatchers("/css/**").permitAll()
+.antMatchers("/graphical**").permitAll()
+.antMatchers("/complete**").permitAll()
+.antMatchers("/GlycanBuilder**").permitAll()
+.antMatchers("/Submit**").permitAll()
+.anyRequest().fullyAuthenticated().and()
+.formLogin().loginPage("/login").failureUrl("/login?error").and()
+.oauth2Login().loginPage("/login").failureUrl("/login?error").permitAll().and().logout().permitAll();
 		}
 	}
 }
