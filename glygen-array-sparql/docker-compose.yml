@@ -1,6 +1,6 @@
 version: '3.4'
 services:
-  batch:
+  maven:
     image: maven:3.3.9-jdk-8
     volumes:
       - ${PWD}:/workspace

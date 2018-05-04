@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title th:text="${title}">Title</title>
+<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"
+	href="../../css/bootstrap.min.css" />
+</head>
+<body>
+	<div class="container">
+		<div class="navbar">
+			<div class="navbar-inner">
+				<a class="brand" href="http://glycomics.ccrc.uga.edu/ggtest/gui/index.html#"> Glygen Glycan Array </a>
+				<ul class="nav">
+					<li><a th:href="@{/}" href="home.html"> Home </a></li>
+				</ul>
+			</div>
+		</div>
+		<h1 th:text="${title}">Title</h1>
+		<script type="text/javascript" src="/GlycanBuilder/VAADIN/vaadinBootstrap.js"></script>
+      <iframe id="__gwt_historyFrame" style="width:0;height:0;border:0;overflow:hidden" src="javascript:false"></iframe>
+
+      <div style="height:450px;" id="fb" class="v-app">
+        <!-- Optional placeholder for the loading indicator -->
+        <div class=" v-app-loading"></div>
+
+        <!-- Alternative fallback text -->
+        <noscript>You have to enable javascript in your browser to use an application built with Vaadin.</noscript>
+      </div>
+      <script type="text/javascript">//<![CDATA[
+      if (!window.vaadin)
+        alert("Failed to load the bootstrap JavaScript: VAADIN/vaadinBootstrap.js");
+
+      /* The UI Configuration */
+      vaadin.initApplication("fb", {
+      "browserDetailsUrl": "/GlycanBuilder/",
+      "serviceUrl": "/GlycanBuilder/",
+      "widgetset": "ac.uk.icl.dell.vaadin.glycanbuilder.widgetset.GlycanbuilderWidgetset",
+      "theme": "ucdb_2011theme",
+      "versionInfo": {"vaadinVersion": "7.0.0"},
+      "vaadinDir": "/GlycanBuilder/VAADIN/",
+      "heartbeatInterval": 300,
+      "debug": false,
+      "standalone": false,
+      "authErrMsg": {
+      "message": "Take note of any unsaved data, "+
+      "and <u>click here<\/u> to continue.",
+      "caption": "Authentication problem"
+      },
+      "comErrMsg": {
+      "message": "Take note of any unsaved data, "+
+      "and <u>click here<\/u> to continue.",
+      "caption": "Communication problem"
+      },
+      "sessExpMsg": {
+        "message": "Take note of any unsaved data, "+
+          "and <u>click here<\/u> to continue.",
+        "caption": "Session Expired"
+      }
+    });//]]>
+      </script>
+
+<script type="text/javascript">
+var callBack=[];
+callBack.run=function(response){
+  //document.write('Please wait... searching for:' + response);
+  var r = response;
+  var url = "/Submit?sequenceInput=";
+  var x = url + encodeURIComponent(r);
+  //alert(x);
+
+  if (r.length < 1) {
+    alert("Please enter a structure to search");
+    window.location.assign("/graphical");
+    return;
+  }
+  //var s = [ url, "" , r].join("");
+
+  win = window.open("");
+  win.document.open();
+  win.document.write('Please wait... searching for:' + response);
+  win.document.close();
+
+  win.window.location.assign(x);
+}
+</script>
+
+      <form id="frm1" name="frm1" action="ms" method="GET" class="form-search">
+        <input type="button" name="Search" value="${search}" onclick='exportCanvas("glycoct_condensed","callBack");'/>
+      </form>
+
+
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="Sign Out"/>
+        </form>
+	</div>
+</body>
+</html>
