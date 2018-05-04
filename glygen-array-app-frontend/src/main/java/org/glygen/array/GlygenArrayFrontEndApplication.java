@@ -21,6 +21,9 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.glytoucan.web.model.SequenceInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +33,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -45,7 +51,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 @Controller
 public class GlygenArrayFrontEndApplication implements WebMvcConfigurer {
-	
+	private static final Logger logger = LoggerFactory.getLogger(GlygenArrayFrontEndApplication.class);
+
 	/**
 	 * 
 	 * Simple demonstration of Spring MVC.  Dummy bean data will be output to the /src/main/resources/templates/home.html
@@ -63,6 +70,18 @@ public class GlygenArrayFrontEndApplication implements WebMvcConfigurer {
 
 	/**
 	 * 
+	 * Simple demonstration of Spring MVC.  Dummy bean data will be output to the /src/main/resources/templates/home.html
+	 * 
+	 * @param model
+	 * @return home for home.html
+	 */
+	@GetMapping("/graphical")
+	public String graphical(Map<String, Object> model) {
+		return "glycanbuilder";
+	}
+	
+	/**
+	 * 
 	 * Demonstration of exception handing and error page generation.
 	 * 
 	 * @return
@@ -70,6 +89,19 @@ public class GlygenArrayFrontEndApplication implements WebMvcConfigurer {
 	@RequestMapping("/foo")
 	public String foo() {
 		throw new RuntimeException("Expected exception in controller");
+	}
+	
+	/**
+	 * 
+	 * Submission from glycanbuilder.
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/Submit")
+	public String submit(Model model, @RequestParam("sequenceInput") String sequenceInput) {
+		logger.debug("sequenceInput:>" + sequenceInput + "<");
+		model.addAttribute("sequenceInput", sequenceInput);
+		return "completion";
 	}
 
 	/* (non-Javadoc)

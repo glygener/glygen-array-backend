@@ -88,8 +88,8 @@ public class GlygenArrayFrontEndApplicationTests {
 				HttpMethod.POST, new HttpEntity<>(form, headers), String.class);
 		assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 		assertThat(entity.getHeaders().getLocation().toString())
-				.endsWith(this.port + "/");
-		assertThat(entity.getHeaders().get("Set-Cookie")).isNotNull();
+				.endsWith(this.port + "/login?error"); // changed as in-memory db was removed
+		assertThat(entity.getHeaders().get("Set-Cookie")).isNull();
 	}
 
 	private HttpHeaders getHeaders() {
