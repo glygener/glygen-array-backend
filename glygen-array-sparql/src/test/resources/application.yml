@@ -11,7 +11,7 @@ spring:
     triplestore:
         driverClassName: virtuoso.jdbc4.Driver
         dialect: sparql
-        url: jdbc:virtuoso://virtuoso:1111
+        url: jdbc:virtuoso://localhost:1111
         username: dba
         password: dba
         graph: graph

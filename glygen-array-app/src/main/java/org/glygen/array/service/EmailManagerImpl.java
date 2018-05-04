@@ -6,6 +6,7 @@ import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
+import org.glygen.array.util.RandomPasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.mail.SimpleMailMessage;
@@ -15,8 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import util.RandomPasswordGenerator;
 
 @Service
 @ConfigurationProperties(prefix="glygen")

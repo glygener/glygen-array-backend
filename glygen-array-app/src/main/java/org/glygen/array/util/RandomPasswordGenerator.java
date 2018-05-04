@@ -1,4 +1,4 @@
-package util;
+package org.glygen.array.util;
 
 import java.util.Random;
 

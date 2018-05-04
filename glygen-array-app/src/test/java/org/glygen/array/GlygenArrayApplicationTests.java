@@ -19,7 +19,7 @@ public class GlygenArrayApplicationTests {
 
 	@Test
 	public void testLogging() {
-		final Logger log = LoggerFactory.getLogger(org.glygen.array.SampleWebSecureJdbcApplication.class);
+		final Logger log = LoggerFactory.getLogger(org.glygen.array.GlygenArrayApplication.class);
 		log.info("Info test");
 		log.debug("Debug test");
 		log.warn("Warning test");

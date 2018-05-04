@@ -16,13 +16,18 @@
 
 package org.glygen.array;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.Filter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.glygen.array.security.MyBasicAuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
+import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
@@ -35,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
@@ -42,6 +48,7 @@ import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilt
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.cors.CorsConfiguration;
@@ -50,7 +57,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 
 @SpringBootApplication
-public class SampleWebSecureJdbcApplication {
+public class GlygenArrayApplication {
 	
 	@Bean
     public RequestContextListener requestContextListener() {
@@ -58,7 +65,7 @@ public class SampleWebSecureJdbcApplication {
     }
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(SampleWebSecureJdbcApplication.class).run(args);
+		new SpringApplicationBuilder(GlygenArrayApplication.class).run(args);
 	}
 	
 
@@ -103,11 +110,17 @@ public class SampleWebSecureJdbcApplication {
 			OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
 			OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
 			oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
+			oAuth2ClientAuthenticationFilter.setAuthenticationSuccessHandler(oAuth2authenticationSuccessHandler());
 			UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
 					client.getClient().getClientId());
 			tokenServices.setRestTemplate(oAuth2RestTemplate);
 			oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
 			return oAuth2ClientAuthenticationFilter;
+		}
+		
+		@Bean
+		SimpleUrlAuthenticationSuccessHandler oAuth2authenticationSuccessHandler() {
+			return new MyOAuth2AuthenticationSuccessHandler();
 		}
 	
 		@Bean
@@ -121,15 +134,15 @@ public class SampleWebSecureJdbcApplication {
 		protected void configure(HttpSecurity http) throws Exception {
 
 			http.authorizeRequests()
-	            .antMatchers("/signup").permitAll()
+	            .antMatchers("/users/signup").permitAll()
 	            .antMatchers("/login**").permitAll()
-	            .antMatchers("/registrationConfirm*").permitAll()
+	            .antMatchers("/users/registrationConfirm*").permitAll()
 	            .anyRequest().fullyAuthenticated()
 	            .and().httpBasic().authenticationEntryPoint(new MyBasicAuthenticationEntryPoint())
 	            .and().cors()
 	            .and().csrf().disable()
 			    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-			
+						
 		//			new GlygenOauth2AuthorizationFilter("/oauth/token") , BasicAuthenticationFilter.class);
 			//http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
 			//		.fullyAuthenticated().and().formLogin().loginPage("/login")
