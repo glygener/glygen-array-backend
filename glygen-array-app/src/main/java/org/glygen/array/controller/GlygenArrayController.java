@@ -36,7 +36,8 @@ public class GlygenArrayController {
 			SparqlEntity sparqlentity = new SparqlEntity();
 			sparqlentity.setValue(GlycanBindingInsertSparql.URI, "http://array.glygen.org/" + glycan.getGlycanId());
 			sparqlentity.setValue(GlycanBindingKeys.BINDING_VALUE, glycan.getBindingValue());
-			sparqlentity.setGraph("<http://array.glygen.org/demo/test>");
+			//sparqlentity.setGraph("<http://array.glygen.org/demo/test>");
+			ins.setGraph("http://array.glygen.org/demo/test");
 			ins.setSparqlEntity(sparqlentity);
 			
 			sparqlDAO.insert(ins);
