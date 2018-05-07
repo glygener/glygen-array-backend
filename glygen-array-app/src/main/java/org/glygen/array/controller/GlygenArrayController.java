@@ -30,22 +30,23 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	public Confirmation addGlycanBinding (GlycanBinding glycan) {
+	public Confirmation addGlycanBinding (GlycanBinding glycan) throws Exception {
 		try {
 			GlycanBindingInsertSparql ins = new GlycanBindingInsertSparql();
 			SparqlEntity sparqlentity = new SparqlEntity();
-			sparqlentity.setValue(GlycanBindingInsertSparql.URI, generateUniqueURI("http://array.glygen.org/", glycan.getGlycanId()));
+			sparqlentity.setValue(GlycanBindingInsertSparql.URI, "http://array.glygen.org/" + glycan.getGlycanId());
 			sparqlentity.setValue(GlycanBindingKeys.BINDING_VALUE, glycan.getBindingValue());
+			sparqlentity.setGraph("<http://array.glygen.org/demo/test>");
 			ins.setSparqlEntity(sparqlentity);
 			
 			sparqlDAO.insert(ins);
 			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());
 		} catch (SparqlException se) {
 			logger.error("Cannot insert into the Triple store", se);
-			return new Confirmation("Binding cannot be added", HttpStatus.EXPECTATION_FAILED.value());
+			throw new Exception("Binding cannot be added", se);
 		} catch (Exception e) {
 			logger.error("Cannot generate unique URI", e);
-			return new Confirmation("Binding cannot be added", HttpStatus.EXPECTATION_FAILED.value());
+			throw new Exception("Binding cannot be added", e);
 		}
 	}
 
@@ -68,7 +69,7 @@ public class GlygenArrayController {
 			newURI = uri + "_" + randomSuffix;
 			GlycanBindingSelectSparql selectGlycanId = new GlycanBindingSelectSparql();
 			selectGlycanId.setPrefix("PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan#>\n");
-			selectGlycanId.setSelect("DISTINCT ?o\n");
+			selectGlycanId.setSelect("?p \n");
 			selectGlycanId.setFrom("FROM <http://array.glygen.org/demo/test>");
 			selectGlycanId.setWhere("{{<" + newURI + "> ?p ?o . }\n" +
 					"UNION\n" + 

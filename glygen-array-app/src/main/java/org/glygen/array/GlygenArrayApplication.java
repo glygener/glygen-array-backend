@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.servlet.Filter;
 
+import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionConfig;
 import org.glygen.array.security.MyBasicAuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
@@ -34,6 +35,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -66,6 +68,7 @@ public class GlygenArrayApplication {
 
 	@Configuration
 	@EnableOAuth2Client
+	@Import(VirtSesameTransactionConfig.class)
 	protected static class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		
 		@Autowired
