@@ -15,6 +15,17 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>glycoinfo</id>
+			<url>http://nexus.glycoinfo.org/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>sparqlite</id>
+			<url>https://nexus.sparqlite.com/repository/maven-public/</url>
+		</repository>
+	</repositories>
+
 
 	<dependencies>
 		<!-- Compile -->
@@ -66,8 +77,7 @@
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
-			<version>2.3.0</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>org.glygen.array</groupId>
 			<artifactId>sparqlbean</artifactId>
