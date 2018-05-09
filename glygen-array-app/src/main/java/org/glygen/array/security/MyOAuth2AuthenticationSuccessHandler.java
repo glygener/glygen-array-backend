@@ -14,7 +14,21 @@ public class MyOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticatio
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 		Authentication authentication) throws IOException, ServletException {
-        setUseReferer(true);
+		setDefaultTargetUrl("/users/signin");
         super.onAuthenticationSuccess(request, response, authentication);
+        
+        /*
+          String redirectUrl = request.getParameter(REDIRECT_URL_PARAM);
+          if (redirectUrl == null) {
+            redirectUrl = DEFAULT_REDIRECT_URL;
+          } else {
+            if (!redirectUrlValidator.validateRedirectUrl(redirectUrl)) {
+              request.setAttribute(MESSAGE_ATTRIBUTE_NAME,
+                  messageSource.getMessage("ivalid.redirect.url", new String[] { redirectUrl }, LocaleContextHolder.getLocale()));
+              response.sendError(HttpStatus.FORBIDDEN.value());
+            }
+          }
+          defaultRedirectStrategy.sendRedirect(request, response, redirectUrl);
+         */
     }
 }
