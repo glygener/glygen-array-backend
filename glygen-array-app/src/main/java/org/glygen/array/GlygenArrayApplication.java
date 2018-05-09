@@ -27,6 +27,7 @@ import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -36,6 +37,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -43,7 +45,6 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -54,6 +55,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
 
 @SpringBootApplication
+@EnableOAuth2Sso
 public class GlygenArrayApplication {
 	
 	@Bean
@@ -67,9 +69,20 @@ public class GlygenArrayApplication {
 	
 
 	@Configuration
-	@EnableOAuth2Client
-	@Import(VirtSesameTransactionConfig.class)
+	@Order(1)
 	protected static class ApplicationSecurity extends WebSecurityConfigurerAdapter {
+		
+		private static final String[] AUTH_WHITELIST = {
+	            // -- swagger ui
+	            "/v2/api-docs",
+	            "/swagger-resources",
+	            "/swagger-resources/**",
+	            "/configuration/ui",
+	            "/configuration/security",
+	            "/swagger-ui.html",
+	            "/webjars/**"
+	            // other public endpoints of API may be appended to this array
+	    };
 		
 		@Autowired
 		OAuth2ClientContextFilter oAuth2ClientContextFilter;
@@ -132,6 +145,7 @@ public class GlygenArrayApplication {
 		protected void configure(HttpSecurity http) throws Exception {
 
 			http.authorizeRequests()
+			    .antMatchers(AUTH_WHITELIST).permitAll()
 	            .antMatchers("/users/signup").permitAll()
 	            .antMatchers("/login**").permitAll()
 	            .antMatchers("/users/registrationConfirm*").permitAll()
@@ -164,168 +178,4 @@ public class GlygenArrayApplication {
 			}
 		}
 	}
-
-		
-	/*	@Configuration
-		@EnableOAuth2Sso
-		@Order(1)
-		static class OAuth2SecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {			
-			@Autowired
-			OAuth2ClientContextFilter oAuth2ClientContextFilter;
-			
-			@Autowired
-			OAuth2ClientContext oauth2ClientContext;
-			
-			@Bean
-			@ConfigurationProperties("google")
-			public ClientResources google() {
-				return new ClientResources();
-			}
-			
-			@Bean
-			AuthenticationEntryPoint authenticationEntryPoint() {
-				return new MyOAuth2AuthenticationEntryPoint();
-			}
-			
-			private Filter ssoFilter() {
-				CompositeFilter filter = new CompositeFilter();
-				List<Filter> filters = new ArrayList<>();
-				filters.add(ssoFilter(google(), "/login/google"));
-				filter.setFilters(filters);
-				return filter;
-			}
-
-			private Filter ssoFilter(ClientResources client, String path) {
-				OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
-				OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
-				oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
-				UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
-						client.getClient().getClientId());
-				tokenServices.setRestTemplate(oAuth2RestTemplate);
-				oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
-				return oAuth2ClientAuthenticationFilter;
-			}
-		//	@Bean
-		//	OpenIDConnectAuthenticationFilter openIdConnectAuthenticationFilter() {
-		// OpenIDConnectAuthenticationFilter(LOGIN_URL)
-		//	}
-			
-			@Override
-			protected void configure(HttpSecurity http) throws Exception {
-				http
-					.antMatcher("/oauth2*")
-					.addFilterAfter(oAuth2ClientContextFilter, AbstractPreAuthenticatedProcessingFilter.class)
-				//	.addFilterAfter(openIdConnectAuthenticationFilter(), OAuth2ClientContextFilter.class)
-				.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
-				.and()
-					.authorizeRequests()
-						.anyRequest().fullyAuthenticated();
-			}
-			
-			class ClientResources {
-
-				@NestedConfigurationProperty
-				private AuthorizationCodeResourceDetails client = new AuthorizationCodeResourceDetails();
-
-				@NestedConfigurationProperty
-				private ResourceServerProperties resource = new ResourceServerProperties();
-
-				public AuthorizationCodeResourceDetails getClient() {
-					return client;
-				}
-
-				public ResourceServerProperties getResource() {
-					return resource;
-				}
-			}
-		}
-		
-		
-		
-		@Configuration
-		@Order(2)
-		static class BasicAuthWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-			
-			@Autowired
-			OAuth2ClientContextFilter oAuth2ClientContextFilter;
-			
-			@Autowired
-			OAuth2ClientContext oauth2ClientContext;
-			
-			@Bean
-			@ConfigurationProperties("google")
-			public ClientResources google() {
-				return new ClientResources();
-			}
-			
-			@Bean
-			AuthenticationEntryPoint authenticationEntryPoint() {
-				return new MyOAuth2AuthenticationEntryPoint();
-			}
-			
-			private Filter ssoFilter() {
-				CompositeFilter filter = new CompositeFilter();
-				List<Filter> filters = new ArrayList<>();
-				filters.add(ssoFilter(google(), "/login/google"));
-				filter.setFilters(filters);
-				return filter;
-			}
-
-			private Filter ssoFilter(ClientResources client, String path) {
-				OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
-				OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
-				oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
-				UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
-						client.getClient().getClientId());
-				tokenServices.setRestTemplate(oAuth2RestTemplate);
-				oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
-				return oAuth2ClientAuthenticationFilter;
-			}
-		
-			@Bean
-		    CorsConfigurationSource corsConfigurationSource() {
-		        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-		        return source;
-		    }
-			
-			@Override
-			protected void configure(HttpSecurity http) throws Exception {
-	
-				http.authorizeRequests()
-		            .antMatchers("/signup").permitAll()
-		            .antMatchers("/login**").permitAll()
-		            .antMatchers("/registrationConfirm*").permitAll()
-		            .anyRequest().fullyAuthenticated()
-		            .and().httpBasic().authenticationEntryPoint(new MyBasicAuthenticationEntryPoint())
-		            .and().cors()
-		            .and().csrf().disable()
-				    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-				
-			//			new GlygenOauth2AuthorizationFilter("/oauth/token") , BasicAuthenticationFilter.class);
-				//http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
-				//		.fullyAuthenticated().and().formLogin().loginPage("/login")
-				//		.failureUrl("/login?error").permitAll().and().logout().permitAll();
-			}
-			
-			class ClientResources {
-
-				@NestedConfigurationProperty
-				private AuthorizationCodeResourceDetails client = new AuthorizationCodeResourceDetails();
-
-				@NestedConfigurationProperty
-				private ResourceServerProperties resource = new ResourceServerProperties();
-
-				public AuthorizationCodeResourceDetails getClient() {
-					return client;
-				}
-
-				public ResourceServerProperties getResource() {
-					return resource;
-				}
-			}
-		}
-		
-		*/
-
 }

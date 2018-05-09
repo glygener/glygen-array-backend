@@ -60,6 +60,18 @@ button:hover {
     <input type="password" placeholder="Enter Password" name="password" id="password" class="text"/>
     <button type="button" id='submit'>Sign in</button>
 <h2>Or Login with</h2>
+     <!-- button type="button" id='submit-google'>Sign in with Google</button -->
+</div>
+<div class="panel panel-default">
+     <div class="panel-heading">Google login with OAuth2</div>
+        <div class="panel-body">
+                <div class="col-md-12">
+                    <a class="btn btn-default" href="http://localhost:8080/login/google">Google Login</a>
+                </div>
+            </div>
+        </div>
+</div>
+<!--
 <div id="my-signin2"></div>
   <script>
     function onSuccess(googleUser) {
@@ -97,13 +109,13 @@ button:hover {
 
   <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
 
-		<!--	<div class="g-signin2" data-onsuccess="onSignIn"
+		<div class="g-signin2" data-onsuccess="onSignIn"
                                    data-scope="https://www.googleapis.com/auth/plus.login"
                                    data-accesstype="offline"
-                                   data-redirecturi="http://localhost:8080/login/google"></div> -->
+                                   data-redirecturi="http://localhost:8080/login/google"></div> 
 				<a href="#" onclick="signOut();">Sign out</a>
 		</div>
-</div>
+</div>  -->
 <script>
    $(document).ready(function(){
    $("#submit").on("click", function() {
@@ -120,6 +132,20 @@ button:hover {
            headers: {
         	    'Authorization': 'Basic ' + btoa(username + ':' + password)
            },
+           success:function(xhr) {
+               alert('Request Status: ' + xhr.status);
+           },
+           error: function(xhr){
+        		alert('Request Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText);
+    	   }
+       });
+   })
+  });
+  
+  $(document).ready(function(){
+   $("#submit-google").on("click", function() {
+       $.ajax({
+           url: "http://localhost:8080/google/login",
            success:function(xhr) {
                alert('Request Status: ' + xhr.status);
            },
