@@ -6,7 +6,7 @@ services:
       - 1111:1111
       - 8890:8890
     volumes:
-      - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso/data:/virtuoso
+      - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso/data:/usr/local/virtuoso-opensource/var/lib/virtuoso
     restart: always
 
 networks:
