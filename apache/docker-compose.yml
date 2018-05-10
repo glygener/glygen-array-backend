@@ -3,7 +3,7 @@ services:
   httpd:
     image: httpd:alpine
     ports:
-      - 80:80
+      - 9980:80
     volumes:
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
 

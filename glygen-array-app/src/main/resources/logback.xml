@@ -1,10 +1,12 @@
-<configuration>
-
+<configuration> 
 <appender name="db" class="ch.qos.logback.classic.db.DBAppender">
 <connectionSource
 class="ch.qos.logback.core.db.DriverManagerConnectionSource">
 <driverClass>org.postgresql.Driver</driverClass>
+<!--
 <url>jdbc:postgresql://localhost:5432/postgres</url>
+-->
+<url>${SPRING_DATASOURCE_URL}</url>
 <user>postgres</user>
 </connectionSource>
 </appender>
