@@ -165,39 +165,6 @@ public class SparqlDAOImplTest {
 
 	/**
 	 * 
-	 * Example of writing an entire query in string format before passing into bean.
-	 * 
-	 */
-	@Test
-	@Transactional
-	public void testConvertQuery() {
-		String query = prefix + "SELECT DISTINCT ?s ?AccessionNumber ?Seq ?type\n" + 
-	"WHERE {" + 
-	"?s a glycan:saccharide . " + 
-	"?s glytoucan:has_primary_id ?AccessionNumber . " +
-	"?s glycan:has_glycosequence ?gseq . " +
-	"?gseq glycan:has_sequence ?Seq . \n" +
-	"?gseq glycan:in_carbohydrate_format ?type} LIMIT 10";
-
-		try {
-			logger.debug("query:>" + query);
-			List<SparqlEntity> list = schemaDAO.query(new SelectSparqlBean(query));
-			if (list.size() > 0) {
-				SparqlEntity row = list.get(0);
-				logger.debug("s:>" + row.getValue("s"));
-				logger.debug("Seq:>" + row.getValue("Seq"));
-				logger.debug("type:>" + row.getValue("type"));
-				logger.debug("AccessionNumber:>" + row.getValue("AccessionNumber"));
-			} else
-				fail();
-		} catch (Exception e) {
-			e.printStackTrace();
-			assertFalse("Exception occurred while querying schema.", true);
-		}
-	}
-
-	/**
-	 * 
 	 * Simple delete data test case.
 	 * 
 	 * @throws SparqlException
