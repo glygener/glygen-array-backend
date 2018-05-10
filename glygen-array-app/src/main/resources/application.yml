@@ -31,4 +31,6 @@ google:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         preferTokenInfo: true
 glygen:
-  baseURL: http://localhost:8080
+  scheme: http://
+  host: localhost:8080
+  basePath: /

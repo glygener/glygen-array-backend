@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.servlet.Filter;
 
-import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionConfig;
 import org.glygen.array.security.MyBasicAuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
@@ -36,7 +35,6 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;

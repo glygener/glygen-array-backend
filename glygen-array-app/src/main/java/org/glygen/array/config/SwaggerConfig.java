@@ -5,6 +5,7 @@ import static springfox.documentation.builders.PathSelectors.ant;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,10 +26,28 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {                                    
+public class SwaggerConfig {    
+	
+	@Value("${glygen.host}")
+	private String host;
+	
+	@Value("${glygen.basePath}")
+	private String basePath;
+	
+	@Value("${google.client.client-id}")
+    private String swaggerAppClientId;
+
+    @Value("${google.client.client-secret}")
+    private String swaggerClientSecret;
+
+    @Value("${google.client.accessTokenUri}")
+    private String swaggerTokenURL;
+    
     @Bean
     public Docket api() { 
-        return new Docket(DocumentationType.SWAGGER_2)  
+        return new Docket(DocumentationType.SWAGGER_2)
+          .host(host)
+          .pathMapping(basePath)
           .select()                                  
           .apis(RequestHandlerSelectors.any())              
           .paths(PathSelectors.any())                          
@@ -54,7 +73,7 @@ public class SwaggerConfig {
 
     List<GrantType> grantTypes() {
         GrantType grantType = new ImplicitGrantBuilder()
-                .loginEndpoint(new LoginEndpoint("http://localhost:8080/users/signin"))
+                .loginEndpoint(new LoginEndpoint(host + "/login/google"))
                 .build();
         return newArrayList(grantType);
     }
@@ -73,7 +92,7 @@ public class SwaggerConfig {
 
         return SecurityContext.builder()
                 .securityReferences(newArrayList(securityReference, securityReference2))
-                .forPaths(ant("/api/array*"))
+                .forPaths(ant("/array*"))
                 .build();
     }
 }
