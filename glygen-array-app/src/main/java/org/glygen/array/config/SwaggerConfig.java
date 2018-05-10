@@ -52,7 +52,7 @@ public class SwaggerConfig {
           .apis(RequestHandlerSelectors.any())              
           .paths(PathSelectors.any())                          
           .build()
-          .securitySchemes(newArrayList(oauth(), new BasicAuth("basic")))
+          .securitySchemes(newArrayList(new BasicAuth("basic")))
           .securityContexts(newArrayList(securityContext()));
     }
     
@@ -91,7 +91,7 @@ public class SwaggerConfig {
                 .build();
 
         return SecurityContext.builder()
-                .securityReferences(newArrayList(securityReference, securityReference2))
+                .securityReferences(newArrayList(securityReference2))
                 .forPaths(ant("/array*"))
                 .build();
     }
