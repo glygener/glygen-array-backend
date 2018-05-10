@@ -15,6 +15,9 @@ services:
       - SPRING_TRIPLESTORE_PASSWORD
       - SPRING_TRIPLESTORE_URL=${SPRING_TRIPLESTORE_URL:-jdbc:virtuoso://virtuoso:1111}
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/postgres}
+      - GLYGEN_SCHEME
+      - GLYGEN_HOST
+      - GLYGEN_BASEPATH
     restart: always
 
 networks:
