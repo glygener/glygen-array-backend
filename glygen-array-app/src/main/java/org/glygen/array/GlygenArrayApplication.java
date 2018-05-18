@@ -171,7 +171,6 @@ public class GlygenArrayApplication {
 			
 			final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService);
 	        http.addFilterBefore(tokenFilter, BasicAuthenticationFilter.class);
-
 	        //Creating token when basic authentication is successful and the same token can be used to authenticate for further requests
 	        final MyBasicAuthenticationFilter customBasicAuthFilter = new MyBasicAuthenticationFilter(this.authenticationManager() );
 	        http.addFilter(customBasicAuthFilter);

@@ -136,7 +136,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         HttpStatus status;
         ErrorMessage errorMessage = null;
         
-        if (ex instanceof ObjectNotFoundException ) { //|| ex instanceof UserNotFoundException || ex instanceof GlycanNotFoundException
+        if (ex instanceof ObjectNotFoundException || ex instanceof UserNotFoundException ) { //|| ex instanceof GlycanNotFoundException
         	//	|| ex instanceof MotifNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());
@@ -287,6 +287,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                 errorMessage = new ErrorMessage (ex.getMessage());
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT_JSON);
             }
+        } else if (ex instanceof LinkExpiredException) {
+        	status = HttpStatus.BAD_REQUEST;
+        	errorMessage = new ErrorMessage (ex.getMessage());
+        	errorMessage.setErrorCode(ErrorCodes.EXPIRED);
         } else {
             logger.warn("Unknown exception type: " + ex.getClass().getName());
             StringWriter result = new StringWriter();

@@ -14,7 +14,8 @@ public enum ErrorCodes {
 	PARSE_ERROR (4009, "ParseError"),
 	NOT_FOUND (4040, "NotFound"),
 	UNAUTHORIZED(4010, "Unauthorized"), 
-	ACCESS_DENIED (4030, "AccessDenied");
+	ACCESS_DENIED (4030, "AccessDenied"),
+	EXPIRED (4050, "Expired");
 	
 	private Integer code;
 	private String error;
