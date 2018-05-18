@@ -7,7 +7,7 @@ class="ch.qos.logback.core.db.DriverManagerConnectionSource">
 <url>jdbc:postgresql://localhost:5432/postgres</url>
 -->
 <url>${SPRING_DATASOURCE_URL}</url>
-<user>postgres</user>
+<user>glygen</user>
 </connectionSource>
 </appender>
 

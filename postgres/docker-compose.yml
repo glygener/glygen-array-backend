@@ -1,12 +1,17 @@
 version: '3.4'
 services:
   postgres:
-    image: postgres
+    restart: always
+    build: .
     ports:
       - "5432:5432"
     volumes:
       - $HOME/glygen-array/postgres:/var/lib/postgresql/data
-
+    environment:
+      - DB_USER=glygen
+      - DB_PASSWORD
+      - DB_DATABASE=glygen
+      - POSTGRES_USER=postgres
 networks:
   default:
     external:
