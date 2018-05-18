@@ -8,6 +8,7 @@ class="ch.qos.logback.core.db.DriverManagerConnectionSource">
 -->
 <url>${SPRING_DATASOURCE_URL}</url>
 <user>glygen</user>
+<password>${SPRING_DATASOURCE_PASSWORD}</password>
 </connectionSource>
 </appender>
 
