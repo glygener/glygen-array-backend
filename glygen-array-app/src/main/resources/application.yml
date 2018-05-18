@@ -2,8 +2,9 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
+    url: jdbc:postgresql://localhost:5432/glygen
+    username: glygen
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     driver-class-name: org.postgresql.Driver
     initialization-mode: always
   mail:
