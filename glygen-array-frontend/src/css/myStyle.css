@@ -1,0 +1,93 @@
+body {
+    font-family: "Arial", "Verdana", sans-serif;
+    /*font-family: "Verdana", "Geneva", sans-serif;*/
+    color: #4A4A4A;
+    background-color: white;
+    font-weight: 400;  
+}
+
+body {
+    min-height: 100%;
+    /*margin: 10 10 15 15;*/
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility\9;
+}
+
+a {
+    text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h1 {
+    font-size: 2.625em;
+}
+
+h2 {
+    font-size: 2.25em;
+}
+
+h3 {
+    font-size: 1.875em;
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h4 {
+    font-size: 1.5em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.2;
+}
+
+h5 {
+    font-size: 1.25em;
+    font-weight: 530;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.3;
+}
+
+h6 {
+    font-size: 1.125em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.4;
+}
+
+p {
+    font-weight: 500;
+    margin: .5em 0 1em;
+    font-size: 1.3em;
+}
+.title {
+    margin: 0 0 .5em 0;
+}
+
+#container {
+    border: 1px solid grey;
+    border-radius: 8px;
+    margin-top: 85px;
+    margin-right: 600px;
+    margin-left: 600px;
+}
+
+#content {
+}
+
+#createAccount {
+    text-align: center;
+    font-size: 115%;
+}
+
+#required {
+    text-align: center;
+    font-size: 10px;
+    height: 28px;
+    margin-right: 250px;
+    margin-left: 250px;
+    padding: 10px 0px 10px 0px;
+    border-left: 8px solid #2e9fd8;
+    border-width: 10px;
+    background-color: rgb(174, 227, 245);
+}
