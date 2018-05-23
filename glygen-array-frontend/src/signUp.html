@@ -1,70 +1,79 @@
+<!DOCTYPE html>
 <html> 
     <head>
         <title>Glygen</title>
         <link rel="stylesheet" type="text/css" href="css/myStyle.css">       
     </head>
     <body>
+        <div id="logo">
+            <img src="images/glygenW_logo.png" alt="Glygen Logo">
+        </div>
         <div id="container">
-            <div id="header">
-
-            </div>
-            
             <div id="content">
                 <div id="createAccount">
                         <h5>Create Account</h5>
                 </div>
-                <div id="required">
-                    <p>*Indicates required fields</p>
-                </div>
+                <!--<div id="required">
+                    <p>* Indicates required fields</p>
+                </div>-->
                 <div id="submissionForm">
                     <form>
                         <div id="username">
-                            Username:*<br>
-                            <input type="text" name="username"><br><br>
+                            <label for="username">Username</label>
+                            <input id="username" type="text" name="username">
                         </div>
                         <div id="password">
-                            Password:*<br>
-                            <input type="text" name="password"><br><br>
+                            <label for="password">Password</label>
+                            <input id="password" type="text" name="password">
                         </div>
                         <div id="passConf">
-                            Confirm Password:*<br>
-                            <input type="text" name="passwordConf"><br><br>
+                            <label for="passConf">Confirm Password</label>
+                            <input id="passConf" type="text" name="passwordConf">
                         </div>
-                        
+
                         <div id="firstName">
-                            Name:*<br>
-                            <input type="text" name="firstName">
+                            <Label for="firstName">Name</Label>
+                            <input id="firstName" type="text" name="firstName" placeholder="First" onfocus="this.placeholder=''" onblur="this.placeholder='First'"/>
                         </div>
                         <div id="lastName">
-                            <input type="text" name="lastName"><br>
-                            First
-                            Last<br><br>
+                            <input id="lastName" type="text" name="lastName" placeholder="Last" onfocus="this.placeholder=''" onblur="this.placeholder='Last'"/>
                         </div>
                         <div id="public">
-                            Public Profile:*<br>
-                            <input type="text" name="public"><br><br>
+                            <Label for="yes">Public Profile</Label>
+                            <div id="yesnoButtons">
+                                <button id="yesButton" type="button" class="public">Yes</button>
+                                <button id="noButton" type="button" class="public">No</button>
+                                <!--
+                                <input id="yes" type="radio" name="public">
+                                <input id="no" type="radio" name="public">
+                                -->
+                            </div>
                         </div>
                         <div id="email">
-                            Email Address:*<br>
-                            <input type="text" name="email"><br><br>
+                            <Label for="email">Email Address</Label>
+                            <input id="email" type="text" name="email">
                         </div>
                         <div id="affiliation">
-                            Affiliation:*<br>
-                            <input type="text" name="affiliation"><br><br>
+                            <Label for="affiliation">Affiliation</Label>
+                            <input id="affiliation" type="text" name="affiliation">
                         </div>
                         <div id="affWeb">
-                            Affiliation Website:*<br>
-                            <input type="text" name="affWebsite"><br><br>
+                            <Label for="affWeb">Affiliation Website</Label>
+                            <input id="affWeb" type="text" name="affWebsite">
                         </div>
-                        <div id="createAccount">
-                                <input type="submit" value="Create New Account">
-                        </div>
-                        <div id="cancel">
-                                <input type="submit" value="Cancel"><br><br>
-                        </div>
-                        <div id="alreadyRegistered">
-                            Already have an account?
-                            <input type="submit" value="Log In"><br>
+                        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                        <div id="buttons">
+                            <div id="createAccount">    
+                                <button type="button" class="createaccountbtn">Create New Account</button>
+                            </div>
+                            <div id="cancel">
+                                <button type="button" class="cancelbtn">Cancel</button>
+                            </div>
+                            <hr>
+                            <div id="alreadyRegistered">
+                                Already have an account?
+                                <button type="button" class="loginbtn">Log In</button>
+                            </div>
                         </div>
                     </form>
                 </div>
