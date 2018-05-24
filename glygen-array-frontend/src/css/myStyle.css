@@ -4,12 +4,11 @@ body {
     color: rgb(0, 0, 0);
     background-color: rgb(255, 255, 255);
     font-weight: 400;  
-    overflow: hidden;
+    overflow: auto;
+    text-align: center;
 }
 
 body {
-    min-height: 100%;
-    min-width: 100%;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     font-smoothing: antialiased;
@@ -49,6 +48,7 @@ h5 {
     font-weight: 400;
     font-family: "Verdana", "Geneva", sans-serif;
     line-height: .3;
+    margin-top: 10px;
 }
 
 h6 {
@@ -66,32 +66,26 @@ p {
     margin: 0 0 .5em 0;
 }
 
-#logo {
-    text-align:center;
-    margin-top: 40px;
-    margin-bottom : 10px;
+#page-wrap {
+    max-width: 100%;
+    margin: 0px auto;
 }
 
 #container {
-    min-width: 650px;
-    margin: auto;
+    margin: 0px auto;
+    width: 550px;
     text-align: center;
     border: 1px solid rgb(201, 201, 201);
     border-radius: 8px;
-    margin-top: 60px;
-    margin-bottom: 40px;
-    margin-right: 650px;
-    margin-left: 650px;
-    padding-top: 8px;
-    padding-bottom: 70px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 25px;
 }
 
 #logo {
-    margin-top: 0;
     min-width: 650px;
-    text-align: center;
-    padding-top: 25px;
-    padding-bottom: 25px;
+    padding-top: 15px;
+    padding-bottom: 15px;
     background-color: lightblue;
 }
 
@@ -110,7 +104,7 @@ p {
 #firstName {
     width: 100px;
     margin-right: 3px;
-    margin-bottom:15px;
+    margin-bottom: 15px;
 }
 
 #lastName{
@@ -118,24 +112,15 @@ p {
 }
 
 #email {
-    margin-bottom:15px;
+    margin-bottom: 15px;
 }
 
 #affiliation {
-    margin-bottom:15px;
+    margin-bottom: 15px;
 }
 
 #affWeb {
-    margin-bottom:15px;
-}
-
-#buttons {
-    margin-bottom:15px;
-}
-
-#createAccount {
-    text-align: center;
-    font-size: 115%;
+    margin-bottom: 15px;
 }
 
 #submissionForm {
@@ -166,7 +151,7 @@ p {
 label {
     float: left;
     clear: left;
-    width: 250px;
+    width: 200px;
     text-align: right;
     padding-right: 10px;
 }
@@ -189,8 +174,11 @@ input[type=text]:focus {
     outline: none;
 }
 
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px rgb(235, 235, 235) inset;
+}
+
 button {
-    padding: 5px 10px;
     border: none;
     cursor: pointer;
     opacity: 0.9;
@@ -219,7 +207,7 @@ button:hover{
 
 #yesButton {
     width: 80px;
-    padding: .1px, 0px, 0px, 0px;
+    padding: 3px 0px 3px 0px;
     border-radius: 3px;
     background-color: rgb(235, 235, 235);
     margin-bottom: 15px;
@@ -231,32 +219,69 @@ button:hover{
 
 #noButton {
     width: 80px;
-    padding: .1px, 0px, 0px, 0px;
+    padding: 3px 0px 3px 0px;
     border-radius: 3px;
     background-color: rgb(235, 235, 235);
 }
 
-#noButton:hover{
+#noButton:hover {
     opacity: 1;
     background-color: lightblue;
 }
 
-#yesButton:hover{
+#noButton:focus {
     opacity: 1;
     background-color: lightblue;
 }
 
-#buttons {
-    margin-top: 15px;
+#yesButton:hover {
+    opacity: 1;
+    background-color: lightblue;
 }
 
-#createAccount{
+#yesButton:focus {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+button:focus {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+#createAccount {
     padding-right: 3px;
     text-align: center;
 }
 
-#createAccount, #cancel {
+#createAccount {
     display: inline;
+    text-align: center;
+}
+
+#createButton {
+    padding: 5px 10px;
+}
+
+#cancelButton {
+    padding: 5px 10px;
+}
+
+#cancelButton, #createButton {
+    display: inline;
+}
+
+#buttons {
+    padding-top: 260px;
+}
+
+#createcancelbtns {
+    width: 100%;
+    text-align: center;
+}
+
+.inner {
+    display: inline-block;
 }
 
 hr {
@@ -285,6 +310,10 @@ hr:before {
 }
 
 #alreadyRegistered {
-    margin-top:20px;
-    padding-top: 40px;
+    padding-top: 10px;
+    padding-bottom: 15px;
+}
+
+#loginBtn {
+    padding: 5px 10px;
 }
