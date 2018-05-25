@@ -62,13 +62,9 @@ p {
     margin: .5em 0 1em;
     font-size: 1.3em;
 }
+
 .title {
     margin: 0 0 .5em 0;
-}
-
-#page-wrap {
-    max-width: 100%;
-    margin: 0px auto;
 }
 
 #container {
@@ -90,10 +86,6 @@ p {
 }
 
 #username {
-    margin-bottom:15px;
-}
-
-#password {
     margin-bottom:15px;
 }
 
@@ -164,27 +156,31 @@ input[type=text] {
     float: left;
     width: 220px;
     border: none;
-    background-color: rgb(235, 235, 235);
-    border-radius: 3px;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
     padding: 3px 5px 3px 5px;
 }
 
 input[type=text]:focus {
-    background-color:lightblue;
+    background-color: rgb(220, 220, 220);
     outline: none;
 }
 
 input[type=password] {
-    float: left;
     width: 220px;
     border: none;
-    background-color: rgb(235, 235, 235);
-    border-radius: 3px;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
     padding: 3px 5px 3px 5px;
 }
 
+#password {
+    float: left;
+    margin-bottom: 7px;
+}
+
 input[type=password]:focus {
-    background-color: lightblue;
+    background-color: rgb(220, 220, 220);
     outline: none;
 } 
 
@@ -193,15 +189,18 @@ input:-webkit-autofill {
 }
 
 button {
+    border-radius: 1px;
     border: none;
     cursor: pointer;
     opacity: 0.9;
-    -webkit-transition-duration: 0.4s;
+    -webkit-transition-duration: 0.3s;
+    background-color: #00a1f1;
+    color: white;
 }
 
 button:hover{
     opacity: 1;
-    background-color: lightblue;
+    background-color: #0088cc;
 }
 
 #firstName, #lastName {
@@ -222,8 +221,9 @@ button:hover{
 #yesButton {
     width: 80px;
     padding: 3px 0px 3px 0px;
-    border-radius: 3px;
+    border-radius: 1px;
     background-color: rgb(235, 235, 235);
+    color: black;
     margin-bottom: 15px;
 }
 
@@ -234,7 +234,8 @@ button:hover{
 #noButton {
     width: 80px;
     padding: 3px 0px 3px 0px;
-    border-radius: 3px;
+    border-radius: 1px;
+    color: black;
     background-color: rgb(235, 235, 235);
 }
 
@@ -264,7 +265,7 @@ button:focus {
 }
 
 #pageLabel {
-    padding-right: 3px;
+    padding-right: 1px;
     text-align: center;
 }
 
@@ -274,11 +275,12 @@ button:focus {
 }
 
 #createButton {
-    padding: 5px 10px;
+    margin-right: 3px;
+    padding: 7px 10px;
 }
 
 #cancelButton {
-    padding: 5px 10px;
+    padding: 7px 10px;
 }
 
 #cancelButton, #createButton {
@@ -329,32 +331,5 @@ hr:before {
 }
 
 #loginBtn {
-    padding: 5px 10px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#username1 {
-    margin: 0 auto;
-    text-align: center;
-}
-
-.username {
-    margin-bottom: 15px;
-}
-.password {
-    margin-top: 50px;
+    padding: 7px 10px;
 }
