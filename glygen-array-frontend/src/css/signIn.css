@@ -1,0 +1,335 @@
+body {
+    font-family: "Arial", "Verdana", sans-serif;
+    /*font-family: "Verdana", "Geneva", sans-serif;*/
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+    font-weight: 400;  
+    overflow: auto;
+    text-align: center;
+}
+
+body {
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility\9;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h1 {
+    font-size: 2.625em;
+}
+
+h2 {
+    font-size: 2.25em;
+}
+
+h3 {
+    font-size: 1.875em;
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h4 {
+    font-size: 1.5em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.2;
+}
+
+h5 {
+    font-size: 1.25em;
+    font-weight: 400;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: .3;
+    margin-top: 10px;
+}
+
+h6 {
+    font-size: 1.125em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.4;
+}
+
+p {
+    font-weight: 500;
+    margin: .5em 0 1em;
+    font-size: 1.3em;
+}
+
+.title {
+    margin: 0 0 .5em 0;
+}
+
+#container {
+    margin: 0px auto;
+    width: 550px;
+    text-align: center;
+    border: 1px solid rgb(201, 201, 201);
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+}
+
+#logo {
+    min-width: 650px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background-color: lightblue;
+}
+
+#username {
+    margin-bottom:15px;
+}
+
+#passConf {
+    margin-bottom:15px;
+}
+
+#firstName {
+    width: 100px;
+    margin-right: 3px;
+    margin-bottom: 15px;
+}
+
+#lastName{
+    width: 130px;
+}
+
+#email {
+    margin-bottom: 15px;
+}
+
+#affiliation {
+    margin-bottom: 15px;
+}
+
+#affWeb {
+    margin-bottom: 15px;
+}
+
+#submissionForm {
+    margin-top: -30px;
+}
+
+/*
+#required {
+    text-align: center;
+    font-size: 10px;
+    color: red;
+    height: 28px;
+    margin-right: 200px;
+    margin-left: 200px;
+    padding: 10px 0px 10px 0px;
+    border-left: 8px solid #2e9fd8;
+    border-width: 10px;
+    background-color: rgb(174, 227, 245);
+}
+*/
+
+/*
+#username::first-letter{
+    color: red;
+}
+*/
+
+label {
+    float: left;
+    clear: left;
+    width: 200px;
+    text-align: right;
+    padding-right: 10px;
+}
+
+input, label {
+    float: left;
+}
+
+input[type=text] {
+    float: left;
+    width: 220px;
+    border: none;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
+    padding: 3px 5px 3px 5px;
+}
+
+input[type=text]:focus {
+    background-color: rgb(220, 220, 220);
+    outline: none;
+}
+
+input[type=password] {
+    width: 220px;
+    border: none;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
+    padding: 3px 5px 3px 5px;
+}
+
+#password {
+    float: left;
+    margin-bottom: 7px;
+}
+
+input[type=password]:focus {
+    background-color: rgb(220, 220, 220);
+    outline: none;
+} 
+
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px rgb(235, 235, 235) inset;
+}
+
+button {
+    border-radius: 1px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.9;
+    -webkit-transition-duration: 0.3s;
+    background-color: #00a1f1;
+    color: white;
+}
+
+button:hover{
+    opacity: 1;
+    background-color: #0088cc;
+}
+
+#firstName, #lastName {
+    display: inline;
+}
+
+/*
+#radioButtons {
+    display: inline;
+}
+*/
+
+#yesnoButtons {
+    float: left;
+}
+
+
+#yesButton {
+    width: 80px;
+    padding: 3px 0px 3px 0px;
+    border-radius: 1px;
+    background-color: rgb(235, 235, 235);
+    color: black;
+    margin-bottom: 15px;
+}
+
+.cleafix {
+    overflow: auto;
+}
+
+#noButton {
+    width: 80px;
+    padding: 3px 0px 3px 0px;
+    border-radius: 1px;
+    color: black;
+    background-color: rgb(235, 235, 235);
+}
+
+#noButton:hover {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+#noButton:focus {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+#yesButton:hover {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+#yesButton:focus {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+button:focus {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+#pageLabel {
+    padding-right: 1px;
+    text-align: center;
+}
+
+#pageLabel {
+    display: inline;
+    text-align: center;
+}
+
+#createButton {
+    margin-right: 3px;
+    padding: 7px 10px;
+}
+
+#cancelButton {
+    padding: 7px 10px;
+}
+
+#cancelButton, #createButton {
+    display: inline;
+}
+
+#buttons {
+    padding-top: 260px;
+}
+
+#createcancelbtns {
+    width: 100%;
+    text-align: center;
+}
+
+.inner {
+    display: inline-block;
+}
+
+hr {
+    border: 0;
+    height: 2px;
+    margin:18px 0;
+    position:relative;
+    background: -moz-linear-gradient(left, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0.65) 50%, rgba(0,0,0,0) 90%, rgba(0,0,0,0) 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(0,0,0,0)), color-stop(10%,rgba(0,0,0,0)), color-stop(50%,rgba(0,0,0,0.65)), color-stop(90%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(left, rgba(0,0,0,0) 0%,rgba(0,0,0,0) 10%,rgba(0,0,0,0.65) 50%,rgba(0,0,0,0) 90%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(left, rgba(0,0,0,0) 0%,rgba(0,0,0,0) 10%,rgba(0,0,0,0.65) 50%,rgba(0,0,0,0) 90%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(left, rgba(0,0,0,0) 0%,rgba(0,0,0,0) 10%,rgba(0,0,0,0.65) 50%,rgba(0,0,0,0) 90%,rgba(0,0,0,0) 100%); /* IE10+ */
+    background: linear-gradient(left, rgba(0,0,0,0) 0%,rgba(0,0,0,0) 10%,rgba(0,0,0,0.65) 50%,rgba(0,0,0,0) 90%,rgba(0,0,0,0) 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#00000000',GradientType=1 ); /* IE6-9 */
+}
+
+hr:before {
+    content: "";
+    display: block;
+    border-top: solid 1px #f9f9f9;
+    width: 100%;
+    height: 1px;
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+}
+
+#alreadyRegistered {
+    padding-top: 10px;
+    padding-bottom: 15px;
+}
+
+#loginBtn {
+    padding: 7px 10px;
+}

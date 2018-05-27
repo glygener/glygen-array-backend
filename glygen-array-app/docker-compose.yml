@@ -1,6 +1,6 @@
 version: '3.4'
 services:
-  java:
+  backend:
     image: maven:3.3.9-jdk-8
     ports:
       - 8081:8080
@@ -8,12 +8,20 @@ services:
       - ${HOME}/glygen-array/maven:/root/.m2
       - .:/workspace
     working_dir: /workspace/
-    command: mvn -U -DskipTests=true spring-boot:run
+    command: mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run
     environment:
-      - GOOGLE_OAUTH2_CLIENTID
-      - GOOGLE_OAUTH2_CLIENTSECRET
+      - JASYPT_SECRET
+      - GOOGLE_CLIENT_CLIENT-ID
+      - GOOGLE_CLIENT_CLIENT-SECRET
       - SPRING_TRIPLESTORE_PASSWORD
+      - SPRING_TRIPLESTORE_USERNAME
       - SPRING_TRIPLESTORE_URL=${SPRING_TRIPLESTORE_URL:-jdbc:virtuoso://virtuoso:1111}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/glygen}
+      - SPRING_DATASOURCE_USERNAME
+      - SPRING_DATASOURCE_PASSWORD
+      - GLYGEN_SCHEME=${GLYGEN_SCHEME:-http://}
+      - GLYGEN_HOST=${GLYGEN_HOST:-glycomics.ccrc.uga.edu/ggarray}
+      - GLYGEN_BASEPATH=${GLYGEN_BASEPATH:-/api}
     restart: always
 
 networks:

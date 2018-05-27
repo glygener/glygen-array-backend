@@ -2,23 +2,29 @@ package org.glygen.array.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.Date;
 
+import org.glygen.array.exception.LinkExpiredException;
+import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.RoleRepository;
+import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
 import org.glygen.array.view.Confirmation;
-import org.glygen.array.view.Greeting;
 import org.glygen.array.view.User;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,6 +51,9 @@ public class UserController {
 	RoleRepository roleRepository;
 	
 	@Autowired
+	UserRepository userRepository;
+	
+	@Autowired
 	EmailManager emailManager;
 	
 	@Autowired
@@ -53,11 +62,6 @@ public class UserController {
 	PasswordEncoder passwordEncoder =
 		    PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	
-	/*@GetMapping("/")
-	public Greeting home() {
-		Greeting greet = new Greeting("Hello World", "Hello Home", new Date());
-		return greet;
-	}*/
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
@@ -82,13 +86,13 @@ public class UserController {
 	}
 	
 	@GetMapping(value = "/registrationConfirm")
-    public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException {
+    public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException, LinkExpiredException {
         final String result = userManager.validateVerificationToken(token);
         if (result.equals("valid")) {
             final UserEntity user = userManager.getUserByToken(token);
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
         }
-        return new Confirmation("User verification link is expired", HttpStatus.EXPECTATION_FAILED.value());
+        throw new LinkExpiredException("User verification link is expired");
     }
 
 	@Authorization (value="basicAuth", scopes={@AuthorizationScope (scope="GlygenArray", description="Access to Glygen Array")})
@@ -98,4 +102,42 @@ public class UserController {
 		return new Confirmation("User is authorized", HttpStatus.OK.value());
 	}
 
+	@RequestMapping(value="/get/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the information for the given user", response=UserEntity.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
+    		@ApiResponse(code=401, message="Unauthorized"),
+    		@ApiResponse(code=403, message="Not enough privileges"),
+    		@ApiResponse(code=404, message="User with given login name does not exist"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody UserEntity getUser (
+    		@io.swagger.annotations.ApiParam(required=true, value="login name of the user")
+    		@PathVariable("userName")
+    		String userName) {
+    	UserEntity user = null;
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	if (auth != null) { 
+    		// username of the authenticated user should match the username parameter
+    		// a user can only see his/her own user information
+    		// but admin can access all the users' information
+    		
+    		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))
+    		{
+    			user = userRepository.findByUsername(userName);
+    		}
+    		else if (auth.getName().equals(userName)) {
+    			user = userRepository.findByUsername(userName);
+    		}
+    		else {
+    			logger.info("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
+    			throw new AccessDeniedException("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
+    		}
+    	}
+    	else { // should not reach here at all
+    		throw new BadCredentialsException ("The user has not been authenticated");
+    	}
+    	if (user == null) 
+    		throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
+    	return user;
+    }
 }

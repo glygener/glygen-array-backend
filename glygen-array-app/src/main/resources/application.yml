@@ -2,8 +2,9 @@ server:
   port: 8080
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
+    url: jdbc:postgresql://localhost:5432/glygen
+    username: glygen
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     driver-class-name: org.postgresql.Driver
     initialization-mode: always
   mail:
@@ -31,4 +32,6 @@ google:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         preferTokenInfo: true
 glygen:
-  baseURL: http://localhost:8080
+  scheme: http://
+  host: localhost:8080
+  basePath: /

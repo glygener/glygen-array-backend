@@ -36,11 +36,11 @@ public class GlygenUserDetailsService implements UserDetailsService {
 				user.getEmail(), user.getAffiliation(), user.getAffiliationWebsite(), user.getPublicFlag());
 	}
 	
-	private final Collection<? extends GrantedAuthority> getAuthorities(final Collection<RoleEntity> roles) {
+	public static final Collection<? extends GrantedAuthority> getAuthorities(final Collection<RoleEntity> roles) {
         return getGrantedAuthorities(getRoleNames(roles));
     }
 
-    private final List<String> getRoleNames(final Collection<RoleEntity> roles) {
+    public static final List<String> getRoleNames(final Collection<RoleEntity> roles) {
     	List<String> roleNames = new ArrayList<>();
         for (final RoleEntity role : roles) {
         	roleNames.add(role.getRoleName());
@@ -49,7 +49,7 @@ public class GlygenUserDetailsService implements UserDetailsService {
         return roleNames;
     }
 
-    private final List<GrantedAuthority> getGrantedAuthorities(final List<String> roleNames) {
+    public static final List<GrantedAuthority> getGrantedAuthorities(final List<String> roleNames) {
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         for (final String role : roleNames) {
             authorities.add(new SimpleGrantedAuthority(role));

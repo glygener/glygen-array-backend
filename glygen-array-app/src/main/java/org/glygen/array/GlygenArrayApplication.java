@@ -21,10 +21,12 @@ import java.util.List;
 
 import javax.servlet.Filter;
 
-import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionConfig;
 import org.glygen.array.security.MyBasicAuthenticationEntryPoint;
+import org.glygen.array.security.MyBasicAuthenticationFilter;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
+import org.glygen.array.security.TokenAuthenticationFilter;
+import org.glygen.array.service.GlygenUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
@@ -36,8 +38,8 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
@@ -89,6 +91,18 @@ public class GlygenArrayApplication {
 		
 		@Autowired
 		OAuth2ClientContext oauth2ClientContext;
+		
+		@Autowired 
+		AuthenticationManager authenticationManager;
+		
+		@Autowired 
+		GlygenUserDetailsService userService;
+		
+		@Bean
+	    @Override
+	    public AuthenticationManager authenticationManagerBean() throws Exception {
+	        return super.authenticationManagerBean();
+	    }
 		
 		@Bean
 		@ConfigurationProperties("google")
@@ -154,11 +168,12 @@ public class GlygenArrayApplication {
 	            .and().cors()
 	            .and().csrf().disable()
 			    .addFilterBefore(ssoFilter(), BasicAuthenticationFilter.class);
-						
-		//			new GlygenOauth2AuthorizationFilter("/oauth/token") , BasicAuthenticationFilter.class);
-			//http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
-			//		.fullyAuthenticated().and().formLogin().loginPage("/login")
-			//		.failureUrl("/login?error").permitAll().and().logout().permitAll();
+			
+			final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService);
+	        http.addFilterBefore(tokenFilter, BasicAuthenticationFilter.class);
+	        //Creating token when basic authentication is successful and the same token can be used to authenticate for further requests
+	        final MyBasicAuthenticationFilter customBasicAuthFilter = new MyBasicAuthenticationFilter(this.authenticationManager() );
+	        http.addFilter(customBasicAuthFilter);
 		}
 		
 		class ClientResources {

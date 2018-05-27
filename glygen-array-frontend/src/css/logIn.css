@@ -1,0 +1,238 @@
+body {
+    font-family: "Arial", "Verdana", sans-serif;
+    /*font-family: "Verdana", "Geneva", sans-serif;*/
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+    font-weight: 400;  
+    overflow: auto;
+    text-align: center;
+}
+
+body {
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility\9;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h1 {
+    font-size: 2.625em;
+}
+
+h2 {
+    font-size: 2.25em;
+}
+
+h3 {
+    font-size: 1.875em;
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h4 {
+    font-size: 1.5em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.2;
+}
+
+h5 {
+    font-size: 1.25em;
+    font-weight: 400;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: .3;
+    margin-top: 10px;
+}
+
+h6 {
+    font-size: 1.125em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.4;
+}
+
+p {
+    font-weight: 500;
+    margin: .5em 0 1em;
+    font-size: 1.3em;
+}
+
+.title {
+    margin: 0 0 .5em 0;
+}
+
+#logo {
+    min-width: 650px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background-color: lightblue;
+}
+
+#pageLabel {
+    padding-top: 18px;
+    text-align: center;
+}
+
+#container2 {
+    margin: 0px auto;
+    width: 550px;
+    text-align: center;
+    border: 1px solid rgb(201, 201, 201);
+    border-radius: 8px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+}
+
+#username1 {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.username {
+    margin-bottom: 15px;
+    border: none;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
+    padding: 7px 10px;
+    width: 250px;
+    font-size: large;
+}
+
+.username:focus {
+    outline: none;
+}
+
+.password {
+    margin-bottom: 3px;
+    border: none;
+    background-color: rgb(240, 240, 240);
+    border-radius: 1px;
+    padding: 7px 10px;
+    width: 250px;
+    font-size: large;
+}
+
+.password:focus {
+    outline: none;
+}
+
+#rememberme {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    margin-right: 159px;
+}
+
+.remember {
+    position: relative;
+    padding-left: 20px;
+    padding-right: 5px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.remember input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkmark {
+    position: absolute;
+    border-radius: 1px;
+    top: 0;
+    left: 0;
+    height: 13px;
+    width: 13px;
+    background-color: white;
+    border: 1px solid rgb(133, 133, 133);
+}
+
+.remember input:checked ~ .checkmark {
+    background-color: white;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.remember input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.remember .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 3px;
+    height: 6px;
+    border: solid #00a1f1;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    
+}
+
+.loginbtn2 {
+    text-align: center;
+    width: 270px;
+    border-radius: 1px;
+    font-size: large;
+    padding: 7px 10px;
+    border: none;
+    cursor: pointer;
+    -webkit-transition-duration: 0.3s;
+    margin-bottom: 10px;
+    background-color: #00a1f1;
+    color: white;
+}
+
+.loginbtn2:hover {
+    opacity: 1;
+    background-color: #0088cc;
+}
+
+#newuser, #forgot {
+    display: inline;
+}
+
+#newuser {
+    padding-right: 10px;
+    border-right: 1px solid rgb(133, 133, 133);
+}
+
+#forgot {
+    padding-left: 10px;
+    padding-right: 50px;
+}
+
+#registerLink {
+    font-size: 13px;
+    color: black;
+}
+
+#forgotLink {
+    font-size: 13px;
+    color: black;
+}
+
+#registerLink:hover {
+    color: #0088cc;
+}
+
+#forgotLink:hover {
+    color:#0088cc;
+}

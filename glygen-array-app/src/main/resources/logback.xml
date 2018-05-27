@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <configuration>
 
 <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -38,6 +39,20 @@
 		<url>jdbc:postgresql://localhost:5432/postgres</url>
 		<user>postgres</user>
 	</connectionSource>
+=======
+<configuration> 
+<appender name="db" class="ch.qos.logback.classic.db.DBAppender">
+<connectionSource
+class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+<driverClass>org.postgresql.Driver</driverClass>
+<!--
+<url>jdbc:postgresql://localhost:5432/postgres</url>
+-->
+<url>${SPRING_DATASOURCE_URL}</url>
+<user>glygen</user>
+<password>${SPRING_DATASOURCE_PASSWORD}</password>
+</connectionSource>
+>>>>>>> 874dfdef0855cf8b6c2c52e50a6b2c4b9fb823fe
 </appender>
 
 
