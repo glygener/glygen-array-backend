@@ -2,19 +2,16 @@
 <html> 
     <head>
         <title>Glygen</title>
-        <link rel="stylesheet" type="text/css" href="css/signIn.css">       
+        <link rel="stylesheet" type="text/css" href="css/signUp.css">       
     </head>
     <body>
         <div id="logo">
-            <img src="images/glygenW_logo.png" alt="Glygen Logo">
+            <a href="home.html"><img src="images/glygenW_logo.png" alt="Glygen Logo"></a>
         </div>
         <div id="container">
             <div id="pageLabel">
                 <h5>Create Account</h5>
             </div>
-            <!--<div id="required">
-                <p>* Indicates required fields</p>
-            </div>-->
             <div id="submissionForm">
                 <form>
                     <div id="username">
@@ -36,15 +33,15 @@
                     <div id="lastName">
                         <input id="lastName" type="text" name="lastName" placeholder="Last" onfocus="this.placeholder='Last'" onblur="this.placeholder='Last'"/>
                     </div>
-                    <div id="public">
-                        <Label for="yes">Public Profile</Label>
-                        <div id="yesnoButtons">
-                            <button id="yesButton" type="button" class="public">Yes</button>
-                            <button id="noButton" type="button" class="public">No</button>
-                            <!--
-                            <input id="yes" type="radio" name="public">
-                            <input id="no" type="radio" name="public">
-                            -->
+                    <label id="pubprof">Public Profile</label>
+                    <div class="boxed">
+                        <div id="Yes">
+                            <input id="yes" type="radio" name="public" value="yes">
+                            <label for="yes">Yes</label>
+                        </div>
+                        <div id="No">
+                            <input id="no" type="radio" name="public" value="no">
+                            <label for="no">No</label>
                         </div>
                     </div>
                     <div id="email">
@@ -62,7 +59,7 @@
                     <div id="buttons">
                         <div id="createcancelbtns">
                             <div class="inner"><a href="https://www.amazon.com/"><button type="button" id="createButton" class="createaccountbtn">Create New Account</button></a></div>
-                            <div class="inner"><a href="https://www.amazon.com/"><button type="button" id="cancelButton" class="cancelbtn">Cancel</button></div></a>
+                            <div class="inner"><a href="home.html"><button type="button" id="cancelButton" class="cancelbtn">Cancel</button></a></div>
                         </div>
                         <hr>
                         <div id="alreadyRegistered">

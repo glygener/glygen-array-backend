@@ -59,8 +59,8 @@ h6 {
 
 p {
     font-weight: 500;
-    margin: .5em 0 1em;
     font-size: 1.3em;
+    float: left;
 }
 
 .title {
@@ -119,27 +119,6 @@ p {
     margin-top: -30px;
 }
 
-/*
-#required {
-    text-align: center;
-    font-size: 10px;
-    color: red;
-    height: 28px;
-    margin-right: 200px;
-    margin-left: 200px;
-    padding: 10px 0px 10px 0px;
-    border-left: 8px solid #2e9fd8;
-    border-width: 10px;
-    background-color: rgb(174, 227, 245);
-}
-*/
-
-/*
-#username::first-letter{
-    color: red;
-}
-*/
-
 label {
     float: left;
     clear: left;
@@ -185,7 +164,7 @@ input[type=password]:focus {
 } 
 
 input:-webkit-autofill {
-    -webkit-box-shadow: 0 0 0 30px rgb(235, 235, 235) inset;
+    -webkit-box-shadow: 0 0 0 30px rgb(240, 240, 240) inset;
 }
 
 button {
@@ -207,56 +186,44 @@ button:hover{
     display: inline;
 }
 
-/*
-#radioButtons {
-    display: inline;
+#pubprof {
+    text-align: center;
+    margin-bottom: 15px;
+    margin-left: 53px;
 }
-*/
-
-#yesnoButtons {
-    float: left;
-}
-
-
-#yesButton {
-    width: 80px;
+  
+.boxed label {
+    text-align: center;
+    width: 100px;
     padding: 3px 0px 3px 0px;
     border-radius: 1px;
-    background-color: rgb(235, 235, 235);
-    color: black;
-    margin-bottom: 15px;
+    transition: all 0.3s;
+    background-color: rgb(240, 240, 240);
+    cursor: pointer;
+    font-size: small;
+}
+  
+.boxed input[type="radio"] {
+    display: none;
+}
+  
+.boxed input[type="radio"]:checked + label {
+    border: none;
+    background-color: rgb(220, 220, 220);
+    border-radius: 1px;
+}
+
+.boxed {
+    font-size: smaller;
+}
+
+#Yes, #No {
+    float: left;
+    margin-right: 5px;
 }
 
 .cleafix {
     overflow: auto;
-}
-
-#noButton {
-    width: 80px;
-    padding: 3px 0px 3px 0px;
-    border-radius: 1px;
-    color: black;
-    background-color: rgb(235, 235, 235);
-}
-
-#noButton:hover {
-    opacity: 1;
-    background-color: lightblue;
-}
-
-#noButton:focus {
-    opacity: 1;
-    background-color: lightblue;
-}
-
-#yesButton:hover {
-    opacity: 1;
-    background-color: lightblue;
-}
-
-#yesButton:focus {
-    opacity: 1;
-    background-color: lightblue;
 }
 
 button:focus {
