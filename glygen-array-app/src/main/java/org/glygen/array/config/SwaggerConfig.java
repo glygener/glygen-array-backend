@@ -77,15 +77,6 @@ public class SwaggerConfig {
     }
     
     @Bean
-    public SecurityConfiguration security() {
-    	return new SecurityConfiguration(null, null, "Realm",
-    			"Glygen",
-    			"Bearer",
-    			ApiKeyVehicle.HEADER, "Authorization",
-    			null);
-    }
-    
-    @Bean
     SecurityScheme oauth() {
         return new OAuthBuilder()
                 .name("google-oauth")
