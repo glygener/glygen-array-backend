@@ -58,7 +58,7 @@ button:hover {
     <input type="text" placeholder="Enter Username" name="username" id="username" class="text"/>
     <label for="password"><b>Password</b></label>
     <input type="password" placeholder="Enter Password" name="password" id="password" class="text"/>
-    <button type="button" id='submit'>Sign in</button>
+    <button type="button" id='signin' onClick='login()'>Sign in</button>
 <h2>Or Login with</h2>
      <!-- button type="button" id='submit-google'>Sign in with Google</button -->
 </div>
@@ -71,77 +71,7 @@ button:hover {
             </div>
         </div>
 </div>
-<!--
-<div id="my-signin2"></div>
-  <script>
-    function onSuccess(googleUser) {
-        // Useful data for your client-side scripts:
-        var profile = googleUser.getBasicProfile();
-        console.log("ID: " + profile.getId()); // Don't send this directly to your server!
-        console.log('Full Name: ' + profile.getName());
-        console.log('Given Name: ' + profile.getGivenName());
-        console.log('Family Name: ' + profile.getFamilyName());
-        console.log("Image URL: " + profile.getImageUrl());
-        console.log("Email: " + profile.getEmail());
-
-        // The ID token you need to pass to your backend:
-        var id_token = googleUser.getAuthResponse().id_token;
-        console.log("ID Token: " + id_token);
-        console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-    }
-    function onFailure(error) {
-      console.log(error);
-    }
-    function renderButton() {
-      gapi.signin2.render('my-signin2', {
-        'scope': 'https://www.googleapis.com/auth/plus.login',
-        'width': 240,
-        'height': 50,
-        'longtitle': false,
-        'theme': 'dark',
-        'onsuccess': onSuccess,
-        'onfailure': onFailure,
-        'ux_mode': 'redirect',
-        'redirect_uri': 'http://localhost:8080/login/google'
-      });
-    }
-  </script>
-
-  <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
-
-		<div class="g-signin2" data-onsuccess="onSignIn"
-                                   data-scope="https://www.googleapis.com/auth/plus.login"
-                                   data-accesstype="offline"
-                                   data-redirecturi="http://localhost:8080/login/google"></div> 
-				<a href="#" onclick="signOut();">Sign out</a>
-		</div>
-</div>  -->
 <script>
-   $(document).ready(function(){
-   $("#submit").on("click", function() {
-
-       var username = $("input#username").val();
-       var password = $("input#password").val();
-
-       $.ajax({
-           type: "GET",
-           url: "http://localhost:8080/users/signin",
-           data: {
-        	      format: 'json'
-           },
-           headers: {
-        	    'Authorization': 'Basic ' + btoa(username + ':' + password)
-           },
-           success:function(xhr) {
-               alert('Request Status: ' + xhr.status);
-           },
-           error: function(xhr){
-        		alert('Request Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText);
-    	   }
-       });
-   })
-  });
-  
   $(document).ready(function(){
    $("#submit-google").on("click", function() {
        $.ajax({
@@ -155,8 +85,59 @@ button:hover {
        });
    })
   });
+  
+  function ajaxListSuccess(data, textStatus, jqXHR) {
+	    // console.log(data);
+	    //console.log(data.code);
+	    var token;
+	    if (data.statusCode) {
+	    	if (data.statusCode != 200) {
+		        console.log(data.statusCode);
+		        displayErrorByCode(data.statusCode);
+	    	} else {
+	    		token = jqXHR.getResponseHeader('Authorization');
+	    		console.log("signed in succcessfully");
+	    		console.log(token); // do not leave this here!!!
+	    	}
+	    }
+  }
+  
+  function ajaxListFailure() {
+	//  $('#error-message').show();
+	    alert("Server down");
+	}
 
+  function login() {
+	  var username = $("input#username").val();
+      var password = $("input#password").val();
+      
+	  var ajaxConfig = {
+	      contentType: 'application/json',
+		  dataType: 'json',
+		  url: 'http://localhost:8080/login',
+		  data: getLoginPostData(username, password),
+		  type: 'POST',
+		  success: ajaxListSuccess,
+		  error: ajaxListFailure,
+		  processData: false
+	  };
+
+	  // make the server call
+	  $.ajax(ajaxConfig);
+  }
+  
+  function getLoginPostData(username, password)
+  {
+   var loginrequest = {};
+   loginrequest.username = username;
+   loginrequest.password = password;
+  
+   return JSON.stringify(loginrequest);
+  }
+  
+  
 
 </script>
+
 </body>
 </html>

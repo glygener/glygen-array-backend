@@ -5,11 +5,15 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.VerificationToken;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
+import org.glygen.array.view.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -75,6 +79,28 @@ public class UserManagerImpl implements UserManager {
 	@Override
 	public void createUser(UserEntity newUser) {
 		repository.save(newUser);
+	}
+
+	@Override
+	public String recoverLogin(String email) {
+		UserEntity user = repository.findByEmail(email);
+		if (user == null) {
+			throw new UserNotFoundException("No user is associated with " + email);
+		}
+		return user.getUsername();
+	}
+
+	@Override
+	public void changePassword(String username, String newPassword) {
+		UserEntity user = repository.findByUsername(username);
+		if (user == null) {
+			throw new UserNotFoundException("No user is associated with " + username);
+		}
+		// encrypt the password
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		String hashedPassword = passwordEncoder.encode(newPassword);
+		user.setPassword(hashedPassword);
+		repository.save(user);
 	}    
 }
 

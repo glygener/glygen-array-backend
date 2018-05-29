@@ -96,19 +96,19 @@ public class EmailManagerImpl implements EmailManager {
     }
 
 	@Override
-	public void sendVerificationToken(UserEntity user) {
+	public void sendVerificationToken(UserEntity user, String verificationURL) {
 		init(); // if username/password have not been initialized, this will get them from DB
 		
 		final String token = UUID.randomUUID().toString();
         userManager.createVerificationTokenForUser(user, token);
-        final SimpleMailMessage email = constructEmailMessage(user, token);
+        final SimpleMailMessage email = constructEmailMessage(user, token, verificationURL);
         mailSender.send(email);
     }
 
-    private final SimpleMailMessage constructEmailMessage(final UserEntity user, final String token) {
+    private final SimpleMailMessage constructEmailMessage(final UserEntity user, final String token, String verificationURL) {
         final String recipientAddress = user.getEmail();
         final String subject = "Registration Confirmation";
-        final String confirmationUrl = scheme + host + "/registrationConfirm.html?token=" + token;
+        final String confirmationUrl = verificationURL+ "?token=" + token;
         //final String message = messages.getMessage("message.regSucc", null, event.getLocale());
         final String message = "Click on the link below to verify your email";
         final SimpleMailMessage email = new SimpleMailMessage();
