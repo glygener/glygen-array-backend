@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.qos.logback.classic.Logger;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.Authorization;
+import io.swagger.annotations.AuthorizationScope;
 
 @Import(VirtSesameTransactionConfig.class)
 @RestController
@@ -35,7 +36,9 @@ public class GlygenArrayController {
 	SparqlDAO sparqlDAO;
 	
 	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
-    		consumes={"application/xml", "application/json"})
+    		consumes={"application/xml", "application/json"},
+    		produces={"application/xml", "application/json"})
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
 	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
 		try {
 			GlycanBindingInsertSparql ins = new GlycanBindingInsertSparql();
@@ -56,7 +59,8 @@ public class GlygenArrayController {
 		}
 	}
 
-	@GetMapping("/getbinding/{glycanId}")
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
+	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/xml", "application/json"})
 	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") @PathVariable("glycanId") String glycanId) throws Exception {
 		String uri = "http://array.glygen.org/" + glycanId.hashCode();
 		SelectSparqlBean query = new SelectSparqlBean();

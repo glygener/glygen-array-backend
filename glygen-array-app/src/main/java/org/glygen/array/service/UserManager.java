@@ -16,5 +16,9 @@ public interface UserManager {
 	String validateVerificationToken(String token);
 
 	void createUser(UserEntity newUser);
+	
+	String recoverLogin(String email);
+	
+	void changePassword (String username, String newPassword);
 
 }

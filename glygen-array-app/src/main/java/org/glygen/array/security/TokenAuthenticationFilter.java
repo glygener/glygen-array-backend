@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,13 +31,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 
 public class TokenAuthenticationFilter extends GenericFilterBean
 {
 	GlygenUserDetailsService userService;
+	private RequestMatcher ignoredRequests;
 	
-	public TokenAuthenticationFilter (GlygenUserDetailsService userService) {
+	public TokenAuthenticationFilter (GlygenUserDetailsService userService, RequestMatcher ignoredRequests) {
 		this.userService = userService;
+		this.ignoredRequests = ignoredRequests;
 	}
 	
     @Override
@@ -44,6 +48,10 @@ public class TokenAuthenticationFilter extends GenericFilterBean
             throws IOException, ServletException
     {
         final HttpServletRequest httpRequest = (HttpServletRequest)request;
+        
+     //   if(ignoredRequests.matches(httpRequest)) {
+      //  	 return;
+      //  }
 
         String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
         if (token != null) {
@@ -61,8 +69,8 @@ public class TokenAuthenticationFilter extends GenericFilterBean
 		                    new UsernamePasswordAuthenticationToken(user, null, userDetails.getAuthorities());
 		            SecurityContextHolder.getContext().setAuthentication(authentication);
 	            }
-        	} catch (MalformedJwtException e) {
-        		logger.debug("Not a valid token. Trying other authorization methods");
+        	} catch (MalformedJwtException | SignatureException e) {
+        		logger.debug("Not a valid token.");
         	} catch (ExpiredJwtException e) {
         		logger.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
         		sendError (httpRequest, (HttpServletResponse)response, e);

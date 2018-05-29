@@ -1,7 +1,9 @@
 package org.glygen.array.controller;
 
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -16,6 +18,7 @@ import org.glygen.array.view.User;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -31,13 +34,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import ch.qos.logback.classic.Logger;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.AuthorizationScope;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @RequestMapping("/users")
@@ -65,7 +68,7 @@ public class UserController {
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	public Confirmation signup (@RequestBody(required=true) User user) {
+	public Confirmation signup (@RequestBody(required=true) User user, @RequestParam("verificationURL") final String verificationURL) {
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -80,7 +83,7 @@ public class UserController {
     	
         userManager.createUser(newUser);  
         // send email confirmation
-        emailManager.sendVerificationToken(newUser);
+        emailManager.sendVerificationToken(newUser, verificationURL);
         logger.info("New user {} is added to the system", newUser.getUsername());
         return new Confirmation("User added successfully", HttpStatus.CREATED.value());
 	}
@@ -95,13 +98,13 @@ public class UserController {
         throw new LinkExpiredException("User verification link is expired");
     }
 
-	@Authorization (value="basicAuth", scopes={@AuthorizationScope (scope="GlygenArray", description="Access to Glygen Array")})
-	@ApiOperation(value="Check if the user's credentials are acceptable", response=Confirmation.class, notes="If the user is authorized, this does not necessarily mean that s/he is allowed to access all the resources")
+	@ApiIgnore
 	@GetMapping("/signin")
 	public @ResponseBody Confirmation signin() {
 		return new Confirmation("User is authorized", HttpStatus.OK.value());
 	}
 
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to user profile")})
 	@RequestMapping(value="/get/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
     @ApiOperation(value="Retrieve the information for the given user", response=UserEntity.class)
     @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
@@ -139,5 +142,72 @@ public class UserController {
     	if (user == null) 
     		throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
     	return user;
+    }
+	
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
+	@RequestMapping(value="/recover", method = RequestMethod.GET)
+    @ApiOperation(value="Returns the user's login name when email is provided", response=String.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Username recovered successfully"), 
+    		@ApiResponse(code=400, message="Illegal argument - valid email has to be provided"),
+            @ApiResponse(code=404, message="User with given email does not exist"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ResponseEntity<String> recoverUsername (@RequestParam(value="email", required=true) String email) {
+    	
+    	String loginId = userManager.recoverLogin(email);
+		return new ResponseEntity<String>(loginId, HttpStatus.OK);
+    }
+    
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
+    @RequestMapping(value="/{userName}/password", method = RequestMethod.GET)
+    @ApiOperation(value="Recovers the user's password. Sends an email to the registered email of the user", response=Confirmation.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Password recovered successfully"), 
+    		@ApiResponse(code=404, message="User with given login name does not exist"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody Confirmation recoverPassword (
+    		@PathVariable("userName") String loginId) {
+    	
+    	UserEntity user = userRepository.findByUsername(loginId);
+    	emailManager.sendPasswordReminder(user);
+    	logger.info("Password reminder email is sent to {}", loginId);
+		return new Confirmation("Password reminder email is sent", HttpStatus.OK.value());
+    	
+    }
+    
+	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
+    @RequestMapping(value="/{userName}/password", method = RequestMethod.PUT)
+    @ApiOperation(value="Changes the password for the given user", response=Confirmation.class, notes="Only authenticated user can change his/her password")
+    @ApiResponses (value ={@ApiResponse(code=200, message="Password changed successfully"), 
+    		@ApiResponse(code=400, message="Illegal argument - new password should be valid"),
+    		@ApiResponse(code=401, message="Unauthorized"),
+    		@ApiResponse(code=403, message="Not enough privileges to update password"),
+    		@ApiResponse(code=404, message="User with given login name does not exist"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody Confirmation changePassword (
+    		Principal p,
+    		@RequestBody(required=true) 
+    		String newPassword, 
+    		@PathVariable("userName") String userName) {
+    	if (p == null) {
+    		// not authenticated
+    		throw new BadCredentialsException("Unauthorized to change the password");
+    	}
+    	if (!p.getName().equalsIgnoreCase(userName)) {
+    		logger.warn("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
+    		throw new AccessDeniedException("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
+    	}
+    	
+    	// using @NotEmpty for newPassword didn't work, so have to handle it here
+    	if (newPassword == null || newPassword.isEmpty()) {
+    		throw new IllegalArgumentException("Invalid Input: new password cannot be empty");
+    	}
+    	logger.debug("new password is {}", newPassword);
+    	//TODO password validation -- UI side?
+    	/*Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
+    	if (!pattern.matcher(newPassword).matches()) {
+    		throw new IllegalArgumentException("Invalid Input: The password length must be greater than or equal to 5, must contain one or more uppercase characters, "
+    				+ "must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
+    	}*/
+    	userManager.changePassword(p.getName(), newPassword);
+    	return new Confirmation("Password changed successfully", HttpStatus.OK.value());
     }
 }
