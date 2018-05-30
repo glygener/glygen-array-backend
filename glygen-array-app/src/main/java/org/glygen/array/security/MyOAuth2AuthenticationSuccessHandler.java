@@ -12,13 +12,23 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 
 public class MyOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 	
-	@Value("${glygen.basePath}")
+	@Value("${glygen.frontend.basePath}")
 	String basePath;
+	
+	@Value("${glygen.frontend.host}")
+	String host;
+	
+	@Value("${glygen.frontend.scheme}")
+	String scheme;
+	
+	@Value("${glygen.frontend.loginPage}")
+	String loginPage;
 	
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 		Authentication authentication) throws IOException, ServletException {
-		setDefaultTargetUrl(basePath+"users/signin");
+		String redirectURL = scheme + host + basePath + loginPage;
+		setDefaultTargetUrl(redirectURL);
         super.onAuthenticationSuccess(request, response, authentication);
         
         /*

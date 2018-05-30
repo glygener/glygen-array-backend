@@ -35,3 +35,8 @@ glygen:
   scheme: http://
   host: localhost:8080
   basePath: /
+  frontend:
+      scheme: http://
+      host: localhost:8181
+      basePath: /
+      loginPage: googleOAuth.html
