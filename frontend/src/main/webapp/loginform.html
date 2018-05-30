@@ -2,25 +2,6 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
-<meta name="google-signin-client_id" content="540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com"/>
-<script>
-    function signOut() {
-      var auth2 = gapi.auth2.getAuthInstance();
-      auth2.signOut().then(function () {
-        console.log('User signed out.');
-      });
-    }
-
-    function onLoad() {
-      gapi.load('auth2', function() {
-        gapi.auth2.init();
-      });
-    }
-</script>
-</head>
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-<body>
 <style>
     /* Full-width inputs */
 input[type=text], input[type=password] {
@@ -51,6 +32,9 @@ button:hover {
     padding: 16px;
 }
 </style>
+</head>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<body>
 <h2>Login Form</h2> 
 
 <div class="container">
@@ -59,36 +43,11 @@ button:hover {
     <label for="password"><b>Password</b></label>
     <input type="password" placeholder="Enter Password" name="password" id="password" class="text"/>
     <button type="button" id='signin' onClick='login()'>Sign in</button>
-<h2>Or Login with</h2>
-     <!-- button type="button" id='submit-google'>Sign in with Google</button -->
 </div>
-<div class="panel panel-default">
-     <div class="panel-heading">Google login with OAuth2</div>
-        <div class="panel-body">
-                <div class="col-md-12">
-                    <a class="btn btn-default" href="http://localhost:8080/login/google">Google Login</a>
-                </div>
-            </div>
-        </div>
-</div>
+
 <script>
-  $(document).ready(function(){
-   $("#submit-google").on("click", function() {
-       $.ajax({
-           url: "http://localhost:8080/google/login",
-           success:function(xhr) {
-               alert('Request Status: ' + xhr.status);
-           },
-           error: function(xhr){
-        		alert('Request Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText);
-    	   }
-       });
-   })
-  });
   
   function ajaxListSuccess(data, textStatus, jqXHR) {
-	    // console.log(data);
-	    //console.log(data.code);
 	    var token;
 	    if (data.statusCode) {
 	    	if (data.statusCode != 200) {
@@ -97,7 +56,7 @@ button:hover {
 	    	} else {
 	    		token = jqXHR.getResponseHeader('Authorization');
 	    		console.log("signed in succcessfully");
-	    		console.log(token); // do not leave this here!!!
+	    		alert ("signed in succcessfully");
 	    	}
 	    }
   }
@@ -128,14 +87,12 @@ button:hover {
   
   function getLoginPostData(username, password)
   {
-   var loginrequest = {};
-   loginrequest.username = username;
-   loginrequest.password = password;
-  
-   return JSON.stringify(loginrequest);
+	   var loginrequest = {};
+	   loginrequest.username = username;
+	   loginrequest.password = password;
+	  
+	   return JSON.stringify(loginrequest);
   }
-  
-  
 
 </script>
 

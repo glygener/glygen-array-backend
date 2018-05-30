@@ -66,7 +66,8 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
                 .signWith(SignatureAlgorithm.HS512, SecurityConstants.SECRET.getBytes())
                 .compact();
         res.addHeader(SecurityConstants.HEADER_STRING, SecurityConstants.TOKEN_PREFIX + token);
-        res.addHeader("Access-Control-Expose-Headers", SecurityConstants.HEADER_STRING);
+        //IMPORTANT! Needed for CORS request, otherwise header will not be visible to the client
+        res.addHeader("Access-Control-Expose-Headers", SecurityConstants.HEADER_STRING);   
         Confirmation confirmation = new Confirmation ("Signed in successfully", HttpStatus.OK.value());
         String acceptString = req.getHeader("Accept");
 		if (acceptString.contains("xml")) {
