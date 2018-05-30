@@ -190,6 +190,7 @@ button:hover{
     text-align: center;
     margin-bottom: 15px;
     margin-left: 53px;
+    margin-right: -53px;
 }
   
 .boxed label {
@@ -208,8 +209,8 @@ button:hover{
 }
   
 .boxed input[type="radio"]:checked + label {
-    border: none;
-    background-color: rgb(220, 220, 220);
+    border: 1px solid rgb(180, 180, 180);
+    background-color: rgb(200, 200, 200);
     border-radius: 1px;
 }
 

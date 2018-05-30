@@ -1,144 +1,51 @@
- <div class="alert navbar-fixed gg-alert fade in" id="tracking_banner">
-<!--    <span><strong>GlyGen</strong> wants to improve <em>user experients and search results</em>. Do you want <strong>GlyGen</strong> to remember your searches? You can change this settings at any time in the <strong>My GlyGen</strong> section.</span>-->
-    
-    <span>Do you want <strong>GlyGen</strong> to remember your searches for your future use? This can be changed at any time in the <strong>My GlyGen</strong> section.</span>
-    
-    <br>
-
-<!--
-    <button type="button" class="btn btn-default gg-btn-primary2 gg-btn-margin" onclick='logID()'><a href="#" class="gg-btn-primary2" data-dismiss="alert" aria-label="close">Allow</a></button>
-   
-    <button type="button" class="btn btn-default gg-btn-primary2 " onclick='doNotLog()'><a href="#" class="gg-btn-primary2" data-dismiss="alert" aria-label="close">Don't Allow</a></button>
--->
-
- <button type="button" class="btn btn-default gg-btn-margin" onclick='logID()'>Allow</button>
-   
-<button type="button" class="btn btn-default gg-btn-margin" onclick='doNotLog()'>Don't Allow</button>
-
-</div>
-
-<nav class="navbar navbar-inverse gg-navbar gg-navbar-inverse">
-    <div class="container-fluid">
-        <div class="navbar-header"> 
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>                   
-            </button>
-            <a class="navbar-brand" href="index.html"><img id="logo" src="images/logo-glygen.svg">
-            </a>
-        </div>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="css/header.css">
+    </head>
+    <body>
         
-        <div class="collapse navbar-collapse gg-collapse gg-nav-item" id="myNavbar"> 
-            <ul class="nav navbar-nav gg-nav-nav ">
-                <li>
-                    <a alt="home" href="index.html">HOME</a>
-                </li>
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" alt="explore" href="#">EXPLORE 
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu gg-dropd-menu">
-                        <li>
-                            <a alt="glycan" href="glycan_searchpage.html">Glycan</a>
-                        </li>
-                        <li>
-                            <a alt="protein" href="protein-search.html">Protein</a>
-                        </li>
-                        <li>
-                            <a alt="proteoform" href="glycoprotein-search.html">Glycoprotein</a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <a alt="quick search" href="quick_search.html">QUICK SEARCH</a>
-                </li>
-                <li>
-                    <a alt="about" href="about.html">ABOUT</a>
-                </li>
-                
-<!--
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" alt="explore" href="#">ABOUT 
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu gg-dropd-menu">
-                        <li>
-                            <a alt="about" href="about.html">About GlyGen</a>
-                        </li>
-                        <li>
-                            <a alt="resources" href="about.html">Main features</a>
-                        </li>
-                        <li>
-                            <a alt="survey" href="about.html" class="selected">How it works</a>
-                        </li>
-                        <li>
-                            <a alt="contact us" href="about.html">Our leaders</a>
-                        </li>
-                    </ul>
-                </li>
-                
--->
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" alt="explore" href="#">MORE 
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu gg-dropd-menu">
-                        <li>
-                            <a alt="resources" href="resources.html">Resources</a>
-                        </li>
-                        <li>
-                            <a alt="survey" href="survey.html" class="selected">Survey </a>
-                        </li>
-                        <li>
-                            <a alt="contact us" href="contact.html">Contact Us</a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            <form class="navbar-form navbar-left" action="/action_page.php">
-                <div class="input-group">
-                    <input type="text" class="form-control gg-form" placeholder="Search.." name="search">
-                    
-                    <div class="input-group-btn">
-                        <button class="btn btn-default gg-btn" type="submit">
-                            <i class="glyphicon glyphicon-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-            <ul class="nav navbar-nav gg-nav-nav pull-right">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <span class="glyphicon glyphicon-user"></span> 
-                        MY GLYGEN 
-                        <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu gg-dropd-menu">
-                        <li>
-                            <a href="glygen_settings.html" class="gg-dropd-backr">
-                                <span class="glyphicon glyphicon-wrench"></span> Privacy Settings
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+        <div id="top">
+            <div id="links">
+                <a id="contact" href="#">Contact us</a>
+                <a id="login" href="logIn.html">Log in</a>
+                <a id="signup" href="signUp.html">Sign up</a>
+            </div>
         </div>
-    </div>
-</nav>
-  <!-- breadcrumbs for page
-  <div class="bs-example">
-        <ul class="breadcrumb">
-          <li>
-            <a href="index.html">Home</a>
-          </li>
-          <li>
-            <a href="glycan_searchpage.html">GlycanSearch</a>
-          </li>
-          <li>
-            <a href="listpage.html">GlycanList</a>
-          </li>
-          <li class="details.html">GlycanDetails</li>
-        </ul>
-      </div>  
-    -->
+        <div id="menu">
+            <ul id="nav">
+                <a id="logo" href="home.html"><img src="images/glygenW_logo.png" alt="Glygen Logo"></a>
+                <li><a href="#">Contribute</a>
+                    <ul>
+                        <li><a href="#">Register Slide Format</a></li>
+                        <li><a href="#">Upload Array Data</a></li>
+                    </ul>
+                </li>
+                    
+                <li><a href="#">Show All</a>
+                    <ul>
+                        <li><a href="#">By Glycan</a></li>
+                        <li><a href="#">By Analyze</a></li>
+                    </ul>
+                </li>
+                    
+                <li><a href="#">Search</a>
+                    <ul>
+                        <li><a href="#">By Glycan</a></li>
+                        <li><a href="#">By Protein</a></li>
+                        <li><a href="#">By Fluid</a></li>
+                    </ul>
+                </li> 
+                
+                <li><a href="#">My Profile</a>
+                    <ul>
+                        <li><a href="#">User Settings</a></li>
+                        <li><a href="#">Preferences</a></li>
+                    </ul>
+                </li> 
+            </ul>
+                    
+        </div>            
+    </body>
+</html>

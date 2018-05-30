@@ -1,0 +1,197 @@
+body {
+    font-family: "Arial", "Verdana", sans-serif;
+    /*font-family: "Verdana", "Geneva", sans-serif;*/
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+    font-weight: 400;  
+    overflow: auto;
+    text-align: center;
+}
+
+body {
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility\9;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h1 {
+    font-size: 2.625em;
+}
+
+h2 {
+    font-size: 2.25em;
+}
+
+h3 {
+    font-size: 1.875em;
+    font-family: "Verdana", "Geneva", sans-serif;
+}
+
+h4 {
+    font-size: 1.5em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.2;
+}
+
+h5 {
+    font-size: 1.25em;
+    font-weight: 400;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: .3;
+    margin-top: 10px;
+}
+
+h6 {
+    font-size: 1.125em;
+    font-family: "Verdana", "Geneva", sans-serif;
+    line-height: 1.4;
+}
+
+p {
+    font-weight: 500;
+    margin: .5em 0 1em;
+    font-size: 1.3em;
+}
+
+.title {
+    margin: 0 0 .5em 0;
+}
+
+.cleafix {
+    overflow: auto;
+}
+
+#logo {
+    float: left;
+    padding-top: 5px;
+    padding-left: 100px;
+}
+
+#top {
+    float: left;
+    background-color: rgb(240, 240, 240);
+    width: 100%;
+    margin: 0px auto;
+}
+
+#links {
+    font-size: 13px;
+    float:right;
+    padding: 8px;
+    padding-right: 30px;
+}
+
+#contact {
+    border-right: 1px solid rgb(133, 133, 133);
+    padding-right: 10px;
+    margin-right: 15px;
+    color: black;
+}
+
+#contact:hover {
+    color: #215b9e;
+}
+
+#login {
+    border-right: 1px solid rgb(133, 133, 133);
+    padding-right: 10px;
+    margin-right: 15px;
+    color: black;
+}
+
+#login:hover {
+    color: #215b9e;
+}
+
+#signup {
+    color: black;
+}
+
+#signup:hover {
+    color: #215b9e;
+}
+
+#menu {
+    width: 100%;
+    margin: 0px auto;
+    height: 40px;
+    clear: both;
+    border-top: 1px solid rgb(150, 150, 150);
+}
+  
+ul#nav {
+    float: left;
+    width: 100%;
+    min-width: 650px;
+    margin: 0px auto;
+    padding: 0;
+    list-style: none;
+    background-color: lightblue;
+}
+  
+ul#nav li {
+    display: inline;
+}
+  
+ul#nav li a {
+    float: right;
+    font: bold 1.1em verdana, arial, sans-serif;
+    line-height: 40px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 1px 1px 1px #000000;
+    margin: 0;
+    padding: 0 30px;
+    background-color: lightblue;    
+}
+  
+/* APPLIES THE ACTIVE STATE */
+ul#nav .current a, ul#nav li:hover > a  {
+    color: #fff;
+    text-decoration: none;
+    background: rgb(129, 169, 182);
+}
+  
+/* THE SUBMENU LIST HIDDEN BY DEFAULT */
+ul#nav  ul {
+    display: none;
+}
+  
+/* WHEN THE FIRST LEVEL MENU ITEM IS HOVERED, THE CHILD MENU APPEARS */
+ul#nav li:hover > ul {
+    position: absolute;
+    display: block;
+    width: 100%;
+    height: 45px;
+    position: absolute;
+    margin: 40px 0 0 0;
+    background: #215b9e;  
+}
+  
+ul#nav li:hover > ul li a {
+    float: right;
+    font: bold 1.1em verdana, arial, sans-serif;
+    line-height: 45px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 1px 1px 1px #110000;
+    margin: 0;
+    padding: 0 67px 0 0;
+    background: #215b9e; 
+}
+  
+ul#nav li:hover > ul li a:hover {
+    color: #120000;
+    text-decoration: none;
+    text-shadow: none;
+}
