@@ -3,11 +3,11 @@ package org.glygen.array.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.regex.Pattern;
 
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.UserLoginType;
 import org.glygen.array.persistence.dao.RoleRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import ch.qos.logback.classic.Logger;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -68,7 +69,7 @@ public class UserController {
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	public Confirmation signup (@RequestBody(required=true) User user, @RequestParam("verificationURL") final String verificationURL) {
+	public Confirmation signup (@RequestBody(required=true) User user) {
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -80,10 +81,11 @@ public class UserController {
 		newUser.setAffiliationWebsite(user.getAffiliationWebsite()); 
 		newUser.setPublicFlag(user.getPublicFlag());
 		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
+		newUser.setLoginType(UserLoginType.LOCAL); 
     	
         userManager.createUser(newUser);  
         // send email confirmation
-        emailManager.sendVerificationToken(newUser, verificationURL);
+        emailManager.sendVerificationToken(newUser);
         logger.info("New user {} is added to the system", newUser.getUsername());
         return new Confirmation("User added successfully", HttpStatus.CREATED.value());
 	}

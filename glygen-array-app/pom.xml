@@ -79,9 +79,9 @@
 			<artifactId>jaxb-api</artifactId>
 			</dependency>
 		<dependency>
-			<groupId>org.glygen.array</groupId>
+			<groupId>com.sparqlite</groupId>
 			<artifactId>sparqlbean</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.02-SNAPSHOT</version>
 		</dependency>
 		<dependency>
     		<groupId>io.springfox</groupId>

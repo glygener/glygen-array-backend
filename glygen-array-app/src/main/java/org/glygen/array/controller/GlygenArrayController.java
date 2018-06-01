@@ -2,13 +2,12 @@ package org.glygen.array.controller;
 
 import java.util.List;
 
+import org.glycoinfo.rdf.InsertSparqlBean;
 import org.glycoinfo.rdf.SelectSparqlBean;
 import org.glycoinfo.rdf.SparqlException;
 import org.glycoinfo.rdf.dao.SparqlDAO;
 import org.glycoinfo.rdf.dao.SparqlEntity;
 import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionConfig;
-import org.glygen.array.rdf.GlycanBindingInsertSparql;
-import org.glygen.array.rdf.GlycanBindingKeys;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
 import org.slf4j.LoggerFactory;
@@ -41,10 +40,13 @@ public class GlygenArrayController {
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
 	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
 		try {
-			GlycanBindingInsertSparql ins = new GlycanBindingInsertSparql();
+			InsertSparqlBean ins = new InsertSparqlBean();
+			ins.setGraphBase("http://array.glygen.org/demo");
+			String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
+			ins.setPrefix(prefix);
 			SparqlEntity sparqlentity = new SparqlEntity();
-			sparqlentity.setValue(GlycanBindingInsertSparql.URI, "http://array.glygen.org/" + glycan.getGlycanId().hashCode());
-			sparqlentity.setValue(GlycanBindingKeys.BINDING_VALUE, glycan.getBindingValue());
+			sparqlentity.setValue(InsertSparqlBean.URI, "http://array.glygen.org/" + glycan.getGlycanId().hashCode());
+			sparqlentity.setValue("BINDING_VALUE", glycan.getBindingValue());
 			ins.setGraph("http://array.glygen.org/demo/test");
 			ins.setSparqlEntity(sparqlentity);
 			
@@ -67,16 +69,16 @@ public class GlygenArrayController {
 		// note the carriage return
 		String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
 		query.setPrefix(prefix);
-		query.setSelect("?" + GlycanBindingInsertSparql.BINDING_VALUE + "\n");
+		query.setSelect("?" + "BINDING_VALUE" + "\n");
 		query.setFrom("FROM <http://array.glygen.org/demo/test>");
-		query.setWhere("{ <" + uri + "> glycan:has_binding ?" + GlycanBindingInsertSparql.BINDING_VALUE + " .}");
+		query.setWhere("{ <" + uri + "> glycan:has_binding ?" + "BINDING_VALUE" + " .}");
 		try {
 			List<SparqlEntity> results = sparqlDAO.query(query);
 			if (results == null || results.isEmpty()) {
 				throw new Exception ("Binding does not exist for the glycan " + glycanId);
 			}
 			SparqlEntity result = results.get(0);
-			String binding = result.getValue(GlycanBindingInsertSparql.BINDING_VALUE);
+			String binding = result.getValue("BINDING_VALUE");
 			GlycanBinding bindingResult = new GlycanBinding();
 			bindingResult.setGlycanId(glycanId);
 			bindingResult.setBindingValue(Double.parseDouble(binding));

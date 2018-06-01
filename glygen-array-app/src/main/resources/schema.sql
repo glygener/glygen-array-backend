@@ -13,6 +13,10 @@ drop sequence IF EXISTS user_seq;
 drop sequence IF EXISTS role_seq;
 drop sequence IF EXISTS TOKEN_SEQ;
 
+drop type login CASCADE;
+create type login AS ENUM ('LOCAL', 'GOOGLE');
+CREATE CAST (CHARACTER VARYING as login) WITH INOUT AS IMPLICIT;
+
 create table IF NOT EXISTS users (
   userId bigint not null,
   username varchar(256),
@@ -24,6 +28,7 @@ create table IF NOT EXISTS users (
   affiliation varchar(256),
   affiliationWebsite varchar(256),
   publicflag boolean,
+  logintype login,
   primary key (userId)
 );
 

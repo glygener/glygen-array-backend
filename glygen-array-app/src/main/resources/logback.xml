@@ -33,16 +33,12 @@
 
 
 <appender name="db" class="ch.qos.logback.classic.db.DBAppender">
-<connectionSource
-class="ch.qos.logback.core.db.DriverManagerConnectionSource">
-<driverClass>org.postgresql.Driver</driverClass>
-
-<url>jdbc:postgresql://localhost:5432/postgres</url>
-
-<url>${SPRING_DATASOURCE_URL}</url>
-<user>glygen</user>
-<password>${SPRING_DATASOURCE_PASSWORD}</password>
-</connectionSource>
+	<connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+		<driverClass>org.postgresql.Driver</driverClass>
+		<url>${SPRING_DATASOURCE_URL}</url>
+		<user>glygen</user>
+		<password>${SPRING_DATASOURCE_PASSWORD}</password>
+	</connectionSource>
 </appender>
 
 

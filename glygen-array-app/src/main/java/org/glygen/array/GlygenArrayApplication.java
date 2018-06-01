@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.glygen.array.security.GooglePrincipalExtractor;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
 import org.glygen.array.security.MyUsernamePasswordAuthenticationFilter;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -134,6 +136,11 @@ public class GlygenArrayApplication {
 		}
 		
 		@Bean
+		public PrincipalExtractor googleExtractor() {
+			return new GooglePrincipalExtractor();
+		}
+		
+		@Bean
 		AuthenticationEntryPoint authenticationEntryPoint() {
 			return new MyOAuth2AuthenticationEntryPoint();
 		}
@@ -149,12 +156,12 @@ public class GlygenArrayApplication {
 		private Filter ssoFilter() {
 			CompositeFilter filter = new CompositeFilter();
 			List<Filter> filters = new ArrayList<>();
-			filters.add(ssoFilter(google(), "/login/google"));
+			filters.add(ssoFilter(google(), googleExtractor(), "/login/google"));
 			filter.setFilters(filters);
 			return filter;
 		}
 
-		private Filter ssoFilter(ClientResources client, String path) {
+		private Filter ssoFilter(ClientResources client, PrincipalExtractor extractor, String path) {
 			OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
 			OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
 			oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
@@ -162,6 +169,7 @@ public class GlygenArrayApplication {
 			UserInfoTokenServices tokenServices = new UserInfoTokenServices(client.getResource().getUserInfoUri(),
 					client.getClient().getClientId());
 			tokenServices.setRestTemplate(oAuth2RestTemplate);
+			tokenServices.setPrincipalExtractor(extractor);
 			oAuth2ClientAuthenticationFilter.setTokenServices(tokenServices);
 			return oAuth2ClientAuthenticationFilter;
 		}

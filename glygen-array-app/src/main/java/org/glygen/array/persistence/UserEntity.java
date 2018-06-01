@@ -5,6 +5,8 @@ import java.util.Collection;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,6 +18,8 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import org.hibernate.annotations.Type;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -38,6 +42,7 @@ public class UserEntity {
     private String affiliation;
     private String affiliationWebsite;
     private Boolean publicFlag;
+    private UserLoginType loginType;
     private Collection<RoleEntity> roles;
     
     @Id
@@ -68,7 +73,7 @@ public class UserEntity {
 	/**
 	 * @return the password
 	 */
-	@Column(name="password", nullable=false, length=255)
+	@Column(name="password", length=255)
 	@JsonIgnore
 	@XmlTransient
 	public String getPassword() {
@@ -184,4 +189,14 @@ public class UserEntity {
 	public void setRoles(Collection<RoleEntity> roles) {
 		this.roles = roles;
 	}   
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name="logintype")
+	public UserLoginType getLoginType() {
+		return loginType;
+	}
+	
+	public void setLoginType(UserLoginType loginType) {
+		this.loginType = loginType;
+	}
 }

@@ -26,6 +26,18 @@ public class EmailManagerImpl implements EmailManager {
 	@Value("${glygen.host}")
 	String host;
 	
+	@Value("${glygen.frontend.basePath}")
+	String frontEndbasePath;
+	
+	@Value("${glygen.frontend.host}")
+	String frontEndHost;
+	
+	@Value("${glygen.frontend.scheme}")
+	String frontEndScheme;
+	
+	@Value("${glygen.frontend.emailVerificationPage}")
+	String emailVerificationPage;
+	
 	@Autowired
 	UserManager userManager;
 	
@@ -96,16 +108,17 @@ public class EmailManagerImpl implements EmailManager {
     }
 
 	@Override
-	public void sendVerificationToken(UserEntity user, String verificationURL) {
+	public void sendVerificationToken(UserEntity user) {
 		init(); // if username/password have not been initialized, this will get them from DB
 		
 		final String token = UUID.randomUUID().toString();
         userManager.createVerificationTokenForUser(user, token);
-        final SimpleMailMessage email = constructEmailMessage(user, token, verificationURL);
+        final SimpleMailMessage email = constructVerificationEmailMessage(user, token);
         mailSender.send(email);
     }
 
-    private final SimpleMailMessage constructEmailMessage(final UserEntity user, final String token, String verificationURL) {
+    private final SimpleMailMessage constructVerificationEmailMessage(final UserEntity user, final String token) {
+    	String verificationURL = frontEndScheme + frontEndHost + frontEndbasePath + emailVerificationPage;
         final String recipientAddress = user.getEmail();
         final String subject = "Registration Confirmation";
         final String confirmationUrl = verificationURL+ "?token=" + token;

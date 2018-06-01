@@ -40,3 +40,4 @@ glygen:
       host: localhost:8181
       basePath: /
       loginPage: googleOAuth.html
+      emailVerificationPage: emailVerification.html
