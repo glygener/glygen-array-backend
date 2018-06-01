@@ -17,7 +17,7 @@ services:
       - SPRING_TRIPLESTORE_USERNAME
       - SPRING_TRIPLESTORE_URL=${SPRING_TRIPLESTORE_URL:-jdbc:virtuoso://virtuoso:1111}
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/glygen}
-      - SPRING_DATASOURCE_USERNAME
+      - SPRING_DATASOURCE_USERNAME=glygen
       - SPRING_DATASOURCE_PASSWORD
       - GLYGEN_SCHEME=${GLYGEN_SCHEME:-http://}
       - GLYGEN_HOST=${GLYGEN_HOST:-glycomics.ccrc.uga.edu/ggarray}
