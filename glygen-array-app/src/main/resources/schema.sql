@@ -13,7 +13,7 @@ drop sequence IF EXISTS user_seq;
 drop sequence IF EXISTS role_seq;
 drop sequence IF EXISTS TOKEN_SEQ;
 
-drop type login CASCADE;
+drop type IF EXISTS login CASCADE;
 create type login AS ENUM ('LOCAL', 'GOOGLE');
 CREATE CAST (CHARACTER VARYING as login) WITH INOUT AS IMPLICIT;
 

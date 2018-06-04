@@ -3,3 +3,4 @@ glygen-array-app/target
 glygen-array-sparql/target
 glygen-array-sparql/bin
 glygen-array-sparql/.settings
+glygen-array-app/*.log
