@@ -49,6 +49,7 @@ public class GlygenArrayController {
 			sparqlentity.setValue("BINDING_VALUE", glycan.getBindingValue());
 			ins.setGraph("http://array.glygen.org/demo/test");
 			ins.setSparqlEntity(sparqlentity);
+			ins.setInsert("<" + sparqlentity.getValue(InsertSparqlBean.URI) + "> glycan:has_binding \"" + sparqlentity.getValue("BINDING_VALUE") + "\" .");
 			
 			sparqlDAO.insert(ins);
 			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());

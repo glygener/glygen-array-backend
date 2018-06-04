@@ -10,14 +10,12 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.VerificationToken;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
-import org.glygen.array.view.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@Transactional
 public class UserManagerImpl implements UserManager {
 	public static final String TOKEN_INVALID = "invalidToken";
     public static final String TOKEN_EXPIRED = "expired";
@@ -44,12 +42,14 @@ public class UserManagerImpl implements UserManager {
     }
     
     @Override
+    @Transactional
     public void createVerificationTokenForUser(final UserEntity user, final String token) {
         final VerificationToken myToken = new VerificationToken(token, user);
         tokenRepository.save(myToken);
     }
 
     @Override
+    @Transactional
     public VerificationToken generateNewVerificationToken(final String existingVerificationToken) {
         VerificationToken vToken = tokenRepository.findByToken(existingVerificationToken);
         vToken.updateToken(UUID.randomUUID().toString());
@@ -58,6 +58,7 @@ public class UserManagerImpl implements UserManager {
     }
     
     @Override
+    @Transactional
     public String validateVerificationToken(String token) {
         final VerificationToken verificationToken = tokenRepository.findByToken(token);
         if (verificationToken == null) {
@@ -77,8 +78,10 @@ public class UserManagerImpl implements UserManager {
     }
 
 	@Override
+	@Transactional
 	public void createUser(UserEntity newUser) {
 		repository.save(newUser);
+		//repository.flush();
 	}
 
 	@Override
@@ -91,6 +94,7 @@ public class UserManagerImpl implements UserManager {
 	}
 
 	@Override
+	@Transactional
 	public void changePassword(String username, String newPassword) {
 		UserEntity user = repository.findByUsername(username);
 		if (user == null) {

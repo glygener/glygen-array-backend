@@ -46,7 +46,6 @@ public class GooglePrincipalExtractor implements PrincipalExtractor {
             user.setPublicFlag(false);
             user.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
             userManager.createUser(user);
-           // userRepository.flush();
         } 
        
         return user;
