@@ -99,7 +99,6 @@ public class GlygenArrayApplication {
 	}
 	
 	@Bean(name = "jpaTransactionManager")
-	@Primary
 	public PlatformTransactionManager transactionManager() {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		return transactionManager;

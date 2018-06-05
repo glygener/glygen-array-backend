@@ -7,7 +7,7 @@ import org.glycoinfo.rdf.SelectSparqlBean;
 import org.glycoinfo.rdf.SparqlException;
 import org.glycoinfo.rdf.dao.SparqlDAO;
 import org.glycoinfo.rdf.dao.SparqlEntity;
-import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionConfig;
+import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.AuthorizationScope;
 
-@Import(VirtSesameTransactionConfig.class)
+@Import(SesameTransactionConfig.class)
 @RestController
 @RequestMapping("/array")
 public class GlygenArrayController {
@@ -35,8 +35,8 @@ public class GlygenArrayController {
 	SparqlDAO sparqlDAO;
 	
 	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
-    		consumes={"application/xml", "application/json"},
-    		produces={"application/xml", "application/json"})
+    		consumes={"application/json", "application/xml"},
+    		produces={"application/json", "application/xml"})
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
 	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
 		try {
@@ -63,7 +63,7 @@ public class GlygenArrayController {
 	}
 
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
-	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/xml", "application/json"})
+	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/json", "application/xml"})
 	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") @PathVariable("glycanId") String glycanId) throws Exception {
 		String uri = "http://array.glygen.org/" + glycanId.hashCode();
 		SelectSparqlBean query = new SelectSparqlBean();
