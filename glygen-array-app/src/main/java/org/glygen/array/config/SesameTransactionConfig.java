@@ -28,7 +28,7 @@ public class SesameTransactionConfig {
   				getTripleStoreProperties().getPassword());
   	}
   
-  	@Bean(name = "sesameTransactionManager")
+  	@Bean(name="sesameTransactionManager")
   	VirtSesameTransactionManager transactionManager() throws RepositoryException {
   		return new VirtSesameTransactionManager(getSesameConnectionFactory());
   	}

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(transactionManager = "jpaTransactionManager")
+@Transactional(value="jpaTransactionManager")
 public class UserManagerImpl implements UserManager {
 	public static final String TOKEN_INVALID = "invalidToken";
     public static final String TOKEN_EXPIRED = "expired";

@@ -48,7 +48,7 @@ public class SesameSparqlDAO implements SparqlDAO {
 	}
 
 	@Override
-	@Transactional("sesameTransactionManager")
+	@Transactional(value="sesameTransactionManager")
 	public void delete(SparqlBean deletesparql) throws SparqlException {
 		if (!(deletesparql instanceof DeleteSparql))
 			throw new SparqlException("expected delete SPARQL");
@@ -84,7 +84,7 @@ public class SesameSparqlDAO implements SparqlDAO {
 	}
 
 	@Override
-	@Transactional("sesameTransactionManager")
+	@Transactional(value="sesameTransactionManager")
 	public void execute(SparqlBean insert) throws SparqlException {
 		String statement = insert.getSparql();
 		String format = InsertSparql.SPARQL;
@@ -121,7 +121,7 @@ public class SesameSparqlDAO implements SparqlDAO {
 	}
 
 	@Override
-	@Transactional("sesameTransactionManager")
+	@Transactional(value="sesameTransactionManager")
 	public void insert(SparqlBean insert) throws SparqlException {
 		execute(insert);
 	}
@@ -133,12 +133,12 @@ public class SesameSparqlDAO implements SparqlDAO {
 	}
 
 	@Override
-	@Transactional("sesameTransactionManager")
+	@Transactional(value="sesameTransactionManager")
 	public List<SparqlEntity> query(SparqlBean select) throws SparqlException {
 		return query(select.getSparql());
 	}
 
-	@Transactional("sesameTransactionManager")
+	@Transactional(value="sesameTransactionManager")
 	private List<SparqlEntity> query(String query) throws SparqlException {
 		List<SparqlEntity> al = null;
  		RepositoryConnection con = sesameConnectionFactory.getConnection();
