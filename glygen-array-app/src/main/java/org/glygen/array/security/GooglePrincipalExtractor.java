@@ -11,6 +11,8 @@ import org.glygen.array.service.UserManager;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import ch.qos.logback.classic.Logger;
@@ -27,6 +29,9 @@ public class GooglePrincipalExtractor implements PrincipalExtractor {
 	
 	@Autowired
 	RoleRepository roleRepository;
+	
+	PasswordEncoder passwordEncoder =
+		    PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
 	@Override
 	public Object extractPrincipal(Map<String, Object> map) {
