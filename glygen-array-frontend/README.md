@@ -1,1 +1,0 @@
-# Glygen-Array Frontend
