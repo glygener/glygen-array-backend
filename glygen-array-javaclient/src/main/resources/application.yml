@@ -1,0 +1,4 @@
+glygen:
+  scheme: http://
+  host: localhost:8080
+  basePath: /

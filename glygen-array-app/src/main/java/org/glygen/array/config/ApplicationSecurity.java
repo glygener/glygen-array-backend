@@ -12,7 +12,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import org.glygen.array.GlygenArrayApplication;
 import org.glygen.array.security.GooglePrincipalExtractor;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
@@ -170,11 +169,25 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         HttpServletResponse response,
         Authentication authentication) throws IOException {
 		response.setStatus(HttpStatus.OK.value());
-        ObjectMapper jsonMapper = new ObjectMapper();          
-		response.setContentType("application/json;charset=UTF-8");         
-		PrintWriter out = response.getWriter();  
+		
 		Confirmation confirmation = new Confirmation("User is authorized", HttpStatus.OK.value());
-		out.print(jsonMapper.writeValueAsString(confirmation));   
+		String acceptString = request.getHeader("Accept");
+		if (acceptString.contains("xml")) {
+			response.setContentType("application/xml;charset=UTF-8");          
+			PrintWriter out = response.getWriter();    
+			try {
+				JAXBContext errorContext = JAXBContext.newInstance(Confirmation.class);
+				Marshaller errorMarshaller = errorContext.createMarshaller();
+				errorMarshaller.marshal(confirmation, out);  
+			} catch (JAXBException jex) {
+				logger.error("Cannot generate error message in xml", jex);
+			}
+		} else {
+	        ObjectMapper jsonMapper = new ObjectMapper();          
+			response.setContentType("application/json;charset=UTF-8");         
+			PrintWriter out = response.getWriter();  
+			out.print(jsonMapper.writeValueAsString(confirmation));   
+		}
     }
  
     private void loginFailureHandler(

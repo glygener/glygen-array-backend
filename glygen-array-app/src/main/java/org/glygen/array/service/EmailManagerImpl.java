@@ -20,12 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EmailManagerImpl implements EmailManager {
 	
-	@Value("${glygen.scheme}")
-	String scheme;
-	
-	@Value("${glygen.host}")
-	String host;
-	
 	@Value("${glygen.frontend.basePath}")
 	String frontEndbasePath;
 	

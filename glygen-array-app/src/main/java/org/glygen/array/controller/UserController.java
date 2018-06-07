@@ -108,14 +108,14 @@ public class UserController {
 
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to user profile")})
 	@RequestMapping(value="/get/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the information for the given user", response=UserEntity.class)
+    @ApiOperation(value="Retrieve the information for the given user", response=User.class)
     @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
     		@ApiResponse(code=401, message="Unauthorized"),
     		@ApiResponse(code=403, message="Not enough privileges"),
     		@ApiResponse(code=404, message="User with given login name does not exist"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-    public @ResponseBody UserEntity getUser (
+    public @ResponseBody User getUser (
     		@io.swagger.annotations.ApiParam(required=true, value="login name of the user")
     		@PathVariable("userName")
     		String userName) {
@@ -143,7 +143,15 @@ public class UserController {
     	}
     	if (user == null) 
     		throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
-    	return user;
+    	User userView = new User();
+    	userView.setAffiliation(user.getAffiliation());
+    	userView.setAffiliationWebsite(user.getAffiliationWebsite());
+    	userView.setEmail(user.getEmail());
+    	userView.setFirstName(user.getFirstName());
+    	userView.setLastName(user.getLastName());
+    	userView.setPublicFlag(user.getPublicFlag());
+    	userView.setUserName(user.getUsername());
+    	return userView;
     }
 	
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
