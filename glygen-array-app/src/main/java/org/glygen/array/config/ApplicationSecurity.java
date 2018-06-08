@@ -17,6 +17,8 @@ import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
 import org.glygen.array.security.MyUsernamePasswordAuthenticationFilter;
 import org.glygen.array.security.TokenAuthenticationFilter;
+import org.glygen.array.security.validation.AccessTokenValidator;
+import org.glygen.array.security.validation.GoogleAccessTokenValidator;
 import org.glygen.array.service.GlygenUserDetailsService;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
@@ -32,6 +34,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,6 +52,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
@@ -66,7 +70,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	public static Logger logger=(Logger) LoggerFactory.getLogger(ApplicationSecurity.class);
 	
-	private static final String[] AUTH_WHITELIST = {
+	public static final String[] AUTH_WHITELIST = {
             // -- swagger ui
             "/v2/api-docs",
             "/swagger-resources",
@@ -108,6 +112,15 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	}
 	
 	@Bean
+    public AccessTokenValidator googleTokenValidator() {
+		ClientResources clientResources = google();
+        GoogleAccessTokenValidator accessTokenValidator = new GoogleAccessTokenValidator();
+        accessTokenValidator.setClientId(clientResources.getClient().getClientId());
+        accessTokenValidator.setCheckTokenUrl(clientResources.getResource().getTokenInfoUri());
+        return accessTokenValidator;
+    }
+	
+	@Bean
 	AuthenticationEntryPoint authenticationEntryPoint() {
 		return new MyOAuth2AuthenticationEntryPoint();
 	}
@@ -120,6 +133,18 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		return registration;
 	}
 	
+	/*
+	 * add more validators as it becomes necessary - with each 3rd party authorization server inclusion
+	 */
+	private List<AccessTokenValidator> accessTokenValidators() {
+		List<AccessTokenValidator> myList = new ArrayList<>();
+		myList.add(googleTokenValidator());
+		return myList;
+	}
+	
+	/*
+	 * add more filter as it becomes necessary - with each 3rd party authorization server inclusion
+	 */
 	private Filter ssoFilter() {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
@@ -253,18 +278,29 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 			matcherList.add(newMatcher);
 		}
 		RequestMatcher ignored = new OrRequestMatcher(matcherList);
-		final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService, ignored);
+		RequestMatcher PUBLIC_URLS = new OrRequestMatcher(ignored, 
+				new AntPathRequestMatcher("/error"),
+				new AntPathRequestMatcher("/login**"),
+				new AntPathRequestMatcher("/users/signup"),
+				new AntPathRequestMatcher("/users/recover"),
+				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
+				new AntPathRequestMatcher("/users/registrationConfirm"));
+		
+		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
+		final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService, PROTECTED_URLS);
+		tokenFilter.setValidators(accessTokenValidators());
 		
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		
 		http.cors().and().authorizeRequests()
-		    .antMatchers(AUTH_WHITELIST).permitAll()
-		    .antMatchers("/error").permitAll()
-            .antMatchers("/users/signup").permitAll()
-            .antMatchers("/users/recover").permitAll()
-            .antMatchers("/users/**/password").permitAll()
-            .antMatchers("/login**").permitAll()
-            .antMatchers("/users/registrationConfirm*").permitAll()
+		    .requestMatchers(PUBLIC_URLS).permitAll()
+		   // .antMatchers(AUTH_WHITELIST).permitAll()
+		   // .antMatchers("/error").permitAll()
+		   // .antMatchers("/login**").permitAll()
+           // .antMatchers("/users/signup").permitAll()
+           // .antMatchers("/users/recover").permitAll()
+           // .antMatchers(HttpMethod.GET, "/users/**/password").permitAll()
+           // .antMatchers("/users/registrationConfirm*").permitAll()
             .anyRequest().fullyAuthenticated()
             .and().csrf().disable()
             .httpBasic().disable()
@@ -283,6 +319,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
         //http.addFilter(customBasicAuthFilter);
 	}
 	
+
 	@Override
 	public void configure(WebSecurity web) throws Exception {
 		web.ignoring().antMatchers(AUTH_WHITELIST);

@@ -40,6 +40,9 @@
       $('#revoke-access-button').click(function() {
         revokeAccess();
       }); 
+      $('#user-profile-button').click(function() {
+          getUserProfile();
+        }); 
     });
   }
 
@@ -56,6 +59,45 @@
   function revokeAccess() {
     GoogleAuth.disconnect();
   }
+  
+  function ajaxListSuccess(data, textStatus, jqXHR) {
+    if (data.statusCode) {
+    	if (data.statusCode != 200) {
+	        console.log(data.statusCode);
+	        displayErrorByCode(data.statusCode);
+    	} else {
+    	    alert("failed to get user info");
+    	}
+    } 
+    else if (data.email) 
+    	alert ("User email: " + data.email);
+    else {
+   	    alert("failed to get user info");
+   	}
+  }
+
+function ajaxListFailure() {
+	//  $('#error-message').show();
+	    alert("failed authorization");
+	}
+  
+  function getUserProfile() {
+	  var username = GoogleAuth.currentUser.get().getId();
+	  var ajaxConfig = {
+		  url: 'http://localhost:8080/users/get/' + username,
+		  headers: {
+			'Accept': 'application/json',
+      	    'Authorization': 'Bearer ' + token
+          },
+		  type: 'GET',
+		  success: ajaxListSuccess,
+		  error: ajaxListFailure,
+		  processData: false
+	  };
+
+	  // make the server call
+	  $.ajax(ajaxConfig);
+  }
 
   function setSigninStatus(isSignedIn) {
     var user = GoogleAuth.currentUser.get();
@@ -66,9 +108,11 @@
       $('#auth-status').html('You are currently signed in and have granted ' +
           'access to this app.');
       token = user.getAuthResponse(true).access_token;
+      $('#user-profile-button').css('display', 'inline-block');
     } else {
       $('#sign-in-or-out-button').html('Sign In/Authorize');
       $('#revoke-access-button').css('display', 'none');
+      $('#user-profile-button').css('display', 'none');
       $('#auth-status').html('You have not authorized this app or you are ' +
           'signed out.');
       token = null;
@@ -84,6 +128,8 @@
         style="margin-left: 25px">Sign In/Authorize</button>
 <button id="revoke-access-button"
         style="display: none; margin-left: 25px">Revoke access</button>
+<button id="user-profile-button"
+        style="display: none; margin-left: 25px">Get User Info</button>
 
 <div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
 

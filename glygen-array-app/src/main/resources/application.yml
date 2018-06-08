@@ -30,6 +30,7 @@ google:
           - profile
     resource:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        tokenInfoUri: https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={accessToken}
         preferTokenInfo: true
 glygen:
   scheme: http://
