@@ -41,13 +41,16 @@ import io.jsonwebtoken.SignatureException;
 
 final public class TokenAuthenticationFilter extends GenericFilterBean
 {
+	String tokenSecret;
+	
 	GlygenUserDetailsService userService;
 	List<AccessTokenValidator> validators;
 	RequestMatcher securedEndpoints;
 	
-	public TokenAuthenticationFilter (GlygenUserDetailsService userService, final RequestMatcher securedEndpoints) {
+	public TokenAuthenticationFilter (GlygenUserDetailsService userService, final RequestMatcher securedEndpoints, String tokenSecret) {
 		this.securedEndpoints = securedEndpoints;
 		this.userService = userService;
+		this.tokenSecret = tokenSecret;
 	}
 	
 	@Override
@@ -60,7 +63,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
             // parse the token
         	try {
 	            String user = Jwts.parser()
-	                    .setSigningKey(SecurityConstants.SECRET.getBytes())
+	                    .setSigningKey(tokenSecret.getBytes())
 	                    .parseClaimsJws(token.replace(SecurityConstants.TOKEN_PREFIX, ""))
 	                    .getBody()
 	                    .getSubject();

@@ -25,6 +25,7 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
@@ -93,6 +94,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	@Autowired 
 	GlygenUserDetailsService userService;
+	
+	@Value("${glygen.token-secret}")
+	String tokenSecret;
 	
 	@Bean
     @Override
@@ -287,7 +291,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		
 		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
-		final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService, PROTECTED_URLS);
+		final TokenAuthenticationFilter tokenFilter = new TokenAuthenticationFilter(userService, PROTECTED_URLS, tokenSecret);
 		tokenFilter.setValidators(accessTokenValidators());
 		
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

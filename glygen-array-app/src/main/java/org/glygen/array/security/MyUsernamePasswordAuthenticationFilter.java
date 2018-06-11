@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -16,7 +17,10 @@ import javax.xml.bind.Marshaller;
 import org.glygen.array.config.SecurityConstants;
 import org.glygen.array.persistence.GlygenUser;
 import org.glygen.array.view.Confirmation;
+import org.glygen.array.view.ErrorCodes;
+import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.LoginRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +34,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+	
+	@Value("${glygen.token-secret}")
+	String tokenSecret;
+	
     private AuthenticationManager authenticationManager;
 
     public MyUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -50,8 +58,13 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
                             new ArrayList<>())
             );
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        	try {
+        		sendError(req, res, e);
+        		return null;
+        	} catch (IOException e1) {
+        		throw new RuntimeException(e1);
+        	}
+        } 
     }
 
     @Override
@@ -63,7 +76,7 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
     	String token = Jwts.builder()
                 .setSubject(((GlygenUser) auth.getPrincipal()).getUsername())
                 .setExpiration(new Date(System.currentTimeMillis() + SecurityConstants.EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SecurityConstants.SECRET.getBytes())
+                .signWith(SignatureAlgorithm.HS512, tokenSecret.getBytes())
                 .compact();
         res.addHeader(SecurityConstants.HEADER_STRING, SecurityConstants.TOKEN_PREFIX + token);
         //IMPORTANT! Needed for CORS request, otherwise header will not be visible to the client
@@ -87,6 +100,44 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 			res.setStatus(HttpStatus.OK.value());           
 			PrintWriter out = res.getWriter();         
 			out.print(jsonMapper.writeValueAsString(confirmation));       
+		}
+    }
+    
+    void sendError (HttpServletRequest request, HttpServletResponse response, Exception authEx) throws IOException {
+    	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		Throwable mostSpecificCause = authEx.getCause();
+    
+	    ErrorMessage errorMessage;
+	    if (mostSpecificCause != null) {
+	    	//String exceptionName = mostSpecificCause.getClass().getName();
+	    	String message = mostSpecificCause.getMessage();
+	        errorMessage = new ErrorMessage();
+	        List<String> errors = new ArrayList<>();
+	        errors.add(message);
+	        errorMessage.setErrors(errors);
+	    } else {
+	    	errorMessage = new ErrorMessage(authEx.getMessage());
+	    }
+	    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT_JSON);
+	    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		String acceptString = request.getHeader("Accept");
+		if (acceptString.contains("xml")) {
+			response.setContentType("application/xml;charset=UTF-8");      
+			PrintWriter out = response.getWriter();    
+			try {
+				JAXBContext errorContext = JAXBContext.newInstance(ErrorMessage.class);
+				Marshaller errorMarshaller = errorContext.createMarshaller();
+				errorMarshaller.marshal(errorMessage, out);  
+			} catch (JAXBException jex) {
+				logger.error("Cannot generate error message in xml", jex);
+			}
+		} else if (acceptString.contains("json")) {
+			ObjectMapper jsonMapper = new ObjectMapper();          
+			response.setContentType("application/json;charset=UTF-8");              
+			PrintWriter out = response.getWriter();         
+			out.print(jsonMapper.writeValueAsString(errorMessage));       
+		} else {
+			response.sendError (HttpStatus.BAD_REQUEST.value(), "Login request is not valid. Reason: " + authEx.getMessage());
 		}
     }
 }
