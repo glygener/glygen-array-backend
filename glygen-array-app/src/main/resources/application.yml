@@ -15,7 +15,7 @@ spring:
     dialect: sparql
     url: jdbc:virtuoso://localhost:1111
     username: dba
-    password: dba
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     graph: graph
 google:
     client:

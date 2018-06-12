@@ -94,6 +94,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
         	} catch (ExpiredJwtException e) {
         		logger.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
         		sendError (httpRequest, (HttpServletResponse)response, e);
+        		return;
         	}
         };
         

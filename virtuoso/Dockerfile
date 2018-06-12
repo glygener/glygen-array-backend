@@ -1,35 +1,44 @@
-FROM debian:jessie
-MAINTAINER Nobuyuki Paul Aoki <aokinobu@gmail.com>
+FROM ubuntu:16.04
 
+# Set Virtuoso commit SHA to Virtuoso 7.2.4 release (25/04/2016)
+ENV VIRTUOSO_COMMIT 96055f6a70a92c3098a7e786592f4d8ba8aae214
+
+# Build virtuoso from source and clean up afterwards
+RUN apt-get update \
+        && apt-get install -y build-essential autotools-dev autoconf automake unzip wget net-tools libtool flex bison gperf gawk m4 libssl-dev libreadline-dev openssl crudini \
+        && wget https://github.com/openlink/virtuoso-opensource/archive/${VIRTUOSO_COMMIT}.zip \
+        && unzip ${VIRTUOSO_COMMIT}.zip \
+        && rm ${VIRTUOSO_COMMIT}.zip \
+        && cd virtuoso-opensource-${VIRTUOSO_COMMIT} \
+        && ./autogen.sh \
+        && export CFLAGS="-O2 -m64" && ./configure --disable-bpel-vad --enable-conductor-vad --enable-fct-vad --disable-dbpedia-vad --disable-demo-vad --disable-isparql-vad --disable-ods-vad --disable-sparqldemo-vad --disable-syncml-vad --disable-tutorial-vad --with-readline --program-transform-name="s/isql/isql-v/" \
+        && make && make install \
+        && ln -s /usr/local/virtuoso-opensource/var/lib/virtuoso/ /var/lib/virtuoso \
+        && ln -s /var/lib/virtuoso/db /data \
+        && cd .. \
+        && rm -r /virtuoso-opensource-${VIRTUOSO_COMMIT} \
+        && apt remove --purge -y build-essential autotools-dev autoconf automake unzip wget net-tools libtool flex bison gperf gawk m4 libssl-dev libreadline-dev \
+        && apt autoremove -y \
+        && apt autoclean
+
+# Add Virtuoso bin to the PATH
+ENV PATH /usr/local/virtuoso-opensource/bin/:$PATH
+
+# Add Virtuoso config
+COPY virtuoso.ini /virtuoso.ini
+
+# Add dump_nquads_procedure
+COPY dump_nquads_procedure.sql /dump_nquads_procedure.sql
+
+# Add Virtuoso log cleaning script
+COPY clean-logs.sh /clean-logs.sh
+
+# Add startup script
+COPY virtuoso.sh /virtuoso.sh
+
+VOLUME /data
+WORKDIR /data
 EXPOSE 8890
+EXPOSE 1111
 
-RUN apt-get update && \
-  apt-get -y install dpkg-dev build-essential autoconf automake libtool flex bison gperf gawk m4 make odbcinst libxml2-dev libssl-dev libreadline-dev unzip git-core openssl net-tools procps && \
-  apt-get clean -qq -y && \
-  apt-get autoclean -qq -y && \
-  apt-get autoremove -qq -y &&  \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /tmp/*
-
-#ADD /virtuoso-opensource /virtuoso-opensource
-#https://github.com/openlink/virtuoso-opensource/blob/stable/7/NEWS
-#https://github.com/openlink/virtuoso-opensource/issues/251
-RUN git clone -v https://github.com/openlink/virtuoso-opensource.git 2>&1 > /var/log/virtusos-git.log && cd /virtuoso-opensource && \
-  git fetch origin && \
-  git checkout tags/v7.2.4.2 && \
-  ./autogen.sh && \
-  CFLAGS="-O2 -m64" && export CFLAGS && ./configure && \
-  make && make install 2>&1 > /var/log/virtusos-compile.log
-
-ADD run.sh /run.sh
-RUN chmod a+x /run.sh
-
-RUN mkdir /virtuoso
-
-RUN echo vm.swappiness=10 >> /etc/sysctl.conf
-
-# let's reuse all the work done in the script
-ADD config/virtuoso.ini /usr/local/virtuoso-opensource/var/lib/virtuoso/db/virtuoso.ini
-VOLUME [/virtuoso]
-#ENTRYPOINT /sbin/sysctl -w vm.swappiness=10; /run.sh
-CMD ["/run.sh"]
+CMD ["/bin/bash", "/virtuoso.sh"]
