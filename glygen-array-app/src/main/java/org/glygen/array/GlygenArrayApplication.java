@@ -23,6 +23,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.context.request.RequestContextListener;
 
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+import com.ulisesbocchio.jasyptspringboot.environment.StandardEncryptableEnvironment;
+
 import ch.qos.logback.classic.Logger;
 
 @SpringBootApplication
@@ -36,6 +39,10 @@ public class GlygenArrayApplication {
     }
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(GlygenArrayApplication.class).run(args);
+		//new SpringApplicationBuilder(GlygenArrayApplication.class).run(args);
+		
+		new SpringApplicationBuilder()
+		.environment(new StandardEncryptableEnvironment())
+	    .sources(GlygenArrayApplication.class).run(args);
 	}
 }

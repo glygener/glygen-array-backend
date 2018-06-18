@@ -139,7 +139,7 @@ public class SesameSparqlDAO implements SparqlDAO {
 	}
 
 	@Transactional(value="sesameTransactionManager")
-	private List<SparqlEntity> query(String query) throws SparqlException {
+	public List<SparqlEntity> query(String query) throws SparqlException {
 		List<SparqlEntity> al = null;
  		RepositoryConnection con = sesameConnectionFactory.getConnection();
  		try {
