@@ -1,15 +1,14 @@
-server:
-  port: 8080
 spring:
+  profiles:
+    active: "dev"
+  mail:
+    host: pod51004.outlook.com
+    port: 587
   datasource:
     url: jdbc:postgresql://localhost:5432/glygen
     username: glygen
     password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     driver-class-name: org.postgresql.Driver
-    initialization-mode: always
-  mail:
-    host: pod51004.outlook.com
-    port: 587
   triplestore:
     driverClassName: virtuoso.jdbc4.Driver
     dialect: sparql
@@ -32,6 +31,7 @@ google:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         tokenInfoUri: https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={accessToken}
         preferTokenInfo: true
+        
 glygen:
   token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)
   scheme: http://
@@ -43,3 +43,20 @@ glygen:
       basePath: /
       loginPage: googleOAuth.html
       emailVerificationPage: emailVerification.html
+   
+server:
+  port: 8080
+  
+---
+
+spring:
+  profiles: dev
+  datasource:
+    initialization-mode: always
+  
+---
+
+spring:
+  profiles: prod
+  datasource:
+    schema: classpath:/schema-prod.sql
