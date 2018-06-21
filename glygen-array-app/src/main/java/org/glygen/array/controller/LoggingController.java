@@ -14,7 +14,7 @@ import ch.qos.logback.classic.Logger;
 @RequestMapping("/logger")
 public class LoggingController {
 
-	public static Logger logger=(Logger) LoggerFactory.getLogger(GlygenArrayApplication.class);
+	public static Logger logger=(Logger) LoggerFactory.getLogger(LoggingController.class);
 	
 	@GetMapping("/logInfo")
 	public String logInfo() {
