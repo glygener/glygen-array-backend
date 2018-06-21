@@ -15,12 +15,12 @@ spring:
     dialect: sparql
     url: jdbc:virtuoso://localhost:1111
     username: dba
-    password: dba
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     graph: graph
 google:
     client:
         client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
-        client-secret: yTxCpETHfn7ZqXGyAw8M5idF
+        client-secret: ENC(HM+tmiraZ24pKoR97vJnEhuJ7JUpuuMN7p15vgMvX3EHKIdLQScsfA==)
         accessTokenUri: https://www.googleapis.com/oauth2/v4/token
         userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
         clientAuthenticationScheme: form
@@ -30,8 +30,10 @@ google:
           - profile
     resource:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        tokenInfoUri: https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={accessToken}
         preferTokenInfo: true
 glygen:
+  token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)
   scheme: http://
   host: localhost:8080
   basePath: /

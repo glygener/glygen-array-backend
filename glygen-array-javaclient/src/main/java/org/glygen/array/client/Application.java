@@ -30,6 +30,10 @@ public class Application implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		UserRestClient userClient = new UserRestClientImpl();
+		if (args == null || args.length < 2) {
+			log.error("need to pass username and password as arguments");
+			return;
+		}
 		userClient.login(args[0], args[1]);
 		User user = userClient.getUser("user");
 		log.info("got user information:" + user.getEmail());

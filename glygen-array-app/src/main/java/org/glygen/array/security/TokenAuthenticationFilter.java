@@ -3,7 +3,9 @@ package org.glygen.array.security;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -16,11 +18,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import org.glygen.array.config.SecurityConstants;
+import org.glygen.array.security.validation.AccessTokenValidationResult;
+import org.glygen.array.security.validation.AccessTokenValidator;
 import org.glygen.array.service.GlygenUserDetailsService;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -33,32 +39,31 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 
-public class TokenAuthenticationFilter extends GenericFilterBean
+final public class TokenAuthenticationFilter extends GenericFilterBean
 {
-	GlygenUserDetailsService userService;
-	private RequestMatcher ignoredRequests;
+	String tokenSecret;
 	
-	public TokenAuthenticationFilter (GlygenUserDetailsService userService, RequestMatcher ignoredRequests) {
+	GlygenUserDetailsService userService;
+	List<AccessTokenValidator> validators;
+	RequestMatcher securedEndpoints;
+	
+	public TokenAuthenticationFilter (GlygenUserDetailsService userService, final RequestMatcher securedEndpoints, String tokenSecret) {
+		this.securedEndpoints = securedEndpoints;
 		this.userService = userService;
-		this.ignoredRequests = ignoredRequests;
+		this.tokenSecret = tokenSecret;
 	}
 	
-    @Override
-    public void doFilter(final ServletRequest request, ServletResponse response, final FilterChain chain)
-            throws IOException, ServletException
-    {
-        final HttpServletRequest httpRequest = (HttpServletRequest)request;
-        
-     //   if(ignoredRequests.matches(httpRequest)) {
-      //  	 return;
-      //  }
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		final HttpServletRequest httpRequest = (HttpServletRequest)request;
 
-        String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
-        if (token != null) {
+	    String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
+        if (token != null && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             // parse the token
         	try {
 	            String user = Jwts.parser()
-	                    .setSigningKey(SecurityConstants.SECRET.getBytes())
+	                    .setSigningKey(tokenSecret.getBytes())
 	                    .parseClaimsJws(token.replace(SecurityConstants.TOKEN_PREFIX, ""))
 	                    .getBody()
 	                    .getSubject();
@@ -70,18 +75,34 @@ public class TokenAuthenticationFilter extends GenericFilterBean
 		            SecurityContextHolder.getContext().setAuthentication(authentication);
 	            }
         	} catch (MalformedJwtException | SignatureException e) {
-        		logger.debug("Not a valid token.");
+        		logger.debug("Not a valid JWS token.");
+        		//use validators to check against third-party authorization servers
+        		if (validators != null && !validators.isEmpty()) {
+        			for (AccessTokenValidator accessTokenValidator : validators) {
+						AccessTokenValidationResult result = accessTokenValidator.validate(token);
+						if (result.isValid()) {
+							Set<GrantedAuthority> roles = new HashSet<> ();
+							roles.add (new SimpleGrantedAuthority ("ROLE_USER"));
+							final UsernamePasswordAuthenticationToken authentication =
+				                    new UsernamePasswordAuthenticationToken(result.getTokenInfo().get("sub"), null, roles);
+							SecurityContextHolder.getContext().setAuthentication(authentication);
+				            break;
+						}
+					}
+        		}
+        		logger.debug("All validators failed. Not a valid token");
         	} catch (ExpiredJwtException e) {
         		logger.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
         		sendError (httpRequest, (HttpServletResponse)response, e);
         		return;
         	}
-        }
-
+        };
+        
         chain.doFilter(request, response);
-    }
-    
-    void sendError (HttpServletRequest request, HttpServletResponse response, Exception authEx) throws IOException {
+	}
+
+	
+	 void sendError (HttpServletRequest request, HttpServletResponse response, Exception authEx) throws IOException {
     	response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		
 		Throwable mostSpecificCause = authEx.getCause();
@@ -124,4 +145,10 @@ public class TokenAuthenticationFilter extends GenericFilterBean
 			response.sendError (HttpStatus.UNAUTHORIZED.value(), request.getUserPrincipal() + " is not allowed to access " + request.getRequestURI() + ": " + authEx.getMessage());
 		}
     }
+
+	public void setValidators(List<AccessTokenValidator> accessTokenValidators) {
+		this.validators = accessTokenValidators;
+	}
+
+	
 }

@@ -11,6 +11,8 @@ import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 
+import org.glygen.array.exception.BindingNotFoundException;
+import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.view.ErrorCodes;
@@ -119,6 +121,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     		ConstraintViolationException.class,
     		LinkExpiredException.class,
     		UserNotFoundException.class,
+    		BindingNotFoundException.class,
+    		GlycanRepositoryException.class,
     	//	GlycanNotFoundException.class,
     	//	MotifNotFoundException.class,
     	//	GlycanExistsException.class,
@@ -136,7 +140,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         HttpStatus status;
         ErrorMessage errorMessage = null;
         
-        if (ex instanceof ObjectNotFoundException || ex instanceof UserNotFoundException ) { //|| ex instanceof GlycanNotFoundException
+        if (ex instanceof ObjectNotFoundException || ex instanceof UserNotFoundException || ex instanceof BindingNotFoundException) {
         	//	|| ex instanceof MotifNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());
@@ -293,10 +297,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         	errorMessage.setErrorCode(ErrorCodes.EXPIRED);
         } else {
             logger.warn("Unknown exception type: " + ex.getClass().getName());
-            StringWriter result = new StringWriter();
-            PrintWriter printWriter = new PrintWriter(result);
-            ex.printStackTrace(printWriter);
-            logger.error("Internal Server Error. Stack Trace: " + result.toString());
+            logger.error("Internal Server Error.", ex);
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             ErrorMessage err = new ErrorMessage (ex.getClass().getName(), ex.getMessage());
             err.setStatus(status.value());

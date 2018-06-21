@@ -8,6 +8,8 @@ import org.glycoinfo.rdf.SparqlException;
 import org.glycoinfo.rdf.dao.SparqlDAO;
 import org.glycoinfo.rdf.dao.SparqlEntity;
 import org.glygen.array.config.SesameTransactionConfig;
+import org.glygen.array.exception.BindingNotFoundException;
+import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
 import org.slf4j.LoggerFactory;
@@ -55,10 +57,10 @@ public class GlygenArrayController {
 			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());
 		} catch (SparqlException se) {
 			logger.error("Cannot insert into the Triple store", se);
-			throw new Exception("Binding cannot be added", se);
+			throw new GlycanRepositoryException("Binding cannot be added", se);
 		} catch (Exception e) {
 			logger.error("Cannot generate unique URI", e);
-			throw new Exception("Binding cannot be added", e);
+			throw new GlycanRepositoryException("Binding cannot be added", e);
 		}
 	}
 
@@ -76,7 +78,7 @@ public class GlygenArrayController {
 		try {
 			List<SparqlEntity> results = sparqlDAO.query(query);
 			if (results == null || results.isEmpty()) {
-				throw new Exception ("Binding does not exist for the glycan " + glycanId);
+				throw new BindingNotFoundException("Binding does not exist for the glycan " + glycanId);
 			}
 			SparqlEntity result = results.get(0);
 			String binding = result.getValue("BINDING_VALUE");
@@ -85,9 +87,9 @@ public class GlygenArrayController {
 			bindingResult.setBindingValue(Double.parseDouble(binding));
 			return bindingResult;
 		} catch (SparqlException e) {
-			throw new Exception("Binding cannot be retrieved", e);
+			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
 		} catch (Exception e) {
-			throw new Exception("Binding cannot be retrieved", e);
+			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
 		}
 	}
 }

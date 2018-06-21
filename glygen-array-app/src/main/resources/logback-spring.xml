@@ -1,4 +1,8 @@
 <configuration>
+<springProperty scope="context" name="dataSourceURL" source="spring.datasource.url"
+		defaultValue="jdbc:postgresql://localhost:5432/glygen"/>
+<springProperty scope="context" name="dataSourcePassword" source="spring.datasource.password"/>
+<springProperty scope="context" name="dataSourceUser" source="spring.datasource.username"/>
 
 <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <!-- encoders are assigned the type
@@ -35,9 +39,9 @@
 <appender name="db" class="ch.qos.logback.classic.db.DBAppender">
 	<connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
 		<driverClass>org.postgresql.Driver</driverClass>
-		<url>${SPRING_DATASOURCE_URL}</url>
-		<user>glygen</user>
-		<password>${SPRING_DATASOURCE_PASSWORD}</password>
+		<url>${dataSourceURL}</url>
+		<user>${dataSourceUser}</user>
+		<password>${dataSourcePassword}</password>
 	</connectionSource>
 </appender>
 
