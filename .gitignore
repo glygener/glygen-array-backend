@@ -4,3 +4,4 @@ glygen-array-sparql/target
 glygen-array-sparql/bin
 glygen-array-sparql/.settings
 glygen-array-app/*.log
+glygen-array-app/.factorypath
