@@ -78,9 +78,13 @@ public class SesameSparqlDAO implements SparqlDAO {
 				connection.add(reader, "", RDFFormat.TURTLE, res);
 			}
 		} catch (RepositoryException | MalformedQueryException | UpdateExecutionException | RDFParseException | IOException e) {
-			e.printStackTrace();
 			throw new SparqlException(e);
 		}
+	}
+	
+	@Transactional(value="sesameTransactionManager")
+	public void delete(String delete) throws SparqlException {
+		update (delete);
 	}
 
 	@Override
@@ -124,6 +128,40 @@ public class SesameSparqlDAO implements SparqlDAO {
 	@Transactional(value="sesameTransactionManager")
 	public void insert(SparqlBean insert) throws SparqlException {
 		execute(insert);
+	}
+	
+	/**
+	 * execute sparql update statement
+	 * @param statement
+	 * @throws SparqlException
+	 */
+	private void update (String statement) throws SparqlException {
+		RepositoryConnection connection = sesameConnectionFactory.getConnection();
+		try {
+			Update update;
+			update = connection.prepareUpdate(QueryLanguage.SPARQL, statement);
+			update.execute();
+			BindingSet bindings = update.getBindings();
+			bindings.iterator();
+			for (Binding binding : bindings) {
+				logger.debug("binding Name:>" + binding.getName());
+				logger.debug("binding Value:>" + binding.getValue());
+			}
+			
+		} catch (RepositoryException | MalformedQueryException | UpdateExecutionException e) {
+			throw new SparqlException(e);
+		}
+	}
+	
+	/**
+	 * execute sparql insert statement
+	 * 
+	 * @param insert insert statement
+	 * @throws SparqlException
+	 */
+	@Transactional(value="sesameTransactionManager")
+	public void insert (String insert) throws SparqlException {
+		update (insert);
 	}
 
 	@Override
