@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   backend:
-    image: maven:3.3.9-jdk-8
+    image: maven:3.5.4-jdk-10
     ports:
       - 8081:8080
     volumes:
