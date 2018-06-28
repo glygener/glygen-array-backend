@@ -9,6 +9,7 @@ public class User {
     private String affiliation;
     private String affiliationWebsite;
     private Boolean publicFlag;
+    private String userType;
     
 	/**
 	 * @return the userName
@@ -105,6 +106,22 @@ public class User {
 	 */
 	public void setPublicFlag(Boolean publicFlag) {
 		this.publicFlag = publicFlag;
+	}
+	
+	/**
+	 * 
+	 * @return the user type: LOCAL, GOOGLE etc.
+	 */
+	public String getUserType() {
+		return userType;
+	}
+	
+	/**
+	 * 
+	 * @param userType the userType to set
+	 */
+	public void setUserType(String userType) {
+		this.userType = userType;
 	}
 
 }

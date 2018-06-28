@@ -298,13 +298,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		
 		http.cors().and().authorizeRequests()
 		    .requestMatchers(PUBLIC_URLS).permitAll()
-		   // .antMatchers(AUTH_WHITELIST).permitAll()
-		   // .antMatchers("/error").permitAll()
-		   // .antMatchers("/login**").permitAll()
-           // .antMatchers("/users/signup").permitAll()
-           // .antMatchers("/users/recover").permitAll()
-           // .antMatchers(HttpMethod.GET, "/users/**/password").permitAll()
-           // .antMatchers("/users/registrationConfirm*").permitAll()
             .anyRequest().fullyAuthenticated()
             .and().csrf().disable()
             .httpBasic().disable()
@@ -314,13 +307,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		    .logout()
             .logoutUrl("/logout")
             .logoutSuccessHandler(this::logoutSuccessHandler);
-		
-		
-       // http.addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class);
-      //  http.addFilterBefore(authenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        //Creating token when basic authentication is successful and the same token can be used to authenticate for further requests
-       // final MyBasicAuthenticationFilter customBasicAuthFilter = new MyBasicAuthenticationFilter(this.authenticationManager() );
-        //http.addFilter(customBasicAuthFilter);
 	}
 	
 

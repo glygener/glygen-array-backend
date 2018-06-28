@@ -151,6 +151,7 @@ public class UserController {
     	userView.setLastName(user.getLastName());
     	userView.setPublicFlag(user.getPublicFlag());
     	userView.setUserName(user.getUsername());
+    	userView.setUserType(user.getLoginType().name());
     	return userView;
     }
 	
