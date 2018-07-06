@@ -9,6 +9,11 @@ services:
         - DEFAULT_GRAPH=http://glygen.org/glygen
      volumes:
         - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso:/data
+     labels:
+        - "com.docker.lb.hosts=virtuoso"
+        - "com.docker.lb.port=8080"
+        - "com.docker.lb.context_root=/ggarray"
+        - "com.docker.lb.context_root_rewrite=true"
      ports:
        - "8890:8890"
        - "1111:1111"
