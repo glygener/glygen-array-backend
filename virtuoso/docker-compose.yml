@@ -11,7 +11,7 @@ services:
         - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso:/data
      labels:
         - "com.docker.lb.hosts=virtuoso"
-        - "com.docker.lb.port=8080"
+        - "com.docker.lb.port=8890"
         - "com.docker.lb.context_root=/ggarray"
         - "com.docker.lb.context_root_rewrite=true"
      ports:
