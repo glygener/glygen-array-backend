@@ -7,4 +7,5 @@ insert into user_roles values (1, 4);
 
 insert into settings (name, value) values ('server.email', 'glycomic@uga.edu');
 insert into settings (name, value) values ('server.email.password', 'miOeR$5q1Y');
+insert into settings (name, value) values ('token.expiration', '8640000');  
 

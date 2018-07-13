@@ -38,6 +38,8 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 	@Value("${glygen.token-secret}")
 	String tokenSecret;
 	
+	long tokenExpiration = SecurityConstants.EXPIRATION_TIME;
+	
     private AuthenticationManager authenticationManager;
 
     public MyUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -75,7 +77,7 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
     	String token = Jwts.builder()
                 .setSubject(((GlygenUser) auth.getPrincipal()).getUsername())
-                .setExpiration(new Date(System.currentTimeMillis() + SecurityConstants.EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(SignatureAlgorithm.HS512, tokenSecret.getBytes())
                 .compact();
         res.addHeader(SecurityConstants.HEADER_STRING, SecurityConstants.TOKEN_PREFIX + token);
@@ -140,4 +142,8 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 			response.sendError (HttpStatus.BAD_REQUEST.value(), "Login request is not valid. Reason: " + authEx.getMessage());
 		}
     }
+
+	public void setExpiration(long expiration) {
+		this.tokenExpiration = expiration;	
+	}
 }

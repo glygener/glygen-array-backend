@@ -12,6 +12,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.glygen.array.persistence.SettingEntity;
+import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.security.GooglePrincipalExtractor;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
@@ -97,6 +99,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	@Value("${glygen.token-secret}")
 	String tokenSecret;
+	
+	@Autowired
+	SettingsRepository settingsRepository;
 	
 	@Bean
     @Override
@@ -184,12 +189,22 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	@Bean
     public MyUsernamePasswordAuthenticationFilter authenticationFilter() throws Exception {
+		SettingEntity tokenExpirationSetting = settingsRepository.findByName("token.expiration");
+		long expiration = SecurityConstants.EXPIRATION_TIME;
+		if (tokenExpirationSetting != null) {
+			try {
+				expiration = Long.parseLong(tokenExpirationSetting.getValue());
+			} catch (NumberFormatException e) {
+				logger.warn("Setting for token.expiration is not a valid value (expected long): " + tokenExpirationSetting.getValue());
+			}
+		}
 		MyUsernamePasswordAuthenticationFilter authenticationFilter
             = new MyUsernamePasswordAuthenticationFilter(this.authenticationManager());
         authenticationFilter.setAuthenticationSuccessHandler(this::loginSuccessHandler);
         authenticationFilter.setAuthenticationFailureHandler(this::loginFailureHandler);
         authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
         authenticationFilter.setAuthenticationManager(authenticationManagerBean());
+        authenticationFilter.setExpiration(expiration);
         return authenticationFilter;
     }
 	
