@@ -301,6 +301,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/error"),
 				new AntPathRequestMatcher("/login**"),
 				new AntPathRequestMatcher("/users/signup"),
+				new AntPathRequestMatcher("/users/availableUsername"),
 				new AntPathRequestMatcher("/users/recover"),
 				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
 				new AntPathRequestMatcher("/users/registrationConfirm"));

@@ -1,7 +1,5 @@
 package org.glygen.array.controller;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +10,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 
 import org.glygen.array.exception.BindingNotFoundException;
+import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -120,6 +119,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     		DataIntegrityViolationException.class,
     		ConstraintViolationException.class,
     		LinkExpiredException.class,
+    		EmailExistsException.class,
     		UserNotFoundException.class,
     		BindingNotFoundException.class,
     		GlycanRepositoryException.class,
@@ -153,6 +153,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        } else if (ex instanceof EmailExistsException ) {
+            status = HttpStatus.CONFLICT;
+            errorMessage = new ErrorMessage (ex.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
         } else if (ex instanceof IllegalArgumentException ) { //|| ex instanceof UserRoleViolationException || ex instanceof SugarImporterException || ex instanceof GlycoVisitorException) {
         	status = HttpStatus.BAD_REQUEST;
         	ErrorCodes code;

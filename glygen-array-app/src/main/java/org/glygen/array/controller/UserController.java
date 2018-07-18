@@ -4,6 +4,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Arrays;
 
+import javax.persistence.EntityExistsException;
+
+import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.UserEntity;
@@ -70,6 +73,14 @@ public class UserController {
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
 	public Confirmation signup (@RequestBody(required=true) User user) {
+		// validation
+		if (user.getUserName() == null || user.getUserName().isEmpty() )
+			throw new IllegalArgumentException("invalid input: username cannot be left empty");
+		if (user.getEmail() == null || user.getEmail().isEmpty())
+			throw new IllegalArgumentException("invalid input: email cannot be left empty");
+		if (user.getPassword() == null || user.getPassword().isEmpty())
+			throw new IllegalArgumentException("invalid input: password must be provided");
+		
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -82,7 +93,19 @@ public class UserController {
 		newUser.setPublicFlag(user.getPublicFlag());
 		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
 		newUser.setLoginType(UserLoginType.LOCAL); 
-    	
+    	// check if the user already exists
+		UserEntity existing = userRepository.findByUsername(user.getUserName());
+		if (existing != null) {
+			logger.info("This user " + user.getUserName() + " already exists!");
+			throw new EntityExistsException ("This user " + user.getUserName() + " already exists!");
+		}
+		
+		// check if the email is already in the system
+		existing = userRepository.findByEmail(user.getEmail());
+		if (existing != null) {
+			logger.info("There is already an account with this email: " + user.getEmail());
+			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail());
+		}
         userManager.createUser(newUser);  
         // send email confirmation
         emailManager.sendVerificationToken(newUser);
@@ -99,6 +122,15 @@ public class UserController {
         }
         throw new LinkExpiredException("User verification link is expired");
     }
+	
+	@GetMapping("/availableUsername")
+	public Boolean checkUserName(@RequestParam("username") final String username) {
+		boolean userNameAvailable = true;	
+		UserEntity user = userRepository.findByUsername(username);
+		if (user != null)
+			userNameAvailable = false;
+		return userNameAvailable;
+	}
 
 	@ApiIgnore
 	@GetMapping("/signin")

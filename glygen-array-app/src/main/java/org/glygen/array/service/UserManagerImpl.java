@@ -66,6 +66,7 @@ public class UserManagerImpl implements UserManager {
         final Calendar cal = Calendar.getInstance();
         if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
             tokenRepository.delete(verificationToken);
+            repository.delete(user);
             return TOKEN_EXPIRED;
         }
         
