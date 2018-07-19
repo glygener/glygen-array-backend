@@ -73,7 +73,8 @@ public class UserController {
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	@ApiResponses (value ={@ApiResponse(code=200, message="User added successfully"), 
+	@ApiOperation(value="Adds the given user to the system. \"username\", \"email\" and \"password\" cannot be left blank", response=Confirmation.class)
+	@ApiResponses (value ={@ApiResponse(code=201, message="User added successfully"), 
 			    @ApiResponse(code=400, message="Username, email or password cannot be left blank"),
 	    		@ApiResponse(code=409, message="User with given login name already exists (ErrorCode=4002 Invalid Input) "
 	    				+ "or user with the given email already exists (ErrorCode=4006 Not Allowed)"),
@@ -127,6 +128,53 @@ public class UserController {
         return new Confirmation("User added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@RequestMapping(value = "/update/{userName}", method = RequestMethod.POST, 
+    		consumes={"application/xml", "application/json"})
+	@ApiOperation(value="Updates the information for the given user. Only the non-empty fields will be updated. "
+			+ "\"username\" cannot be changed", response=Confirmation.class)
+	@ApiResponses (value ={@ApiResponse(code=200, message="User updated successfully"), 
+			 	@ApiResponse(code=400, message="Illegal arguments, username should match the submitted user info"),
+				@ApiResponse(code=401, message="Unauthorized"),
+				@ApiResponse(code=403, message="Not enough privileges to update users"),
+	    		@ApiResponse(code=404, message="User with given login name does not exist"),
+	    		@ApiResponse(code=415, message="Media type is not supported"),
+	    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
+		UserEntity userEntity = userRepository.findByUsername(loginId);
+		if (userEntity == null)
+	    	throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
+    	
+		if ((user.getUserName() == null || user.getUserName().isEmpty()) || !loginId.equals(user.getUserName())) {
+			throw new IllegalArgumentException("userName (path variable) and the submitted user information do not match");
+		}
+		
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    	if (auth != null) { 
+    		// a user can only update his/her own user information
+    		// username of the authenticated user should match the username of the user retrieved from the db
+    		
+    		if (auth.getName().equals(loginId)) {
+    			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
+    			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
+    			if (user.getEmail() != null && !user.getEmail().isEmpty()) userEntity.setEmail(user.getEmail());
+    			if (user.getPassword() != null && !user.getPassword().isEmpty()) userEntity.setPassword(user.getPassword());
+    			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) userEntity.setFirstName(user.getFirstName());
+    			if (user.getLastName() != null && !user.getLastName().isEmpty()) userEntity.setLastName(user.getLastName());
+    			if (user.getPublicFlag() != null) userEntity.setPublicFlag(user.getPublicFlag());
+    	    	userRepository.save(userEntity);
+    		}
+    		else {
+    			logger.info("The user: " + auth.getName() + " is not authorized to update user with id " + loginId);
+    			throw new AccessDeniedException("The user: " + auth.getName() + " is not authorized to update user with id " + loginId);
+    		}
+    	}
+    	else { // should not reach here at all
+    		throw new BadCredentialsException ("The user has not been authenticated");
+    	}
+    	
+		return new Confirmation("User updated successfully", HttpStatus.OK.value());
+	}
+	
 	@GetMapping(value = "/registrationConfirm")
 	@ApiResponses (value ={@ApiResponse(code=200, message="User is confirmed successfully"), 
     		@ApiResponse(code=400, message="Link already expired (ErrorCode=4050 Expired)"),
@@ -142,6 +190,7 @@ public class UserController {
     }
 	
 	@GetMapping("/availableUsername")
+	@ApiOperation(value="Checks whether the given username is available to be used (returns true if available, false if alredy in use", response=Boolean.class)
 	@ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
