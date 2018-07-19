@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -126,7 +126,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     	//	GlycanNotFoundException.class,
     	//	MotifNotFoundException.class,
     	//	GlycanExistsException.class,
-    		MailException.class,
+    		MailSendException.class,
     		IllegalArgumentException.class, 
     	//	GlycoVisitorException.class,
     	//	SugarImporterException.class,

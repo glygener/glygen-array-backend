@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -72,6 +73,12 @@ public class UserController {
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="User added successfully"), 
+			    @ApiResponse(code=400, message="Username, email or password cannot be left blank"),
+	    		@ApiResponse(code=409, message="User with given login name already exists (ErrorCode=4002 Invalid Input) "
+	    				+ "or user with the given email already exists (ErrorCode=4006 Not Allowed)"),
+	    		@ApiResponse(code=415, message="Media type is not supported"),
+	    		@ApiResponse(code=500, message="Internal Server Error (Mail cannot be sent)")})
 	public Confirmation signup (@RequestBody(required=true) User user) {
 		// validation
 		if (user.getUserName() == null || user.getUserName().isEmpty() )
@@ -108,12 +115,23 @@ public class UserController {
 		}
         userManager.createUser(newUser);  
         // send email confirmation
-        emailManager.sendVerificationToken(newUser);
+        try {
+        	emailManager.sendVerificationToken(newUser);
+        } catch (MailSendException e) {
+        	// email cannot be sent, remove the user
+        	logger.error("Mail cannot be sent: ", e);
+        	userRepository.delete(newUser);
+        	throw e;
+        }
         logger.info("New user {} is added to the system", newUser.getUsername());
         return new Confirmation("User added successfully", HttpStatus.CREATED.value());
 	}
 	
 	@GetMapping(value = "/registrationConfirm")
+	@ApiResponses (value ={@ApiResponse(code=200, message="User is confirmed successfully"), 
+    		@ApiResponse(code=400, message="Link already expired (ErrorCode=4050 Expired)"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException, LinkExpiredException {
         final String result = userManager.validateVerificationToken(token);
         if (result.equals("valid")) {
@@ -124,6 +142,9 @@ public class UserController {
     }
 	
 	@GetMapping("/availableUsername")
+	@ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
 		boolean userNameAvailable = true;	
 		UserEntity user = userRepository.findByUsername(username);
