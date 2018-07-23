@@ -176,6 +176,7 @@ public class UserController {
 	}
 	
 	@GetMapping(value = "/registrationConfirm")
+	@ApiOperation(value="Enables the user by checking the confirmation token, removes the user if token is expired already", response=Confirmation.class)
 	@ApiResponses (value ={@ApiResponse(code=200, message="User is confirmed successfully"), 
     		@ApiResponse(code=400, message="Link already expired (ErrorCode=4050 Expired)"),
     		@ApiResponse(code=415, message="Media type is not supported"),
