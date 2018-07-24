@@ -5,9 +5,8 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.List;
 
-import org.glycoinfo.rdf.SparqlException;
-import org.glycoinfo.rdf.dao.SparqlDAO;
-import org.glycoinfo.rdf.dao.SparqlEntity;
+import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class SparqlQueryTest {
 	
 	@Autowired
-	SparqlDAO sparqlDAO;
+	SesameSparqlDAO sparqlDAO;
 	
 	@Test
 	public void testUnionQuery () {

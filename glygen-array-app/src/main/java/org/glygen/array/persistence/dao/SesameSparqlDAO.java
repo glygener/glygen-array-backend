@@ -1,33 +1,23 @@
 package org.glygen.array.persistence.dao;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.glycoinfo.rdf.DeleteSparql;
-import org.glycoinfo.rdf.InsertSparql;
-import org.glycoinfo.rdf.SparqlBean;
-import org.glycoinfo.rdf.SparqlException;
-import org.glycoinfo.rdf.dao.SparqlDAO;
-import org.glycoinfo.rdf.dao.SparqlEntity;
-import org.glycoinfo.rdf.dao.virt.VirtSesameConnectionFactory;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.Update;
-import org.openrdf.query.UpdateExecutionException;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParseException;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SparqlEntity;
+import org.glygen.array.virtuoso.SesameConnectionFactory;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -36,98 +26,17 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.qos.logback.classic.Logger;
 
 @Repository
-public class SesameSparqlDAO implements SparqlDAO {
+public class SesameSparqlDAO {
 	
 	Logger logger = (Logger) LoggerFactory.getLogger(SesameSparqlDAO.class);
 	
 	@Autowired(required=false)
-  	protected VirtSesameConnectionFactory sesameConnectionFactory;
+  	protected SesameConnectionFactory sesameConnectionFactory;
 	
-	@Override
-	public void archive(SparqlBean arg0) throws SparqlException {
-	}
-
-	@Override
-	@Transactional(value="sesameTransactionManager")
-	public void delete(SparqlBean deletesparql) throws SparqlException {
-		if (!(deletesparql instanceof DeleteSparql))
-			throw new SparqlException("expected delete SPARQL");
-		DeleteSparql delete = (DeleteSparql)deletesparql;		
-		RepositoryConnection connection = sesameConnectionFactory.getConnection();
-
-		String format = delete.getFormat();
-		String statement = delete.getSparql();
-		logger.debug("format:>"+format);
-		logger.debug(statement);
-		
-		try {
-			if (format.equals(InsertSparql.SPARQL)) {
-				Update update;
-				update = connection.prepareUpdate(QueryLanguage.SPARQL, statement);
-				update.execute();
-				BindingSet bindings = update.getBindings();
-				bindings.iterator();
-				for (Binding binding : bindings) {
-					logger.debug("binding Name:>" + binding.getName());
-					logger.debug("binding Value:>" + binding.getValue());
-				}
-			} else if (format.equals(InsertSparql.Turtle)) {
-				StringReader reader = new StringReader(statement);
-				ValueFactory f = connection.getValueFactory();
-				Resource res = f.createURI(delete.getGraph());
-				connection.add(reader, "", RDFFormat.TURTLE, res);
-			}
-		} catch (RepositoryException | MalformedQueryException | UpdateExecutionException | RDFParseException | IOException e) {
-			throw new SparqlException(e);
-		}
-	}
 	
 	@Transactional(value="sesameTransactionManager")
 	public void delete(String delete) throws SparqlException {
 		update (delete);
-	}
-
-	@Override
-	@Transactional(value="sesameTransactionManager")
-	public void execute(SparqlBean insert) throws SparqlException {
-		String statement = insert.getSparql();
-		String format = InsertSparql.SPARQL;
-		String graph = null;
-		if (insert instanceof InsertSparql) {
-			InsertSparql thisInsert = (InsertSparql)insert;
-			format = thisInsert.getFormat();
-			graph = thisInsert.getGraph();
-		}
-		RepositoryConnection connection = sesameConnectionFactory.getConnection();
-		logger.debug("format:>"+format);
-		logger.debug(statement);
-		
-		try {
-			if (format.equals(InsertSparql.SPARQL)) {
-				Update update;
-				update = connection.prepareUpdate(QueryLanguage.SPARQL, statement);
-				update.execute();
-				BindingSet bindings = update.getBindings();
-				bindings.iterator();
-				for (Binding binding : bindings) {
-					logger.debug("binding Name:>" + binding.getName());
-					logger.debug("binding Value:>" + binding.getValue());
-				}
-			} else if (format.equals(InsertSparql.Turtle)) {
-				StringReader reader = new StringReader(statement);
-				ValueFactory f = connection.getValueFactory();
-				Resource res = f.createURI(graph);
-				connection.add(reader, "", RDFFormat.TURTLE, res);
-			}
-		} catch (RepositoryException | MalformedQueryException | UpdateExecutionException | RDFParseException | IOException e) {
-			throw new SparqlException(e);
-		}
-	}
-
-	@Override
-	@Transactional(value="sesameTransactionManager")
-	public void insert(SparqlBean insert) throws SparqlException {
-		execute(insert);
 	}
 	
 	/**
@@ -162,18 +71,6 @@ public class SesameSparqlDAO implements SparqlDAO {
 	@Transactional(value="sesameTransactionManager")
 	public void insert (String insert) throws SparqlException {
 		update (insert);
-	}
-
-	@Override
-	public int load(String arg0) throws SparqlException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	@Transactional(value="sesameTransactionManager")
-	public List<SparqlEntity> query(SparqlBean select) throws SparqlException {
-		return query(select.getSparql());
 	}
 
 	@Transactional(value="sesameTransactionManager")
