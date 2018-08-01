@@ -3,8 +3,10 @@ package org.glygen.array.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -62,7 +64,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.CompositeFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,11 +106,16 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	@Autowired
 	SettingsRepository settingsRepository;
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Bean
-	public GlygenRequestAndResponseLoggingFilter requestLoggingFilter() {
+	public FilterRegistrationBean loggingFilter() {
 	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
-	    
-	    return loggingFilter;
+	    final FilterRegistrationBean registration = new FilterRegistrationBean();
+	    registration.setFilter(loggingFilter);
+	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+	    registration.addUrlPatterns("/users/*");
+	    registration.addUrlPatterns("/array/*");
+	    return registration;
 	}
 	
 	@Bean

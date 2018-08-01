@@ -17,12 +17,12 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter  {
 
-	Logger logger = LoggerFactory.getLogger("access-logger");
+	Logger mylogger = LoggerFactory.getLogger("access-logger");
 	
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
-		if (logger.isInfoEnabled()) {
+		if (mylogger.isInfoEnabled()) {
             doLoggedFilterInternal(request, response, chain);
         } else {
             chain.doFilter(request, response);
@@ -66,7 +66,7 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
 //		String responsePayload = getResponsePayload(response);
 //		ResponseMsg.append(responsePayload);
 		
-		logger.info(RequestMsg.toString(),uri,request.getContentAsByteArray(),response.getContentAsByteArray());;
+        mylogger.info(RequestMsg.toString(),uri,request.getContentAsByteArray(),response.getContentAsByteArray());;
 	}
 
 	private ContentCachingRequestWrapper wrapRequest(final HttpServletRequest request) {

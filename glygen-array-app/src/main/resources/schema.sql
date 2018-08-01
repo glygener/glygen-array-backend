@@ -4,12 +4,11 @@ drop table IF EXISTS user_roles;
 drop table IF EXISTS roles;
 drop table IF EXISTS users;
 
-DROP TABLE IF EXISTS logging_event;
-DROP TABLE IF EXISTS logging_access;
+DROP TABLE IF EXISTS logging_event CASCADE;
+DROP TABLE IF EXISTS logging_access CASCADE;
 DROP TABLE IF EXISTS logging_event_exception;
 DROP SEQUENCE IF EXISTS error_id_seq;
 DROP SEQUENCE IF EXISTS access_id_seq;
-
 
 drop sequence IF EXISTS user_seq;
 drop sequence IF EXISTS role_seq;
@@ -79,7 +78,6 @@ create sequence IF NOT EXISTS TOKEN_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
-
 
 CREATE TABLE IF NOT EXISTS logging_event
   (

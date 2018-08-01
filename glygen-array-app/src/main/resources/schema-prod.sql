@@ -63,38 +63,35 @@ create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ start 1;
 
-CREATE SEQUENCE IF NOT EXISTS logging_event_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
 
-
-CREATE TABLE IF NOT EXISTS logging_event 
+CREATE TABLE IF NOT EXISTS logging_event
   (
-    timestmp         BIGINT NOT NULL,
+    event_id          BIGINT DEFAULT nextval('error_id_seq') PRIMARY KEY,
+    timestmp         timestamp without time zone NOT NULL,
     formatted_message  TEXT NOT NULL,
-    logger_name       VARCHAR(254) NOT NULL,
     level_string      VARCHAR(254) NOT NULL,
-    thread_name       VARCHAR(254),
-    reference_flag    SMALLINT,
-    arg0              VARCHAR(254),
-    arg1              VARCHAR(254),
-    arg2              VARCHAR(254),
-    arg3              VARCHAR(254),
+    parameters		  bytea,
     caller_filename   VARCHAR(254) NOT NULL,
     caller_class      VARCHAR(254) NOT NULL,
     caller_method     VARCHAR(254) NOT NULL,
-    caller_line       CHAR(4) NOT NULL,
-    event_id          BIGINT DEFAULT nextval('logging_event_id_seq') PRIMARY KEY
+    caller_line       VARCHAR(254) NOT NULL,
+    caller_user		  VARCHAR(254) NOT NULL
   );
 
-CREATE TABLE IF NOT EXISTS logging_event_property
+CREATE TABLE IF NOT EXISTS logging_access
   (
-    event_id	      BIGINT NOT NULL,
-    mapped_key        VARCHAR(254) NOT NULL,
-    mapped_value      VARCHAR(1024),
-    PRIMARY KEY(event_id, mapped_key),
-    FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
+    access_id          	BIGINT DEFAULT nextval('access_id_seq') PRIMARY KEY,
+    timestmp			timestamp without time zone NOT NULL,
+    request_message  	TEXT NOT NULL,
+    uri					VARCHAR(254) NOT NULL,
+    request_payload		bytea,
+    response_payload	bytea,
+    caller_user       	VARCHAR(254) NOT NULL
   );
-
-CREATE TABLE IF NOT EXISTS logging_event_exception
+  
+  CREATE TABLE logging_event_exception
   (
     event_id         BIGINT NOT NULL,
     i                SMALLINT NOT NULL,

@@ -1,6 +1,6 @@
 <configuration>
 <springProperty scope="context" name="dataSourceURL" source="spring.datasource.url"
-       defaultValue="jdbc:postgresql://localhost:5431/glygen"/>
+       defaultValue="jdbc:postgresql://localhost:5432/glygen"/>
 <springProperty scope="context" name="dataSourcePassword" source="spring.datasource.password"/>
 <springProperty scope="context" name="dataSourceUser" source="spring.datasource.username"/>
 
@@ -69,6 +69,7 @@
 
 <root level="DEBUG">
 	<appender-ref ref="STDOUT"/>
+	<appender-ref ref="FILE"/>
 </root>
 
 </configuration>
