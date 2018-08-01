@@ -4,8 +4,8 @@ drop table IF EXISTS user_roles;
 drop table IF EXISTS roles;
 drop table IF EXISTS users;
 
-DROP TABLE IF EXISTS logging_event;
-DROP TABLE IF EXISTS logging_access;
+DROP TABLE IF EXISTS logging_event CASCADE;
+DROP TABLE IF EXISTS logging_access CASCADE;
 DROP TABLE IF EXISTS logging_event_exception;
 DROP SEQUENCE IF EXISTS error_id_seq;
 DROP SEQUENCE IF EXISTS access_id_seq;

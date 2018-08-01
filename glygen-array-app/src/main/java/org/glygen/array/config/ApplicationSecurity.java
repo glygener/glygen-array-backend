@@ -3,8 +3,10 @@ package org.glygen.array.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -106,11 +108,15 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	SettingsRepository settingsRepository;
 	
 	@Bean
-	public GlygenRequestAndResponseLoggingFilter requestLoggingFilter() {
-	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
-	    
-	    return loggingFilter;
-	}
+	public FilterRegistrationBean loggingFilter() {
+ 	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
+ 	    final FilterRegistrationBean registration = new FilterRegistrationBean();
+ 	    registration.setFilter(loggingFilter);
+ 	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+ 	    registration.addUrlPatterns("/users/*");
+ 	    registration.addUrlPatterns("/array/*");
+ 	    return registration;
+ 	}
 	
 	@Bean
     @Override
