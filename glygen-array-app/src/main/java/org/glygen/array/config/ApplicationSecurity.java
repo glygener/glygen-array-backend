@@ -12,6 +12,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.glygen.array.logging.filter.GlygenRequestAndResponseLoggingFilter;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.security.GooglePrincipalExtractor;
@@ -105,13 +106,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	SettingsRepository settingsRepository;
 	
 	@Bean
-	public CommonsRequestLoggingFilter requestLoggingFilter() {
-	    CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
-	    loggingFilter.setIncludeClientInfo(true);
-	    loggingFilter.setIncludeQueryString(true);
-	    loggingFilter.setIncludePayload(true);
-	    loggingFilter.setMaxPayloadLength(10000);
-	    loggingFilter.setIncludeHeaders(false);
+	public GlygenRequestAndResponseLoggingFilter requestLoggingFilter() {
+	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
+	    
 	    return loggingFilter;
 	}
 	

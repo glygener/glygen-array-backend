@@ -94,6 +94,7 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-core/5.0.4.RELEASE/spring-security-core-5.0.4.RELEASE.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/springframework/security/spring-security-oauth2-core/5.0.4.RELEASE/spring-security-oauth2-core-5.0.4.RELEASE.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/sun/xml/bind/jaxb-impl/2.1.2/jaxb-impl-2.1.2.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/com/sparqlite/sparqlbean/0.02-SNAPSHOT/sparqlbean-0.02-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/virtuoso/sesame2/driver/0.1/driver-0.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/virtuoso/dialect/4.0/dialect-4.0.jar" enabled="true" runInBatchMode="false"/>
