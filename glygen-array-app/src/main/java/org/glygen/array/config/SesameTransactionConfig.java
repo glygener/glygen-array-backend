@@ -1,22 +1,22 @@
 package org.glygen.array.config;
 
-import org.glycoinfo.rdf.dao.SparqlDAO;
-import org.glycoinfo.rdf.dao.virt.VirtRepositoryConnectionFactory;
-import org.glycoinfo.rdf.dao.virt.VirtSesameConnectionFactory;
-import org.glycoinfo.rdf.dao.virt.VirtSesameTransactionManager;
-import org.glycoinfo.rdf.utils.TripleStoreProperties;
+
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryException;
+import org.glygen.array.virtuoso.RepositoryConnectionFactory;
+import org.glygen.array.virtuoso.SesameConnectionFactory;
+import org.glygen.array.virtuoso.SesameTransactionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
-import virtuoso.sesame2.driver.VirtuosoRepository;
+import virtuoso.rdf4j.driver.VirtuosoRepository;
+
 
 @Configuration
 public class SesameTransactionConfig {
 	@Bean
- 	SparqlDAO sparqlDAO() {
+ 	SesameSparqlDAO sparqlDAO() {
   		return new SesameSparqlDAO();
   	}
   	
@@ -29,8 +29,8 @@ public class SesameTransactionConfig {
   	}
   
   	@Bean(name="sesameTransactionManager")
-  	VirtSesameTransactionManager transactionManager() throws RepositoryException {
-  		return new VirtSesameTransactionManager(getSesameConnectionFactory());
+  	SesameTransactionManager transactionManager() throws RepositoryException {
+  		return new SesameTransactionManager(getSesameConnectionFactory());
   	}
   	
   	@Bean
@@ -39,7 +39,7 @@ public class SesameTransactionConfig {
   	}
   	
   	@Bean
-  	VirtSesameConnectionFactory getSesameConnectionFactory() {
-  		return new VirtRepositoryConnectionFactory(getRepository());
+  	SesameConnectionFactory getSesameConnectionFactory() {
+  		return new RepositoryConnectionFactory(getRepository());
   	}
 }
