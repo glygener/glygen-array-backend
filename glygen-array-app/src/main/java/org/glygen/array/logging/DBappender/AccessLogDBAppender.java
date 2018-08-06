@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -74,7 +75,7 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
     
     
     private void bindLoggingEventWithInsertStatement(PreparedStatement stmt, ILoggingEvent event) throws SQLException {
-    	stmt.setLong(TIMESTMP_INDEX, event.getTimeStamp());
+    	stmt.setObject(TIMESTMP_INDEX, LocalDateTime.now());
         stmt.setString(RQUEST_MESSAGE_INDEX, event.getFormattedMessage());		
 	}
     
@@ -86,7 +87,7 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
     	if(arrayLen!=0) {
     		stmt.setString(URI_INDEX, argArray[0].toString());
     		stmt.setBytes(REQUEST_PAYLOAD_INDEX, (byte[]) argArray[1]);
-    		stmt.setBytes(REQUEST_PAYLOAD_INDEX, (byte[]) argArray[2]);   
+    		stmt.setBytes(RESPONSE_PAYLOAD, (byte[]) argArray[2]);   
     	}
 	}
     
@@ -105,8 +106,7 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
 
 	@Override
 	protected String getInsertSQL() {
-		// TODO Auto-generated method stub
-		return null;
+		return insertSQL;
 	}
 
 	@Override

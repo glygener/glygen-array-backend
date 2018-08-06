@@ -19,7 +19,7 @@ public class SQLBuilder {
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_CLASS)).append(", ");
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_METHOD)).append(", ");
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_LINE)).append(", ");
-		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_USER)).append(", ");
+		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_USER)).append(") ");
 		sqlBuilder.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");		
 			
 		return sqlBuilder.toString();
@@ -34,7 +34,7 @@ public class SQLBuilder {
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.URI)).append(", ");
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.REQUEST_PAYLOAD)).append(", ");
 		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.RESPONSE_PAYLOAD)).append(", ");
-		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_USER)).append(", ");
+		sqlBuilder.append(dbNameResolver.getColumnName(ColumnName.CALLER_USER)).append(") ");
 		sqlBuilder.append("VALUES (?, ?, ?, ?, ?, ?)");		
 			
 		return sqlBuilder.toString();

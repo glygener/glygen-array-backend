@@ -56,17 +56,18 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
                 
         RequestMsg.append("REQUEST:uri=").append(uri);
 		
-//		String payload = getRequestPayload(request);
-//		if (payload != null) {
-//			RequestMsg.append(";payload=").append(payload);
-//		}
-//		
-//		StringBuilder ResponseMsg = new StringBuilder();
-//		ResponseMsg.append("RESPONSE:payload=");
-//		String responsePayload = getResponsePayload(response);
-//		ResponseMsg.append(responsePayload);
+		String payload = getRequestPayload(request);
+		if (payload != null) {
+			RequestMsg.append(";payload=").append(payload);
+		}
 		
-		logger.info(RequestMsg.toString(),uri,request.getContentAsByteArray(),response.getContentAsByteArray());;
+		StringBuilder ResponseMsg = new StringBuilder();
+		ResponseMsg.append("RESPONSE:payload=");
+		String responsePayload = getResponsePayload(response);
+		ResponseMsg.append(responsePayload);
+		byte[] requestContent = request.getContentAsByteArray();
+		byte[] responseContent = response.getContentAsByteArray();
+		logger.info(RequestMsg.toString(),uri,requestContent,responseContent);
 	}
 
 	private ContentCachingRequestWrapper wrapRequest(final HttpServletRequest request) {

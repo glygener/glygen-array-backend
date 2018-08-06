@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS logging_event
 
 CREATE TABLE IF NOT EXISTS logging_access
   (
-    access_id          	BIGINT DEFAULT nextval('access_id_seq') PRIMARY KEY,
+    event_id          	BIGINT DEFAULT nextval('access_id_seq') PRIMARY KEY,
     timestmp			timestamp without time zone NOT NULL,
     request_message  	TEXT NOT NULL,
     uri					VARCHAR(254) NOT NULL,
