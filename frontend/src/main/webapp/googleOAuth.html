@@ -60,7 +60,7 @@
     GoogleAuth.disconnect();
   }
   
-  function ajaxListSuccess(data, textStatus, jqXHR) {
+  function ajaxProfileSuccess(data, textStatus, jqXHR) {
     if (data.statusCode) {
     	if (data.statusCode != 200) {
 	        console.log(data.statusCode);
@@ -76,7 +76,7 @@
    	}
   }
 
-function ajaxListFailure() {
+function ajaxProfileFailure() {
 	//  $('#error-message').show();
 	    alert("failed authorization");
 	}
@@ -90,8 +90,8 @@ function ajaxListFailure() {
       	    'Authorization': 'Bearer ' + token
           },
 		  type: 'GET',
-		  success: ajaxListSuccess,
-		  error: ajaxListFailure,
+		  success: ajaxProfileSuccess,
+		  error: ajaxProfileFailure,
 		  processData: false
 	  };
 

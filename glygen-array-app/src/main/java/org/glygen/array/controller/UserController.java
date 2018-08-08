@@ -3,8 +3,10 @@ package org.glygen.array.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityExistsException;
+import javax.validation.Valid;
 
 import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.LinkExpiredException;
@@ -18,6 +20,7 @@ import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.User;
+import org.glygen.array.view.validation.PasswordValidator;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -75,20 +78,12 @@ public class UserController {
     		consumes={"application/xml", "application/json"})
 	@ApiOperation(value="Adds the given user to the system. \"username\", \"email\" and \"password\" cannot be left blank", response=Confirmation.class)
 	@ApiResponses (value ={@ApiResponse(code=201, message="User added successfully"), 
-			    @ApiResponse(code=400, message="Username, email or password cannot be left blank"),
+			    @ApiResponse(code=400, message="Username, email or password cannot be left blank (ErrorCode=4002 Invalid Input"),
 	    		@ApiResponse(code=409, message="User with given login name already exists (ErrorCode=4002 Invalid Input) "
 	    				+ "or user with the given email already exists (ErrorCode=4006 Not Allowed)"),
 	    		@ApiResponse(code=415, message="Media type is not supported"),
 	    		@ApiResponse(code=500, message="Internal Server Error (Mail cannot be sent)")})
-	public Confirmation signup (@RequestBody(required=true) User user) {
-		// validation
-		if (user.getUserName() == null || user.getUserName().isEmpty() )
-			throw new IllegalArgumentException("invalid input: username cannot be left empty");
-		if (user.getEmail() == null || user.getEmail().isEmpty())
-			throw new IllegalArgumentException("invalid input: email cannot be left empty");
-		if (user.getPassword() == null || user.getPassword().isEmpty())
-			throw new IllegalArgumentException("invalid input: password must be provided");
-		
+	public Confirmation signup (@RequestBody(required=true) @Valid User user) {
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -139,7 +134,7 @@ public class UserController {
 	    		@ApiResponse(code=404, message="User with given login name does not exist"),
 	    		@ApiResponse(code=415, message="Media type is not supported"),
 	    		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
+	public Confirmation updateUser (@RequestBody(required=true) @Valid User user, @PathVariable("userName") String loginId) {
 		UserEntity userEntity = userRepository.findByUsername(loginId);
 		if (userEntity == null)
 	    	throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
@@ -315,12 +310,12 @@ public class UserController {
     		throw new IllegalArgumentException("Invalid Input: new password cannot be empty");
     	}
     	logger.debug("new password is {}", newPassword);
-    	//TODO password validation -- UI side?
-    	/*Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
+    	//password validation 
+    	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
     	if (!pattern.matcher(newPassword).matches()) {
     		throw new IllegalArgumentException("Invalid Input: The password length must be greater than or equal to 5, must contain one or more uppercase characters, "
     				+ "must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
-    	}*/
+    	}
     	userManager.changePassword(p.getName(), newPassword);
     	return new Confirmation("Password changed successfully", HttpStatus.OK.value());
     }

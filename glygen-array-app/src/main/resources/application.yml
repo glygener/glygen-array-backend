@@ -39,10 +39,10 @@ glygen:
   basePath: /
   frontend:
       scheme: http://
-      host: localhost:8181
+      host: localhost:8000
       basePath: /
       loginPage: googleOAuth.html
-      emailVerificationPage: emailVerification.html
+      emailVerificationPage: emailConfirmation.html
    
 server:
   port: 8080

@@ -1,5 +1,13 @@
 package org.glygen.array.view;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import org.glygen.array.view.validation.Password;
+import org.glygen.array.view.validation.Username;
+
+
 public class User {
 	private String userName;
 	private String password;
@@ -14,6 +22,9 @@ public class User {
 	/**
 	 * @return the userName
 	 */
+    @NotEmpty
+    @Username
+    @Size(min=5, max=20, message="userName should have atleast 5 and at most 20 characters")
 	public String getUserName() {
 		return userName;
 	}
@@ -26,6 +37,8 @@ public class User {
 	/**
 	 * @return the password
 	 */
+	@NotEmpty
+	@Password
 	public String getPassword() {
 		return password;
 	}
@@ -38,6 +51,7 @@ public class User {
 	/**
 	 * @return the firstName
 	 */
+	@Size(max=100, message="First name cannot exceed 100 characters")
 	public String getFirstName() {
 		return firstName;
 	}
@@ -50,6 +64,7 @@ public class User {
 	/**
 	 * @return the lastName
 	 */
+	@Size(max=100, message="Last name cannot exceed 100 characters")
 	public String getLastName() {
 		return lastName;
 	}
@@ -62,6 +77,8 @@ public class User {
 	/**
 	 * @return the email
 	 */
+	@NotEmpty
+	@Email
 	public String getEmail() {
 		return email;
 	}
@@ -74,6 +91,7 @@ public class User {
 	/**
 	 * @return the affiliation
 	 */
+	@Size(max=255, message="Affiliation cannot exceed 255 characters")
 	public String getAffiliation() {
 		return affiliation;
 	}
@@ -86,6 +104,7 @@ public class User {
 	/**
 	 * @return the affiliationWebsite
 	 */
+	@Size(max=255, message="Affiliation Website cannot exceed 255 characters")
 	public String getAffiliationWebsite() {
 		return affiliationWebsite;
 	}

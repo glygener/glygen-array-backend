@@ -1,5 +1,6 @@
 package org.glygen.array.view;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -47,6 +48,12 @@ public class ErrorMessage {
 	 
 	public void setErrors(List<String> errors) {
 		this.errors = errors;
+	}
+	
+	public void addError(String error) {
+		if (this.errors == null)
+			this.errors = new ArrayList<>();
+		this.errors.add(error);
 	}
 	
 	/**

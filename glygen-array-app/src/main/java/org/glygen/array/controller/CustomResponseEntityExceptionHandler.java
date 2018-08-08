@@ -157,7 +157,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
             errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
-        } else if (ex instanceof IllegalArgumentException ) { //|| ex instanceof UserRoleViolationException || ex instanceof SugarImporterException || ex instanceof GlycoVisitorException) {
+        } else if (ex instanceof IllegalArgumentException) { //|| ex instanceof UserRoleViolationException || ex instanceof SugarImporterException || ex instanceof GlycoVisitorException) {
         	status = HttpStatus.BAD_REQUEST;
         	ErrorCodes code;
         	if (ex instanceof IllegalArgumentException) {
