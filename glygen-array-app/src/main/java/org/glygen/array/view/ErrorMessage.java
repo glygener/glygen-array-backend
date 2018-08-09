@@ -11,7 +11,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="result")
-public class ErrorMessage {
+public class ErrorMessage extends Error {
+	private static final long serialVersionUID = 1L;
 	final static String status = "error";
 	
 	/**

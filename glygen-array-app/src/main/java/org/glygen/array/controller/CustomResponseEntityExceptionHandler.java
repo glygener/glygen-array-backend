@@ -1,5 +1,6 @@
 package org.glygen.array.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -128,6 +129,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     	//	GlycanExistsException.class,
     		MailSendException.class,
     		IllegalArgumentException.class, 
+    		UnsupportedEncodingException.class,
     	//	GlycoVisitorException.class,
     	//	SugarImporterException.class,
     	//	SearchEngineException.class,
@@ -152,7 +154,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         } else if (ex instanceof EntityExistsException ) {// || ex instanceof GlycanExistsException) {
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
         } else if (ex instanceof EmailExistsException ) {
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
@@ -177,8 +179,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         		} else {
         			code = ErrorCodes.INVALID_INPUT;
         		}
-        		errorMessage = new ErrorMessage (ex.getMessage());
-        		errorMessage.setErrorCode(code);
+        		if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
+        			errorMessage = (ErrorMessage) ex.getCause();
+        		} else {
+        			errorMessage = new ErrorMessage (ex.getMessage());
+        			errorMessage.setErrorCode(code);
+        		}
         	}
        /* 	else if (ex instanceof SugarImporterException) {
         		errorMessage = new ErrorMessage(((SugarImporterException)ex).getErrorText() + ":" +  ((SugarImporterException)ex).getPosition());
@@ -295,7 +301,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                 errorMessage = new ErrorMessage (ex.getMessage());
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT_JSON);
             }
-        } else if (ex instanceof LinkExpiredException) {
+        } else if (ex instanceof UnsupportedEncodingException) {
+        	status = HttpStatus.BAD_REQUEST;
+        	errorMessage = new ErrorMessage (ex.getMessage());
+        	errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_ENCODING);
+        }
+        else if (ex instanceof LinkExpiredException) {
         	status = HttpStatus.BAD_REQUEST;
         	errorMessage = new ErrorMessage (ex.getMessage());
         	errorMessage.setErrorCode(ErrorCodes.EXPIRED);

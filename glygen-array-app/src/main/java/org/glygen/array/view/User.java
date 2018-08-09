@@ -4,6 +4,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
+import org.glygen.array.view.validation.EmailWithTld;
 import org.glygen.array.view.validation.Password;
 import org.glygen.array.view.validation.Username;
 
@@ -78,7 +79,7 @@ public class User {
 	 * @return the email
 	 */
 	@NotEmpty
-	@Email
+	@EmailWithTld
 	public String getEmail() {
 		return email;
 	}
