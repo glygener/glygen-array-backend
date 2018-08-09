@@ -71,7 +71,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         ErrorMessage errorMessage = new ErrorMessage(errors);
         errorMessage.setStatus(status.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-        logger.error("Invalid Argument {}", errorMessage);
+        logger.error("Invalid Argument {}", errorMessage.toString());
         return new ResponseEntity<Object>(errorMessage, headers, status);
     }
 
@@ -82,7 +82,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         ErrorMessage errorMessage = new ErrorMessage(unsupported, supported);
         errorMessage.setStatus(status.value());
         errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_MEDIATYPE);
-        logger.error("MediaType Problem: {}", errorMessage);
+        logger.error("MediaType Problem: {}", errorMessage.toString());
         return new ResponseEntity<Object>(errorMessage, headers, status);
     }
 
@@ -92,7 +92,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         ErrorMessage errorMessage;
         if (mostSpecificCause != null) {     	
             String message = mostSpecificCause.getMessage();
-            errorMessage = new ErrorMessage(message);
+            if (message != null)
+            	errorMessage = new ErrorMessage(message);
+            else
+            	errorMessage = new ErrorMessage("Message not readable");
             if (mostSpecificCause.getClass().getPackage().getName().startsWith("com.fasterxml.jackson"))
             	errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT_JSON);
             else if (mostSpecificCause instanceof JsonParseException) {
@@ -109,7 +112,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errorMessage.setErrorCode(ErrorCodes.INVALID_URL);
         }
         errorMessage.setStatus(status.value());  
-        logger.error("Message not readable: {}", errorMessage);
+        logger.error("Message not readable: {}", errorMessage.toString());
         return new ResponseEntity<Object>(errorMessage, headers, status);
     }
     
@@ -321,7 +324,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         }
 
         errorMessage.setStatus(status.value());
-        logger.error("Error: {}", errorMessage);
+        logger.error("Error: {}", errorMessage.toString());
         return handleExceptionInternal(ex, errorMessage, headers, status, request);
     }
     
