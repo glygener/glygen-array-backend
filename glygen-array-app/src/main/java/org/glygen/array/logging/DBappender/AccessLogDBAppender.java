@@ -86,8 +86,8 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
     	int arrayLen = argArray != null ? argArray.length : 0;
     	if(arrayLen!=0) {
     		stmt.setString(URI_INDEX, argArray[0].toString());
-    		stmt.setBytes(REQUEST_PAYLOAD_INDEX, (byte[]) argArray[1]);
-    		stmt.setBytes(RESPONSE_PAYLOAD, (byte[]) argArray[2]);   
+    		stmt.setString(REQUEST_PAYLOAD_INDEX, argArray[1] == null ? "" : argArray[1].toString());
+    		stmt.setString(RESPONSE_PAYLOAD, argArray[2] == null ? "": argArray[2].toString());   
     	}
 	}
     

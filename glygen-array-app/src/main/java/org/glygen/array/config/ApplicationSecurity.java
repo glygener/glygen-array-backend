@@ -64,7 +64,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.CompositeFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -115,6 +114,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
  	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
  	    registration.addUrlPatterns("/users/*");
  	    registration.addUrlPatterns("/array/*");
+ 	    registration.addUrlPatterns("/login");
  	    return registration;
  	}
 	
