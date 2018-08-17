@@ -17,6 +17,8 @@ public interface UserManager {
 
 	void createUser(UserEntity newUser);
 	
+	void deleteUser (UserEntity user);
+	
 	String recoverLogin(String email);
 	
 	void changePassword (String username, String newPassword);

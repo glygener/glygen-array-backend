@@ -17,19 +17,10 @@
 
 	<repositories>
 		<repository>
-			<id>glycoinfo</id>
-			<url>http://nexus.glycoinfo.org/content/groups/public</url>
-		</repository>
-		<repository>
-			<id>sparqlite</id>
-			<url>https://nexus.sparqlite.com/repository/maven-public/</url>
-		</repository>
-		<repository>
 			<id>jenkins</id>
 			<url>http://glycomics.ccrc.uga.edu/gginfra/nexus/repository/maven-releases/</url>
 		</repository>
 	</repositories>
-
 
 	<dependencies>
 		<!-- Compile -->
@@ -49,11 +40,6 @@
 		   	<groupId>org.postgresql</groupId>
   			<artifactId>postgresql</artifactId>
 		</dependency>
-	
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.h2database</groupId> -->
-<!-- 			<artifactId>h2</artifactId> -->
-<!-- 		</dependency> -->
 		<!-- Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

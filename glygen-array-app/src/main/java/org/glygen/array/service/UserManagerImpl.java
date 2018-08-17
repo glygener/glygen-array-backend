@@ -79,6 +79,14 @@ public class UserManagerImpl implements UserManager {
 	public void createUser(UserEntity newUser) {
 		repository.save(newUser);
 	}
+	
+	public void deleteUser (UserEntity user) {
+		VerificationToken token = tokenRepository.findByUser(user);
+		if (token != null) {
+			tokenRepository.delete(token);
+		}
+		repository.delete(user);
+	}
 
 	@Override
 	public String recoverLogin(String email) {

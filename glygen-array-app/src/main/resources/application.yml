@@ -42,7 +42,7 @@ glygen:
       host: localhost:8000
       basePath: /
       loginPage: googleOAuth.html
-      emailVerificationPage: emailConfirmation.html
+      emailVerificationPage: emailConfirmation1.html
    
 server:
   port: 8080

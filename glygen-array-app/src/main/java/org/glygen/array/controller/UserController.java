@@ -125,7 +125,7 @@ public class UserController {
         } catch (MailSendException e) {
         	// email cannot be sent, remove the user
         	logger.error("Mail cannot be sent: ", e);
-        	userRepository.delete(newUser);
+        	userManager.deleteUser(newUser);
         	throw e;
         }
         logger.info("New user {} is added to the system", newUser.getUsername());
