@@ -23,6 +23,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD
       - GLYGEN_SCHEME=${GLYGEN_SCHEME:-http://}
       - GLYGEN_HOST=${GLYGEN_HOST:-glycomics.ccrc.uga.edu/ggarray}
+      - GLYGEN_FRONTEND_HOST=${GLYGEN_FRONTEND_HOST:-glycomics.ccrc.uga.edu/ggarray}
       - GLYGEN_BASEPATH=${GLYGEN_BASEPATH:-/api}
     restart: always
 
