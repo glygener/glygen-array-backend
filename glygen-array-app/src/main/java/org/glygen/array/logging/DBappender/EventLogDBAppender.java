@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,14 +32,13 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
 	
     static final int TIMESTMP_INDEX = 1;
     static final int FORMATTED_MESSAGE_INDEX = 2;
-    static final int LOGGER_NAME_INDEX = 3;
-    static final int LEVEL_STRING_INDEX = 4;
-    static final int PARAMETERS_INDEX = 5;
-    static final int CALLER_FILENAME_INDEX = 6;
-    static final int CALLER_CLASS_INDEX = 7;
-    static final int CALLER_METHOD_INDEX = 8;
-    static final int CALLER_LINE_INDEX = 9;
-    static final int CALLER_USER_INDEX = 10;
+    static final int LEVEL_STRING_INDEX = 3;
+    static final int PARAMETERS_INDEX = 4;
+    static final int CALLER_FILENAME_INDEX = 5;
+    static final int CALLER_CLASS_INDEX = 6;
+    static final int CALLER_METHOD_INDEX = 7;
+    static final int CALLER_LINE_INDEX = 8;
+    static final int CALLER_USER_INDEX = 9;
     
     static final StackTraceElement EMPTY_CALLER_DATA = CallerData.naInstance();
 
@@ -93,9 +93,8 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
     }
     
     private void bindLoggingEventWithInsertStatement(PreparedStatement stmt, ILoggingEvent event) throws SQLException {
-    	 stmt.setLong(TIMESTMP_INDEX, event.getTimeStamp());
+    	 stmt.setObject(TIMESTMP_INDEX, LocalDateTime.now());
          stmt.setString(FORMATTED_MESSAGE_INDEX, event.getFormattedMessage());
-         stmt.setString(LOGGER_NAME_INDEX, event.getLoggerName());
          stmt.setString(LEVEL_STRING_INDEX, event.getLevel().toString());
          
 	}
