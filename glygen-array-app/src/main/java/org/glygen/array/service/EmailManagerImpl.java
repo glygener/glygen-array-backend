@@ -44,7 +44,6 @@ public class EmailManagerImpl implements EmailManager {
 	@Autowired
     private JavaMailSender mailSender;
 
-    private SimpleMailMessage templateMessage;
     private String username;
     private String password;
     
@@ -71,35 +70,40 @@ public class EmailManagerImpl implements EmailManager {
     	}
     }
 
-
-    public void setTemplateMessage(SimpleMailMessage templateMessage) {
-        this.templateMessage = templateMessage;
-    }
-
     @Override
-    @Transactional
+    @Transactional(value="jpaTransactionManager")
     public void sendPasswordReminder(UserEntity user) {
     	init(); // if username/password have not been initialized, this will get them from DB
         
-    	// Create a thread safe "copy" of the template message and customize it
-        SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
-        msg.setTo(user.getEmail());
-        
         // this criteria should match with the PasswordValidator's criteria
         // password should have minimum of 5, max of 12 characters, 1 numeric, 1 special character, 1 capital letter and 1 lowercase letter at least
-        char[] pswd = RandomPasswordGenerator.generatePswd(5, 12, 1, 1, 1);
+        char[] pswd = RandomPasswordGenerator.generatePswd(5, 20, 1, 1, 1);
         String newPassword = new String(pswd);
         // encrypt the password
  		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
  		String hashedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedPassword);
         userManager.createUser(user);
+     // Create a thread safe "copy" of the template message and customize it
+        SimpleMailMessage msg = constructPasswordReminderMessage(user);
+        msg.setTo(user.getEmail());
         msg.setText(
-            "Dear " + user.getUsername()
+            "Dear " + user.getFirstName() + " " + user.getLastName()
                 + ", \n\nYour Glygen password is reset. This is your temporary password: \n\n" + new String(pswd) 
             	+ "\n\nPlease change it as soon as possible. \n\nGlygen.org");
         this.mailSender.send(msg);
     }
+
+	private SimpleMailMessage constructPasswordReminderMessage(UserEntity user) {
+        final String recipientAddress = user.getEmail();
+        final String subject = "Password Reset";
+        final SimpleMailMessage email = new SimpleMailMessage();
+        email.setTo(recipientAddress);
+        email.setSubject(subject);
+        email.setFrom(this.username);
+        return email;
+	}
+
 
 	@Override
 	public void sendVerificationToken(UserEntity user) {

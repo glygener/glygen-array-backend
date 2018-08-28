@@ -325,6 +325,8 @@ public class UserController {
     		@PathVariable("userName") String loginId) {
     	
     	UserEntity user = userRepository.findByUsername(loginId);
+    	if (user == null) 
+    		throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
     	emailManager.sendPasswordReminder(user);
     	logger.info("Password reminder email is sent to {}", loginId);
 		return new Confirmation("Password reminder email is sent", HttpStatus.OK.value());
