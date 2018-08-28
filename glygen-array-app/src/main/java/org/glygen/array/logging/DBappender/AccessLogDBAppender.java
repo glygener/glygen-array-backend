@@ -10,10 +10,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import ch.qos.logback.classic.db.DBAppender;
 import ch.qos.logback.classic.db.names.DBNameResolver;
 import ch.qos.logback.classic.db.names.DefaultDBNameResolver;
-import ch.qos.logback.classic.spi.*;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.db.DBAppenderBase;
 
 public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
@@ -95,7 +94,7 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
 			StackTraceElement[] callerData) throws SQLException {
 		String currentUserName;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
              currentUserName = authentication.getName();
         }else {
         	currentUserName = "anonymous";

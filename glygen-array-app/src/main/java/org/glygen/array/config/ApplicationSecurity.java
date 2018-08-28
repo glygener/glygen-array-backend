@@ -106,6 +106,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	@Autowired
 	SettingsRepository settingsRepository;
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Bean
 	public FilterRegistrationBean loggingFilter() {
  	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
@@ -114,7 +115,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
  	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
  	    registration.addUrlPatterns("/users/*");
  	    registration.addUrlPatterns("/array/*");
- 	    registration.addUrlPatterns("/login");
+ 	    registration.addUrlPatterns("/login*/*");
+ 	    registration.setOrder(1);
  	    return registration;
  	}
 	
