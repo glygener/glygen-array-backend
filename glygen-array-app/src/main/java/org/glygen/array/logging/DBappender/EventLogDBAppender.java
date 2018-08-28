@@ -132,7 +132,7 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
         stmt.setString(CALLER_LINE_INDEX, Integer.toString(caller.getLineNumber()));
         String currentUserName;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+        if (authentication !=null && !(authentication instanceof AnonymousAuthenticationToken)) {
              currentUserName = authentication.getName();
         }else {
         	currentUserName = "anonymous";
