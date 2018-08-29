@@ -14,12 +14,17 @@
 
 <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     
+    <!-- Filter that accepts only error level of logs -->
     <filter class="ch.qos.logback.classic.filter.LevelFilter">
       <level>ERROR</level>
       <onMatch>ACCEPT</onMatch>
       <onMismatch>DENY</onMismatch>
     </filter>
+    
+    <!-- log file name -->
     <file>logFile.log</file>
+    
+    <!-- rolling pollicy -->
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
       <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -30,10 +35,40 @@
 
     </rollingPolicy>
 
+	<!-- encoder string i.e. output of log -->
     <encoder>
-      <pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+      <pattern>%%-4d %-5level %class - %msg%n</pattern>
     </encoder>
   </appender> 
+  
+  <appender name="WEB-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    
+    <!-- Filter that accepts only error level of logs -->
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+    
+    <!-- log file name -->
+    <file>logFile.log</file>
+    
+    <!-- rolling pollicy -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 60 days' worth of history capped at 20GB total size -->
+      <maxHistory>60</maxHistory>
+      <totalSizeCap>20GB</totalSizeCap>
+
+    </rollingPolicy>
+
+	<!-- encoder string i.e. output of log -->
+    <encoder>
+      <pattern>%-4d %-5level %class - %msg%n</pattern>
+    </encoder>
+  </appender>
 
 
 <appender name="access-log-dbappender" class="org.glygen.array.logging.DBappender.AccessLogDBAppender">
@@ -64,6 +99,10 @@
   
   <logger name="file-logger" level="ERROR">
     <appender-ref ref="FILE" />
+  </logger>
+  
+  <logger name="web-file-logger" level="ERROR">
+    <appender-ref ref="WEB-FILE" />
   </logger>
 
 

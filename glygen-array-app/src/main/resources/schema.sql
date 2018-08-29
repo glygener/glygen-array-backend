@@ -6,9 +6,13 @@ drop table IF EXISTS users;
 
 DROP TABLE IF EXISTS logging_event CASCADE;
 DROP TABLE IF EXISTS logging_access CASCADE;
+DROP TABLE IF EXISTS web_logging_event CASCADE;
+DROP TABLE IF EXISTS web_logging_access CASCADE;
 DROP TABLE IF EXISTS logging_event_exception;
 DROP SEQUENCE IF EXISTS error_id_seq;
 DROP SEQUENCE IF EXISTS access_id_seq;
+DROP SEQUENCE IF EXISTS web_error_id_seq;
+DROP SEQUENCE IF EXISTS web_access_id_seq;
 
 
 drop sequence IF EXISTS user_seq;
@@ -79,6 +83,8 @@ create sequence IF NOT EXISTS TOKEN_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_error_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_access_id_seq MINVALUE 1 START 1;
 
 
 CREATE TABLE IF NOT EXISTS logging_event
@@ -106,7 +112,7 @@ CREATE TABLE IF NOT EXISTS logging_access
     caller_user       	VARCHAR(254) NOT NULL
   );
   
-  CREATE TABLE logging_event_exception
+  CREATE TABLE IF NOT EXISTS logging_event_exception
   (
     event_id         BIGINT NOT NULL,
     i                SMALLINT NOT NULL,
@@ -114,3 +120,26 @@ CREATE TABLE IF NOT EXISTS logging_access
     PRIMARY KEY(event_id, i),
     FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
   );
+  
+  CREATE TABLE IF NOT EXISTS web_logging_access
+  (
+    event_id          	BIGINT DEFAULT nextval('web_access_id_seq') PRIMARY KEY,
+    dates				date,
+    level_string      	VARCHAR(254) NOT NULL,
+    page				VARCHAR(254) NOT NULL,
+    message  			TEXT NOT NULL,
+    comment				TEXT,
+    caller_user       	VARCHAR(254) NOT NULL
+  );
+  
+  CREATE TABLE IF NOT EXISTS web_logging_event
+  (
+    event_id          	BIGINT DEFAULT nextval('web_error_id_seq') PRIMARY KEY,
+    dates				date,
+    level_string      	VARCHAR(254) NOT NULL,
+    page				VARCHAR(254) NOT NULL,
+    message  			TEXT NOT NULL,
+    comment				TEXT,
+    caller_user      	VARCHAR(254) NOT NULL
+  );
+  
