@@ -1,22 +1,21 @@
 --------------------------------------------------------------------------------------------
-To execute SQL queries on  using shell.
+To execute glygen-array backend application.
 
-1. Open docker container into shell using following command
+1. set necessary environment variables:
 
-	docker exec -it postgres_postgres_1 bash
-
-2. connect to psql database using following command
-
-	psql -h 127.0.0.1 -p 5432 -U postgres -w postgres
-
--h, --host=HOSTNAME      database server host or socket directory (default: "local socket")
--p, --port=PORT          database server port (default: "5432")
--U, --username=USERNAME  database user name (default: "root")
--w, --no-password        never prompt for password
--W, --password           force password prompt (should happen automatically)
-
-3. type and excute your query.
-
-4. "\q" to come out of scripting shell
-5. "exit" to return to your termnial from bash
+    export GLYGEN_HOST='glycomics.ccrc.uga.edu'
+    
+    export GLYGEN_BASEPATH='/ggarray/api/'
+    
+    export JASYPT_SECRET='<jasypt_secret>'  (need to match with the one used for generating the database passwords)
+    
+    export SPRING_PROFILES_ACTIVE='dev'  (or defaults to 'prod)
+    
+    export SPRING_MAIL_HOST='40.97.120.34' .  (default is used if not specified)
+    
+ You can set any of the variables declared in docker-compose.xml file as an environment variable 
+ if you need to use values other than defaults provided.
+ 
+ 2. Make sure postgres and virtuoso are up and running
+ 3. docker-compose up 
 --------------------------------------------------------------------------------------------
