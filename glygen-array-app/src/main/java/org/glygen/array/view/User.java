@@ -1,6 +1,5 @@
 package org.glygen.array.view;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 

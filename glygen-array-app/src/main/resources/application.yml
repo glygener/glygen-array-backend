@@ -41,7 +41,7 @@ glygen:
       scheme: http://
       host: localhost:8000
       basePath: /
-      loginPage: googleOAuth.html
+      loginPage: login.html
       emailVerificationPage: emailConfirmation1.html
    
 server:
