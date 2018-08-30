@@ -17,6 +17,7 @@ import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.security.GooglePrincipalExtractor;
 import org.glygen.array.security.MyOAuth2AuthenticationEntryPoint;
 import org.glygen.array.security.MyOAuth2AuthenticationSuccessHandler;
+import org.glygen.array.security.MyOAuth2ClientAuthenticationProcessingFilter;
 import org.glygen.array.security.MyUsernamePasswordAuthenticationFilter;
 import org.glygen.array.security.TokenAuthenticationFilter;
 import org.glygen.array.security.validation.AccessTokenValidator;
@@ -175,7 +176,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	}
 
 	private Filter ssoFilter(ClientResources client, PrincipalExtractor extractor, String path) {
-		OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new OAuth2ClientAuthenticationProcessingFilter(path);
+		OAuth2ClientAuthenticationProcessingFilter oAuth2ClientAuthenticationFilter = new MyOAuth2ClientAuthenticationProcessingFilter(path);
 		OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(client.getClient(), oauth2ClientContext);
 		oAuth2ClientAuthenticationFilter.setRestTemplate(oAuth2RestTemplate);
 		oAuth2ClientAuthenticationFilter.setAuthenticationSuccessHandler(oAuth2authenticationSuccessHandler());

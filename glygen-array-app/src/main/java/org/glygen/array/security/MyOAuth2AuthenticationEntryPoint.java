@@ -14,6 +14,7 @@ public class MyOAuth2AuthenticationEntryPoint extends OAuth2AuthenticationEntryP
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authException) throws IOException, ServletException {
+		logger.info("at OAuth entry point: " + request.getRequestURL());
 		super.commence(request, response, authException);
 	}
 
