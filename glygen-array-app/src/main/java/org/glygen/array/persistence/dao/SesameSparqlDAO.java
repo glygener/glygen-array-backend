@@ -28,17 +28,17 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.qos.logback.classic.Logger;
 
 @Repository
 public class SesameSparqlDAO implements SparqlDAO {
 	
-	Logger logger = (Logger) LoggerFactory.getLogger(SesameSparqlDAO.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	@Autowired(required=false)
   	protected VirtSesameConnectionFactory sesameConnectionFactory;

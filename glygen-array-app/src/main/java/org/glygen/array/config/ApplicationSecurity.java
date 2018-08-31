@@ -28,6 +28,7 @@ import org.glygen.array.service.GlygenUserDetailsService;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,13 +69,12 @@ import org.springframework.web.filter.CompositeFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.qos.logback.classic.Logger;
 
 @Configuration
 @Order(1)
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
-	public static Logger logger=(Logger) LoggerFactory.getLogger(ApplicationSecurity.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	public static final String[] AUTH_WHITELIST = {
             // -- swagger ui

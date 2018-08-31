@@ -16,7 +16,6 @@
 
 package org.glygen.array;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -25,12 +24,9 @@ import org.springframework.web.context.request.RequestContextListener;
 
 import com.ulisesbocchio.jasyptspringboot.environment.StandardEncryptableEnvironment;
 
-import ch.qos.logback.classic.Logger;
-
 @SpringBootApplication
 @EnableOAuth2Sso
 public class GlygenArrayApplication {
-	public static Logger logger=(Logger) LoggerFactory.getLogger(GlygenArrayApplication.class);
 	
 	@Bean
     public RequestContextListener requestContextListener() {

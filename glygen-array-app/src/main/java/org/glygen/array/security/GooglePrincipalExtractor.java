@@ -8,6 +8,7 @@ import org.glygen.array.persistence.UserLoginType;
 import org.glygen.array.persistence.dao.RoleRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.service.UserManager;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
@@ -15,11 +16,10 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import ch.qos.logback.classic.Logger;
 
 @Component
 public class GooglePrincipalExtractor implements PrincipalExtractor {
-	Logger logger = (Logger) LoggerFactory.getLogger(GooglePrincipalExtractor.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	@Autowired
 	UserRepository userRepository;

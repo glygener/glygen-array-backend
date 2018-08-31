@@ -20,6 +20,7 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.postgresql.util.PSQLException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -40,7 +41,6 @@ import org.xml.sax.SAXParseException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
-import ch.qos.logback.classic.Logger;
 
 /**
  * This class handles exceptions and generates xml/json output for the client in case of exceptions
@@ -51,7 +51,7 @@ import ch.qos.logback.classic.Logger;
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-	public static Logger logger=(Logger) LoggerFactory.getLogger(CustomResponseEntityExceptionHandler.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
