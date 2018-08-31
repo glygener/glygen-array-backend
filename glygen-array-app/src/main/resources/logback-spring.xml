@@ -37,7 +37,7 @@
 
 	<!-- encoder string i.e. output of log -->
     <encoder>
-      <pattern>%%-4d %-5level %class - %msg%n</pattern>
+      <pattern>%-4d %-5level %class - %msg%n</pattern>
     </encoder>
   </appender> 
   
@@ -51,12 +51,12 @@
     </filter>
     
     <!-- log file name -->
-    <file>logFile.log</file>
+    <file>weblogFile.log</file>
     
     <!-- rolling pollicy -->
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>weblogFile.%d{yyyy-MM-dd}.log</fileNamePattern>
 
       <!-- keep 60 days' worth of history capped at 20GB total size -->
       <maxHistory>60</maxHistory>
@@ -106,7 +106,7 @@
   </logger>
 
 
-<root level="DEBUG">
+<root level="INFO">
 	<appender-ref ref="STDOUT"/>
 </root>
 
