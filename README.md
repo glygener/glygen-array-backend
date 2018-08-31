@@ -1,8 +1,8 @@
-# Development Git Repository for the NMR Glycan Array Repository
+# Development Git Repository for the Glycan Array Repository
 
 ## What is this
 
-Git repository with git submodules to the various other system repo's  required by the NMR Glycan Array Repository developed at UGA.
+Git repository with git submodules to the various other system repo's  required by the Glycan Array Repository developed at UGA.
 
 Each module can be checked out on it's own, however some are prepared to be run independantly.  Thus this git repo is more of a tool for developers to get an environment up and running quickly.
 
@@ -17,6 +17,8 @@ If unsure whom to contact with regards to problems of this environment, please r
 ### bashrc environment variables
 
 the bashrc file contains default environment variables that can be used to get rid of the docker-compose warnings.  it should contain default variables for a typical development environment to get it running on a local machine.
+
+The passwords are stored in .secrets file on the server (array2018@ggarray's home directory) and bashrc includes those environment variables from .secrets file in addition to the ones listed in the file.
 
 ### postgres commands
 
