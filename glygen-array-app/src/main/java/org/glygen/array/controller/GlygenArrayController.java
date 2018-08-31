@@ -10,6 +10,7 @@ import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.qos.logback.classic.Logger;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.AuthorizationScope;
@@ -29,7 +29,7 @@ import io.swagger.annotations.AuthorizationScope;
 @RestController
 @RequestMapping("/array")
 public class GlygenArrayController {
-	public static Logger logger=(Logger) LoggerFactory.getLogger(GlygenArrayController.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	@Autowired
 	SesameSparqlDAO sparqlDAO;

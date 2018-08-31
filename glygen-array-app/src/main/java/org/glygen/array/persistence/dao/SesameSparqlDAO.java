@@ -18,17 +18,17 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.virtuoso.SesameConnectionFactory;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.qos.logback.classic.Logger;
 
 @Repository
 public class SesameSparqlDAO {
 	
-	Logger logger = (Logger) LoggerFactory.getLogger(SesameSparqlDAO.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	@Autowired(required=false)
   	protected SesameConnectionFactory sesameConnectionFactory;

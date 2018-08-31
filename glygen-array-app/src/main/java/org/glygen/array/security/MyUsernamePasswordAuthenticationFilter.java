@@ -20,6 +20,8 @@ import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.LoginRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +36,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+	final static Logger log = LoggerFactory.getLogger("event-logger");
 	
 	@Value("${glygen.token-secret}")
 	String tokenSecret;
@@ -94,7 +97,7 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 				Marshaller errorMarshaller = errorContext.createMarshaller();
 				errorMarshaller.marshal(confirmation, out);  
 			} catch (JAXBException jex) {
-				logger.error("Cannot generate error message in xml", jex);
+				log.error("Cannot generate error message in xml", jex);
 			}
 		}else if (acceptString.contains("json")) {
 			ObjectMapper jsonMapper = new ObjectMapper();          
@@ -131,7 +134,7 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 				Marshaller errorMarshaller = errorContext.createMarshaller();
 				errorMarshaller.marshal(errorMessage, out);  
 			} catch (JAXBException jex) {
-				logger.error("Cannot generate error message in xml", jex);
+				log.error("Cannot generate error message in xml", jex);
 			}
 		} else if (acceptString.contains("json")) {
 			ObjectMapper jsonMapper = new ObjectMapper();          

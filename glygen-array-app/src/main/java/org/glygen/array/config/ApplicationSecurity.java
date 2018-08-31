@@ -3,8 +3,10 @@ package org.glygen.array.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,6 +14,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.glygen.array.logging.filter.GlygenRequestAndResponseLoggingFilter;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.security.GooglePrincipalExtractor;
@@ -26,6 +29,7 @@ import org.glygen.array.service.GlygenUserDetailsService;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,18 +66,16 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.CompositeFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.qos.logback.classic.Logger;
 
 @Configuration
 @Order(1)
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
-	public static Logger logger=(Logger) LoggerFactory.getLogger(ApplicationSecurity.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	public static final String[] AUTH_WHITELIST = {
             // -- swagger ui
@@ -105,16 +107,19 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	@Autowired
 	SettingsRepository settingsRepository;
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Bean
-	public CommonsRequestLoggingFilter requestLoggingFilter() {
-	    CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
-	    loggingFilter.setIncludeClientInfo(true);
-	    loggingFilter.setIncludeQueryString(true);
-	    loggingFilter.setIncludePayload(true);
-	    loggingFilter.setMaxPayloadLength(10000);
-	    loggingFilter.setIncludeHeaders(false);
-	    return loggingFilter;
-	}
+	public FilterRegistrationBean loggingFilter() {
+ 	    GlygenRequestAndResponseLoggingFilter loggingFilter = new GlygenRequestAndResponseLoggingFilter();
+ 	    final FilterRegistrationBean registration = new FilterRegistrationBean();
+ 	    registration.setFilter(loggingFilter);
+ 	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+ 	    registration.addUrlPatterns("/users/*");
+ 	    registration.addUrlPatterns("/array/*");
+ 	    registration.addUrlPatterns("/login*/*");
+ 	    registration.setOrder(1);
+ 	    return registration;
+ 	}
 	
 	@Bean
     @Override

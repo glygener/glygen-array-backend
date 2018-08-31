@@ -26,7 +26,6 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.User;
 import org.glygen.array.view.validation.PasswordValidator;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +46,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import ch.qos.logback.classic.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -59,7 +58,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-	public static Logger logger=(Logger) LoggerFactory.getLogger(UserController.class);
+	//public static Logger logger=(Logger) LoggerFactory.getLogger(UserController.class);
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	@Autowired
 	UserManager userManager;

@@ -1,3 +1,5 @@
+source ~/.secrets
+
 export SITE_CODE=glygen-array
 export SITE_EMAIL=glycanArray@sparqlite.com
 export GLYGEN_ARRAY_NETWORK=glygen-array-network
@@ -6,4 +8,4 @@ export JENKINS_SLAVE_SSH_PUBKEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCveVS29cZ
 export GLYGEN_ARRAY_PATH="/home/array2018/workspace/glygen-array"
 export DB_USER=glygen
 export DB_DATABASE=glygen
-export POSTGRES_USER=postgres
+export POSTGRES_USER=glygen

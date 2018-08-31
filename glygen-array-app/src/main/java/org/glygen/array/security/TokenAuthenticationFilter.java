@@ -23,6 +23,8 @@ import org.glygen.array.security.validation.AccessTokenValidator;
 import org.glygen.array.service.GlygenUserDetailsService;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -41,6 +43,7 @@ import io.jsonwebtoken.SignatureException;
 
 final public class TokenAuthenticationFilter extends GenericFilterBean
 {
+	final static Logger log = LoggerFactory.getLogger("event-logger");
 	String tokenSecret;
 	
 	GlygenUserDetailsService userService;
@@ -75,7 +78,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 		            SecurityContextHolder.getContext().setAuthentication(authentication);
 	            }
         	} catch (MalformedJwtException | SignatureException e) {
-        		logger.debug("Not a valid JWS token.");
+        		log.debug("Not a valid JWS token.");
         		//use validators to check against third-party authorization servers
         		if (validators != null && !validators.isEmpty()) {
         			for (AccessTokenValidator accessTokenValidator : validators) {
@@ -90,9 +93,9 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 						}
 					}
         		}
-        		logger.debug("All validators failed. Not a valid token");
+        		log.debug("All validators failed. Not a valid token");
         	} catch (ExpiredJwtException e) {
-        		logger.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
+        		log.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
         		sendError (httpRequest, (HttpServletResponse)response, e);
         		return;
         	}
@@ -133,7 +136,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 				Marshaller errorMarshaller = errorContext.createMarshaller();
 				errorMarshaller.marshal(errorMessage, out);  
 			} catch (JAXBException jex) {
-				logger.error("Cannot generate error message in xml", jex);
+				log.error("Cannot generate error message in xml", jex);
 			}
  		} else if (acceptString.contains("json")) {
 			ObjectMapper jsonMapper = new ObjectMapper();          
