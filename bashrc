@@ -1,4 +1,6 @@
-source ~/.secrets
+if [ -f ~/.secrets ]; then
+    . ~/.secrets
+fi
 
 export SITE_CODE=glygen-array
 export SITE_EMAIL=glycanArray@sparqlite.com
