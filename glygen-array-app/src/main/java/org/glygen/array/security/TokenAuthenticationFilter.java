@@ -61,6 +61,11 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 			throws IOException, ServletException {
 		final HttpServletRequest httpRequest = (HttpServletRequest)request;
         logger.debug("Attempting to get token from: " + httpRequest.getRequestURL());
+        StringBuffer url = httpRequest.getRequestURL();
+        if (url.toString().endsWith("login/google")) {
+        	logger.debug("Needs to go to oauth filter");
+        	return;
+        }
 	    String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
         if (token != null && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             // parse the token
