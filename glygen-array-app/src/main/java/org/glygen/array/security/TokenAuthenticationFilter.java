@@ -60,7 +60,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		final HttpServletRequest httpRequest = (HttpServletRequest)request;
-        log.debug("Attempting to get token from: " + httpRequest.getRequestURL());
+        logger.debug("Attempting to get token from: " + httpRequest.getRequestURL());
 	    String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
         if (token != null && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
             // parse the token
