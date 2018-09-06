@@ -323,6 +323,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/error"),
 				new AntPathRequestMatcher("/login**"),
 				new AntPathRequestMatcher(basePath + "login**"),
+				new AntPathRequestMatcher("**/login**"),
 				new AntPathRequestMatcher("/users/signup"),
 				new AntPathRequestMatcher("/users/availableUsername"),
 				new AntPathRequestMatcher("/users/recover"),
