@@ -9,6 +9,9 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @XmlRootElement(name="result")
 public class ErrorMessage extends Error {
@@ -98,5 +101,12 @@ public class ErrorMessage extends Error {
 	 */
 	public void setErrorCode(ErrorCodes errorCode) {
 		this.errorCode = errorCode;
+	}
+	
+	@Override
+	@XmlTransient
+	@JsonIgnore
+	public StackTraceElement[] getStackTrace() {
+		return super.getStackTrace();
 	}
 }

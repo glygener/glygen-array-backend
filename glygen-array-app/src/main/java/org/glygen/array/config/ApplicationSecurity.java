@@ -104,6 +104,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	@Value("${glygen.token-secret}")
 	String tokenSecret;
 	
+	@Value("${glygen.basePath}")
+	private String basePath;
+	
 	@Autowired
 	SettingsRepository settingsRepository;
 	
@@ -175,7 +178,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	private Filter ssoFilter() {
 		CompositeFilter filter = new CompositeFilter();
 		List<Filter> filters = new ArrayList<>();
-		filters.add(ssoFilter(google(), googleExtractor(), "/login/google"));
+		filters.add(ssoFilter(google(), googleExtractor(), basePath + "login/google"));
 		filter.setFilters(filters);
 		return filter;
 	}

@@ -35,6 +35,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
@@ -344,7 +346,8 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation changePassword (
     		Principal p,
-    		@RequestBody(required=true) 
+    		@ApiParam(value = "your password", type = "string", format = "password")
+    		@RequestParam(required=true) 
     		String newPassword, 
     		@PathVariable("userName") String userName) {
     	if (p == null) {
@@ -360,14 +363,18 @@ public class UserController {
     	if (newPassword == null || newPassword.isEmpty()) {
     		throw new IllegalArgumentException("Invalid Input: new password cannot be empty");
     	}
-    	logger.debug("new password is {}", newPassword);
+    	
     	//password validation 
     	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
     	if (!pattern.matcher(newPassword).matches()) {
+    		logger.debug("Password fails pattern: " + newPassword);
     		throw new IllegalArgumentException("Invalid Input: The password length must be greater than or equal to 5, must contain one or more uppercase characters, "
     				+ "must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
     	}
-    	userManager.changePassword(p.getName(), newPassword);
+    	// encrypt the password
+		String hashedPassword = passwordEncoder.encode(newPassword);
+    	logger.debug("new password is {}", hashedPassword);
+    	userManager.changePassword(p.getName(), hashedPassword);
     	return new Confirmation("Password changed successfully", HttpStatus.OK.value());
     }
 }

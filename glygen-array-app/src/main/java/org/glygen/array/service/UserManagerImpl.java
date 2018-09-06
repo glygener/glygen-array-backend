@@ -9,8 +9,6 @@ import org.glygen.array.persistence.VerificationToken;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,10 +101,7 @@ public class UserManagerImpl implements UserManager {
 		if (user == null) {
 			throw new UserNotFoundException("No user is associated with " + username);
 		}
-		// encrypt the password
-		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		String hashedPassword = passwordEncoder.encode(newPassword);
-		user.setPassword(hashedPassword);
+		user.setPassword(newPassword);
 		repository.save(user);
 	}    
 }

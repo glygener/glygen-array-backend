@@ -19,7 +19,7 @@ import org.springframework.transaction.TransactionSystemException;
  * @see SesameConnectionFactory
  */
 public class RepositoryConnectionFactory implements DisposableBean, SesameConnectionFactory {
-    private static final Logger log = LoggerFactory.getLogger(RepositoryConnectionFactory.class);
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
 
     private final ThreadLocal<SesameTransactionObject> localTransactionObject;
 
@@ -92,7 +92,7 @@ public class RepositoryConnectionFactory implements DisposableBean, SesameConnec
                 try {
                     repositoryConnection.close();
                 } catch (RepositoryException e) {
-                    log.error(e.getMessage(), e);
+                    logger.error(e.getMessage(), e);
                 }
 
                 localTransactionObject.remove();
