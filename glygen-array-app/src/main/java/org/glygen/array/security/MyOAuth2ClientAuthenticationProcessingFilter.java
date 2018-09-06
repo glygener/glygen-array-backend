@@ -20,6 +20,11 @@ public class MyOAuth2ClientAuthenticationProcessingFilter extends OAuth2ClientAu
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
 			throws AuthenticationException, IOException, ServletException {
 		logger.info("Attempting authentication for request: " + request.getRequestURL());
-		return super.attemptAuthentication(request, response);
+		try {
+			return super.attemptAuthentication(request, response);
+		} catch (Exception e) {
+			logger.error("Exception in attempt: ", e);
+			throw e;
+		}
 	}
 }
