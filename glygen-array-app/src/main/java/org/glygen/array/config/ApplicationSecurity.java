@@ -119,7 +119,8 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
  	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
  	    registration.addUrlPatterns("/users/*");
  	    registration.addUrlPatterns("/array/*");
- 	    registration.addUrlPatterns("/login*/*");
+ 	    registration.addUrlPatterns("/login");
+ 	    registration.addUrlPatterns(basePath + "login/*");
  	    registration.setOrder(1);
  	    return registration;
  	}
@@ -321,6 +322,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		RequestMatcher PUBLIC_URLS = new OrRequestMatcher(ignored, 
 				new AntPathRequestMatcher("/error"),
 				new AntPathRequestMatcher("/login**"),
+				new AntPathRequestMatcher(basePath + "login**"),
 				new AntPathRequestMatcher("/users/signup"),
 				new AntPathRequestMatcher("/users/availableUsername"),
 				new AntPathRequestMatcher("/users/recover"),
