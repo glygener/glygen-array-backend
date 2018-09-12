@@ -17,8 +17,8 @@
 
 	<repositories>
 		<repository>
-			<id>jenkins</id>
-			<url>http://glycomics.ccrc.uga.edu/gginfra/nexus/repository/maven-releases/</url>
+			<id>nexus</id>
+			<url>http://glycomics.ccrc.uga.edu/repository/content/repositories/thirdparty/</url>
 		</repository>
 	</repositories>
 
@@ -93,14 +93,14 @@
             <scope>provided</scope>
         </dependency>
 		<dependency>
-			<groupId>virtuoso</groupId>
-			<artifactId>rdf4j-jdbc</artifactId>
-			<version>2.0</version>
+		  <groupId>virtuoso</groupId>
+		  <artifactId>jdbc4</artifactId>
+		  <version>2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>virtuoso</groupId>
-			<artifactId>rdf4j</artifactId>
-			<version>2.0</version>
+		  <groupId>virtuoso</groupId>
+		  <artifactId>rdf4j</artifactId>
+		  <version>2.0</version>
 		</dependency>
 		<dependency>
     		<groupId>io.springfox</groupId>
