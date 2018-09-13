@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,8 @@ import static ch.qos.logback.core.db.DBHelper.closeStatement;
 
 
 public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
+	
+	Logger log = LoggerFactory.getLogger(EventLogDBAppender.class);
 
 	protected String insertExceptionSQL;
     protected String insertSQL;
@@ -73,6 +77,7 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
     @Override
 	protected void subAppend(ILoggingEvent event, Connection connection, PreparedStatement insertStatement) throws Throwable {
 		
+    	log.debug("Using event-logger");
     	 bindLoggingEventWithInsertStatement(insertStatement, event);
          bindLoggingEventArgumentsWithPreparedStatement(insertStatement, event.getArgumentArray());
 
@@ -81,6 +86,7 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
          
          int updateCount = insertStatement.executeUpdate();
          if (updateCount != 1) {
+        	 log.error("Failed to insert loggingEvent");
              addWarn("Failed to insert loggingEvent");
          }
 	}
@@ -116,8 +122,7 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
 			stmt.setBinaryStream(PARAMETERS_INDEX, bais);
 			so.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Logging events to db failed: ", e);
 		} 
 		
 	}

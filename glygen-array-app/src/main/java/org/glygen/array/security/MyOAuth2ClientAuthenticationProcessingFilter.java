@@ -21,6 +21,10 @@ public class MyOAuth2ClientAuthenticationProcessingFilter extends OAuth2ClientAu
 			throws AuthenticationException, IOException, ServletException {
 		logger.info("Attempting authentication for request: " + request.getRequestURL());
 		try {
+			if (this.restTemplate != null && this.restTemplate.getResource() != null) {
+				logger.debug(this.restTemplate.getResource().getAccessTokenUri());
+			} else
+				logger.debug("resttemplate is invalid");
 			return super.attemptAuthentication(request, response);
 		} catch (Exception e) {
 			logger.error("Exception in attempt: ", e);

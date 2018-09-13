@@ -16,7 +16,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
 public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter  {
-
+    Logger log = LoggerFactory.getLogger(GlygenRequestAndResponseLoggingFilter.class);
 	Logger logger = LoggerFactory.getLogger("access-logger");
 	private static final int DEFAULT_MAX_PAYLOAD_LENGTH = 10000;
 	
@@ -68,7 +68,12 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
         String uri = request.getRequestURI();
                 
         RequestMsg.append("REQUEST:uri=").append(uri);
-		logger.info(RequestMsg.toString(),uri,requestData,responseData);
+        try {
+        	logger.info(RequestMsg.toString(),uri,requestData,responseData);
+        } catch (Exception e) {
+        	log.error("Error logging to database: ", e);
+        }
+        
 	}
 
 	private ContentCachingRequestWrapper wrapRequest(final HttpServletRequest request) {
