@@ -3,12 +3,12 @@ services:
   backend:
     image: maven:3.5.4-jdk-10
     ports:
-      - 8081:8080
+      - 8082:8080
     volumes:
       - ${HOME}/glygen-array/maven:/root/.m2
       - .:/workspace
     working_dir: /workspace/
-    command: mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run
+    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"
     environment:
       - JASYPT_SECRET
       - GOOGLE_CLIENT_CLIENT-ID
