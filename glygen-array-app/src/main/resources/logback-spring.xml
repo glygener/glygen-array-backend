@@ -15,11 +15,11 @@
 <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     
     <!-- Filter that accepts only error level of logs -->
-    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+    <!-- <filter class="ch.qos.logback.classic.filter.LevelFilter">
       <level>ERROR</level>
       <onMatch>ACCEPT</onMatch>
       <onMismatch>DENY</onMismatch>
-    </filter>
+    </filter> -->
     
     <!-- log file name -->
     <file>logFile.log</file>
@@ -44,11 +44,11 @@
   <appender name="WEB-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     
     <!-- Filter that accepts only error level of logs -->
-    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+    <!-- <filter class="ch.qos.logback.classic.filter.LevelFilter">
       <level>ERROR</level>
       <onMatch>ACCEPT</onMatch>
       <onMismatch>DENY</onMismatch>
-    </filter>
+    </filter> -->
     
     <!-- log file name -->
     <file>weblogFile.log</file>
@@ -108,6 +108,7 @@
 
 <root level="INFO">
 	<appender-ref ref="STDOUT"/>
+	<appender-ref ref="FILE"/>
 </root>
 
 </configuration>
