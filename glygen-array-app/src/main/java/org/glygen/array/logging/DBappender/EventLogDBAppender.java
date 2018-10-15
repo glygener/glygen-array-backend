@@ -26,7 +26,7 @@ import static ch.qos.logback.core.db.DBHelper.closeStatement;
 
 public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
 	
-	Logger log = LoggerFactory.getLogger(EventLogDBAppender.class);
+	static final Logger log = LoggerFactory.getLogger(EventLogDBAppender.class);
 
 	protected String insertExceptionSQL;
     protected String insertSQL;
@@ -55,6 +55,7 @@ public class EventLogDBAppender extends DBAppenderBase<ILoggingEvent>{
             getGeneratedKeysMethod = PreparedStatement.class.getMethod("getGeneratedKeys", (Class[]) null);
         } catch (Exception ex) {
             getGeneratedKeysMethod = null;
+            log.error("GetGeneratedKeys failed", ex);
         }
         GET_GENERATED_KEYS_METHOD = getGeneratedKeysMethod;
     }

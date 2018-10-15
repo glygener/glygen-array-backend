@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.db.DBAppenderBase;
 
 public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
+	static final Logger log = LoggerFactory.getLogger(AccessLogDBAppender.class);
 
 	protected String insertSQL;
     protected static final Method GET_GENERATED_KEYS_METHOD;
@@ -38,8 +41,8 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
         	
         } catch (Exception ex) {
             getGeneratedKeysMethod = null;
+            log.error("GetGeneratedKeys failed", ex);
         }
-        System.out.println(getGeneratedKeysMethod);
         GET_GENERATED_KEYS_METHOD = getGeneratedKeysMethod;
     }
 
@@ -69,6 +72,7 @@ public class AccessLogDBAppender extends DBAppenderBase<ILoggingEvent> {
          int updateCount = insertStatement.executeUpdate();
          if (updateCount != 1) {
              addWarn("Failed to insert loggingEvent");
+             log.warn("Failed to insert loggingEvent");
          }
 	}
     
