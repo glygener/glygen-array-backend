@@ -23,12 +23,6 @@
         <Literal xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</Literal>
     </Annotation>
     <Declaration>
-        <Class IRI="block"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="chemical_entity"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="complex_description"/>
     </Declaration>
     <Declaration>
@@ -41,28 +35,13 @@
         <Class IRI="descriptor"/>
     </Declaration>
     <Declaration>
-        <Class IRI="feature"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="glycan"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="image_analysis_software"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="linker"/>
     </Declaration>
     <Declaration>
         <Class IRI="metadata_category"/>
     </Declaration>
     <Declaration>
-        <Class IRI="printed_molecule"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="printer"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="protein"/>
     </Declaration>
     <Declaration>
         <Class IRI="sample"/>
@@ -77,58 +56,19 @@
         <Class IRI="slide"/>
     </Declaration>
     <Declaration>
-        <Class IRI="slide_metadata"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="spot"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="unit_of_measurement"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="described_by"/>
     </Declaration>
     <Declaration>
-        <ObjectProperty IRI="has_block"/>
-    </Declaration>
-    <Declaration>
         <ObjectProperty IRI="has_description"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_feature"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_key"/>
     </Declaration>
     <Declaration>
-        <ObjectProperty IRI="has_linker"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_molecule"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_spot"/>
-    </Declaration>
-    <Declaration>
         <ObjectProperty IRI="has_unit_of_measurement"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="printed_by"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_column"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_glytoucan_id"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_row"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_sequence"/>
     </Declaration>
     <Declaration>
         <DataProperty IRI="has_value"/>
@@ -145,28 +85,12 @@
         <Class IRI="metadata_category"/>
     </SubClassOf>
     <SubClassOf>
-        <Class IRI="glycan"/>
-        <Class IRI="printed_molecule"/>
-    </SubClassOf>
-    <SubClassOf>
         <Class IRI="image_analysis_software"/>
         <Class IRI="metadata_category"/>
     </SubClassOf>
     <SubClassOf>
-        <Class IRI="linker"/>
-        <Class IRI="chemical_entity"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="printed_molecule"/>
-        <Class IRI="chemical_entity"/>
-    </SubClassOf>
-    <SubClassOf>
         <Class IRI="printer"/>
         <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="protein"/>
-        <Class IRI="printed_molecule"/>
     </SubClassOf>
     <SubClassOf>
         <Class IRI="sample"/>
@@ -181,188 +105,55 @@
         <Class IRI="description"/>
     </SubClassOf>
     <SubClassOf>
-        <Class IRI="slide_metadata"/>
+        <Class IRI="slide"/>
         <Class IRI="metadata_category"/>
     </SubClassOf>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="has_key"/>
     </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_linker"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="printed_by"/>
-    </FunctionalObjectProperty>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="described_by"/>
         <Class IRI="metadata_category"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_block"/>
-        <Class IRI="slide"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_description"/>
         <Class IRI="complex_description"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_feature"/>
-        <Class IRI="spot"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_linker"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_molecule"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_spot"/>
-        <ObjectUnionOf>
-            <Class IRI="block"/>
-            <Class IRI="spot"/>
-        </ObjectUnionOf>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_unit_of_measurement"/>
         <Class IRI="simple_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="printed_by"/>
-        <Class IRI="slide"/>
     </ObjectPropertyDomain>
     <ObjectPropertyRange>
         <ObjectProperty IRI="described_by"/>
         <Class IRI="description"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_block"/>
-        <Class IRI="block"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
         <ObjectProperty IRI="has_description"/>
         <Class IRI="description"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_feature"/>
-        <Class IRI="feature"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="descriptor"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_linker"/>
-        <Class IRI="linker"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_molecule"/>
-        <Class IRI="printed_molecule"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_spot"/>
-        <Class IRI="spot"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
         <ObjectProperty IRI="has_unit_of_measurement"/>
         <Class IRI="unit_of_measurement"/>
     </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="printed_by"/>
-        <Class IRI="printer"/>
-    </ObjectPropertyRange>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_column"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_row"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_sequence"/>
-    </FunctionalDataProperty>
     <FunctionalDataProperty>
         <DataProperty IRI="has_value"/>
     </FunctionalDataProperty>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_column"/>
-        <Class IRI="block"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_column"/>
-        <Class IRI="spot"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_glytoucan_id"/>
-        <Class IRI="glycan"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-        <Class IRI="chemical_entity"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_row"/>
-        <ObjectUnionOf>
-            <Class IRI="block"/>
-            <Class IRI="spot"/>
-        </ObjectUnionOf>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_sequence"/>
-        <Class IRI="chemical_entity"/>
-    </DataPropertyDomain>
     <DataPropertyDomain>
         <DataProperty IRI="has_value"/>
         <Class IRI="simple_description"/>
     </DataPropertyDomain>
     <DataPropertyRange>
-        <DataProperty IRI="has_column"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_glytoucan_id"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_row"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_sequence"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
         <DataProperty IRI="has_value"/>
         <Datatype abbreviatedIRI="xsd:string"/>
     </DataPropertyRange>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>block</IRI>
-        <Literal>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>block</IRI>
-        <Literal>Block</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>chemical_entity</IRI>
-        <Literal>A parent class for all kinds of chemical structures</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>chemical_entity</IRI>
-        <Literal>Chemical Entity</Literal>
-    </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>complex_description</IRI>
@@ -410,78 +201,8 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>feature</IRI>
-        <Literal>A probe combination that was printed on a spot of the array. This probe can consist of different molecules that all have the same linker.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>feature</IRI>
-        <Literal>Feature</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>glycan</IRI>
-        <Literal>Glycan printed on an array.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>glycan</IRI>
-        <Literal>Glycan</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_block</IRI>
-        <Literal>A glycan array slide has one or multiple blocks with array probes on it. This property is used to link the blocks with the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_column</IRI>
-        <Literal>An subject can have a corrdinate in an appropritate coordinate system. The x-Axis is specified as column.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_feature</IRI>
-        <Literal>Links a spot on the array with the molecules that are printed on a spot.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_glytoucan_id</IRI>
-        <Literal>Links a glycan object with a GlyTouCan ID.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_key</IRI>
         <Literal>An object property that assigns a descriptor to a simple description.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_linker</IRI>
-        <Literal>Specifies the linker that is used for a feature.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_molecule</IRI>
-        <Literal>Links a feature and its linker with a list of molecules that are on a spot with this linker.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_pubchem_compound_id</IRI>
-        <Literal>Adds a PubChem ID to a chemical entity.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_row</IRI>
-        <Literal>An subject can have a corrdinate in an appropritate coordinate system. The y-Axis is specified as row.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_sequence</IRI>
-        <Literal>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_spot</IRI>
-        <Literal>Associates the spot with the glycans with a block on the slide.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -505,16 +226,6 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>linker</IRI>
-        <Literal>A molecule used to connect the printed molecules (e.g. glycans) to the surface of the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>linker</IRI>
-        <Literal>Linker</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>metadata_category</IRI>
         <Literal>An toplevel class for all instances that can be described. There should be no instance in the class itself but rather in its subclasses.</Literal>
     </AnnotationAssertion>
@@ -525,21 +236,6 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>printed_by</IRI>
-        <Literal>Connects a slide with the printer metadata.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>printed_molecule</IRI>
-        <Literal>A molecule that is printed on an array spot. There can be no instances of this class but only of its subclasses.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>printed_molecule</IRI>
-        <Literal>Printed Molecule</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>printer</IRI>
         <Literal>Metadata on the printer. Glycan microarrays are printed using a robotic liquid delivery system to deposit glycans on a printing surface. The utility of the data generated will be related to the quality of the printed array, thus minimal information regarding the arrayer or printer and the parameters of the printing process need to be stored.</Literal>
     </AnnotationAssertion>
@@ -547,16 +243,6 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>printer</IRI>
         <Literal>Printer</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>protein</IRI>
-        <Literal>Protein printed on an array.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>protein</IRI>
-        <Literal>Protein</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -591,32 +277,12 @@
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>slide</IRI>
-        <Literal>Slide that was used to run an experiment. Each slide has a set of blocks with spots.</Literal>
+        <Literal>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>slide</IRI>
         <Literal>Slide</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>slide_metadata</IRI>
-        <Literal>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>slide_metadata</IRI>
-        <Literal>Slide</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>spot</IRI>
-        <Literal>Each block on a glycan array slide consists of multiple spot on which the glycans are fixed. Usual that is a round shaped place on the slide. Each spot has coordinates and a diameter.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>spot</IRI>
-        <Literal>Spot</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>

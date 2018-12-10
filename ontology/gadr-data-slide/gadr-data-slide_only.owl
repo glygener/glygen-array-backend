@@ -29,15 +29,6 @@
         <Class IRI="chemical_entity"/>
     </Declaration>
     <Declaration>
-        <Class IRI="complex_description"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="data_processing_software"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="description"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="descriptor"/>
     </Declaration>
     <Declaration>
@@ -45,9 +36,6 @@
     </Declaration>
     <Declaration>
         <Class IRI="glycan"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="image_analysis_software"/>
     </Declaration>
     <Declaration>
         <Class IRI="linker"/>
@@ -65,15 +53,6 @@
         <Class IRI="protein"/>
     </Declaration>
     <Declaration>
-        <Class IRI="sample"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="scanner"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="simple_description"/>
-    </Declaration>
-    <Declaration>
         <Class IRI="slide"/>
     </Declaration>
     <Declaration>
@@ -81,9 +60,6 @@
     </Declaration>
     <Declaration>
         <Class IRI="spot"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="unit_of_measurement"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="described_by"/>
@@ -105,6 +81,9 @@
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_molecule"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_property"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_spot"/>
@@ -137,20 +116,8 @@
         <AnnotationProperty abbreviatedIRI="dcterms:creator"/>
     </Declaration>
     <SubClassOf>
-        <Class IRI="complex_description"/>
-        <Class IRI="description"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="data_processing_software"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
         <Class IRI="glycan"/>
         <Class IRI="printed_molecule"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="image_analysis_software"/>
-        <Class IRI="metadata_category"/>
     </SubClassOf>
     <SubClassOf>
         <Class IRI="linker"/>
@@ -169,18 +136,6 @@
         <Class IRI="printed_molecule"/>
     </SubClassOf>
     <SubClassOf>
-        <Class IRI="sample"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="scanner"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="simple_description"/>
-        <Class IRI="description"/>
-    </SubClassOf>
-    <SubClassOf>
         <Class IRI="slide_metadata"/>
         <Class IRI="metadata_category"/>
     </SubClassOf>
@@ -191,6 +146,9 @@
         <ObjectProperty IRI="has_linker"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
+        <ObjectProperty IRI="has_property"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
         <ObjectProperty IRI="printed_by"/>
     </FunctionalObjectProperty>
     <ObjectPropertyDomain>
@@ -202,16 +160,8 @@
         <Class IRI="slide"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_description"/>
-        <Class IRI="complex_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_feature"/>
         <Class IRI="spot"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_key"/>
-        <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_linker"/>
@@ -222,6 +172,10 @@
         <Class IRI="feature"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_property"/>
+        <Class IRI="slide"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_spot"/>
         <ObjectUnionOf>
             <Class IRI="block"/>
@@ -229,24 +183,12 @@
         </ObjectUnionOf>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_unit_of_measurement"/>
-        <Class IRI="simple_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
         <ObjectProperty IRI="printed_by"/>
         <Class IRI="slide"/>
     </ObjectPropertyDomain>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="described_by"/>
-        <Class IRI="description"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
         <ObjectProperty IRI="has_block"/>
         <Class IRI="block"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_description"/>
-        <Class IRI="description"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_feature"/>
@@ -265,12 +207,12 @@
         <Class IRI="printed_molecule"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_spot"/>
-        <Class IRI="spot"/>
+        <ObjectProperty IRI="has_property"/>
+        <Class IRI="slide_metadata"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_unit_of_measurement"/>
-        <Class IRI="unit_of_measurement"/>
+        <ObjectProperty IRI="has_spot"/>
+        <Class IRI="spot"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="printed_by"/>
@@ -314,10 +256,6 @@
     <DataPropertyDomain>
         <DataProperty IRI="has_sequence"/>
         <Class IRI="chemical_entity"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_value"/>
-        <Class IRI="simple_description"/>
     </DataPropertyDomain>
     <DataPropertyRange>
         <DataProperty IRI="has_column"/>
@@ -365,38 +303,8 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>complex_description</IRI>
-        <Literal>A complex descriptor consists either of a list of simple descriptors (key value pairs), a list of complex descritptors (recursiv), or any mixture of both.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>complex_description</IRI>
-        <Literal>Complex Description</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>data_processing_software</IRI>
-        <Literal>Metadata on the data processing software. Provide details of how data in the table of microarray binding results (Part 7) are generated and calculated, i.e., specific software, normalization method, data selection procedures, and parameters, statistical analysis (including how the data from glycan replicates on the array were handled in the statistical method), transformation algorithm and scaling parameters.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>data_processing_software</IRI>
-        <Literal>Data Processing Software</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>described_by</IRI>
         <Literal>An object property that allows linking metadata categories with its descriptions.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>description</IRI>
-        <Literal>An construct used to describe a metadata category instance. It can either be a simple descriptor (key value pair) or a complex object (grouping multiple key value pairs or complex objects).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>description</IRI>
-        <Literal>Description</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -465,6 +373,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_property</IRI>
+        <Literal>Associates a slides with his meta data.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_pubchem_compound_id</IRI>
         <Literal>Adds a PubChem ID to a chemical entity.</Literal>
     </AnnotationAssertion>
@@ -492,16 +405,6 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_value</IRI>
         <Literal>A data property that assigns a value to a simple description.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>image_analysis_software</IRI>
-        <Literal>Metadata on the image analysis software. Describe the software used to analyse (quantify) the output scanner image, indicating the name, version and manufacturer used and any special features active in the software (i.e. data smoothing, normalization, etc.).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>image_analysis_software</IRI>
-        <Literal>Image Analysis Software</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -560,36 +463,6 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>sample</IRI>
-        <Literal>A sample that has been analyzed as part of an array experiment.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>sample</IRI>
-        <Literal>Sample</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>scanner</IRI>
-        <Literal>Metadata about the scanner and scanner settings. Describe the scanning hardware (manufacturer/model), including detection method; e.g., optical detection (fluorescence/colorimetric), surface plasmon resonance (SPR) imaging technique, etc.; MS detection (MIRAGE MS guidelines, doi:10.3762/mirage.2 are recommended). The intensities of signals generated from Sample binding to individual glycans are a reflection of affinities or avidities of the interactions. Provide an indication of whether the scanner settings (scanning resolution, laser channel, PMT and scan power) are such that signals are in a linear range of the scanner’s detector (no ‘saturation of signals’) and whether the scanning resolution is adequate for the sizes of sample spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>scanner</IRI>
-        <Literal>Scanner</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>simple_description</IRI>
-        <Literal>A simple key value pair (+ unit of measurment) to describe a metadata instance.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>simple_description</IRI>
-        <Literal>Simple Description</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>slide</IRI>
         <Literal>Slide that was used to run an experiment. Each slide has a set of blocks with spots.</Literal>
     </AnnotationAssertion>
@@ -617,16 +490,6 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>spot</IRI>
         <Literal>Spot</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>unit_of_measurement</IRI>
-        <Literal>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>unit_of_measurement</IRI>
-        <Literal>Unit of Measurement</Literal>
     </AnnotationAssertion>
 </Ontology>
 
