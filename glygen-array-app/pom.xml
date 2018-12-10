@@ -127,6 +127,13 @@
 		    <artifactId>jasypt-spring-boot-starter</artifactId>
 		    <version>2.0.0</version>
 		</dependency>
+		<!-- GRITS-GlycanArray -->
+		<dependency>
+		  <groupId>grits</groupId>
+		  <artifactId>glycanarray</artifactId>
+		  <version>1.10</version>
+		  <type>pom</type>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
