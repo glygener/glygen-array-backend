@@ -23,13 +23,13 @@
         <Literal xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</Literal>
     </Annotation>
     <Declaration>
+        <Class IRI="array_dataset"/>
+    </Declaration>
+    <Declaration>
         <Class IRI="block"/>
     </Declaration>
     <Declaration>
         <Class IRI="chemical_entity"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="descriptor"/>
     </Declaration>
     <Declaration>
         <Class IRI="feature"/>
@@ -83,7 +83,10 @@
         <ObjectProperty IRI="has_molecule"/>
     </Declaration>
     <Declaration>
-        <ObjectProperty IRI="has_property"/>
+        <ObjectProperty IRI="has_slide"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_slide_metadata"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_spot"/>
@@ -146,7 +149,7 @@
         <ObjectProperty IRI="has_linker"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_property"/>
+        <ObjectProperty IRI="has_slide_metadata"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="printed_by"/>
@@ -172,7 +175,11 @@
         <Class IRI="feature"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_property"/>
+        <ObjectProperty IRI="has_slide"/>
+        <Class IRI="array_dataset"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_slide_metadata"/>
         <Class IRI="slide"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
@@ -195,10 +202,6 @@
         <Class IRI="feature"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_key"/>
-        <Class IRI="descriptor"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
         <ObjectProperty IRI="has_linker"/>
         <Class IRI="linker"/>
     </ObjectPropertyRange>
@@ -207,7 +210,11 @@
         <Class IRI="printed_molecule"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
-        <ObjectProperty IRI="has_property"/>
+        <ObjectProperty IRI="has_slide"/>
+        <Class IRI="slide"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="has_slide_metadata"/>
         <Class IRI="slide_metadata"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
@@ -283,6 +290,16 @@
     </DataPropertyRange>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>array_dataset</IRI>
+        <Literal>Top level class for an glycan array experiment and the resulting data set.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>array_dataset</IRI>
+        <Literal>Array Dataset</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>block</IRI>
         <Literal>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</Literal>
     </AnnotationAssertion>
@@ -305,16 +322,6 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>described_by</IRI>
         <Literal>An object property that allows linking metadata categories with its descriptions.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>descriptor</IRI>
-        <Literal>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>descriptor</IRI>
-        <Literal>Descriptor</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -373,11 +380,6 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_property</IRI>
-        <Literal>Associates a slides with his meta data.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_pubchem_compound_id</IRI>
         <Literal>Adds a PubChem ID to a chemical entity.</Literal>
     </AnnotationAssertion>
@@ -390,6 +392,16 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_sequence</IRI>
         <Literal>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_slide</IRI>
+        <Literal>Associates a slide with an experiment.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_slide_metadata</IRI>
+        <Literal>Associates the slide with its metadata.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
