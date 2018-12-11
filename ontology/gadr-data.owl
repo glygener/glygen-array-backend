@@ -50,6 +50,9 @@
         <Class IRI="glycan"/>
     </Declaration>
     <Declaration>
+        <Class IRI="image"/>
+    </Declaration>
+    <Declaration>
         <Class IRI="image_analysis_software"/>
     </Declaration>
     <Declaration>
@@ -101,6 +104,9 @@
         <ObjectProperty IRI="has_feature"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="has_image"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="has_key"/>
     </Declaration>
     <Declaration>
@@ -108,6 +114,9 @@
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_molecule"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_scanner_metadata"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_slide"/>
@@ -125,6 +134,9 @@
         <ObjectProperty IRI="printed_by"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="scan_of"/>
+    </Declaration>
+    <Declaration>
         <DataProperty IRI="has_column"/>
     </Declaration>
     <Declaration>
@@ -138,6 +150,9 @@
     </Declaration>
     <Declaration>
         <DataProperty IRI="has_sequence"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="has_url"/>
     </Declaration>
     <Declaration>
         <DataProperty IRI="has_value"/>
@@ -200,10 +215,16 @@
         <ObjectProperty IRI="has_linker"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
+        <ObjectProperty IRI="has_scanner_metadata"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
         <ObjectProperty IRI="has_slide_metadata"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="printed_by"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="scan_of"/>
     </FunctionalObjectProperty>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="described_by"/>
@@ -222,6 +243,10 @@
         <Class IRI="spot"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_image"/>
+        <Class IRI="array_dataset"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
@@ -234,6 +259,10 @@
         <Class IRI="feature"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_scanner_metadata"/>
+        <Class IRI="image"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_slide"/>
         <Class IRI="array_dataset"/>
     </ObjectPropertyDomain>
@@ -243,10 +272,7 @@
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_spot"/>
-        <ObjectUnionOf>
-            <Class IRI="block"/>
-            <Class IRI="spot"/>
-        </ObjectUnionOf>
+        <Class IRI="block"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_unit_of_measurement"/>
@@ -255,6 +281,10 @@
     <ObjectPropertyDomain>
         <ObjectProperty IRI="printed_by"/>
         <Class IRI="slide"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="scan_of"/>
+        <Class IRI="image"/>
     </ObjectPropertyDomain>
     <ObjectPropertyRange>
         <ObjectProperty IRI="described_by"/>
@@ -273,6 +303,10 @@
         <Class IRI="feature"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="has_image"/>
+        <Class IRI="image"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="descriptor"/>
     </ObjectPropertyRange>
@@ -283,6 +317,10 @@
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_molecule"/>
         <Class IRI="printed_molecule"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="has_scanner_metadata"/>
+        <Class IRI="scanner"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_slide"/>
@@ -304,6 +342,10 @@
         <ObjectProperty IRI="printed_by"/>
         <Class IRI="printer"/>
     </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="scan_of"/>
+        <Class IRI="slide"/>
+    </ObjectPropertyRange>
     <FunctionalDataProperty>
         <DataProperty IRI="has_column"/>
     </FunctionalDataProperty>
@@ -314,15 +356,17 @@
         <DataProperty IRI="has_sequence"/>
     </FunctionalDataProperty>
     <FunctionalDataProperty>
+        <DataProperty IRI="has_url"/>
+    </FunctionalDataProperty>
+    <FunctionalDataProperty>
         <DataProperty IRI="has_value"/>
     </FunctionalDataProperty>
     <DataPropertyDomain>
         <DataProperty IRI="has_column"/>
-        <Class IRI="block"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_column"/>
-        <Class IRI="spot"/>
+        <ObjectUnionOf>
+            <Class IRI="block"/>
+            <Class IRI="spot"/>
+        </ObjectUnionOf>
     </DataPropertyDomain>
     <DataPropertyDomain>
         <DataProperty IRI="has_glytoucan_id"/>
@@ -342,6 +386,10 @@
     <DataPropertyDomain>
         <DataProperty IRI="has_sequence"/>
         <Class IRI="chemical_entity"/>
+    </DataPropertyDomain>
+    <DataPropertyDomain>
+        <DataProperty IRI="has_url"/>
+        <Class IRI="image"/>
     </DataPropertyDomain>
     <DataPropertyDomain>
         <DataProperty IRI="has_value"/>
@@ -366,6 +414,10 @@
     <DataPropertyRange>
         <DataProperty IRI="has_sequence"/>
         <Datatype abbreviatedIRI="xsd:string"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="has_url"/>
+        <Datatype abbreviatedIRI="xsd:anyURI"/>
     </DataPropertyRange>
     <DataPropertyRange>
         <DataProperty IRI="has_value"/>
@@ -488,6 +540,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_image</IRI>
+        <Literal>Adds an image to the array dataset.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_key</IRI>
         <Literal>An object property that assigns a descriptor to a simple description.</Literal>
     </AnnotationAssertion>
@@ -510,6 +567,11 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_row</IRI>
         <Literal>An subject can have a corrdinate in an appropritate coordinate system. The y-Axis is specified as row.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_scanner_metadata</IRI>
+        <Literal>Associates the scanner metadata with an image.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -538,8 +600,23 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_url</IRI>
+        <Literal>An object (e.g. an image or data file) has a URL where the file can be found.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_value</IRI>
         <Literal>A data property that assigns a value to a simple description.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>image</IRI>
+        <Literal>Image</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>image</IRI>
+        <Literal>Image of an glycan array slide.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -615,6 +692,11 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>sample</IRI>
         <Literal>Sample</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>scan_of</IRI>
+        <Literal>Associates an image as a scan of a particular slide.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
