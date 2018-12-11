@@ -6,3 +6,4 @@ glygen-array-sparql/.settings
 glygen-array-app/*.log
 glygen-array-app/.factorypath
 ontology/catalog-v001.xml
+.DS_Store
