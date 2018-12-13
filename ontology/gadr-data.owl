@@ -71,10 +71,16 @@
         <Class IRI="protein"/>
     </Declaration>
     <Declaration>
+        <Class IRI="raw_data"/>
+    </Declaration>
+    <Declaration>
         <Class IRI="sample"/>
     </Declaration>
     <Declaration>
         <Class IRI="scanner"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="signal"/>
     </Declaration>
     <Declaration>
         <Class IRI="simple_description"/>
@@ -92,6 +98,9 @@
         <Class IRI="unit_of_measurement"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="derived_from"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="described_by"/>
     </Declaration>
     <Declaration>
@@ -107,13 +116,22 @@
         <ObjectProperty IRI="has_image"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="has_image_processing_metadata"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="has_key"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_linker"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="has_measurement"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="has_molecule"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_raw_data"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_scanner_metadata"/>
@@ -209,6 +227,9 @@
         <Class IRI="metadata_category"/>
     </SubClassOf>
     <FunctionalObjectProperty>
+        <ObjectProperty IRI="derived_from"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
         <ObjectProperty IRI="has_key"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
@@ -226,6 +247,10 @@
     <FunctionalObjectProperty>
         <ObjectProperty IRI="scan_of"/>
     </FunctionalObjectProperty>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="derived_from"/>
+        <Class IRI="signal"/>
+    </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="described_by"/>
         <Class IRI="metadata_category"/>
@@ -247,6 +272,10 @@
         <Class IRI="array_dataset"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_image_processing_metadata"/>
+        <Class IRI="raw_data"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
@@ -255,8 +284,16 @@
         <Class IRI="feature"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_measurement"/>
+        <Class IRI="raw_data"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_molecule"/>
         <Class IRI="feature"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_raw_data"/>
+        <Class IRI="array_dataset"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_scanner_metadata"/>
@@ -287,6 +324,10 @@
         <Class IRI="image"/>
     </ObjectPropertyDomain>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="derived_from"/>
+        <Class IRI="spot"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="described_by"/>
         <Class IRI="description"/>
     </ObjectPropertyRange>
@@ -307,6 +348,10 @@
         <Class IRI="image"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="has_image_processing_metadata"/>
+        <Class IRI="image_analysis_software"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="descriptor"/>
     </ObjectPropertyRange>
@@ -315,8 +360,16 @@
         <Class IRI="linker"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="has_measurement"/>
+        <Class IRI="signal"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="has_molecule"/>
         <Class IRI="printed_molecule"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="has_raw_data"/>
+        <Class IRI="raw_data"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_scanner_metadata"/>
@@ -389,7 +442,10 @@
     </DataPropertyDomain>
     <DataPropertyDomain>
         <DataProperty IRI="has_url"/>
-        <Class IRI="image"/>
+        <ObjectUnionOf>
+            <Class IRI="image"/>
+            <Class IRI="raw_data"/>
+        </ObjectUnionOf>
     </DataPropertyDomain>
     <DataPropertyDomain>
         <DataProperty IRI="has_value"/>
@@ -475,6 +531,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>derived_from</IRI>
+        <Literal>A measuremnt is derived from a spot.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>described_by</IRI>
         <Literal>An object property that allows linking metadata categories with its descriptions.</Literal>
     </AnnotationAssertion>
@@ -545,6 +606,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_image_processing_metadata</IRI>
+        <Literal>Links the images processing software metadata with the raw data.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_key</IRI>
         <Literal>An object property that assigns a descriptor to a simple description.</Literal>
     </AnnotationAssertion>
@@ -555,6 +621,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_measurement</IRI>
+        <Literal>Links a list of measurements with the raw data file they have been detected in.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_molecule</IRI>
         <Literal>Links a feature and its linker with a list of molecules that are on a spot with this linker.</Literal>
     </AnnotationAssertion>
@@ -562,6 +633,11 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_pubchem_compound_id</IRI>
         <Literal>Adds a PubChem ID to a chemical entity.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_raw_data</IRI>
+        <Literal>Associates a set of raw data with the Array dataset</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -685,6 +761,16 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>raw_data</IRI>
+        <Literal>Excel data produced by the image processing software.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>raw_data</IRI>
+        <Literal>Raw Data</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>sample</IRI>
         <Literal>A sample that has been analyzed as part of an array experiment.</Literal>
     </AnnotationAssertion>
@@ -707,6 +793,16 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>scanner</IRI>
         <Literal>Scanner</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>signal</IRI>
+        <Literal>A value that was derived by the image processing software from a spot on the slide.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>signal</IRI>
+        <Literal>Measurement</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -763,3 +859,4 @@
 
 
 <!-- Generated by the OWL API (version 4.5.6.2018-09-06T00:27:41Z) https://github.com/owlcs/owlapi -->
+
