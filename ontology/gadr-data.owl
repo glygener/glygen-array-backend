@@ -56,6 +56,9 @@
         <Class IRI="image_analysis_software"/>
     </Declaration>
     <Declaration>
+        <Class IRI="intensity"/>
+    </Declaration>
+    <Declaration>
         <Class IRI="linker"/>
     </Declaration>
     <Declaration>
@@ -66,6 +69,9 @@
     </Declaration>
     <Declaration>
         <Class IRI="printer"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="processed_data"/>
     </Declaration>
     <Declaration>
         <Class IRI="protein"/>
@@ -95,7 +101,13 @@
         <Class IRI="spot"/>
     </Declaration>
     <Declaration>
+        <Class IRI="statistic_method"/>
+    </Declaration>
+    <Declaration>
         <Class IRI="unit_of_measurement"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="binding_value_of"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="derived_from"/>
@@ -105,6 +117,9 @@
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_block"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_data_processing_software_metadata"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_description"/>
@@ -119,6 +134,9 @@
         <ObjectProperty IRI="has_image_processing_metadata"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="has_intensity"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="has_key"/>
     </Declaration>
     <Declaration>
@@ -129,6 +147,9 @@
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_molecule"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="has_processed_data"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="has_raw_data"/>
@@ -149,7 +170,19 @@
         <ObjectProperty IRI="has_unit_of_measurement"/>
     </Declaration>
     <Declaration>
+        <ObjectProperty IRI="integrated_by"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="integrates"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="measurment_of"/>
+    </Declaration>
+    <Declaration>
         <ObjectProperty IRI="printed_by"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="processed_from"/>
     </Declaration>
     <Declaration>
         <ObjectProperty IRI="scan_of"/>
@@ -226,6 +259,10 @@
         <Class IRI="slide_metadata"/>
         <Class IRI="metadata_category"/>
     </SubClassOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="measurment_of"/>
+        <ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </SubObjectPropertyOf>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="derived_from"/>
     </FunctionalObjectProperty>
@@ -236,10 +273,16 @@
         <ObjectProperty IRI="has_linker"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
+        <ObjectProperty IRI="has_processed_data"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
         <ObjectProperty IRI="has_scanner_metadata"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="has_slide_metadata"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="integrated_by"/>
     </FunctionalObjectProperty>
     <FunctionalObjectProperty>
         <ObjectProperty IRI="printed_by"/>
@@ -248,8 +291,12 @@
         <ObjectProperty IRI="scan_of"/>
     </FunctionalObjectProperty>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="binding_value_of"/>
+        <Class IRI="intensity"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="derived_from"/>
-        <Class IRI="signal"/>
+        <Class IRI="raw_data"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="described_by"/>
@@ -258,6 +305,10 @@
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_block"/>
         <Class IRI="slide"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_data_processing_software_metadata"/>
+        <Class IRI="processed_data"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_description"/>
@@ -276,6 +327,10 @@
         <Class IRI="raw_data"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_intensity"/>
+        <Class IRI="processed_data"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
@@ -290,6 +345,10 @@
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_molecule"/>
         <Class IRI="feature"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="has_processed_data"/>
+        <Class IRI="array_dataset"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="has_raw_data"/>
@@ -316,16 +375,32 @@
         <Class IRI="simple_description"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
+        <ObjectProperty IRI="integrated_by"/>
+        <Class IRI="intensity"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="integrates"/>
+        <Class IRI="intensity"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
         <ObjectProperty IRI="printed_by"/>
         <Class IRI="slide"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="processed_from"/>
+        <Class IRI="processed_data"/>
     </ObjectPropertyDomain>
     <ObjectPropertyDomain>
         <ObjectProperty IRI="scan_of"/>
         <Class IRI="image"/>
     </ObjectPropertyDomain>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="binding_value_of"/>
+        <Class IRI="feature"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="derived_from"/>
-        <Class IRI="spot"/>
+        <Class IRI="image"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="described_by"/>
@@ -334,6 +409,10 @@
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_block"/>
         <Class IRI="block"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="has_data_processing_software_metadata"/>
+        <Class IRI="data_processing_software"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_description"/>
@@ -352,6 +431,10 @@
         <Class IRI="image_analysis_software"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="has_intensity"/>
+        <Class IRI="intensity"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="has_key"/>
         <Class IRI="descriptor"/>
     </ObjectPropertyRange>
@@ -366,6 +449,10 @@
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_molecule"/>
         <Class IRI="printed_molecule"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="has_processed_data"/>
+        <Class IRI="processed_data"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="has_raw_data"/>
@@ -392,8 +479,20 @@
         <Class IRI="unit_of_measurement"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
+        <ObjectProperty IRI="integrated_by"/>
+        <Class IRI="statistic_method"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="integrates"/>
+        <Class IRI="signal"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
         <ObjectProperty IRI="printed_by"/>
         <Class IRI="printer"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="processed_from"/>
+        <Class IRI="raw_data"/>
     </ObjectPropertyRange>
     <ObjectPropertyRange>
         <ObjectProperty IRI="scan_of"/>
@@ -491,6 +590,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>binding_value_of</IRI>
+        <Literal>Links an intensity value to the feature that was on the spots.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>block</IRI>
         <Literal>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</Literal>
     </AnnotationAssertion>
@@ -532,7 +636,7 @@
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>derived_from</IRI>
-        <Literal>A measuremnt is derived from a spot.</Literal>
+        <Literal>Raw data is derived from an image of a slide.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -591,6 +695,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_data_processing_software_metadata</IRI>
+        <Literal>Links the metadata of the utilized process software tools with the processed data.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_feature</IRI>
         <Literal>Links a spot on the array with the molecules that are printed on a spot.</Literal>
     </AnnotationAssertion>
@@ -611,6 +720,11 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_intensity</IRI>
+        <Literal>Links a set of intensity values with the processed data.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_key</IRI>
         <Literal>An object property that assigns a descriptor to a simple description.</Literal>
     </AnnotationAssertion>
@@ -628,6 +742,11 @@
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>has_molecule</IRI>
         <Literal>Links a feature and its linker with a list of molecules that are on a spot with this linker.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>has_processed_data</IRI>
+        <Literal>Links a processed data file to the array dataset.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -706,6 +825,26 @@
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>integrated_by</IRI>
+        <Literal>Links a statistical method with a Intensity value. The method was used to create the value out of the measurments.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>integrates</IRI>
+        <Literal>A single intensity value integrates multiple measurments.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>intensity</IRI>
+        <Literal>An value for the binding of the features on a spot with the sample. Derived by combining all statistic measurment (replicates) into a single value.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>intensity</IRI>
+        <Literal>Intensity</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
         <IRI>linker</IRI>
         <Literal>A molecule used to connect the printed molecules (e.g. glycans) to the surface of the slide.</Literal>
     </AnnotationAssertion>
@@ -713,6 +852,11 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>linker</IRI>
         <Literal>Linker</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>measurment_of</IRI>
+        <Literal>Links a measurment from the raw data to a spot on a slide.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -748,6 +892,21 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>printer</IRI>
         <Literal>Printer</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>processed_data</IRI>
+        <Literal>The final data after data processing and statistics.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>processed_data</IRI>
+        <Literal>Processed Data</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>processed_from</IRI>
+        <Literal>Processed data was derived from a set of raw data files.</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
@@ -843,6 +1002,16 @@
         <AnnotationProperty abbreviatedIRI="rdfs:label"/>
         <IRI>spot</IRI>
         <Literal>Spot</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+        <IRI>statistic_method</IRI>
+        <Literal>The statistic method used to integrated multiple measurments into a single value.</Literal>
+    </AnnotationAssertion>
+    <AnnotationAssertion>
+        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
+        <IRI>statistic_method</IRI>
+        <Literal>Statistic Method</Literal>
     </AnnotationAssertion>
     <AnnotationAssertion>
         <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
