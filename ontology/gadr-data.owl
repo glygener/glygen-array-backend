@@ -1,1031 +1,797 @@
 <?xml version="1.0"?>
-<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+<rdf:RDF xmlns="http://purl.org/gadr/data/"
      xml:base="http://purl.org/gadr/data/"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
-     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
-     ontologyIRI="http://purl.org/gadr/data/"
-     versionIRI="http://purl.org/gadr/data/1.0.0">
-    <Prefix name="" IRI="http://purl.org/gadr/data/"/>
-    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
-    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
-    <Prefix name="xml" IRI="http://www.w3.org/XML/1998/namespace"/>
-    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
-    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
-    <Prefix name="dcterms" IRI="http://purl.org/dc/terms/"/>
-    <Annotation>
-        <AnnotationProperty abbreviatedIRI="dcterms:creator"/>
-        <Literal xml:lang="en">Rene Ranzinger</Literal>
-    </Annotation>
-    <Annotation>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <Literal xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</Literal>
-    </Annotation>
-    <Declaration>
-        <Class IRI="array_dataset"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="block"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="chemical_entity"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="complex_description"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="data_processing_software"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="description"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="descriptor"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="feature"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="glycan"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="image"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="image_analysis_software"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="intensity"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="linker"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="metadata_category"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="printed_molecule"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="printer"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="processed_data"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="protein"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="raw_data"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="sample"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="scanner"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="signal"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="simple_description"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="slide"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="slide_metadata"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="spot"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="statistic_method"/>
-    </Declaration>
-    <Declaration>
-        <Class IRI="unit_of_measurement"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="binding_value_of"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="derived_from"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="described_by"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_block"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_data_processing_software_metadata"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_description"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_feature"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_image"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_image_processing_metadata"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_intensity"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_key"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_linker"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_measurement"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_molecule"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_processed_data"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_raw_data"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_scanner_metadata"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_slide"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_slide_metadata"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_spot"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="has_unit_of_measurement"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="integrated_by"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="integrates"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="measurment_of"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="printed_by"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="processed_from"/>
-    </Declaration>
-    <Declaration>
-        <ObjectProperty IRI="scan_of"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_column"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_glytoucan_id"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_row"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_sequence"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_url"/>
-    </Declaration>
-    <Declaration>
-        <DataProperty IRI="has_value"/>
-    </Declaration>
-    <Declaration>
-        <AnnotationProperty abbreviatedIRI="dcterms:creator"/>
-    </Declaration>
-    <SubClassOf>
-        <Class IRI="complex_description"/>
-        <Class IRI="description"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="data_processing_software"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="glycan"/>
-        <Class IRI="printed_molecule"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="image_analysis_software"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="linker"/>
-        <Class IRI="chemical_entity"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="printed_molecule"/>
-        <Class IRI="chemical_entity"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="printer"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="protein"/>
-        <Class IRI="printed_molecule"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="sample"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="scanner"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="simple_description"/>
-        <Class IRI="description"/>
-    </SubClassOf>
-    <SubClassOf>
-        <Class IRI="slide_metadata"/>
-        <Class IRI="metadata_category"/>
-    </SubClassOf>
-    <SubObjectPropertyOf>
-        <ObjectProperty IRI="measurment_of"/>
-        <ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
-    </SubObjectPropertyOf>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="derived_from"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_key"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_linker"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_processed_data"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_scanner_metadata"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="has_slide_metadata"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="integrated_by"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="printed_by"/>
-    </FunctionalObjectProperty>
-    <FunctionalObjectProperty>
-        <ObjectProperty IRI="scan_of"/>
-    </FunctionalObjectProperty>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="binding_value_of"/>
-        <Class IRI="intensity"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="derived_from"/>
-        <Class IRI="raw_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="described_by"/>
-        <Class IRI="metadata_category"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_block"/>
-        <Class IRI="slide"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_data_processing_software_metadata"/>
-        <Class IRI="processed_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_description"/>
-        <Class IRI="complex_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_feature"/>
-        <Class IRI="spot"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_image"/>
-        <Class IRI="array_dataset"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_image_processing_metadata"/>
-        <Class IRI="raw_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_intensity"/>
-        <Class IRI="processed_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_key"/>
-        <Class IRI="simple_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_linker"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_measurement"/>
-        <Class IRI="raw_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_molecule"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_processed_data"/>
-        <Class IRI="array_dataset"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_raw_data"/>
-        <Class IRI="array_dataset"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_scanner_metadata"/>
-        <Class IRI="image"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_slide"/>
-        <Class IRI="array_dataset"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_slide_metadata"/>
-        <Class IRI="slide"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_spot"/>
-        <Class IRI="block"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="has_unit_of_measurement"/>
-        <Class IRI="simple_description"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="integrated_by"/>
-        <Class IRI="intensity"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="integrates"/>
-        <Class IRI="intensity"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="printed_by"/>
-        <Class IRI="slide"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="processed_from"/>
-        <Class IRI="processed_data"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyDomain>
-        <ObjectProperty IRI="scan_of"/>
-        <Class IRI="image"/>
-    </ObjectPropertyDomain>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="binding_value_of"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="derived_from"/>
-        <Class IRI="image"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="described_by"/>
-        <Class IRI="description"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_block"/>
-        <Class IRI="block"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_data_processing_software_metadata"/>
-        <Class IRI="data_processing_software"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_description"/>
-        <Class IRI="description"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_feature"/>
-        <Class IRI="feature"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_image"/>
-        <Class IRI="image"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_image_processing_metadata"/>
-        <Class IRI="image_analysis_software"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_intensity"/>
-        <Class IRI="intensity"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_key"/>
-        <Class IRI="descriptor"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_linker"/>
-        <Class IRI="linker"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_measurement"/>
-        <Class IRI="signal"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_molecule"/>
-        <Class IRI="printed_molecule"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_processed_data"/>
-        <Class IRI="processed_data"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_raw_data"/>
-        <Class IRI="raw_data"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_scanner_metadata"/>
-        <Class IRI="scanner"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_slide"/>
-        <Class IRI="slide"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_slide_metadata"/>
-        <Class IRI="slide_metadata"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_spot"/>
-        <Class IRI="spot"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="has_unit_of_measurement"/>
-        <Class IRI="unit_of_measurement"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="integrated_by"/>
-        <Class IRI="statistic_method"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="integrates"/>
-        <Class IRI="signal"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="printed_by"/>
-        <Class IRI="printer"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="processed_from"/>
-        <Class IRI="raw_data"/>
-    </ObjectPropertyRange>
-    <ObjectPropertyRange>
-        <ObjectProperty IRI="scan_of"/>
-        <Class IRI="slide"/>
-    </ObjectPropertyRange>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_column"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_row"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_sequence"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_url"/>
-    </FunctionalDataProperty>
-    <FunctionalDataProperty>
-        <DataProperty IRI="has_value"/>
-    </FunctionalDataProperty>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_column"/>
-        <ObjectUnionOf>
-            <Class IRI="block"/>
-            <Class IRI="spot"/>
-        </ObjectUnionOf>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_glytoucan_id"/>
-        <Class IRI="glycan"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-        <Class IRI="chemical_entity"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_row"/>
-        <ObjectUnionOf>
-            <Class IRI="block"/>
-            <Class IRI="spot"/>
-        </ObjectUnionOf>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_sequence"/>
-        <Class IRI="chemical_entity"/>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_url"/>
-        <ObjectUnionOf>
-            <Class IRI="image"/>
-            <Class IRI="raw_data"/>
-        </ObjectUnionOf>
-    </DataPropertyDomain>
-    <DataPropertyDomain>
-        <DataProperty IRI="has_value"/>
-        <Class IRI="simple_description"/>
-    </DataPropertyDomain>
-    <DataPropertyRange>
-        <DataProperty IRI="has_column"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_glytoucan_id"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_pubchem_compound_id"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_row"/>
-        <Datatype abbreviatedIRI="xsd:integer"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_sequence"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_url"/>
-        <Datatype abbreviatedIRI="xsd:anyURI"/>
-    </DataPropertyRange>
-    <DataPropertyRange>
-        <DataProperty IRI="has_value"/>
-        <Datatype abbreviatedIRI="xsd:string"/>
-    </DataPropertyRange>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>array_dataset</IRI>
-        <Literal>Top level class for an glycan array experiment and the resulting data set.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>array_dataset</IRI>
-        <Literal>Array Dataset</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>binding_value_of</IRI>
-        <Literal>Links an intensity value to the feature that was on the spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>block</IRI>
-        <Literal>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>block</IRI>
-        <Literal>Block</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>chemical_entity</IRI>
-        <Literal>A parent class for all kinds of chemical structures</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>chemical_entity</IRI>
-        <Literal>Chemical Entity</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>complex_description</IRI>
-        <Literal>A complex descriptor consists either of a list of simple descriptors (key value pairs), a list of complex descritptors (recursiv), or any mixture of both.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>complex_description</IRI>
-        <Literal>Complex Description</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>data_processing_software</IRI>
-        <Literal>Metadata on the data processing software. Provide details of how data in the table of microarray binding results (Part 7) are generated and calculated, i.e., specific software, normalization method, data selection procedures, and parameters, statistical analysis (including how the data from glycan replicates on the array were handled in the statistical method), transformation algorithm and scaling parameters.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>data_processing_software</IRI>
-        <Literal>Data Processing Software</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>derived_from</IRI>
-        <Literal>Raw data is derived from an image of a slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>described_by</IRI>
-        <Literal>An object property that allows linking metadata categories with its descriptions.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>description</IRI>
-        <Literal>An construct used to describe a metadata category instance. It can either be a simple descriptor (key value pair) or a complex object (grouping multiple key value pairs or complex objects).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>description</IRI>
-        <Literal>Description</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>descriptor</IRI>
-        <Literal>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>descriptor</IRI>
-        <Literal>Descriptor</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>feature</IRI>
-        <Literal>A probe combination that was printed on a spot of the array. This probe can consist of different molecules that all have the same linker.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>feature</IRI>
-        <Literal>Feature</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>glycan</IRI>
-        <Literal>Glycan printed on an array.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>glycan</IRI>
-        <Literal>Glycan</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_block</IRI>
-        <Literal>A glycan array slide has one or multiple blocks with array probes on it. This property is used to link the blocks with the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_column</IRI>
-        <Literal>An subject can have a corrdinate in an appropritate coordinate system. The x-Axis is specified as column.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_data_processing_software_metadata</IRI>
-        <Literal>Links the metadata of the utilized process software tools with the processed data.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_feature</IRI>
-        <Literal>Links a spot on the array with the molecules that are printed on a spot.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_glytoucan_id</IRI>
-        <Literal>Links a glycan object with a GlyTouCan ID.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_image</IRI>
-        <Literal>Adds an image to the array dataset.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_image_processing_metadata</IRI>
-        <Literal>Links the images processing software metadata with the raw data.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_intensity</IRI>
-        <Literal>Links a set of intensity values with the processed data.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_key</IRI>
-        <Literal>An object property that assigns a descriptor to a simple description.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_linker</IRI>
-        <Literal>Specifies the linker that is used for a feature.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_measurement</IRI>
-        <Literal>Links a list of measurements with the raw data file they have been detected in.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_molecule</IRI>
-        <Literal>Links a feature and its linker with a list of molecules that are on a spot with this linker.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_processed_data</IRI>
-        <Literal>Links a processed data file to the array dataset.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_pubchem_compound_id</IRI>
-        <Literal>Adds a PubChem ID to a chemical entity.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_raw_data</IRI>
-        <Literal>Associates a set of raw data with the Array dataset</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_row</IRI>
-        <Literal>An subject can have a corrdinate in an appropritate coordinate system. The y-Axis is specified as row.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_scanner_metadata</IRI>
-        <Literal>Associates the scanner metadata with an image.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_sequence</IRI>
-        <Literal>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_slide</IRI>
-        <Literal>Associates a slide with an experiment.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_slide_metadata</IRI>
-        <Literal>Associates the slide with its metadata.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_spot</IRI>
-        <Literal>Associates the spot with the glycans with a block on the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_unit_of_measurement</IRI>
-        <Literal>Assigns a unit of measurement to the description. This property is optional.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_url</IRI>
-        <Literal>An object (e.g. an image or data file) has a URL where the file can be found.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>has_value</IRI>
-        <Literal>A data property that assigns a value to a simple description.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>image</IRI>
-        <Literal>Image</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>image</IRI>
-        <Literal>Image of an glycan array slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>image_analysis_software</IRI>
-        <Literal>Metadata on the image analysis software. Describe the software used to analyse (quantify) the output scanner image, indicating the name, version and manufacturer used and any special features active in the software (i.e. data smoothing, normalization, etc.).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>image_analysis_software</IRI>
-        <Literal>Image Analysis Software</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>integrated_by</IRI>
-        <Literal>Links a statistical method with a Intensity value. The method was used to create the value out of the measurments.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>integrates</IRI>
-        <Literal>A single intensity value integrates multiple measurments.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>intensity</IRI>
-        <Literal>An value for the binding of the features on a spot with the sample. Derived by combining all statistic measurment (replicates) into a single value.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>intensity</IRI>
-        <Literal>Intensity</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>linker</IRI>
-        <Literal>A molecule used to connect the printed molecules (e.g. glycans) to the surface of the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>linker</IRI>
-        <Literal>Linker</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>measurment_of</IRI>
-        <Literal>Links a measurment from the raw data to a spot on a slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>metadata_category</IRI>
-        <Literal>An toplevel class for all instances that can be described. There should be no instance in the class itself but rather in its subclasses.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>metadata_category</IRI>
-        <Literal>Metadata Category</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>printed_by</IRI>
-        <Literal>Connects a slide with the printer metadata.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>printed_molecule</IRI>
-        <Literal>A molecule that is printed on an array spot. There can be no instances of this class but only of its subclasses.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>printed_molecule</IRI>
-        <Literal>Printed Molecule</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>printer</IRI>
-        <Literal>Metadata on the printer. Glycan microarrays are printed using a robotic liquid delivery system to deposit glycans on a printing surface. The utility of the data generated will be related to the quality of the printed array, thus minimal information regarding the arrayer or printer and the parameters of the printing process need to be stored.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>printer</IRI>
-        <Literal>Printer</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>processed_data</IRI>
-        <Literal>The final data after data processing and statistics.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>processed_data</IRI>
-        <Literal>Processed Data</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>processed_from</IRI>
-        <Literal>Processed data was derived from a set of raw data files.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>protein</IRI>
-        <Literal>Protein printed on an array.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>protein</IRI>
-        <Literal>Protein</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>raw_data</IRI>
-        <Literal>Excel data produced by the image processing software.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>raw_data</IRI>
-        <Literal>Raw Data</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>sample</IRI>
-        <Literal>A sample that has been analyzed as part of an array experiment.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>sample</IRI>
-        <Literal>Sample</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>scan_of</IRI>
-        <Literal>Associates an image as a scan of a particular slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>scanner</IRI>
-        <Literal>Metadata about the scanner and scanner settings. Describe the scanning hardware (manufacturer/model), including detection method; e.g., optical detection (fluorescence/colorimetric), surface plasmon resonance (SPR) imaging technique, etc.; MS detection (MIRAGE MS guidelines, doi:10.3762/mirage.2 are recommended). The intensities of signals generated from Sample binding to individual glycans are a reflection of affinities or avidities of the interactions. Provide an indication of whether the scanner settings (scanning resolution, laser channel, PMT and scan power) are such that signals are in a linear range of the scanner’s detector (no ‘saturation of signals’) and whether the scanning resolution is adequate for the sizes of sample spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>scanner</IRI>
-        <Literal>Scanner</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>signal</IRI>
-        <Literal>A value that was derived by the image processing software from a spot on the slide.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>signal</IRI>
-        <Literal>Measurement</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>simple_description</IRI>
-        <Literal>A simple key value pair (+ unit of measurment) to describe a metadata instance.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>simple_description</IRI>
-        <Literal>Simple Description</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>slide</IRI>
-        <Literal>Slide that was used to run an experiment. Each slide has a set of blocks with spots.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>slide</IRI>
-        <Literal>Slide</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>slide_metadata</IRI>
-        <Literal>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>slide_metadata</IRI>
-        <Literal>Slide</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>spot</IRI>
-        <Literal>Each block on a glycan array slide consists of multiple spot on which the glycans are fixed. Usual that is a round shaped place on the slide. Each spot has coordinates and a diameter.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>spot</IRI>
-        <Literal>Spot</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>statistic_method</IRI>
-        <Literal>The statistic method used to integrated multiple measurments into a single value.</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>statistic_method</IRI>
-        <Literal>Statistic Method</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:comment"/>
-        <IRI>unit_of_measurement</IRI>
-        <Literal>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</Literal>
-    </AnnotationAssertion>
-    <AnnotationAssertion>
-        <AnnotationProperty abbreviatedIRI="rdfs:label"/>
-        <IRI>unit_of_measurement</IRI>
-        <Literal>Unit of Measurement</Literal>
-    </AnnotationAssertion>
-</Ontology>
+     xmlns:dcterms="http://purl.org/dc/terms/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://purl.org/gadr/data/">
+        <owl:versionIRI rdf:resource="http://purl.org/gadr/data/1.0.0"/>
+        <rdfs:comment xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</rdfs:comment>
+        <dcterms:creator xml:lang="en">Rene Ranzinger</dcterms:creator>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/terms/creator -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/dc/terms/creator"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/binding_value_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/binding_value_of">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:comment>Links an intensity value to the feature that was on the spots.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/created_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
+        <owl:inverseOf rdf:resource="http://purl.org/gadr/data/owner_of"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:comment>An object property to relate simple description class with its owner or creator.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/derived_from -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/derived_from">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:comment>Raw data is derived from an image of a slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/described_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/described_by">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>An object property that allows linking metadata categories with its descriptions.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_block -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_block">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:comment>A glycan array slide has one or multiple blocks with array probes on it. This property is used to link the blocks with the slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_data_processing_software_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_data_processing_software_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/data_processing_software"/>
+        <rdfs:comment>Links the metadata of the utilized process software tools with the processed data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_description -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_description">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/complex_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_feature -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:comment>Links a spot on the array with the molecules that are printed on a spot.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_image -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:comment>Adds an image to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_image_processing_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image_processing_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image_analysis_software"/>
+        <rdfs:comment>Links the images processing software metadata with the raw data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_intensity -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_intensity">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:comment>Links a set of intensity values with the processed data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_key -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_key">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <rdfs:comment>An object property that assigns a descriptor to a simple description.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_linker -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_linker">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:comment>Specifies the linker that is used for a feature.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_measurement -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_measurement">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:comment>Links a list of measurements with the raw data file they have been detected in.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_molecule -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Links a feature and its linker with a list of molecules that are on a spot with this linker.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_molecule_context -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule_context">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_processed_data -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_processed_data">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:comment>Links a processed data file to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_raw_data -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_raw_data">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:comment>Associates a set of raw data with the Array dataset</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_scanner_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_scanner_metadata">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/scanner"/>
+        <rdfs:comment>Associates the scanner metadata with an image.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_slide -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_slide">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:comment>Associates a slide with an experiment.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_slide_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_slide_metadata">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
+        <rdfs:comment>Associates the slide with its metadata.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_spot -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_spot">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/block"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:comment>Associates the spot with the glycans with a block on the slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_unit_of_measurement -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_unit_of_measurement">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
+        <rdfs:comment>Assigns a unit of measurement to the description. This property is optional.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/integrated_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/integrated_by">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:comment>Links a statistical method with a Intensity value. The method was used to create the value out of the measurments.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/integrates -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/integrates">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:comment>A single intensity value integrates multiple measurments.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/measurment_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/measurment_of">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:comment>Links a measurment from the raw data to a spot on a slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/owner_of">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:comment>Object property that defines relation from owner information to descriptor.
+Inverse of created_by object property</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/printed_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/printed_by">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printer"/>
+        <rdfs:comment>Connects a slide with the printer metadata.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/processed_from -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/processed_from">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:comment>Processed data was derived from a set of raw data files.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/scan_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/scan_of">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:comment>Associates an image as a scan of a particular slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/has_column -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_column">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/block"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>An subject can have a corrdinate in an appropritate coordinate system. The x-Axis is specified as column.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_glytoucan_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_glytoucan_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycan"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Links a glycan object with a GlyTouCan ID.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_institution_name -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_institution_name">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store institution name for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_pubchem_compound_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubchem_compound_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>Adds a PubChem ID to a chemical entity.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_ratio -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_ratio">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>data property to specify the ratio of a feature or the ratio of the &quot;printed molecule&quot; in a feature</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_row -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_row">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/block"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>An subject can have a corrdinate in an appropritate coordinate system. The y-Axis is specified as row.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_sequence -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_sequence">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_url -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_url">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/image"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/raw_data"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+        <rdfs:comment>An object (e.g. an image or data file) has a URL where the file can be found.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_user_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_user_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store user id for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_username -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_username">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store username for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_value">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>A data property that assigns a value to a simple description.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/array_dataset -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/array_dataset">
+        <rdfs:comment>Top level class for an glycan array experiment and the resulting data set.</rdfs:comment>
+        <rdfs:label>Array Dataset</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/block -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/block">
+        <rdfs:comment>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</rdfs:comment>
+        <rdfs:label>Block</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/chemical_entity -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/chemical_entity">
+        <rdfs:comment>A parent class for all kinds of chemical structures</rdfs:comment>
+        <rdfs:label>Chemical Entity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/complex_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/complex_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A complex descriptor consists either of a list of simple descriptors (key value pairs), a list of complex descritptors (recursiv), or any mixture of both.</rdfs:comment>
+        <rdfs:label>Complex Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/data_processing_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/data_processing_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the data processing software. Provide details of how data in the table of microarray binding results (Part 7) are generated and calculated, i.e., specific software, normalization method, data selection procedures, and parameters, statistical analysis (including how the data from glycan replicates on the array were handled in the statistical method), transformation algorithm and scaling parameters.</rdfs:comment>
+        <rdfs:label>Data Processing Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/description">
+        <rdfs:comment>An construct used to describe a metadata category instance. It can either be a simple descriptor (key value pair) or a complex object (grouping multiple key value pairs or complex objects).</rdfs:comment>
+        <rdfs:label>Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/descriptor -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/descriptor">
+        <rdfs:comment>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</rdfs:comment>
+        <rdfs:label>Descriptor</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/feature -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/feature">
+        <rdfs:comment>A probe combination that was printed on a spot of the array. This probe can consist of different molecules that all have the same linker.</rdfs:comment>
+        <rdfs:label>Feature</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/glycan -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/glycan">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Glycan printed on an array.</rdfs:comment>
+        <rdfs:label>Glycan</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/image -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/image">
+        <rdfs:label>Image</rdfs:label>
+        <rdfs:label>Image of an glycan array slide.</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/image_analysis_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/image_analysis_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the image analysis software. Describe the software used to analyse (quantify) the output scanner image, indicating the name, version and manufacturer used and any special features active in the software (i.e. data smoothing, normalization, etc.).</rdfs:comment>
+        <rdfs:label>Image Analysis Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/intensity -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/intensity">
+        <rdfs:comment>An value for the binding of the features on a spot with the sample. Derived by combining all statistic measurment (replicates) into a single value.</rdfs:comment>
+        <rdfs:label>Intensity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/linker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/linker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:comment>A molecule used to connect the printed molecules (e.g. glycans) to the surface of the slide.</rdfs:comment>
+        <rdfs:label>Linker</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/metadata_category -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/metadata_category">
+        <rdfs:comment>An toplevel class for all instances that can be described. There should be no instance in the class itself but rather in its subclasses.</rdfs:comment>
+        <rdfs:label>Metadata Category</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/owner">
+        <rdfs:comment>Owner class to store the ownership information. i.e. user_name, institution_name and user_id.</rdfs:comment>
+        <rdfs:label>Owner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printed_molecule -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printed_molecule">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:comment>A molecule that is printed on an array spot. There can be no instances of this class but only of its subclasses.</rdfs:comment>
+        <rdfs:label>Printed Molecule</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printed_molecule_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printed_molecule_context">
+        <rdfs:comment>To define the ratio of a printed molecule in a feature</rdfs:comment>
+        <rdfs:label>Printed Molecule Context</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printer -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printer">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the printer. Glycan microarrays are printed using a robotic liquid delivery system to deposit glycans on a printing surface. The utility of the data generated will be related to the quality of the printed array, thus minimal information regarding the arrayer or printer and the parameters of the printing process need to be stored.</rdfs:comment>
+        <rdfs:label>Printer</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/processed_data -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/processed_data">
+        <rdfs:comment>The final data after data processing and statistics.</rdfs:comment>
+        <rdfs:label>Processed Data</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/protein -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/protein">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Protein printed on an array.</rdfs:comment>
+        <rdfs:label>Protein</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/raw_data -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/raw_data">
+        <rdfs:comment>Excel data produced by the image processing software.</rdfs:comment>
+        <rdfs:label>Raw Data</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/sample -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/sample">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>A sample that has been analyzed as part of an array experiment.</rdfs:comment>
+        <rdfs:label>Sample</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/scanner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/scanner">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata about the scanner and scanner settings. Describe the scanning hardware (manufacturer/model), including detection method; e.g., optical detection (fluorescence/colorimetric), surface plasmon resonance (SPR) imaging technique, etc.; MS detection (MIRAGE MS guidelines, doi:10.3762/mirage.2 are recommended). The intensities of signals generated from Sample binding to individual glycans are a reflection of affinities or avidities of the interactions. Provide an indication of whether the scanner settings (scanning resolution, laser channel, PMT and scan power) are such that signals are in a linear range of the scanner’s detector (no ‘saturation of signals’) and whether the scanning resolution is adequate for the sizes of sample spots.</rdfs:comment>
+        <rdfs:label>Scanner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/signal -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/signal">
+        <rdfs:comment>A value that was derived by the image processing software from a spot on the slide.</rdfs:comment>
+        <rdfs:label>Measurement</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/simple_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/simple_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A simple key value pair (+ unit of measurment) to describe a metadata instance.</rdfs:comment>
+        <rdfs:label>Simple Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/slide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/slide">
+        <rdfs:comment>Slide that was used to run an experiment. Each slide has a set of blocks with spots.</rdfs:comment>
+        <rdfs:label>Slide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/slide_metadata -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/slide_metadata">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</rdfs:comment>
+        <rdfs:label>Slide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/spot -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/spot">
+        <rdfs:comment>Each block on a glycan array slide consists of multiple spot on which the glycans are fixed. Usual that is a round shaped place on the slide. Each spot has coordinates and a diameter.</rdfs:comment>
+        <rdfs:label>Spot</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/statistic_method -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/statistic_method">
+        <rdfs:comment>The statistic method used to integrated multiple measurments into a single value.</rdfs:comment>
+        <rdfs:label>Statistic Method</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/unit_of_measurement -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/unit_of_measurement">
+        <rdfs:comment>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</rdfs:comment>
+        <rdfs:label>Unit of Measurement</rdfs:label>
+    </owl:Class>
+</rdf:RDF>
 
 
 
-<!-- Generated by the OWL API (version 4.5.6.2018-09-06T00:27:41Z) https://github.com/owlcs/owlapi -->
+<!-- Generated by the OWL API (version 4.2.6.20160910-2108) https://github.com/owlcs/owlapi -->
 
