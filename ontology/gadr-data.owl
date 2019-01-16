@@ -93,6 +93,27 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_concentration -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_concentration">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:comment>object property relating the concentration of printed molecule to a spot</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_concentration_unit -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_concentration_unit">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
+        <rdfs:comment>unit of the concentration</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_data_processing_software_metadata -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_data_processing_software_metadata">
@@ -298,11 +319,13 @@
     
 
 
-    <!-- http://purl.org/gadr/data/measurment_of -->
+    <!-- http://purl.org/gadr/data/measurement_of -->
 
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/measurment_of">
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/measurement_of">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
-        <rdfs:comment>Links a measurment from the raw data to a spot on a slide.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:comment>Links a measurement to a spot.</rdfs:comment>
     </owl:ObjectProperty>
     
 
@@ -361,6 +384,36 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/concentration_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/concentration_value">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>value for concentration</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_bMean -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_bMean">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>background mean of the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_bMedian -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_bMedian">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>background median of measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_column -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_column">
@@ -379,6 +432,16 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_diameter -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_diameter">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>diameter of the measurement as reported in the raw file</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_glytoucan_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_glytoucan_id">
@@ -389,12 +452,62 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_group -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_group">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <rdfs:comment>group of a spot helps locating the replicates of a feature</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_institution_name -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_institution_name">
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>Data property to store institution name for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_mean -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_mean">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>mean value for the spot</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_meanminusB -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_meanminusB">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>mean minus background value for the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_median -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_median">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>median value of the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_medianminusB -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_medianminusB">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>median minus background for the measurement</rdfs:comment>
     </owl:DatatypeProperty>
     
 
@@ -443,9 +556,19 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_sequence">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Sequence"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_stdev -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_stdev">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>stdev as reported in raw data</rdfs:comment>
     </owl:DatatypeProperty>
     
 
@@ -499,6 +622,27 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_x_coordinate -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_x_coordinate">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>x coordinate of the spot as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_y_coordinate -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_y_coordinate">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>y coordinate of the spot as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
@@ -507,6 +651,24 @@ Inverse of created_by object property</rdfs:comment>
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
+    
+
+
+    <!-- http://purl.org/gadr/data/Concentration -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Concentration">
+        <rdfs:comment>concentration of printed molecule on a spot</rdfs:comment>
+        <rdfs:label>Concentration</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/Sequence -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Sequence">
+        <rdfs:comment>Sequence for a chemical entity</rdfs:comment>
+        <rdfs:label>Sequence</rdfs:label>
+    </owl:Class>
     
 
 
