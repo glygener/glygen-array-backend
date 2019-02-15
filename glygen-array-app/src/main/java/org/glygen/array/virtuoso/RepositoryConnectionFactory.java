@@ -1,5 +1,7 @@
 package org.glygen.array.virtuoso;
 
+import java.sql.Connection;
+
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -7,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.transaction.TransactionSystemException;
+
+import virtuoso.rdf4j.driver.VirtuosoRepository;
+import virtuoso.rdf4j.driver.VirtuosoRepositoryConnection;
 
 /**
  * <p>{@link RepositoryConnectionFactory} handles connections to a single corresponding {@link Repository} and manages
@@ -34,6 +39,17 @@ public class RepositoryConnectionFactory implements DisposableBean, SesameConnec
         this.repository = repository;
         localTransactionObject = new ThreadLocal<>();
     }
+    
+    /**
+     * 
+     * @return a connection for executing SQL statements
+     */
+    public Connection getSqlConnection () {
+    	RepositoryConnection connection = getConnection();
+    	if (connection instanceof VirtuosoRepositoryConnection) 
+    		return ((VirtuosoRepositoryConnection) connection).getQuadStoreConnection();
+    	throw new SesameTransactionException("No transaction active");
+    }
 
     /**
      * @inheritDoc
@@ -59,7 +75,6 @@ public class RepositoryConnectionFactory implements DisposableBean, SesameConnec
         } catch (RepositoryException e) {
             throw new SesameTransactionException(e);
         }
-
         return repositoryConnection;
     }
 

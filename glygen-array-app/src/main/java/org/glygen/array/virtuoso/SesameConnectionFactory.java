@@ -1,5 +1,7 @@
 package org.glygen.array.virtuoso;
 
+import java.sql.Connection;
+
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.springframework.beans.factory.DisposableBean;
@@ -25,6 +27,18 @@ public interface SesameConnectionFactory extends DisposableBean {
      *                                    </ul>
      */
     RepositoryConnection getConnection();
+    
+    /**
+     * retrieves the QuadStoreConnection (SQL) for the current transaction.
+     * @return the {@link Connection}
+     * 
+     * @throws SesameTransactionException if
+     *                                    <ul>
+     *                                    <li>No transaction is active</li>
+     *                                    <li>The connection was closed during the transaction</li>
+     *                                    </ul>
+     */
+    Connection getSqlConnection ();
 
     /**
      * <p>Closes the connection and cleans up the (thread-local) state for the current transaction.</p>

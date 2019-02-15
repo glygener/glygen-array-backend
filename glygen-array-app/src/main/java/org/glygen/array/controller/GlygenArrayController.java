@@ -10,6 +10,7 @@ import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
+import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,5 +87,10 @@ public class GlygenArrayController {
 		} catch (Exception e) {
 			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
 		}
+	}
+	
+	public Confirmation addSlideLayout (@RequestBody SlideLayout layout) {
+		
+		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 }

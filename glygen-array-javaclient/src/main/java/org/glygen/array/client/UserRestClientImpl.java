@@ -1,8 +1,6 @@
 package org.glygen.array.client;
 
-import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Base64;
 
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.Confirmation;

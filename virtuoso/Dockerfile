@@ -30,6 +30,9 @@ COPY virtuoso.ini /virtuoso.ini
 # Add dump_nquads_procedure
 COPY dump_nquads_procedure.sql /dump_nquads_procedure.sql
 
+# Add initialization data
+COPY initialize.sql /initialize.sql
+
 # Add Virtuoso log cleaning script
 COPY clean-logs.sh /clean-logs.sh
 

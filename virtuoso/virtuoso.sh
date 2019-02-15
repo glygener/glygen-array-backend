@@ -62,6 +62,13 @@ then
     echo "`date +%Y-%m-%dT%H:%M:%S%:z`" > .data_loaded
 fi
 
+echo "Start user/graph initialization"
+pwd="dba"
+if [ "$DBA_PASSWORD" ]; then pwd="$DBA_PASSWORD" ; fi
+virtuoso-t +wait && isql-v -U dba -P "$pwd" < /initialize.sql
+kill $(ps aux | grep '[v]irtuoso-t' | awk '{print $2}')
+echo "Finished initialization"
+
 crudini --set virtuoso.ini HTTPServer ServerPort ${VIRT_HTTPServer_ServerPort:-$original_port}
 
 exec virtuoso-t +wait +foreground

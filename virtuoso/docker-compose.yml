@@ -6,7 +6,7 @@ services:
      environment:
         - SPARQL_UPDATE=false
         - DBA_PASSWORD
-        - DEFAULT_GRAPH=http://glygen.org/glygen
+        - DEFAULT_GRAPH=http://glygen.org/glygenarray
      volumes:
         - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso:/data
      labels:

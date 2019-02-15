@@ -9,6 +9,7 @@ import org.eclipse.rdf4j.repository.config.RepositoryImplConfig;
 import org.eclipse.rdf4j.repository.manager.RepositoryManager;
 import org.springframework.beans.factory.DisposableBean;
 
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -161,4 +162,9 @@ public class DynamicRepositoryManagerConnectionFactory implements SesameConnecti
     public interface RepositoryIdProvider {
         String getRepositoryId();
     }
+
+	@Override
+	public Connection getSqlConnection() {
+		return getRepositoryConnectionFactory().getSqlConnection();
+	}
 }
