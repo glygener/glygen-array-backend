@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.GlygenUser;
+import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
-import org.grits.toolbox.glycanarray.om.model.GlycanMoiety;
 
 public interface GlygenArrayRepository {
 	
@@ -24,8 +24,8 @@ public interface GlygenArrayRepository {
 	
 	List<SlideLayout> findSlideLayoutByUser (GlygenUser user) throws SparqlException;
 	
-	void addGlycan(GlycanMoiety g) throws SparqlException;
-	void addGlycan(GlycanMoiety g, GlygenUser u, boolean isPrivate) throws SparqlException;
+	void addGlycan(Glycan g) throws SparqlException;
+	void addGlycan(Glycan g, GlygenUser u, boolean isPrivate) throws SparqlException;
 	
 	String addPrivateGraphForUser (GlygenUser user) throws SQLException;
 }

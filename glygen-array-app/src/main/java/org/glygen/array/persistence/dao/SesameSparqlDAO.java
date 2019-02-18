@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.dao;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,5 +129,21 @@ public class SesameSparqlDAO {
 			results.add(values);
 		}
 		return results;
+	}
+	
+	public String addGraph (String graphGroup, String username) throws SQLException {
+		if (sesameConnectionFactory != null  && sesameConnectionFactory.getSqlConnection()!= null) {
+			String graphName = graphGroup + "/" + username;
+			Connection connection = sesameConnectionFactory.getSqlConnection();
+			CallableStatement statement = connection.prepareCall("RDF_GRAPH_GROUP_INS (?,?)");
+			statement.setString(1, graphGroup);
+			statement.setString(2, graphName);
+			statement.execute();
+			return graphName;
+			
+		}
+		else {
+			throw new SQLException ("No sql connection is active!");
+		}
 	}
 }
