@@ -44,6 +44,17 @@ create table IF NOT EXISTS verification_token (
   expirydate date
 );
 
+create table IF NOT EXISTS graphs (
+  id bigint not null,
+  userid bigint not null,
+  graphuri varchar(256) not null
+);
+        
+alter table graphs 
+        add constraint FK_m1eg457wh2xxe878rx5y5graph
+        foreign key (userid) 
+        references users;
+        
 alter table verification_token 
         add constraint FK_m1eg457wh2xxe878rx5y5limo 
         foreign key (userid) 
@@ -62,9 +73,12 @@ alter table user_roles
 create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ start 1;
+create sequence IF NOT EXISTS GRAPH_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_error_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_access_id_seq MINVALUE 1 START 1;
 
 
 CREATE TABLE IF NOT EXISTS logging_event
@@ -99,4 +113,26 @@ CREATE TABLE IF NOT EXISTS logging_access
     trace_line       VARCHAR(254) NOT NULL,
     PRIMARY KEY(event_id, i),
     FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
+  );
+  
+  CREATE TABLE IF NOT EXISTS web_logging_access
+  (
+    event_id          	BIGINT DEFAULT nextval('web_access_id_seq') PRIMARY KEY,
+    dates				date,
+    level_string      	VARCHAR(254) NOT NULL,
+    page				VARCHAR(254) NOT NULL,
+    message  			TEXT NOT NULL,
+    comment				TEXT,
+    caller_user       	VARCHAR(254) NOT NULL
+  );
+  
+  CREATE TABLE IF NOT EXISTS web_logging_event
+  (
+    event_id          	BIGINT DEFAULT nextval('web_error_id_seq') PRIMARY KEY,
+    dates				date,
+    level_string      	VARCHAR(254) NOT NULL,
+    page				VARCHAR(254) NOT NULL,
+    message  			TEXT NOT NULL,
+    comment				TEXT,
+    caller_user      	VARCHAR(254) NOT NULL
   );

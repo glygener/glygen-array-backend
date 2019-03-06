@@ -1,5 +1,7 @@
 package org.glygen.array.controller;
 
+import java.security.Principal;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.glygen.array.config.SesameTransactionConfig;
@@ -7,7 +9,10 @@ import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
@@ -34,6 +39,12 @@ public class GlygenArrayController {
 	
 	@Autowired
 	SesameSparqlDAO sparqlDAO;
+	
+	@Autowired
+	GlygenArrayRepository repository;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
     		consumes={"application/json", "application/xml"},
@@ -89,8 +100,23 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@RequestMapping(value="/addslidelayout}", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
 	public Confirmation addSlideLayout (@RequestBody SlideLayout layout) {
-		
+		//TODO
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
+	}
+	
+	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
+	public Confirmation addPrivateGraphForUser (Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			String newGraphIRI = repository.addPrivateGraphForUser(user);
+			return new Confirmation("Private graph " + newGraphIRI + " added successfully", HttpStatus.CREATED.value());
+		} catch (SQLException e) {
+			throw new GlycanRepositoryException("Private Graph cannot be added for user " + p.getName(), e);
+		}
+		
 	}
 }

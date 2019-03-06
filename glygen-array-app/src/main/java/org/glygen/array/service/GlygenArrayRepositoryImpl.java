@@ -5,18 +5,31 @@ import java.util.List;
 import java.util.Random;
 
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.GlygenUser;
+import org.glygen.array.persistence.PrivateGraphEntity;
 import org.glygen.array.persistence.SparqlEntity;
+import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.dao.PrivateGraphRepository;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.glygen.array.persistence.dao.UserRepository;
 import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
+@Transactional(value="sesameTransactionManager") 
 public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	
 	@Autowired
 	SesameSparqlDAO sparqlDAO;
+	
+	@Autowired
+	PrivateGraphRepository graphRepository;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	Random random = new Random();
 	
@@ -27,18 +40,18 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	String uriPrefix = "http://glygen.org/glygenarray/";
 	
 	@Override
-	public void addGlycan(Glycan g, GlygenUser u, boolean isPrivate) throws SparqlException {
+	public void addGlycan(Glycan g, UserEntity user, boolean isPrivate) throws SparqlException {
 		
 		String graph = DEFAULT_GRAPH;
-		if (isPrivate && u == null) {
+		if (isPrivate && user == null) {
 			// cannot add 
 			throw new SparqlException ("The user must be provided to put data into private repository");
 		}
 		if (isPrivate) {
 			try {
-				graph = addPrivateGraphForUser(u);
+				graph = addPrivateGraphForUser(user);
 			} catch (SQLException e) {
-				throw new SparqlException ("Cannot add the private graph for the user: " + u.getUsername(), e);
+				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
 			}
 		}
 		
@@ -114,8 +127,13 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 
 	@Override
-	public String addPrivateGraphForUser (GlygenUser user) throws SQLException {
-		return sparqlDAO.addGraph(PRIVATE_GRAPH, user.getUsername());
+	public String addPrivateGraphForUser (UserEntity uEntity) throws SQLException {
+		String URI = sparqlDAO.addGraph(PRIVATE_GRAPH, uEntity.getUsername());
+		PrivateGraphEntity graph = new PrivateGraphEntity();
+		graph.setUser(uEntity);
+		graph.setGraphIRI(URI);
+		graphRepository.save (graph);
+		return URI;
 	}
 	
 	private String generateUniqueURI (String pre, String privateGraph) throws SparqlException {
@@ -161,13 +179,13 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	@Override
-	public SlideLayout findSlideLayoutByName(String name, GlygenUser user) throws SparqlException {
+	public SlideLayout findSlideLayoutByName(String name, String username) throws SparqlException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public BlockLayout findBlockLayoutByName(String name, GlygenUser user) throws SparqlException {
+	public BlockLayout findBlockLayoutByName(String name, String username) throws SparqlException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -179,19 +197,19 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 
 	@Override
-	public List<SlideLayout> findSlideLayoutByUser(GlygenUser user) throws SparqlException {
+	public List<SlideLayout> findSlideLayoutByUser( String username) throws SparqlException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
 	@Override
-	public void addSlideLayout(SlideLayout s, GlygenUser u, boolean isPrivate) throws SparqlException {
+	public void addSlideLayout(SlideLayout s, String username, boolean isPrivate) throws SparqlException {
 		// TODO Auto-generated method stub
 		
 	}
 	
 	@Override
-	public void addSlideLayout(SlideLayout s, GlygenUser u) throws SparqlException {
+	public void addSlideLayout(SlideLayout s, String username) throws SparqlException {
 		// TODO Auto-generated method stub
 
 	}

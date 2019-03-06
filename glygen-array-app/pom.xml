@@ -71,7 +71,7 @@
 		<dependency>
 		    <groupId>com.sun.xml.bind</groupId>
 		    <artifactId>jaxb-impl</artifactId>
-		    <version>2.1.2</version>
+		    <version>2.3.0</version>
 		</dependency>
 		<!-- RDF4J -->
         <dependency>
@@ -131,7 +131,7 @@
 		<dependency>
 		  <groupId>grits</groupId>
 		  <artifactId>glycanarray</artifactId>
-		  <version>1.14</version>
+		  <version>1.17</version>
 		</dependency>
 	</dependencies>
 	<build>

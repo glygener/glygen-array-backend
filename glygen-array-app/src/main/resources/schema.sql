@@ -1,5 +1,6 @@
 drop table IF EXISTS settings;
 drop table IF EXISTS verification_token;
+drop table IF EXISTS graphs;
 drop table IF EXISTS user_roles;
 drop table IF EXISTS roles;
 drop table IF EXISTS users;
@@ -18,6 +19,7 @@ DROP SEQUENCE IF EXISTS web_access_id_seq;
 drop sequence IF EXISTS user_seq;
 drop sequence IF EXISTS role_seq;
 drop sequence IF EXISTS TOKEN_SEQ;
+drop sequence IF EXISTS GRAPH_SEQ;
 
 drop type IF EXISTS login CASCADE;
 create type login AS ENUM ('LOCAL', 'GOOGLE');
@@ -62,8 +64,19 @@ create table IF NOT EXISTS verification_token (
   expirydate date
 );
 
+create table IF NOT EXISTS graphs (
+  id bigint not null,
+  userid bigint not null,
+  graphuri varchar(256) not null
+);
+
 alter table verification_token 
         add constraint FK_m1eg457wh2xxe878rx5y5limo 
+        foreign key (userid) 
+        references users;
+        
+alter table graphs 
+        add constraint FK_m1eg457wh2xxe878rx5y5graph
         foreign key (userid) 
         references users;
         
@@ -80,6 +93,7 @@ alter table user_roles
 create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ start 1;
+create sequence IF NOT EXISTS GRAPH_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
