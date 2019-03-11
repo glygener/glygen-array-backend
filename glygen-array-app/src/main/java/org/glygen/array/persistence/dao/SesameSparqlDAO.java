@@ -6,7 +6,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
@@ -18,6 +22,7 @@ import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.query.UpdateExecutionException;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.virtuoso.SesameConnectionFactory;
@@ -33,9 +38,22 @@ public class SesameSparqlDAO {
 	
 	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
+	
 	@Autowired(required=false)
   	protected SesameConnectionFactory sesameConnectionFactory;
 	
+	
+	@Transactional(value="sesameTransactionManager")
+	public void addStatements (List<Statement> statements, Resource graph) throws SparqlException {
+		RepositoryConnection connection = sesameConnectionFactory.getConnection();
+		for (Statement statement : statements) 
+			connection.add(statement, graph);
+	}
+	
+	public RepositoryResult<Statement> getStatements (Resource subj, IRI pred, Value obj, Resource ...contexts) {
+		RepositoryConnection connection = sesameConnectionFactory.getConnection();
+		return connection.getStatements(subj, pred, obj, contexts);
+	}
 	
 	@Transactional(value="sesameTransactionManager")
 	public void delete(String delete) throws SparqlException {
@@ -145,5 +163,11 @@ public class SesameSparqlDAO {
 		else {
 			throw new SQLException ("No sql connection is active!");
 		}
+	}
+	
+	public ValueFactory getValueFactory () {
+		RepositoryConnection con = sesameConnectionFactory.getConnection();
+		return con.getValueFactory();
+		
 	}
 }

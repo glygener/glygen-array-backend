@@ -4,6 +4,8 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -15,6 +17,8 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
+import org.glygen.array.view.GlycanView;
+import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,12 +104,53 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value="/addslidelayout}", method = RequestMethod.POST, 
+	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	public Confirmation addSlideLayout (@RequestBody SlideLayout layout) {
 		//TODO
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
+	}
+	
+	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			Glycan g = new Glycan();
+			g.setName(glycan.getName());
+			g.setGlyTouCanId(glycan.getGlytoucanId());
+			g.setComment(glycan.getComment());
+			g.setSequence(glycan.getSequence());
+			g.setSequenceType(glycan.getSequenceFormat());
+			repository.addGlycan(g, user, false);
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Glycan be added for user " + p.getName(), e);
+		}
+		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
+	}
+	
+	@RequestMapping(value="/getglycan/{glytoucanId}", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	public GlycanView getGlycan (
+			@ApiParam(required=true, value="glytoucanId of the glycan to retrieve") 
+			@PathVariable("glytoucanId") String glytoucanId, Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			GlycanView g = new GlycanView();
+			
+			Glycan glycan = repository.getGlycan(glytoucanId);
+			if (glycan == null)
+				throw new EntityNotFoundException("Glycan with glytoucan id : " + glytoucanId + " does not exist in the repository");
+			g.setName(glycan.getName());
+			g.setGlytoucanId(glycan.getGlyTouCanId());
+			g.setComment(glycan.getComment());
+			return g;
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Glycan cannot be retrieved for user " + p.getName(), e);
+		}
+		
 	}
 	
 	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})

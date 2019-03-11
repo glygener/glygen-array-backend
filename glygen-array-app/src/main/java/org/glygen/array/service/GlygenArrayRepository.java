@@ -27,5 +27,10 @@ public interface GlygenArrayRepository {
 	void addGlycan(Glycan g) throws SparqlException;
 	void addGlycan(Glycan g, UserEntity user, boolean isPrivate) throws SparqlException;
 	
+	Glycan getGlycan (String glytoucanId) throws SparqlException;
+	Glycan getGlycan (String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException;
+	
+	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
+	String getGraphForUser(UserEntity user) throws SQLException;
 }
