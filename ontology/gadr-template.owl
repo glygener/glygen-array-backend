@@ -10,11 +10,12 @@
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
     <owl:Ontology rdf:about="http://purl.org/gadr/template">
         <owl:versionIRI rdf:resource="http://purl.org/gadr/template/1.0.0"/>
+        <owl:imports rdf:resource="http://purl.org/gadr/data/1.0.0"/>
+        <terms:creator>Sena Arpinar
+Vinamra Jain</terms:creator>
         <rdfs:comment>The Glygen Array Repository Template Ontology defining templates to create and describe metadata.
 
 It imports gard-data.owl ontology.</rdfs:comment>
-        <terms:creator>Sena Arpinar
-Vinamra Jain</terms:creator>
     </owl:Ontology>
     
 
@@ -236,40 +237,6 @@ Vinamra Jain</terms:creator>
     
 
 
-    <!-- http://purl.org/gadr/template#has_height -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_height">
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#slide_layout"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-        <rdfs:comment>The height of a layout (number of rows)</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_number_of_replicates -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_number_of_replicates">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-        <rdfs:comment>The number of replicates of the features that are part of this block layout</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_width -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_width">
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#slide_layout"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-        <rdfs:comment>The width of a layout (number of columns)</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.org/gadr/template#is_required -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#is_required">
@@ -411,66 +378,6 @@ Vinamra Jain</terms:creator>
     <owl:Class rdf:about="http://purl.org/gadr/template#namespace">
         <rdfs:comment>A URI of a namespace for a descriptor.</rdfs:comment>
         <rdfs:label>Namespace</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_data_processing_software_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_data_processing_software_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#data_processing_software_template"/>
-        <rdfs:comment>Data processing software template with default descriptor values.</rdfs:comment>
-        <rdfs:label>Prefilled Data Processing Software Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_image_analysis_software_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_image_analysis_software_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#image_analysis_software_template"/>
-        <rdfs:comment>Image Analysis Software template with default descriptor values.</rdfs:comment>
-        <rdfs:label>Prefilled Image Analysis Software Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_printer_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_printer_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#printer_template"/>
-        <rdfs:comment>Printer template with default descriptor values.</rdfs:comment>
-        <rdfs:label>Prefilled Printer Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_sample_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_sample_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#sample_template"/>
-        <rdfs:comment>Sample template with default descriptor values</rdfs:comment>
-        <rdfs:label>Prefilled Sample Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_scanner_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_scanner_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#scanner_template"/>
-        <rdfs:comment>Scanner template with default descriptor values</rdfs:comment>
-        <rdfs:label>Prefilled Scanner Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#prefilled_slide_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#prefilled_slide_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#slide_template"/>
-        <rdfs:comment>Slide template with default descriptor values.</rdfs:comment>
-        <rdfs:label>Prefilled Slide Template</rdfs:label>
     </owl:Class>
     
 
