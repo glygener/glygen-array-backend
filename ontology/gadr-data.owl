@@ -57,7 +57,7 @@
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
         <owl:inverseOf rdf:resource="http://purl.org/gadr/data/owner_of"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/owner"/>
         <rdfs:comment>An object property to relate simple description class with its owner or creator.</rdfs:comment>
     </owl:ObjectProperty>
@@ -210,19 +210,9 @@
     <!-- http://purl.org/gadr/data/has_molecule -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
         <rdfs:comment>Links a feature and its linker with a list of molecules that are on a spot with this linker.</rdfs:comment>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/data/has_molecule_context -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule_context">
-        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
     </owl:ObjectProperty>
     
 
@@ -356,7 +346,7 @@
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/owner_of">
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/simple_description"/>
         <rdfs:comment>Object property that defines relation from owner information to descriptor.
 Inverse of created_by object property</rdfs:comment>
     </owl:ObjectProperty>
@@ -484,17 +474,6 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
-    <!-- http://purl.org/gadr/data/has_height -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_height">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/block"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-        <rdfs:comment>The height of a layout (number of rows)</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://purl.org/gadr/data/has_institution_name -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_institution_name">
@@ -560,7 +539,6 @@ Inverse of created_by object property</rdfs:comment>
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_ratio">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/printed_molecule_context"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:comment>data property to specify the ratio of a feature or the ratio of the &quot;printed molecule&quot; in a feature</rdfs:comment>
     </owl:DatatypeProperty>
@@ -660,17 +638,6 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>A data property that assigns a value to a simple description.</rdfs:comment>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.org/gadr/data/has_width -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_width">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/block"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-        <rdfs:comment>The width of a layout (number of columns)</rdfs:comment>
     </owl:DatatypeProperty>
     
 
@@ -871,15 +838,6 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
         <rdfs:comment>A molecule that is printed on an array spot. There can be no instances of this class but only of its subclasses.</rdfs:comment>
         <rdfs:label>Printed Molecule</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/data/printed_molecule_context -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/data/printed_molecule_context">
-        <rdfs:comment>To define the ratio of a printed molecule in a feature</rdfs:comment>
-        <rdfs:label>Printed Molecule Context</rdfs:label>
     </owl:Class>
     
 
