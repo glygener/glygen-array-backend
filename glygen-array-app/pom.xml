@@ -144,6 +144,14 @@
 		    <artifactId>filter-om</artifactId>
 		    <version>1.18</version>
 		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-gmail -->
+		<dependency>
+		    <groupId>com.google.apis</groupId>
+		    <artifactId>google-api-services-gmail</artifactId>
+		    <version>v1-rev98-1.25.0</version>
+		</dependency>
+		
 	</dependencies>
 	<build>
 		<plugins>

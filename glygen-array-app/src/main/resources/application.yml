@@ -2,7 +2,7 @@ spring:
   profiles:
     active: "dev"
   mail:
-    host: pod51004.outlook.com
+    host: smtp.office365.com
     port: 587
   datasource:
     url: jdbc:postgresql://localhost:5432/glygen
@@ -20,6 +20,7 @@ google:
     client:
         client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
         client-secret: ENC(HM+tmiraZ24pKoR97vJnEhuJ7JUpuuMN7p15vgMvX3EHKIdLQScsfA==)
+       
         accessTokenUri: https://www.googleapis.com/oauth2/v4/token
         userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
         clientAuthenticationScheme: form
@@ -31,6 +32,11 @@ google:
         userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
         tokenInfoUri: https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={accessToken}
         preferTokenInfo: true
+    gmail:
+        client-id: 213261356634-v6kh325uhmkovn8f3vmd0uf3iir780ij.apps.googleusercontent.com
+        client-secret: LC3mq2Q0GuqQeH6WB6QUxSXW
+        access-token: ya29.GlvVBggZaTU2C8sC_IWuj7k5yglAH09uTbq5nj5TVPb3lT0pTZ0lk3TuVXZLYY_Mccpr_DRTStmFGPOwPUX3Fo46kql4TpvY20_pkakhLAl7g2AmQQpiSVNj3yvt
+        refresh-token: 1/aTU4_Z7jEE-gF-gsvV5z87R3pZqVUwoa5KkcTn29eAY
         
 glygen:
   token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)
