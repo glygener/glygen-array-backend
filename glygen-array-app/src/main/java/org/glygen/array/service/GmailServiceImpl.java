@@ -67,7 +67,8 @@ public final class GmailServiceImpl implements EmailManager {
 	private String username;
 	private String password;
 	
-	final String JASYPT_SECRET = System.getenv("JASYPT_SECRET");
+	@Value("${jasypt.encryptor.password}")
+	String JASYPT_SECRET;
 	
 	@Autowired
 	SettingsRepository settingsRepository;
