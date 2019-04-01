@@ -64,14 +64,9 @@ public final class GmailServiceImpl implements EmailManager {
 	@Value("${google.gmail.refresh-token}")
 	String refreshToken;
 
+	@Value("${google.gmail.email}")
 	private String username;
-	private String password;
 	
-	@Value("${jasypt.encryptor.password}")
-	String JASYPT_SECRET;
-	
-	@Autowired
-	SettingsRepository settingsRepository;
 
 	@Autowired
 	UserManager userManager;
@@ -89,7 +84,7 @@ public final class GmailServiceImpl implements EmailManager {
 		}
 	}
     
-    public void init () {
+   /* public void init () {
     	if (username == null && password == null) { // load them from db the first time
     	
     		SettingEntity userNameSetting = settingsRepository.findByName("server.email");
@@ -105,7 +100,7 @@ public final class GmailServiceImpl implements EmailManager {
     			throw new RuntimeException("Internal Server Error: email server settings are not in the database");
     		}
     	}
-    }
+    }*/
 
     
     public boolean sendMessage(String recipientAddress, String subject, String body) throws MessagingException,
@@ -156,7 +151,7 @@ public final class GmailServiceImpl implements EmailManager {
 
 	@Override
 	public void sendPasswordReminder(UserEntity user) {
-		init(); // if username/password have not been initialized, this will get them from DB
+		//init(); // if username/password have not been initialized, this will get them from DB
         
         // this criteria should match with the PasswordValidator's criteria
         // password should have minimum of 5, max of 12 characters, 1 numeric, 1 special character, 1 capital letter and 1 lowercase letter at least
@@ -182,7 +177,7 @@ public final class GmailServiceImpl implements EmailManager {
 
 	@Override
 	public void sendVerificationToken(UserEntity user) {
-		init(); // if username/password have not been initialized, this will get them from DB
+		//init(); // if username/password have not been initialized, this will get them from DB
 		
 		final String token = UUID.randomUUID().toString();
         userManager.createVerificationTokenForUser(user, token);

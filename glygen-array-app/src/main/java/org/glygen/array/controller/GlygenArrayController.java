@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
 import org.glygen.array.config.SesameTransactionConfig;
@@ -32,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.AuthorizationScope;
 
@@ -115,7 +118,13 @@ public class GlygenArrayController {
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan added successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
+			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation addGlycan (@RequestBody GlycanView glycan, Boolean privateOnly, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
 			Glycan g = new Glycan();
@@ -124,9 +133,16 @@ public class GlygenArrayController {
 			g.setComment(glycan.getComment());
 			g.setSequence(glycan.getSequence());
 			g.setSequenceType(glycan.getSequenceFormat());
-			repository.addGlycan(g, user, false);
+			boolean isPrivate = privateOnly != null && privateOnly ? true: false;
+			Glycan existing = repository.getGlycanBySequence(glycan.getSequence(), user, isPrivate);
+			if (existing == null) {
+				//TODO check if the given sequence is valid
+				//TODO if there is a glytoucanId, check if it is valid
+				repository.addGlycan(g, user, isPrivate);
+			}
+			else throw new EntityExistsException("There is already a glycan with the same sequence in the repository!");
 		} catch (SparqlException e) {
-			throw new GlycanRepositoryException("Glycan be added for user " + p.getName(), e);
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
 		}
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}

@@ -257,23 +257,27 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	@Override
-	public void addSlideLayout(SlideLayout s, String username, boolean isPrivate) throws SparqlException {
+	public void addSlideLayout(SlideLayout s, UserEntity user, boolean isPrivate) throws SparqlException {
 		// TODO Auto-generated method stub
 		
 	}
 	
 	@Override
-	public void addSlideLayout(SlideLayout s, String username) throws SparqlException {
+	public void addSlideLayout(SlideLayout s, UserEntity user) throws SparqlException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public Glycan getGlycan(String glytoucanId) throws SparqlException {
+		return findGlycanInGraph(glytoucanId, DEFAULT_GRAPH);
+	}
+	
+	private Glycan findGlycanInGraph (String glytoucanId, String graph) throws SparqlException {
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?s\n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n" + 
 				"				    ?s gadr:has_glytoucan_id \"" + glytoucanId + "\"^^xsd:string .\n" + 
 				"				}\n" + 
@@ -290,6 +294,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI glycan = f.createIRI(glycanURI);
+		
+		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+		//IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+		//IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+		//IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null);
 		while (statements.hasNext()) {
 			Statement st = statements.next();
@@ -299,6 +311,21 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
 				Value comment = st.getObject();
 				glycanObject.setComment(comment.stringValue());
+			} else if (st.getPredicate().equals(hasSequence)) {
+				Value sequence = st.getObject();
+				String sequenceURI = sequence.stringValue();
+				IRI seq = f.createIRI(sequenceURI);
+				RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(seq, null, null);
+				while (statements2.hasNext()) {
+					Statement st2 = statements2.next();
+					if (st2.getPredicate().equals(hasSequenceValue)) {
+						Value seqString = st2.getObject();
+						glycanObject.setSequence(seqString.stringValue());
+					} else if (st2.getPredicate().equals(hasSequenceFormat)) {
+						Value formatString = st2.getObject();
+						glycanObject.setSequenceType(formatString.stringValue());
+					}
+				}
 			}
 		}
 		
@@ -307,7 +334,154 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 	@Override
 	public Glycan getGlycan(String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException {
+		String graph = DEFAULT_GRAPH;
+		if (isPrivate) {
+			try {
+				// check if there is already a private graph for user
+				graph = getGraphForUser(user);
+				if (graph == null)
+					graph = addPrivateGraphForUser(user);
+			} catch (SQLException e) {
+				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
+			}
+		}
+		return findGlycanInGraph(glytoucanId, graph);
+	}
+
+	@Override
+	public void addBlockLayout(BlockLayout b, UserEntity user, boolean isPrivate) throws SparqlException {
+		String graph = DEFAULT_GRAPH;
+		if (isPrivate && user == null) {
+			// cannot add 
+			throw new SparqlException ("The user must be provided to put data into private repository");
+		}
+		if (isPrivate) {
+			try {
+				// check if there is already a private graph for user
+				graph = getGraphForUser(user);
+				if (graph == null)
+					graph = addPrivateGraphForUser(user);
+			} catch (SQLException e) {
+				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
+			}
+		}
+		
+		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL", isPrivate ? graph: null);
+		String blockURI = generateUniqueURI(uriPrefix + "B", isPrivate ? graph: null);
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI blockLayout = f.createIRI(blockLayoutURI);
+		IRI block = f.createIRI(blockURI);
+		IRI graphIRI = f.createIRI(graph);
+		
+	/*	Literal blockLayoutLabel = f.createLiteral(b.getName());
+		Literal blockLayoutComment = f.createLiteral(b.getComment());
+
+		Literal glytoucanId = f.createLiteral(g.getGlyTouCanId());
+		Literal sequenceValue = f.createLiteral(g.getSequence());
+		Literal format = f.createLiteral(g.getSequenceType());
+		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+		IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+		IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+		
+		List<Statement> statements = new ArrayList<Statement>();
+		statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType));
+		statements.add(f.createStatement(glycan, RDF.TYPE, glycanType));
+		statements.add(f.createStatement(glycan, RDFS.LABEL, glycanLabel));
+		statements.add(f.createStatement(glycan, RDFS.COMMENT, glycanComment));
+		statements.add(f.createStatement(glycan, hasSequence, sequence));
+		statements.add(f.createStatement(glycan, hasGlytoucanId, glytoucanId));
+		statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue));
+		statements.add(f.createStatement(sequence, hasSequenceFormat, format));
+		
+		sparqlDAO.addStatements(statements, graphIRI);*/
+		
+		
+	}
+
+	@Override
+	public void addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException {
 		// TODO Auto-generated method stub
-		return null;
+		
+	}
+
+	@Override
+	public Glycan getGlycanBySequence(String sequence) throws SparqlException {
+		return findGlycanInGraphBySequence(sequence, DEFAULT_GRAPH);
+	}
+
+	@Override
+	public Glycan getGlycanBySequence(String sequence, UserEntity user, boolean isPrivate) throws SparqlException {
+		String graph = DEFAULT_GRAPH;
+		if (isPrivate) {
+			try {
+				// check if there is already a private graph for user
+				graph = getGraphForUser(user);
+				if (graph == null)
+					graph = addPrivateGraphForUser(user);
+			} catch (SQLException e) {
+				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
+			}
+		}
+		return findGlycanInGraphBySequence(sequence, graph);
+	}
+	
+	private Glycan findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s ?o\n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n" + 
+				"				    ?s gadr:has_sequence ?o .\n" +
+				"                    ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string .\n" + 
+				"				}\n" + 
+				"				LIMIT 10");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.size() == 0) 
+			return null;
+		
+		Glycan glycanObject = new Glycan();
+		
+		SparqlEntity result = results.get(0);
+		String glycanURI = result.getValue("s");
+		String sequenceURI = result.getValue("o");
+		
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI glycan = f.createIRI(glycanURI);
+		IRI seq = f.createIRI(sequenceURI);
+		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+		
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null);
+		while (statements.hasNext()) {
+			Statement st = statements.next();
+			if (st.getPredicate().equals(RDFS.LABEL)) {
+				Value label = st.getObject();
+				glycanObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+				Value comment = st.getObject();
+				glycanObject.setComment(comment.stringValue());
+			} else if (st.getPredicate().equals(hasGlytoucanId)) {
+				Value glytoucanId = st.getObject();
+				glycanObject.setGlyTouCanId(glytoucanId.stringValue());
+			} 
+		}
+		
+		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(seq, null, null);
+		while (statements2.hasNext()) {
+			Statement st2 = statements2.next();
+			if (st2.getPredicate().equals(hasSequenceValue)) {
+				Value seqString = st2.getObject();
+				glycanObject.setSequence(seqString.stringValue());
+			} else if (st2.getPredicate().equals(hasSequenceFormat)) {
+				Value formatString = st2.getObject();
+				glycanObject.setSequenceType(formatString.stringValue());
+			}
+		}
+		
+		return glycanObject;
 	}
 }

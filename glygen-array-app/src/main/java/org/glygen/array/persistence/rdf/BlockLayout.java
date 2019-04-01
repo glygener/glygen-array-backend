@@ -2,15 +2,14 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.List;
 
-import org.grits.toolbox.glycanarray.om.model.SpotData;
+import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 
 public class BlockLayout {
 	String name;
 	String description;
 	Integer width;
 	Integer height;
-	Integer numberOfReplicates;
-	List<SpotData> spots;
+	List<Spot> spots;
 	/**
 	 * @return the name
 	 */
@@ -60,27 +59,15 @@ public class BlockLayout {
 		this.height = height;
 	}
 	/**
-	 * @return the numberOfReplicates
-	 */
-	public Integer getNumberOfReplicates() {
-		return numberOfReplicates;
-	}
-	/**
-	 * @param numberOfReplicates the numberOfReplicates to set
-	 */
-	public void setNumberOfReplicates(Integer numberOfReplicates) {
-		this.numberOfReplicates = numberOfReplicates;
-	}
-	/**
 	 * @return the spots
 	 */
-	public List<SpotData> getSpots() {
+	public List<Spot> getSpots() {
 		return spots;
 	}
 	/**
 	 * @param spots the spots to set
 	 */
-	public void setSpots(List<SpotData> spots) {
+	public void setSpots(List<Spot> spots) {
 		this.spots = spots;
 	}
 

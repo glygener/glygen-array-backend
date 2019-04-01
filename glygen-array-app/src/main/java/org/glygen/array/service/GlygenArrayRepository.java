@@ -14,11 +14,15 @@ public interface GlygenArrayRepository {
 	public static final String DEFAULT_GRAPH = "http://glygen.org/glygenarray/public";
 	public static final String PRIVATE_GRAPH = "http://glygen.org/glygenarray/private";
 
-	void addSlideLayout (SlideLayout s, String username, boolean isPrivate) throws SparqlException;
-	void addSlideLayout (SlideLayout s, String username) throws SparqlException;
+	void addSlideLayout (SlideLayout s, UserEntity user, boolean isPrivate) throws SparqlException;
+	void addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException;
+	
+	void addBlockLayout (BlockLayout b, UserEntity user, boolean isPrivate) throws SparqlException;
+	void addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException;
 	
 	SlideLayout findSlideLayoutByName (String name) throws SparqlException;
 	SlideLayout findSlideLayoutByName (String name, String username) throws SparqlException;
+	
 	BlockLayout findBlockLayoutByName (String name) throws SparqlException;
 	BlockLayout findBlockLayoutByName (String name, String username) throws SparqlException;
 	
@@ -30,6 +34,8 @@ public interface GlygenArrayRepository {
 	Glycan getGlycan (String glytoucanId) throws SparqlException;
 	Glycan getGlycan (String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException;
 	
+	Glycan getGlycanBySequence (String sequence) throws SparqlException;
+	Glycan getGlycanBySequence (String sequence, UserEntity user, boolean isPrivate) throws SparqlException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	String getGraphForUser(UserEntity user) throws SQLException;
