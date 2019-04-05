@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
-import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
+import org.glygen.array.persistence.rdf.Glycan;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 
@@ -28,14 +28,16 @@ public interface GlygenArrayRepository {
 	
 	List<SlideLayout> findSlideLayoutByUser (String username) throws SparqlException;
 	
-	void addGlycan(Glycan g) throws SparqlException;
-	void addGlycan(Glycan g, UserEntity user, boolean isPrivate) throws SparqlException;
+	String addGlycan(Glycan g, UserEntity user) throws SparqlException;
+	String addGlycan(Glycan g, UserEntity user, boolean isPrivate) throws SparqlException;
 	
 	Glycan getGlycan (String glytoucanId) throws SparqlException;
 	Glycan getGlycan (String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException;
 	
 	Glycan getGlycanBySequence (String sequence) throws SparqlException;
 	Glycan getGlycanBySequence (String sequence, UserEntity user, boolean isPrivate) throws SparqlException;
+	
+	List<Glycan> getGlycanByUser (UserEntity user) throws SparqlException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	String getGraphForUser(UserEntity user) throws SQLException;

@@ -1,12 +1,24 @@
 package org.glygen.array.controller;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
+import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
+import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
+import org.eurocarbdb.application.glycanbuilder.Union;
+import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.glygen.array.config.FileStorageProperties;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -15,21 +27,24 @@ import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
 import org.glygen.array.view.GlycanView;
-import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.ApiParam;
@@ -52,6 +67,27 @@ public class GlygenArrayController {
 	
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	FileStorageProperties fileStorage;
+
+	// needs to be done to initialize static variables to parse glycan sequence
+	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
+	
+	static {
+			// Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
+			glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
+			// Set flag to show information such as linkage positions and anomers
+			glycanWorkspace.getGraphicOptions().SHOW_INFO = true;
+			// Set flag to show mass
+			glycanWorkspace.getGraphicOptions().SHOW_MASSES = false;
+			// Set flag to show reducing end
+			glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
+
+//			glycanWorkspase.setDisplay(GraphicOptions.DISPLAY_NORMAL);
+//			glycanWorkspase.setNotation(GraphicOptions.NOTATION_CFG);
+
+	}
 	
 	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
     		consumes={"application/json", "application/xml"},
@@ -80,7 +116,8 @@ public class GlygenArrayController {
 
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
 	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/json", "application/xml"})
-	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") @PathVariable("glycanId") String glycanId) throws Exception {
+	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") 
+											@PathVariable("glycanId") String glycanId) throws Exception {
 		String uri = "http://array.glygen.org/" + glycanId.hashCode();
 		StringBuffer query = new StringBuffer();
 		// note the carriage return
@@ -136,9 +173,29 @@ public class GlygenArrayController {
 			boolean isPrivate = privateOnly != null && privateOnly ? true: false;
 			Glycan existing = repository.getGlycanBySequence(glycan.getSequence(), user, isPrivate);
 			if (existing == null) {
-				//TODO check if the given sequence is valid
 				//TODO if there is a glytoucanId, check if it is valid
-				repository.addGlycan(g, user, isPrivate);
+				try {
+					if (glycan.getSequence() != null) {
+						//check if the given sequence is valid
+						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+								org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
+						BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+								.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+						
+						String glycanURI = repository.addGlycan(g, user, isPrivate);
+						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+						//save the image into a file
+						File imageFile = new File(fileStorage.getImageDirectory() + File.separator + id + ".png");
+						ImageIO.write(t_image, "png", imageFile);
+					}
+				} catch (IOException e) {
+					logger.error("Glycan image cannot be generated", e);
+					throw new GlycanRepositoryException("Glycan image cannot be generated", e);
+				} catch (Exception e) {
+					logger.error("Glycan sequence is not valid", e);
+					throw new IllegalArgumentException("Glycan sequence is not valid", e);
+				}
+				
 			}
 			else throw new EntityExistsException("There is already a glycan with the same sequence in the repository!");
 		} catch (SparqlException e) {
@@ -147,22 +204,90 @@ public class GlygenArrayController {
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}
 	
+	
+//	@RequestMapping(value="/getimage/{glycanId}", method = RequestMethod.GET, 
+//			produces= {"application/octet-stream"})
+//	public ResponseEntity<Resource> getImageForGlycan (
+//			@ApiParam(required=true, value="id of the glycan to retrieve the image for") 
+//			@PathVariable("glycanId") String glycanId, Principal p) {
+//		
+//		File imageFile = new File(fileStorage.getImageDirectory() + File.separator + glycanId + ".png");
+//		if (imageFile.exists()) {
+//			InputStreamResource resource;
+//			try {
+//				resource = new InputStreamResource(new FileInputStream(imageFile));
+//				return ResponseEntity.ok()
+//			            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + imageFile.getName() + "\"")
+//			            .contentLength(imageFile.length())
+//			            .contentType(MediaType.parseMediaType("application/octet-stream"))
+//			            .body(resource);
+//			} catch (FileNotFoundException e) {
+//				throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
+//			}
+//		} else {
+//			logger.info("Image for glycan " + glycanId + " is not available");
+//			throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
+//		}
+//	}
+	
+	@RequestMapping(value="/getimage/{glycanId}", method = RequestMethod.GET, 
+		produces = MediaType.IMAGE_PNG_VALUE )
+	public @ResponseBody byte[] getImageForGlycan (
+			@ApiParam(required=true, value="id of the glycan to retrieve the image for") 
+			@PathVariable("glycanId") String glycanId) {
+		try {
+			File imageFile = new File(fileStorage.getImageDirectory() + File.separator + glycanId + ".png");
+			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
+			return IOUtils.toByteArray(resource.getInputStream());
+		} catch (IOException e) {
+			throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
+		}
+	}
+	
+	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public List<GlycanView> listGlycans (Principal p) {
+		List<GlycanView> glycanList = new ArrayList<GlycanView>();
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			List<Glycan> glycans = repository.getGlycanByUser(user);
+			for (Glycan glycan : glycans) {
+				glycanList.add(getGlycanView(glycan));
+			}
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+		}
+		
+		return glycanList;
+	}
+	
 	@RequestMapping(value="/getglycan/{glytoucanId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
+			@ApiResponse(code=404, message="Gycan with given glytoucanId does not exist"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public GlycanView getGlycan (
 			@ApiParam(required=true, value="glytoucanId of the glycan to retrieve") 
 			@PathVariable("glytoucanId") String glytoucanId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
-			GlycanView g = new GlycanView();
-			
 			Glycan glycan = repository.getGlycan(glytoucanId);
-			if (glycan == null)
-				throw new EntityNotFoundException("Glycan with glytoucan id : " + glytoucanId + " does not exist in the repository");
-			g.setName(glycan.getName());
-			g.setGlytoucanId(glycan.getGlyTouCanId());
-			g.setComment(glycan.getComment());
-			return g;
+			if (glycan == null) {
+				// check user's private repo, if any
+				glycan = repository.getGlycan(glytoucanId, user, true);
+				if (glycan == null)
+					throw new EntityNotFoundException("Glycan with glytoucan id : " + glytoucanId + " does not exist in the repository");
+			}
+			
+			return getGlycanView(glycan);
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Glycan cannot be retrieved for user " + p.getName(), e);
 		}
@@ -179,5 +304,18 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Private Graph cannot be added for user " + p.getName(), e);
 		}
 		
+	}
+	
+	private GlycanView getGlycanView (Glycan glycan) {
+		GlycanView g = new GlycanView();
+		g.setName(glycan.getName());
+		g.setGlytoucanId(glycan.getGlyTouCanId());
+		g.setComment(glycan.getComment());
+		g.setSequence(glycan.getSequence());
+		g.setSequenceFormat(glycan.getSequenceType());
+		g.setInternalId(glycan.getInternalId());
+		g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
+		
+		return g;
 	}
 }

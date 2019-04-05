@@ -47,6 +47,9 @@ glygen:
       basePath: /
       loginPage: login.html
       emailVerificationPage: emailConfirmation1.html
+
+file:
+  imageDirectory: ./images
    
 server:
   port: 8080

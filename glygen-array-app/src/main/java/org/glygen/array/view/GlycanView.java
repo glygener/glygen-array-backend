@@ -1,11 +1,30 @@
 package org.glygen.array.view;
 
 public class GlycanView {
+	String id;
+	String internalId;
 	String glytoucanId;
 	String name;
 	String comment;
 	String sequence;
 	String sequenceFormat;
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public String getInternalId() {
+		return internalId;
+	}
+	
+	public void setInternalId(String internalId) {
+		this.internalId = internalId;
+	}
+	
 	/**
 	 * @return the glytoucanId
 	 */
