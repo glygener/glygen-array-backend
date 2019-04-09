@@ -6,6 +6,7 @@ services:
       - 8082:8080
     volumes:
       - ${HOME}/glygen-array/maven:/root/.m2
+      - ${HOME}/glygen-array/images:/images
       - .:/workspace
     working_dir: /workspace/
     command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"
@@ -13,7 +14,6 @@ services:
       - JASYPT_SECRET
       - GOOGLE_CLIENT_CLIENT-ID
       - GOOGLE_CLIENT_CLIENT-SECRET
-      - SPRING_MAIL_HOST=${SPRING_MAIL_HOST:-pod51004.outlook.com}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
       - SPRING_TRIPLESTORE_PASSWORD
       - SPRING_TRIPLESTORE_USERNAME
@@ -26,6 +26,7 @@ services:
       - GLYGEN_FRONTEND_HOST=${GLYGEN_FRONTEND_HOST:-glycomics.ccrc.uga.edu/ggarray}
       - GLYGEN_BASEPATH=${GLYGEN_BASEPATH:-/api}
       - SERVER_SERVLET_CONTEXT_PATH=${SERVER_SERVLET_CONTEXT_PATH:-/}
+      - SPRING_FILE_IMAGEDIRECTORY=/images
     restart: always
 
 networks:

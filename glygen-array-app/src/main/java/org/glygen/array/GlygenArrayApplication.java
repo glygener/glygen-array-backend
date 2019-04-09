@@ -16,11 +16,9 @@
 
 package org.glygen.array;
 
-import org.glygen.array.config.FileStorageProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.context.request.RequestContextListener;
 
@@ -28,7 +26,6 @@ import com.ulisesbocchio.jasyptspringboot.environment.StandardEncryptableEnviron
 
 @SpringBootApplication
 @EnableOAuth2Sso
-@EnableConfigurationProperties({FileStorageProperties.class})
 public class GlygenArrayApplication {
 	
 	@Bean

@@ -13,11 +13,12 @@ spring:
     username: dba
     password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     graph: graph
+  file:
+    imagedirectory: ./images
 google:
     client:
         client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
         client-secret: ENC(HM+tmiraZ24pKoR97vJnEhuJ7JUpuuMN7p15vgMvX3EHKIdLQScsfA==)
-       
         accessTokenUri: https://www.googleapis.com/oauth2/v4/token
         userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
         clientAuthenticationScheme: form
@@ -48,8 +49,7 @@ glygen:
       loginPage: login.html
       emailVerificationPage: emailConfirmation1.html
 
-file:
-  imageDirectory: ./images
+
    
 server:
   port: 8080

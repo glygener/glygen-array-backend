@@ -3,7 +3,7 @@ To execute glygen-array backend application.
 
 1. set necessary environment variables:
 
-    export GLYGEN_HOST='glycomics.ccrc.uga.edu'
+    export GLYGEN_HOST='glygen.ccrc.uga.edu'
     
     export GLYGEN_BASEPATH='/ggarray/api/'
     
@@ -11,7 +11,6 @@ To execute glygen-array backend application.
     
     export SPRING_PROFILES_ACTIVE='dev'  (or defaults to 'prod)
     
-    export SPRING_MAIL_HOST='40.97.120.34' .  (default is used if not specified)
     
  You can set any of the variables declared in docker-compose.xml file as an environment variable 
  if you need to use values other than defaults provided.

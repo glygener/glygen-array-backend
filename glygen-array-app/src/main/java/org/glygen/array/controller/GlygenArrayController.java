@@ -18,7 +18,6 @@ import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
-import org.glygen.array.config.FileStorageProperties;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -36,6 +35,7 @@ import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -68,8 +68,8 @@ public class GlygenArrayController {
 	@Autowired
 	UserRepository userRepository;
 	
-	@Autowired
-	FileStorageProperties fileStorage;
+	@Value("${spring.file.imagedirectory}")
+	String imageLocation;
 
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -185,7 +185,8 @@ public class GlygenArrayController {
 						String glycanURI = repository.addGlycan(g, user, isPrivate);
 						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
 						//save the image into a file
-						File imageFile = new File(fileStorage.getImageDirectory() + File.separator + id + ".png");
+						logger.debug("Adding image to " + imageLocation);
+						File imageFile = new File(imageLocation + File.separator + id + ".png");
 						ImageIO.write(t_image, "png", imageFile);
 					}
 				} catch (IOException e) {
@@ -236,7 +237,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the glycan to retrieve the image for") 
 			@PathVariable("glycanId") String glycanId) {
 		try {
-			File imageFile = new File(fileStorage.getImageDirectory() + File.separator + glycanId + ".png");
+			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
 			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
 			return IOUtils.toByteArray(resource.getInputStream());
 		} catch (IOException e) {
