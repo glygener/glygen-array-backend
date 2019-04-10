@@ -38,6 +38,7 @@ public interface GlygenArrayRepository {
 	Glycan getGlycanBySequence (String sequence, UserEntity user, boolean isPrivate) throws SparqlException;
 	
 	List<Glycan> getGlycanByUser (UserEntity user) throws SparqlException;
+	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit) throws SparqlException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	String getGraphForUser(UserEntity user) throws SQLException;

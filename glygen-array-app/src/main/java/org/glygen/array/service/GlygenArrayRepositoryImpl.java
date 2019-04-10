@@ -522,16 +522,21 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 	@Override
 	public List<Glycan> getGlycanByUser(UserEntity user) throws SparqlException {
+		return getGlycanByUser(user, 0, 1000);
+	}
+	
+	@Override
+	public List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit) throws SparqlException {
 		List<Glycan> glycans = new ArrayList<Glycan>();
 		
 		// first check the DEFAULT_GRAPH
-		glycans.addAll(getGlycanByUserInGraph(user, DEFAULT_GRAPH));
+		glycans.addAll(getGlycanByUserInGraph(user, DEFAULT_GRAPH, offset, limit));
 		// then add from the user's private graph, if any
 		String graph;
 		try {
 			graph = getGraphForUser(user);
 			if (graph != null) {
-				glycans.addAll(getGlycanByUserInGraph(user, graph));
+				glycans.addAll(getGlycanByUserInGraph(user, graph, offset, limit));
 			}
 		} catch (SQLException e) {
 			throw new SparqlException("Cannot retrieve private graph for user", e);
@@ -540,16 +545,20 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return glycans;
 	}
 	
-	private List<Glycan> getGlycanByUserInGraph(UserEntity user, String graph) throws SparqlException {
+	private List<Glycan> getGlycanByUserInGraph(UserEntity user, String graph, int offset, int limit) throws SparqlException {
 		List<Glycan> glycans = new ArrayList<Glycan>();
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s\n");
+		queryBuf.append ("SELECT DISTINCT ?s ?label\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n" + 
 				"				    ?s gadr:created_by ?o .\n" +
+				"                   ?s rdfs:label ?label . \n" +
 				"                    ?o gadr:has_user_id \"" + user.getUserId() + "\"^^xsd:long .\n" + 
-				"				}");
+				"				}\n" +
+				" ORDER BY (LCASE(?label))" + 
+				" LIMIT " + limit +
+				" OFFSET " + offset);
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		for (SparqlEntity sparqlEntity : results) {
 			Glycan glycan = getGlycanFromURI(sparqlEntity.getValue("s"));
@@ -558,4 +567,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return glycans;
 	}
+
+	
 }

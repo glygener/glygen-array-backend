@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -252,11 +253,20 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public List<GlycanView> listGlycans (Principal p) {
+	public List<GlycanView> listGlycans (
+			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@RequestParam("offset") Integer offset,
+			@ApiParam(required=true, value="limit of the number of glycans to be retrieved") 
+			@RequestParam("limit") Integer limit, Principal p) {
 		List<GlycanView> glycanList = new ArrayList<GlycanView>();
 		UserEntity user = userRepository.findByUsername(p.getName());
 		try {
-			List<Glycan> glycans = repository.getGlycanByUser(user);
+			if (offset == null)
+				offset = 0;
+			if (limit == null)
+				limit = 20;
+			
+			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit);
 			for (Glycan glycan : glycans) {
 				glycanList.add(getGlycanView(glycan));
 			}
