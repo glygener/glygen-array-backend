@@ -22,5 +22,20 @@ To execute glygen-array backend application.
  if you need to use values other than defaults provided.
  
  2. Make sure postgres and virtuoso are up and running
- 3. docker-compose up 
+ 
+      a) to run postgres, go to glygen-array-backend/postgres directory
+         set necessary environment variables:
+         
+         export POSTGRES_PASSWORD=<your-password>
+         
+         docker-compose up -d
+         
+      b) to run virtuoso, go to glygen-array-backend/virtuoso directory
+         set necessary environment variables:
+         
+         export DBA_PASSWORD=<your-password>
+         
+         docker-compose up -d
+         
+ 3. docker-compose up -d 
 --------------------------------------------------------------------------------------------
