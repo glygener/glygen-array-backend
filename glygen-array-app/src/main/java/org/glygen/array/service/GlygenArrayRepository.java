@@ -42,4 +42,6 @@ public interface GlygenArrayRepository {
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	String getGraphForUser(UserEntity user) throws SQLException;
+	
+	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException;
 }

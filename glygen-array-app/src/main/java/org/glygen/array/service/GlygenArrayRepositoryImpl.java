@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -79,6 +80,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		Literal glycanLabel = f.createLiteral(g.getName());
 		Literal glycanComment = f.createLiteral(g.getComment());
 		Literal glytoucanId = f.createLiteral(g.getGlyTouCanId());
+		Literal internalId = f.createLiteral(g.getInternalId());
 		Literal sequenceValue = f.createLiteral(g.getSequence());
 		Literal format = f.createLiteral(g.getSequenceType());
 		Literal userId = f.createLiteral(user.getUserId());
@@ -88,6 +90,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
 		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
 		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
 		IRI glycanType = f.createIRI(ontPrefix + "Glycan");
 		IRI ownerType = f.createIRI(ontPrefix + "owner");
@@ -103,6 +106,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		statements.add(f.createStatement(glycan, RDFS.COMMENT, glycanComment));
 		statements.add(f.createStatement(glycan, hasSequence, sequence));
 		statements.add(f.createStatement(glycan, hasGlytoucanId, glytoucanId));
+		statements.add(f.createStatement(glycan, hasInternalId, internalId));
 		statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue));
 		statements.add(f.createStatement(sequence, hasSequenceFormat, format));
 		statements.add(f.createStatement(glycan, createdBy, owner));
@@ -522,7 +526,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 	@Override
 	public List<Glycan> getGlycanByUser(UserEntity user) throws SparqlException {
-		return getGlycanByUser(user, 0, 1000);
+		return getGlycanByUser(user, 0, -1);  // no limit
 	}
 	
 	@Override
@@ -557,7 +561,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				"                    ?o gadr:has_user_id \"" + user.getUserId() + "\"^^xsd:long .\n" + 
 				"				}\n" +
 				" ORDER BY (LCASE(?label))" + 
-				" LIMIT " + limit +
+				((limit == -1) ? " " : " LIMIT " + limit) +
 				" OFFSET " + offset);
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		for (SparqlEntity sparqlEntity : results) {
@@ -568,5 +572,37 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return glycans;
 	}
 
-	
+	@Override
+	public void deleteGlycan(String glycanId, UserEntity user) throws SparqlException {
+		String graph;
+		
+		List<Glycan> glycans = getGlycanByUser(user);
+		String toBeDeleted = null;
+		for (Glycan glycan : glycans) {
+			String id = glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1);
+			if (id.equals(glycanId)) {
+				toBeDeleted = glycan.getUri();
+			}
+		}
+		
+		if (toBeDeleted != null) {
+			// check if there is already a private graph for user
+			try {
+				graph = getGraphForUser(user);
+				if (graph != null)
+					deleteGlycanByURI (toBeDeleted, graph);
+			} catch (SQLException e) {
+				// nothing to do
+			}
+			deleteGlycanByURI (toBeDeleted, DEFAULT_GRAPH);
+		}
+	}
+
+	private void deleteGlycanByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI glycan = f.createIRI(uri);
+		IRI graphIRI = f.createIRI(graph);
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null);
+		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+	}
 }

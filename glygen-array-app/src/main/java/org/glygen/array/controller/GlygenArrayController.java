@@ -246,6 +246,20 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@RequestMapping(value="/delete/{glycanId}", method = RequestMethod.DELETE, 
+			produces={"application/json", "application/xml"})
+		public Confirmation deleteGlycab (
+				@ApiParam(required=true, value="id of the glycan to delete") 
+				@PathVariable("glycanId") String glycanId, Principal principal) {
+			try {
+				UserEntity user = userRepository.findByUsername(principal.getName());
+				repository.deleteGlycan(glycanId, user);
+				return new Confirmation("Glycan deleted successfully", HttpStatus.CREATED.value());
+			} catch (SparqlException e) {
+				throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
+			}
+		}
+	
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully"), 

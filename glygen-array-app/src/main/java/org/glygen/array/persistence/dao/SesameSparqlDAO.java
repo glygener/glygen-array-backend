@@ -50,6 +50,13 @@ public class SesameSparqlDAO {
 			connection.add(statement, graph);
 	}
 	
+	@Transactional(value="sesameTransactionManager")
+	public void removeStatements (List<Statement> statements, Resource graph) throws SparqlException {
+		RepositoryConnection connection = sesameConnectionFactory.getConnection();
+		connection.remove(statements, graph);
+	}
+	
+	
 	public RepositoryResult<Statement> getStatements (Resource subj, IRI pred, Value obj, Resource ...contexts) {
 		RepositoryConnection connection = sesameConnectionFactory.getConnection();
 		return connection.getStatements(subj, pred, obj, contexts);
