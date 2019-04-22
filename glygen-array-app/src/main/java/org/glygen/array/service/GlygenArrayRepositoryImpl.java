@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -22,6 +24,7 @@ import org.glygen.array.persistence.dao.PrivateGraphRepository;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Owner;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,11 +79,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI sequence = f.createIRI(seqURI);
 		IRI glycan = f.createIRI(glycanURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI owner = f.createIRI(generateUniqueURI(uriPrefix + "U", isPrivate ? graph: null));
+		
+		Owner existing = findOwnerInGraph (user.getUserId(), graph);
+		IRI owner = existing == null ? 
+				f.createIRI(generateUniqueURI(uriPrefix + "U", isPrivate ? graph: null)) : f.createIRI(existing.getUri());
 		Literal glycanLabel = f.createLiteral(g.getName());
-		Literal glycanComment = f.createLiteral(g.getComment());
-		Literal glytoucanId = f.createLiteral(g.getGlyTouCanId());
-		Literal internalId = f.createLiteral(g.getInternalId());
+		Literal glycanComment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+		Literal glytoucanId = g.getGlyTouCanId() == null ? f.createLiteral("") : f.createLiteral(g.getGlyTouCanId());
+		Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId());
 		Literal sequenceValue = f.createLiteral(g.getSequence());
 		Literal format = f.createLiteral(g.getSequenceType());
 		Literal userId = f.createLiteral(user.getUserId());
@@ -93,7 +99,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
 		IRI glycanType = f.createIRI(ontPrefix + "Glycan");
-		IRI ownerType = f.createIRI(ontPrefix + "owner");
+		IRI ownerType = f.createIRI(ontPrefix + "Owner");
 		IRI createdBy = f.createIRI(ontPrefix + "created_by");
 		IRI hasUserId = f.createIRI(ontPrefix + "has_user_id");
 		IRI hasUserName = f.createIRI(ontPrefix + "has_username");
@@ -110,79 +116,17 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue));
 		statements.add(f.createStatement(sequence, hasSequenceFormat, format));
 		statements.add(f.createStatement(glycan, createdBy, owner));
-		statements.add(f.createStatement(owner, ownerType, ownerType));
-		statements.add(f.createStatement(owner, hasUserId, userId));
-		statements.add(f.createStatement(owner, hasUserName, username));
-		statements.add(f.createStatement(owner, hasInstitution, institution));
+		
+		if (existing == null) {
+			statements.add(f.createStatement(owner, RDF.TYPE, ownerType));
+			statements.add(f.createStatement(owner, hasUserId, userId));
+			statements.add(f.createStatement(owner, hasUserName, username));
+			statements.add(f.createStatement(owner, hasInstitution, institution));
+		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		
 		return glycanURI;
-		
-		
-	/*	// add object property between Glycan and Sequence
-		StringBuffer sparqlbuf = new StringBuffer();
-		
-		String seqURI = generateUniqueURI(uriPrefix + "Seq", isPrivate ? graph: null);
-		String glycanURI = generateUniqueURI(uriPrefix + "G", isPrivate ? graph: null);
-		sparqlbuf.append(prefix);
-		sparqlbuf.append("INSERT ");
-		sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-		sparqlbuf.append("{ " + "<" +  glycanURI + "> gadr:has_sequence <" + seqURI + "> ." + " }\n");
-		sparqlbuf.append("}\n");
-		sparqlDAO.insert(sparqlbuf.toString());
-		
-		// add label
-		sparqlbuf = new StringBuffer();
-		sparqlbuf.append(prefix);
-		sparqlbuf.append("INSERT ");
-		sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-		sparqlbuf.append("{ " + "<" +  glycanURI + "> rdfs:label \"" + g.getName() + "\" ." + " }\n");
-		sparqlbuf.append("}\n");
-		sparqlDAO.insert(sparqlbuf.toString());
-		
-		// add comment
-		if (g.getComment() != null) {
-			sparqlbuf = new StringBuffer();
-			sparqlbuf.append(prefix);
-			sparqlbuf.append("INSERT ");
-			sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-			sparqlbuf.append("{ " + "<" +  glycanURI + "> rdfs:comment \"" + g.getComment() + "\" ." + " }\n");
-			sparqlbuf.append("}\n");
-			sparqlDAO.insert(sparqlbuf.toString());
-		}
-		
-		// add a dataproperty for Glycan -> glytoucanId
-		if (g.getGlyTouCanId() != null) {
-			sparqlbuf = new StringBuffer();
-			sparqlbuf.append(prefix);
-			sparqlbuf.append("INSERT ");
-			sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-			sparqlbuf.append("{ " + "<" +  glycanURI + "> gadr:has_glytoucan_id \"" + g.getGlyTouCanId() + "\" ." + " }\n");
-			sparqlbuf.append("}\n");
-			sparqlDAO.insert(sparqlbuf.toString());
-		}
-		
-		if (g.getSequence() != null) {
-			// add a dataproperty for Sequence object -> sequence string
-			sparqlbuf = new StringBuffer();
-			sparqlbuf.append(prefix);
-			sparqlbuf.append("INSERT ");
-			sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-			sparqlbuf.append("{ " + "<" +  seqURI + "> gadr:has_sequence_value \"" + g.getSequence() + "\" ." + " }\n");
-			sparqlbuf.append("}\n");
-			sparqlDAO.insert(sparqlbuf.toString());
-		}
-		if (g.getSequenceType() != null) {
-			// add a dataproperty for Sequence object -> sequence format
-			sparqlbuf = new StringBuffer();
-			sparqlbuf.append(prefix);
-			sparqlbuf.append("INSERT ");
-			sparqlbuf.append("{ GRAPH <" + graph + ">\n");
-			sparqlbuf.append("{ " + "<" +  seqURI + "> gadr:has_sequence_format \"" + g.getSequenceType() + "\" ." + " }\n");
-			sparqlbuf.append("}\n");
-			sparqlDAO.insert(sparqlbuf.toString());
-		}*/
 	}
 
 	@Override
@@ -313,10 +257,64 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				
 		return glycanObject;
 	}
+	
+	private Owner findOwnerInGraph (Long userId, String graph) throws SparqlException {
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s\n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n" + 
+				"				    ?s gadr:has_user_id \"" + userId + "\"^^xsd:long .\n" + 
+				"				}\n" + 
+				"				LIMIT 10");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.size() == 0) 
+			return null;
+		
+		SparqlEntity result = results.get(0);
+		String ownerUri = result.getValue("s");
+		
+		Owner owner = getOwnerFromURI(ownerUri);
+				
+		return owner;
+	}
 
-	private Glycan getGlycanFromURI (String glycanURI) {
-		Glycan glycanObject = new Glycan();
-		glycanObject.setUri(glycanURI);
+	private Owner getOwnerFromURI(String ownerUri) {
+		Owner ownerObject = null;
+		
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI owner = f.createIRI(ownerUri);
+		
+		IRI hasUserId = f.createIRI(ontPrefix + "has_user_id");
+		IRI hasUserName = f.createIRI(ontPrefix + "has_username");
+		IRI hasInstitution = f.createIRI(ontPrefix + "has_institution_name");
+		
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(owner, null, null);
+		if (statements.hasNext()) {
+			ownerObject = new Owner();
+			ownerObject.setUri(ownerUri);
+		}
+		while (statements.hasNext()) {
+			Statement st = statements.next();
+			if (st.getPredicate().equals(hasUserId)) {
+				Value id = st.getObject();
+				ownerObject.setUserId(Long.parseLong(id.stringValue()));
+			} else if (st.getPredicate().equals(hasUserName)) {
+				Value name = st.getObject();
+				ownerObject.setName(name.stringValue());
+			} else if (st.getPredicate().equals(hasInstitution)) {
+				Value inst = st.getObject();
+				ownerObject.setInstitution(inst.stringValue()); 
+			} 
+		}
+		
+		return ownerObject;
+	}
+
+	@Override
+	public Glycan getGlycanFromURI (String glycanURI) {
+		Glycan glycanObject = null;
+		
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI glycan = f.createIRI(glycanURI);
@@ -330,6 +328,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		//IRI glycanType = f.createIRI(ontPrefix + "Glycan");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null);
+		if (statements.hasNext()) {
+			glycanObject = new Glycan();
+			glycanObject.setUri(glycanURI);
+		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(RDFS.LABEL)) {
@@ -576,27 +578,44 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	public void deleteGlycan(String glycanId, UserEntity user) throws SparqlException {
 		String graph;
 		
-		List<Glycan> glycans = getGlycanByUser(user);
-		String toBeDeleted = null;
-		for (Glycan glycan : glycans) {
-			String id = glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1);
-			if (id.equals(glycanId)) {
-				toBeDeleted = glycan.getUri();
+		try {
+			graph = getGraphForUser(user);
+			if (graph != null) {
+				// check to see if the given glycanId is in this graph
+				Glycan existing = getGlycanFromURI (uriPrefix + glycanId);
+				if (existing != null) {
+					deleteGlycanByURI (uriPrefix + glycanId, graph);
+					return;
+				}
 			}
+		} catch (SQLException e) {
+			// nothing to do
 		}
-		
-		if (toBeDeleted != null) {
-			// check if there is already a private graph for user
-			try {
-				graph = getGraphForUser(user);
-				if (graph != null)
-					deleteGlycanByURI (toBeDeleted, graph);
-			} catch (SQLException e) {
-				// nothing to do
+		// check if the glycan is owned by the user
+		Glycan existing = getGlycanFromURI (uriPrefix + glycanId);
+		if (existing != null) {
+			// find the owner
+			StringBuffer queryBuf = new StringBuffer();
+			queryBuf.append (prefix + "\n");
+			queryBuf.append ("SELECT DISTINCT ?o\n");
+			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+			queryBuf.append ("WHERE {\n <" + uriPrefix + glycanId + ">\n" + 
+					" gadr:created_by ?o .\n" +
+					"                    ?o gadr:has_user_id \"" + user.getUserId() + "\"^^xsd:long .\n" + 
+					"				}\n" + 
+					"				LIMIT 10");
+			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			if (results.size() == 0) {
+				// this user cannot update the given glycan
+				throw new SparqlException("The user is not allowed to update this glycan");
 			}
-			deleteGlycanByURI (toBeDeleted, DEFAULT_GRAPH);
+			else {
+				deleteGlycanByURI (existing.getUri(), DEFAULT_GRAPH);
+			}
 		}
 	}
+	
+	
 
 	private void deleteGlycanByURI(String uri, String graph) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -604,5 +623,54 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI graphIRI = f.createIRI(graph);
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null);
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+	}
+
+	@Override
+	public void updateGlycan(Glycan g, UserEntity user) throws SparqlException {
+		String graph = DEFAULT_GRAPH;
+		Glycan existing = null;
+		try {
+			graph = getGraphForUser(user);
+			if (graph != null) {
+				// check to see if the given glycanId is in this graph
+				existing = getGlycanFromURI(g.getUri());
+				if (existing != null) {
+					updateGlycanInGraph(g, graph);
+					return;
+				}
+			}
+		} catch (SQLException e) {
+			// nothing to do, continue checking the default-graph
+		}
+		
+		existing = getGlycanFromURI (g.getUri());
+		if (existing == null)
+			throw new EntityNotFoundException("Glycan " + g.getUri() + " does not exist! Cannot modify!");
+		updateGlycanInGraph(g, DEFAULT_GRAPH);
+	}
+	
+	void updateGlycanInGraph (Glycan g, String graph) throws SparqlException {
+		
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI graphIRI = f.createIRI(graph);
+		String glycanURI = g.getUri();
+		IRI glycan = f.createIRI(glycanURI);
+		Literal glycanLabel = f.createLiteral(g.getName());
+		Literal glycanComment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+		Literal internalId = g.getInternalId() == null? f.createLiteral("") : f.createLiteral(g.getInternalId());
+		
+		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+		
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, RDFS.LABEL, null)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, RDFS.COMMENT, null)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, hasInternalId, null)), graphIRI);
+		
+		List<Statement> statements = new ArrayList<Statement>();
+		
+		statements.add(f.createStatement(glycan, RDFS.LABEL, glycanLabel));
+		statements.add(f.createStatement(glycan, RDFS.COMMENT, glycanComment));
+		statements.add(f.createStatement(glycan, hasInternalId, internalId));
+		
+		sparqlDAO.addStatements(statements, graphIRI);
 	}
 }

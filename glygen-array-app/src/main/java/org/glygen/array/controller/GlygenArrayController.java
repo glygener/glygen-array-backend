@@ -182,13 +182,17 @@ public class GlygenArrayController {
 								org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
 						BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
 								.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-						
-						String glycanURI = repository.addGlycan(g, user, isPrivate);
-						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-						//save the image into a file
-						logger.debug("Adding image to " + imageLocation);
-						File imageFile = new File(imageLocation + File.separator + id + ".png");
-						ImageIO.write(t_image, "png", imageFile);
+						if (t_image != null) {
+							String glycanURI = repository.addGlycan(g, user, isPrivate);
+							String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+							//save the image into a file
+							logger.debug("Adding image to " + imageLocation);
+							File imageFile = new File(imageLocation + File.separator + id + ".png");
+							ImageIO.write(t_image, "png", imageFile);
+						} else {
+							logger.error("Glycan image is null");
+							throw new GlycanRepositoryException("Glycan image cannot be generated");
+						}
 					}
 				} catch (IOException e) {
 					logger.error("Glycan image cannot be generated", e);
@@ -248,17 +252,24 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value="/delete/{glycanId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
-		public Confirmation deleteGlycab (
-				@ApiParam(required=true, value="id of the glycan to delete") 
-				@PathVariable("glycanId") String glycanId, Principal principal) {
-			try {
-				UserEntity user = userRepository.findByUsername(principal.getName());
-				repository.deleteGlycan(glycanId, user);
-				return new Confirmation("Glycan deleted successfully", HttpStatus.CREATED.value());
-			} catch (SparqlException e) {
-				throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
-			}
+	public Confirmation deleteGlycab (
+			@ApiParam(required=true, value="id of the glycan to delete") 
+			@PathVariable("glycanId") String glycanId, Principal principal) {
+		try {
+			UserEntity user = userRepository.findByUsername(principal.getName());
+			repository.deleteGlycan(glycanId, user);
+			
+			// delete the image
+			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
+			boolean deleted = imageFile.delete();
+			if (!deleted)
+				logger.warn("Image file for glycan " + glycanId + " could not be removed");
+			
+			return new Confirmation("Glycan deleted successfully", HttpStatus.CREATED.value());
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
 		}
+	}
 	
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})

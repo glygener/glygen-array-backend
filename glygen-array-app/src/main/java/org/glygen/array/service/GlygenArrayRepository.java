@@ -33,6 +33,7 @@ public interface GlygenArrayRepository {
 	
 	Glycan getGlycan (String glytoucanId) throws SparqlException;
 	Glycan getGlycan (String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException;
+	Glycan getGlycanFromURI (String uri);
 	
 	Glycan getGlycanBySequence (String sequence) throws SparqlException;
 	Glycan getGlycanBySequence (String sequence, UserEntity user, boolean isPrivate) throws SparqlException;
@@ -44,4 +45,5 @@ public interface GlygenArrayRepository {
 	String getGraphForUser(UserEntity user) throws SQLException;
 	
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException;
+	void updateGlycan (Glycan g, UserEntity user) throws SparqlException;
 }
