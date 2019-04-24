@@ -3,6 +3,8 @@ package org.glygen.array.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -205,7 +207,18 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	@Bean
     CorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+        CorsConfiguration config = new CorsConfiguration();
+        config.applyPermitDefaultValues();
+        CorsConfiguration newConfig = new CorsConfiguration();
+        newConfig.addAllowedMethod(HttpMethod.DELETE);
+        newConfig.addAllowedMethod(HttpMethod.PUT);
+        config.combine(newConfig);
+//        config.addAllowedMethod(HttpMethod.GET);
+//        config.addAllowedMethod(HttpMethod.POST);
+//        config.addAllowedMethod(HttpMethod.HEAD);
+//        config.addAllowedOrigin(CorsConfiguration.ALL);
+//        config.addAllowedHeader(CorsConfiguration.ALL);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 	
