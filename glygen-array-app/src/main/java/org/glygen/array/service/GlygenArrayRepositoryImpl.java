@@ -280,8 +280,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return ownerObject;
 	}
 
-	@Override
-	public Glycan getGlycanFromURI (String glycanURI) throws SparqlException {
+	private Glycan getGlycanFromURI (String glycanURI) throws SparqlException {
 		Glycan glycanObject = null;
 	
 		
@@ -630,5 +629,26 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			}
 		}
 		return total;
+	}
+
+
+
+	@Override
+	public Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException {
+		// make sure the glycan belongs to this user
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?d \n");
+		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( "<" +  uriPrefix + glycanId + "> gadr:has_date_addedtolibrary ?d . }\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			return getGlycanFromURI(uriPrefix + glycanId);
+		}
 	}
 }

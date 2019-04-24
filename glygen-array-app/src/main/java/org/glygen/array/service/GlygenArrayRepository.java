@@ -43,7 +43,7 @@ public interface GlygenArrayRepository {
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
 	void updateGlycan (Glycan g, UserEntity user) throws SparqlException, SQLException;
 
-	Glycan getGlycanFromURI(String glycanURI) throws SparqlException;
+	Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException;
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 }

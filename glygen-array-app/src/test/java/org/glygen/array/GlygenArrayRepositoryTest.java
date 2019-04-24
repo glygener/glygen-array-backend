@@ -41,16 +41,18 @@ public class GlygenArrayRepositoryTest {
 			g.setName("updatedGlycan");
 			g.setComment(null);
 			g.setInternalId("TestSource2");
+			
+			String glycanId = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
 		
 			repository.updateGlycan(g, user);
-			Glycan updated = repository.getGlycanFromURI(g.getUri());
+			Glycan updated = repository.getGlycanById(glycanId, user);
 			assertTrue(updated.getName().equals("updatedGlycan"));
 			assertTrue(updated.getInternalId().equals("TestSource2"));
 			assertTrue(updated.getComment() == null || updated.getComment().equals(""));
 			
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			Glycan deleted = repository.getGlycanFromURI(g.getUri());
-			assertTrue("Deleted test glycan", deleted.getName() == null);    // since name is stored in private graph, it should be cleared after delete
+			repository.deleteGlycan(glycanId, user);
+			Glycan deleted = repository.getGlycanById(glycanId, user);
+			assertTrue("Deleted test glycan", deleted == null);    // since name is stored in private graph, it should be cleared after delete
 		} catch (SparqlException e) {
 			e.printStackTrace();
 			assertFalse("Failed to update", true);

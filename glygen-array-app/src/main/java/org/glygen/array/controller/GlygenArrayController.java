@@ -169,6 +169,7 @@ public class GlygenArrayController {
 			Glycan g = new Glycan();
 			g.setName(glycan.getName());
 			g.setGlyTouCanId(glycan.getGlytoucanId());
+			g.setInternalId(glycan.getInternalId());
 			g.setComment(glycan.getComment());
 			g.setSequence(glycan.getSequence());
 			g.setSequenceType(glycan.getSequenceFormat());
@@ -177,7 +178,7 @@ public class GlygenArrayController {
 			if (existing == null) {
 				//TODO if there is a glytoucanId, check if it is valid
 				try {
-					if (glycan.getSequence() != null) {
+					if (glycan.getSequence() != null && !glycan.getSequence().isEmpty()) {
 						//check if the given sequence is valid
 						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
 								org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
@@ -194,6 +195,8 @@ public class GlygenArrayController {
 							logger.error("Glycan image is null");
 							throw new GlycanRepositoryException("Glycan image cannot be generated");
 						}
+					} else {
+						new GlycanRepositoryException("Cannot add a glycan without a sequence");
 					}
 				} catch (IOException e) {
 					logger.error("Glycan image cannot be generated", e);
@@ -204,7 +207,6 @@ public class GlygenArrayController {
 				}
 				
 			}
-			else throw new EntityExistsException("There is already a glycan with the same sequence in the repository!");
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
 		} catch (SQLException e1) {
@@ -268,7 +270,7 @@ public class GlygenArrayController {
 			if (!deleted)
 				logger.warn("Image file for glycan " + glycanId + " could not be removed");
 			
-			return new Confirmation("Glycan deleted successfully", HttpStatus.CREATED.value());
+			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
 		} 
@@ -319,33 +321,29 @@ public class GlygenArrayController {
 		return result;
 	}
 	
-	/*@RequestMapping(value="/getglycan/{glytoucanId}", method = RequestMethod.GET, 
+	@RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
-			@ApiResponse(code=404, message="Gycan with given glytoucanId does not exist"),
+			@ApiResponse(code=404, message="Gycan with given id does not exist"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public GlycanView getGlycan (
-			@ApiParam(required=true, value="glytoucanId of the glycan to retrieve") 
-			@PathVariable("glytoucanId") String glytoucanId, Principal p) {
+			@ApiParam(required=true, value="id of the glycan to retrieve") 
+			@PathVariable("glycanId") String glycanId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
-			Glycan glycan = repository.getGlycan(glytoucanId);
+			Glycan glycan = repository.getGlycanById(glycanId, user);
 			if (glycan == null) {
-				// check user's private repo, if any
-				glycan = repository.getGlycan(glytoucanId, user, true);
-				if (glycan == null)
-					throw new EntityNotFoundException("Glycan with glytoucan id : " + glytoucanId + " does not exist in the repository");
+				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			}
-			
 			return getGlycanView(glycan);
-		} catch (SparqlException e) {
+		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be retrieved for user " + p.getName(), e);
 		}
 		
-	}*/
+	}
 	
 /*	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
 	public Confirmation addPrivateGraphForUser (Principal p) {
