@@ -14,10 +14,8 @@ public interface GlygenArrayRepository {
 	public static final String DEFAULT_GRAPH = "http://glygen.org/glygenarray/public";
 	public static final String PRIVATE_GRAPH = "http://glygen.org/glygenarray/private";
 
-	void addSlideLayout (SlideLayout s, UserEntity user, boolean isPrivate) throws SparqlException;
 	void addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException;
 	
-	void addBlockLayout (BlockLayout b, UserEntity user, boolean isPrivate) throws SparqlException;
 	void addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException;
 	
 	SlideLayout findSlideLayoutByName (String name) throws SparqlException;
@@ -29,21 +27,23 @@ public interface GlygenArrayRepository {
 	List<SlideLayout> findSlideLayoutByUser (String username) throws SparqlException;
 	
 	String addGlycan(Glycan g, UserEntity user) throws SparqlException;
-	String addGlycan(Glycan g, UserEntity user, boolean isPrivate) throws SparqlException;
 	
-	Glycan getGlycan (String glytoucanId) throws SparqlException;
-	Glycan getGlycan (String glytoucanId, UserEntity user, boolean isPrivate) throws SparqlException;
-	Glycan getGlycanFromURI (String uri);
+	//Glycan getGlycan (String glytoucanId) throws SparqlException, SQLException;
+	//Glycan getGlycan (String glytoucanId, UserEntity user) throws SparqlException, SQLException;
 	
 	Glycan getGlycanBySequence (String sequence) throws SparqlException;
-	Glycan getGlycanBySequence (String sequence, UserEntity user, boolean isPrivate) throws SparqlException;
+	Glycan getGlycanBySequence (String sequence, UserEntity user) throws SparqlException, SQLException;
 	
-	List<Glycan> getGlycanByUser (UserEntity user) throws SparqlException;
-	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit) throws SparqlException;
+	List<Glycan> getGlycanByUser (UserEntity user) throws SparqlException, SQLException;
+	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	String getGraphForUser(UserEntity user) throws SQLException;
 	
-	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException;
-	void updateGlycan (Glycan g, UserEntity user) throws SparqlException;
+	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
+	void updateGlycan (Glycan g, UserEntity user) throws SparqlException, SQLException;
+
+	Glycan getGlycanFromURI(String glycanURI) throws SparqlException;
+
+	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 }

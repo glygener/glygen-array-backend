@@ -8,6 +8,7 @@ public class GlycanView {
 	String comment;
 	String sequence;
 	String sequenceFormat;
+	Boolean isPrivate = false;
 	
 	public String getId() {
 		return id;
@@ -86,5 +87,19 @@ public class GlycanView {
 		this.sequenceFormat = sequenceFormat;
 	}
 	
-
+	/**
+	 * 
+	 * @return
+	 */
+	public Boolean getIsPrivate() {
+		return isPrivate;
+	}
+	
+	/**
+	 * 
+	 * @param isPrivate
+	 */
+	public void setIsPrivate(Boolean isPrivate) {
+		this.isPrivate = isPrivate;
+	}
 }

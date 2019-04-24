@@ -6,6 +6,9 @@ public class Confirmation {
 	int statusCode;
 	String message;
 	
+	public Confirmation() {
+	}
+	
 	public Confirmation(String message, int statusCode) {
 		this.statusCode = statusCode;
 		this.message = message;

@@ -30,6 +30,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanBinding;
+import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.GlycanView;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
@@ -90,60 +91,60 @@ public class GlygenArrayController {
 
 	}
 	
-	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
-    		consumes={"application/json", "application/xml"},
-    		produces={"application/json", "application/xml"})
-	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
-	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
-		try {
-			StringBuffer sparqlbuf = new StringBuffer();
-			String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
-			sparqlbuf.append(prefix);
-			sparqlbuf.append("INSERT ");
-			sparqlbuf.append("{ GRAPH <" + "http://array.glygen.org/demo/test" + ">\n");
-			// sparqlbuf.append(getUsing());
-			sparqlbuf.append("{ " + "<" +  "http://array.glygen.org/" + glycan.getGlycanId().hashCode() + "> glycan:has_binding \"" + glycan.getBindingValue() + "\" ." + " }\n");
-			sparqlbuf.append("}\n");
-			sparqlDAO.insert(sparqlbuf.toString());
-			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());
-		} catch (SparqlException se) {
-			logger.error("Cannot insert into the Triple store", se);
-			throw new GlycanRepositoryException("Binding cannot be added", se);
-		} catch (Exception e) {
-			logger.error("Cannot generate unique URI", e);
-			throw new GlycanRepositoryException("Binding cannot be added", e);
-		}
-	}
+//	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
+//    		consumes={"application/json", "application/xml"},
+//    		produces={"application/json", "application/xml"})
+//	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
+//	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
+//		try {
+//			StringBuffer sparqlbuf = new StringBuffer();
+//			String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
+//			sparqlbuf.append(prefix);
+//			sparqlbuf.append("INSERT ");
+//			sparqlbuf.append("{ GRAPH <" + "http://array.glygen.org/demo/test" + ">\n");
+//			// sparqlbuf.append(getUsing());
+//			sparqlbuf.append("{ " + "<" +  "http://array.glygen.org/" + glycan.getGlycanId().hashCode() + "> glycan:has_binding \"" + glycan.getBindingValue() + "\" ." + " }\n");
+//			sparqlbuf.append("}\n");
+//			sparqlDAO.insert(sparqlbuf.toString());
+//			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());
+//		} catch (SparqlException se) {
+//			logger.error("Cannot insert into the Triple store", se);
+//			throw new GlycanRepositoryException("Binding cannot be added", se);
+//		} catch (Exception e) {
+//			logger.error("Cannot generate unique URI", e);
+//			throw new GlycanRepositoryException("Binding cannot be added", e);
+//		}
+//	}
 
-	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
-	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/json", "application/xml"})
-	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") 
-											@PathVariable("glycanId") String glycanId) throws Exception {
-		String uri = "http://array.glygen.org/" + glycanId.hashCode();
-		StringBuffer query = new StringBuffer();
-		// note the carriage return
-		String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
-		query.append(prefix + "\n");
-		query.append("SELECT ?" + "BINDING_VALUE" + "\n");
-		query.append("FROM <http://array.glygen.org/demo/test>\n");
-		query.append("{ <" + uri + "> glycan:has_binding ?" + "BINDING_VALUE" + " .}");
-		try {
-			List<SparqlEntity> results = sparqlDAO.query(query.toString());
-			if (results == null || results.isEmpty()) {
-				throw new BindingNotFoundException("Binding does not exist for the glycan " + glycanId);
-			}
-			SparqlEntity result = results.get(0);
-			String binding = result.getValue("BINDING_VALUE");
-			GlycanBinding bindingResult = new GlycanBinding();
-			bindingResult.setGlycanId(glycanId);
-			bindingResult.setBindingValue(Double.parseDouble(binding));
-			return bindingResult;
-		} catch (SparqlException e) {
-			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
-		} catch (Exception e) {
-			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
-		}
-	}
+//	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
+//	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/json", "application/xml"})
+//	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") 
+//											@PathVariable("glycanId") String glycanId) throws Exception {
+//		String uri = "http://array.glygen.org/" + glycanId.hashCode();
+//		StringBuffer query = new StringBuffer();
+//		// note the carriage return
+//		String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
+//		query.append(prefix + "\n");
+//		query.append("SELECT ?" + "BINDING_VALUE" + "\n");
+//		query.append("FROM <http://array.glygen.org/demo/test>\n");
+//		query.append("{ <" + uri + "> glycan:has_binding ?" + "BINDING_VALUE" + " .}");
+//		try {
+//			List<SparqlEntity> results = sparqlDAO.query(query.toString());
+//			if (results == null || results.isEmpty()) {
+//				throw new BindingNotFoundException("Binding does not exist for the glycan " + glycanId);
+//			}
+//			SparqlEntity result = results.get(0);
+//			String binding = result.getValue("BINDING_VALUE");
+//			GlycanBinding bindingResult = new GlycanBinding();
+//			bindingResult.setGlycanId(glycanId);
+//			bindingResult.setBindingValue(Double.parseDouble(binding));
+//			return bindingResult;
+//		} catch (SparqlException e) {
+//			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
+//		} catch (Exception e) {
+//			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
+//		}
+//	}
 	
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
@@ -162,7 +163,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addGlycan (@RequestBody GlycanView glycan, Boolean privateOnly, Principal p) {
+	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
 			Glycan g = new Glycan();
@@ -171,8 +172,8 @@ public class GlygenArrayController {
 			g.setComment(glycan.getComment());
 			g.setSequence(glycan.getSequence());
 			g.setSequenceType(glycan.getSequenceFormat());
-			boolean isPrivate = privateOnly != null && privateOnly ? true: false;
-			Glycan existing = repository.getGlycanBySequence(glycan.getSequence(), user, isPrivate);
+			
+			Glycan existing = repository.getGlycanBySequence(glycan.getSequence(), user);
 			if (existing == null) {
 				//TODO if there is a glytoucanId, check if it is valid
 				try {
@@ -183,7 +184,7 @@ public class GlygenArrayController {
 						BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
 								.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
 						if (t_image != null) {
-							String glycanURI = repository.addGlycan(g, user, isPrivate);
+							String glycanURI = repository.addGlycan(g, user);
 							String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
 							//save the image into a file
 							logger.debug("Adding image to " + imageLocation);
@@ -206,6 +207,8 @@ public class GlygenArrayController {
 			else throw new EntityExistsException("There is already a glycan with the same sequence in the repository!");
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		} catch (SQLException e1) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e1);
 		}
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}
@@ -252,7 +255,7 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value="/delete/{glycanId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
-	public Confirmation deleteGlycab (
+	public Confirmation deleteGlycan (
 			@ApiParam(required=true, value="id of the glycan to delete") 
 			@PathVariable("glycanId") String glycanId, Principal principal) {
 		try {
@@ -266,9 +269,9 @@ public class GlygenArrayController {
 				logger.warn("Image file for glycan " + glycanId + " could not be removed");
 			
 			return new Confirmation("Glycan deleted successfully", HttpStatus.CREATED.value());
-		} catch (SparqlException e) {
+		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
-		}
+		} 
 	}
 	
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
@@ -278,11 +281,16 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public List<GlycanView> listGlycans (
+	public GlycanListResultView listGlycans (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
 			@ApiParam(required=true, value="limit of the number of glycans to be retrieved") 
-			@RequestParam("limit") Integer limit, Principal p) {
+			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="name of the sort field, defaults to id") 
+			@RequestParam(value="sortBy", required=false) String field, 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@RequestParam(value="order", required=false) Integer order, Principal p) {
+		GlycanListResultView result = new GlycanListResultView();
 		List<GlycanView> glycanList = new ArrayList<GlycanView>();
 		UserEntity user = userRepository.findByUsername(p.getName());
 		try {
@@ -290,19 +298,28 @@ public class GlygenArrayController {
 				offset = 0;
 			if (limit == null)
 				limit = 20;
+			if (field == null)
+				field = "id";
+			if (order == null)
+				order = 0; // DESC
 			
-			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit);
+			int total = repository.getGlycanCountByUser (user);
+			
+			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit, field, order);
 			for (Glycan glycan : glycans) {
 				glycanList.add(getGlycanView(glycan));
 			}
-		} catch (SparqlException e) {
+			
+			result.setRows(glycanList);
+			result.setTotal(total);
+		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
 		}
 		
-		return glycanList;
+		return result;
 	}
 	
-	@RequestMapping(value="/getglycan/{glytoucanId}", method = RequestMethod.GET, 
+	/*@RequestMapping(value="/getglycan/{glytoucanId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -328,9 +345,9 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Glycan cannot be retrieved for user " + p.getName(), e);
 		}
 		
-	}
+	}*/
 	
-	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
+/*	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
 	public Confirmation addPrivateGraphForUser (Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
@@ -340,7 +357,7 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Private Graph cannot be added for user " + p.getName(), e);
 		}
 		
-	}
+	}*/
 	
 	private GlycanView getGlycanView (Glycan glycan) {
 		GlycanView g = new GlycanView();
