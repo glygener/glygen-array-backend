@@ -606,7 +606,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 	@Override
 	public int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException {
-		int total = -1;
+		int total = 0;
 		String graph = getGraphForUser(user);
 		if (graph != null) {
 			StringBuffer queryBuf = new StringBuffer();
