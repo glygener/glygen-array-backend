@@ -388,7 +388,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 		
 		// for now glytoucanId should be the same as our own id
-		if (glycanObject.getGlyTouCanId() == null)
+		if (glycanObject.getGlyTouCanId() == null || glycanObject.getGlyTouCanId().isEmpty())
 			glycanObject.setGlyTouCanId(glycanObject.getUri().substring(glycanObject.getUri().lastIndexOf("/")+1));
 		
 		return glycanObject;
