@@ -69,7 +69,6 @@ public class GlygenArrayRepositoryTest {
 			//add a test glycan first
 			Glycan g = addTestGlycan(user);
 			int total = repository.getGlycanCountByUser(user);
-			assertTrue ("total is valid", total != -1);
 			assertTrue ("total > 0", total > 0);
 			
 			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);

@@ -297,6 +297,18 @@ public class GlygenArrayController {
 		} 
 	}
 	
+	
+	@RequestMapping(value = "/updateGlycan", method = RequestMethod.PUT)
+	public void updateGlycan(@ApiParam(required = true, value = "glycan need to be updated") Glycan glycan,
+			Principal principal) throws SQLException {
+		try {
+			UserEntity user = userRepository.findByUsername(principal.getName());
+			repository.updateGlycan(glycan, user);
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Error updating glycan with internalId: " + glycan.getInternalId());
+		}
+	}
+	
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully"), 

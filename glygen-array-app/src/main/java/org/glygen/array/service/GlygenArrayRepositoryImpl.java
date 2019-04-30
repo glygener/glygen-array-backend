@@ -605,7 +605,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
 	}
 
-	@Override
+	
 	public void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
 		Glycan existing = getGlycanFromURI(g.getUri(), graph);
