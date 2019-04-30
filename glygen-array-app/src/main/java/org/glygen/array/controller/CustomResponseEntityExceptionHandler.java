@@ -12,6 +12,7 @@ import javax.validation.ConstraintViolation;
 
 import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.EmailExistsException;
+import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -127,6 +128,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     		UserNotFoundException.class,
     		BindingNotFoundException.class,
     		GlycanRepositoryException.class,
+    		GlycanExistsException.class,
     	//	GlycanNotFoundException.class,
     	//	MotifNotFoundException.class,
     	//	GlycanExistsException.class,
@@ -154,7 +156,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());
             errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
-        } else if (ex instanceof EntityExistsException ) {// || ex instanceof GlycanExistsException) {
+        } else if (ex instanceof EntityExistsException || ex instanceof GlycanExistsException) {
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
             errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);

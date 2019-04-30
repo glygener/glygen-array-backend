@@ -85,6 +85,4 @@ public class GlycanView {
 	public void setSequenceFormat(String sequenceFormat) {
 		this.sequenceFormat = sequenceFormat;
 	}
-	
-
 }

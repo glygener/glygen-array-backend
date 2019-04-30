@@ -1,5 +1,7 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.Date;
+
 public class Glycan {
 	
 	String uri;
@@ -9,6 +11,7 @@ public class Glycan {
 	String comment;
 	String sequence;
 	String sequenceType;
+	Date dateModified;
 	
 	/**
 	 * @return the uri
@@ -93,5 +96,17 @@ public class Glycan {
 	 */
 	public void setSequenceType(String sequenceType) {
 		this.sequenceType = sequenceType;
+	}
+	/**
+	 * @return the dateModified
+	 */
+	public Date getDateModified() {
+		return dateModified;
+	}
+	/**
+	 * @param dateModified the dateModified to set
+	 */
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
 	}
 }

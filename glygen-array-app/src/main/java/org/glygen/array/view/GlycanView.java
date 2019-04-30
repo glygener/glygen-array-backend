@@ -1,5 +1,7 @@
 package org.glygen.array.view;
 
+import java.util.Date;
+
 public class GlycanView {
 	String id;
 	String internalId;
@@ -8,7 +10,7 @@ public class GlycanView {
 	String comment;
 	String sequence;
 	String sequenceFormat;
-	Boolean isPrivate = false;
+	Date dateModified;
 	
 	public String getId() {
 		return id;
@@ -88,18 +90,16 @@ public class GlycanView {
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * @return the modified date
 	 */
-	public Boolean getIsPrivate() {
-		return isPrivate;
+	public Date getDateModified() {
+		return dateModified;
 	}
 	
 	/**
-	 * 
-	 * @param isPrivate
+	 * @param dateModified date to set
 	 */
-	public void setIsPrivate(Boolean isPrivate) {
-		this.isPrivate = isPrivate;
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
 	}
 }
