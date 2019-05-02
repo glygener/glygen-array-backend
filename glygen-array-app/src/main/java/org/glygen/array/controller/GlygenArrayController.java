@@ -272,7 +272,7 @@ public class GlygenArrayController {
 			return IOUtils.toByteArray(resource.getInputStream());
 		} catch (IOException e) {
 			logger.error("Image cannot be retrieved", e);
-			throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
+			throw new EntityNotFoundException("Image for glycan " + glycanId + " is not available");
 		}
 	}
 	
@@ -284,13 +284,6 @@ public class GlygenArrayController {
 		try {
 			UserEntity user = userRepository.findByUsername(principal.getName());
 			repository.deleteGlycan(glycanId, user);
-			
-			// delete the image
-			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
-			boolean deleted = imageFile.delete();
-			if (!deleted)
-				logger.warn("Image file for glycan " + glycanId + " could not be removed");
-			
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
@@ -342,7 +335,14 @@ public class GlygenArrayController {
 			
 			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit, field, order);
 			for (Glycan glycan : glycans) {
-				glycanList.add(getGlycanView(glycan));
+				GlycanView view = getGlycanView(glycan);
+				try {
+					byte[] image = getCartoonForGlycan(view.getId());
+					view.setCartoon(image);
+				} catch (Exception e) {
+					logger.warn("Image cannot be retrieved", e);
+				}
+				glycanList.add(view);
 			}
 			
 			result.setRows(glycanList);
@@ -352,6 +352,17 @@ public class GlygenArrayController {
 		}
 		
 		return result;
+	}
+	
+	public byte[] getCartoonForGlycan (String glycanId) {
+		try {
+			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
+			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
+			return IOUtils.toByteArray(resource.getInputStream());
+		} catch (IOException e) {
+			logger.error("Image cannot be retrieved", e);
+			throw new EntityNotFoundException("Image for glycan " + glycanId + " is not available");
+		}
 	}
 	
 	@RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 

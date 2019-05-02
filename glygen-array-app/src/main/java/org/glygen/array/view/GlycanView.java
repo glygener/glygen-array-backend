@@ -11,6 +11,7 @@ public class GlycanView {
 	String sequence;
 	String sequenceFormat;
 	Date dateModified;
+	byte[] cartoon;
 	
 	public String getId() {
 		return id;
@@ -101,5 +102,13 @@ public class GlycanView {
 	 */
 	public void setDateModified(Date dateModified) {
 		this.dateModified = dateModified;
+	}
+	
+	public byte[] getCartoon() {
+		return cartoon;
+	}
+	
+	public void setCartoon(byte[] cartoon) {
+		this.cartoon = cartoon;
 	}
 }
