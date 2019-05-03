@@ -8,6 +8,7 @@ public class BatchGlycanUploadResult {
 	List<String> wrongSequences = new ArrayList<>();
 	List<String> duplicateSequences = new ArrayList<String>();
 	String successMessage;
+	List<GlycanView> addedGlycans = new ArrayList<GlycanView>();
 	
 	public void addWrongSequence (String seq) {
 		if (!wrongSequences.contains(seq))
@@ -41,6 +42,14 @@ public class BatchGlycanUploadResult {
 	
 	public void setDuplicateSequences(List<String> duplicateSequences) {
 		this.duplicateSequences = duplicateSequences;
+	}
+	
+	public void setAddedGlycans(List<GlycanView> addedGlycans) {
+		this.addedGlycans = addedGlycans;
+	}
+	
+	public List<GlycanView> getAddedGlycans() {
+		return addedGlycans;
 	}
 
 }

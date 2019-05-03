@@ -185,7 +185,18 @@ public class GlygenArrayController {
 							String id = existing.substring(existing.lastIndexOf("/")+1);
 							result.addDuplicateSequence(id);
 						} else {
-							repository.addGlycan(g, user);
+							String added = repository.addGlycan(g, user);
+							String id = added.substring(added.lastIndexOf("/")+1);
+							BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+									.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+							if (t_image != null) {
+								//save the image into a file
+								logger.debug("Adding image to " + imageLocation);
+								File imageFile = new File(imageLocation + File.separator + id + ".png");
+								ImageIO.write(t_image, "png", imageFile);
+							}
+							Glycan addedGlycan = repository.getGlycanById(id, user);
+							result.getAddedGlycans().add(getGlycanView(addedGlycan));
 							countSuccess ++;
 						}
 					}
@@ -374,14 +385,7 @@ public class GlygenArrayController {
 			
 			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit, field, order);
 			for (Glycan glycan : glycans) {
-				GlycanView view = getGlycanView(glycan);
-				try {
-					byte[] image = getCartoonForGlycan(view.getId());
-					view.setCartoon(image);
-				} catch (Exception e) {
-					logger.warn("Image cannot be retrieved", e);
-				}
-				glycanList.add(view);
+				glycanList.add(getGlycanView(glycan));
 			}
 			
 			result.setRows(glycanList);
@@ -421,7 +425,10 @@ public class GlygenArrayController {
 			if (glycan == null) {
 				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			}
+			
 			return getGlycanView(glycan);
+			
+			
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be retrieved for user " + p.getName(), e);
 		}
@@ -453,6 +460,12 @@ public class GlygenArrayController {
 		g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
 		g.setGlytoucanId(glycan.getGlyTouCanId());
 		g.setDateModified(glycan.getDateModified());
+		try {
+			byte[] image = getCartoonForGlycan(g.getId());
+			g.setCartoon(image);
+		} catch (Exception e) {
+			logger.warn("Image cannot be retrieved", e);
+		}
 		return g;
 	}
 }
