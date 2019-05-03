@@ -20,13 +20,15 @@ import org.springframework.web.client.RestTemplate;
 public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	@Value("${glygen.scheme}")
-	String scheme="http://";
+	String scheme="https://";
 	
 	@Value("${glygen.host}")
-	String host="localhost:8080";
+	String host="glygen.ccrc.uga.edu";
+	//String host="localhost:8080";
 	
 	@Value("${glygen.basePath}")
-	String basePath="/";
+	String basePath="/ggarray/api/";
+	//String basePath="/";
 	
 	private RestTemplate restTemplate = new RestTemplate();
 	

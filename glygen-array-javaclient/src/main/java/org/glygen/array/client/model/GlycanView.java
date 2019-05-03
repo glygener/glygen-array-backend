@@ -7,7 +7,7 @@ public class GlycanView {
 	String name;
 	String comment;
 	String sequence;
-	String sequenceFormat;
+	GlycanSequenceFormat sequenceFormat = GlycanSequenceFormat.GLYCOCT;
 	
 	public String getId() {
 		return id;
@@ -76,13 +76,13 @@ public class GlycanView {
 	/**
 	 * @return the sequenceFormat
 	 */
-	public String getSequenceFormat() {
+	public GlycanSequenceFormat getSequenceFormat() {
 		return sequenceFormat;
 	}
 	/**
 	 * @param sequenceFormat the sequenceFormat to set
 	 */
-	public void setSequenceFormat(String sequenceFormat) {
+	public void setSequenceFormat(GlycanSequenceFormat sequenceFormat) {
 		this.sequenceFormat = sequenceFormat;
 	}
 }

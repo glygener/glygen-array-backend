@@ -1,6 +1,7 @@
 package org.glygen.array.controller;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,10 +9,11 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
-import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
@@ -19,19 +21,18 @@ import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
-import org.glygen.array.exception.BindingNotFoundException;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.Confirmation;
-import org.glygen.array.view.GlycanBinding;
 import org.glygen.array.view.GlycanListResultView;
+import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
@@ -47,14 +48,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
-import io.swagger.annotations.AuthorizationScope;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -155,6 +156,58 @@ public class GlygenArrayController {
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, consumes = {"multipart/form-data"})
+	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p) {
+		BatchGlycanUploadResult result = new BatchGlycanUploadResult();
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
+			Scanner scanner = new Scanner(stream);
+			int count = 0;
+			int countSuccess = 0;
+			while (scanner.hasNext()) {
+				String sequence = scanner.nextLine();
+				count++;
+				try {
+					org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+							org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence);
+					if (glycanObject == null) {
+						// sequence is not valid, ignore and add to the list of failed glycans
+						result.addWrongSequence(sequence);
+					} else {
+						Glycan g = new Glycan();
+						g.setSequence(sequence);
+						g.setSequenceType(GlycanSequenceFormat.GWS.getLabel());
+						Glycan existing = repository.getGlycanBySequence(sequence);
+						if (existing != null) {
+							// duplicate, ignore
+							String id = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
+							result.addDuplicateSequence(id);
+						} else {
+							repository.addGlycan(g, user);
+							countSuccess ++;
+						}
+					}
+				}
+				catch (SparqlException e) {
+					// cannot add glycan
+					scanner.close();
+					stream.close();
+					throw new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage());
+				} catch (Exception e) {
+					// sequence is not valid
+					result.addWrongSequence(sequence);
+				}
+			}
+			scanner.close();
+			stream.close();
+			result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
+			return result;
+		} catch (IOException e) {
+			throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+		}
+	}
+	
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -164,7 +217,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
+	public Confirmation addGlycan (@RequestBody @Valid GlycanView glycan, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
 			Glycan g = new Glycan();
@@ -173,7 +226,7 @@ public class GlygenArrayController {
 			g.setInternalId(glycan.getInternalId());
 			g.setComment(glycan.getComment());
 			g.setSequence(glycan.getSequence());
-			g.setSequenceType(glycan.getSequenceFormat());
+			g.setSequenceType(glycan.getSequenceFormat().getLabel());
 			
 			Glycan existing = repository.getGlycanBySequence(glycan.getSequence());
 			if (existing == null) {
@@ -181,20 +234,31 @@ public class GlygenArrayController {
 				try {
 					if (glycan.getSequence() != null && !glycan.getSequence().isEmpty()) {
 						//check if the given sequence is valid
-						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-								org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
-						BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-								.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-						if (t_image != null) {
-							String glycanURI = repository.addGlycan(g, user);
-							String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-							//save the image into a file
-							logger.debug("Adding image to " + imageLocation);
-							File imageFile = new File(imageLocation + File.separator + id + ".png");
-							ImageIO.write(t_image, "png", imageFile);
+						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
+						switch (glycan.getSequenceFormat()) {
+							case GLYCOCT:
+								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
+								break;
+							case GWS:
+								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence());
+								break;
+						}
+						if (glycanObject != null) {
+							BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+									.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+							if (t_image != null) {
+								String glycanURI = repository.addGlycan(g, user);
+								String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+								//save the image into a file
+								logger.debug("Adding image to " + imageLocation);
+								File imageFile = new File(imageLocation + File.separator + id + ".png");
+								ImageIO.write(t_image, "png", imageFile);
+							} else {
+								logger.error("Glycan image is null");
+								throw new GlycanRepositoryException("Glycan image cannot be generated");
+							}
 						} else {
-							logger.error("Glycan image is null");
-							throw new GlycanRepositoryException("Glycan image cannot be generated");
+							new IllegalArgumentException("Sequence format is not valid for the given sequence");
 						}
 					} else {
 						new GlycanRepositoryException("Cannot add a glycan without a sequence");
@@ -234,32 +298,6 @@ public class GlygenArrayController {
 		} 
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}
-	
-	
-//	@RequestMapping(value="/getimage/{glycanId}", method = RequestMethod.GET, 
-//			produces= {"application/octet-stream"})
-//	public ResponseEntity<Resource> getImageForGlycan (
-//			@ApiParam(required=true, value="id of the glycan to retrieve the image for") 
-//			@PathVariable("glycanId") String glycanId, Principal p) {
-//		
-//		File imageFile = new File(fileStorage.getImageDirectory() + File.separator + glycanId + ".png");
-//		if (imageFile.exists()) {
-//			InputStreamResource resource;
-//			try {
-//				resource = new InputStreamResource(new FileInputStream(imageFile));
-//				return ResponseEntity.ok()
-//			            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + imageFile.getName() + "\"")
-//			            .contentLength(imageFile.length())
-//			            .contentType(MediaType.parseMediaType("application/octet-stream"))
-//			            .body(resource);
-//			} catch (FileNotFoundException e) {
-//				throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
-//			}
-//		} else {
-//			logger.info("Image for glycan " + glycanId + " is not available");
-//			throw new GlycanRepositoryException("Image for glycan " + glycanId + " is not available");
-//		}
-//	}
 	
 	@RequestMapping(value="/getimage/{glycanId}", method = RequestMethod.GET, 
 		produces = MediaType.IMAGE_PNG_VALUE )
@@ -354,7 +392,7 @@ public class GlygenArrayController {
 		return result;
 	}
 	
-	public byte[] getCartoonForGlycan (String glycanId) {
+	private byte[] getCartoonForGlycan (String glycanId) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
 			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
@@ -406,7 +444,10 @@ public class GlygenArrayController {
 		g.setName(glycan.getName());
 		g.setComment(glycan.getComment());
 		g.setSequence(glycan.getSequence());
-		g.setSequenceFormat(glycan.getSequenceType());
+		if (glycan.getSequenceType().equals(GlycanSequenceFormat.GLYCOCT.getLabel()))
+			g.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);
+		else if (glycan.getSequenceType().equals(GlycanSequenceFormat.GWS.getLabel()))
+			g.setSequenceFormat(GlycanSequenceFormat.GWS);
 		g.setInternalId(glycan.getInternalId());
 		g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
 		g.setGlytoucanId(glycan.getGlyTouCanId());

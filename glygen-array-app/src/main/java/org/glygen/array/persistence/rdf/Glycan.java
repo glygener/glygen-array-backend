@@ -12,6 +12,8 @@ public class Glycan {
 	String sequence;
 	String sequenceType;
 	Date dateModified;
+	Date dateCreated;
+	Date dateAddedToLibrary;
 	
 	/**
 	 * @return the uri
@@ -108,5 +110,29 @@ public class Glycan {
 	 */
 	public void setDateModified(Date dateModified) {
 		this.dateModified = dateModified;
+	}
+	/**
+	 * @return the dateCreated
+	 */
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+	/**
+	 * @param dateCreated the dateCreated to set
+	 */
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+	/**
+	 * @return the dateAddedToLibrary
+	 */
+	public Date getDateAddedToLibrary() {
+		return dateAddedToLibrary;
+	}
+	/**
+	 * @param dateAddedToLibrary the dateAddedToLibrary to set
+	 */
+	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
+		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.glygen.array.client.model.GlycanSequenceFormat;
 import org.glygen.array.client.model.GlycanView;
 import org.glygen.array.client.model.User;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
@@ -75,7 +76,7 @@ public class Application implements CommandLineRunner {
 				view.setComment(glycan.getComment());
 				view.setGlytoucanId(glycan.getGlyTouCanId());
 				view.setSequence(glycan.getSequence());
-				view.setSequenceFormat(glycan.getSequenceType());
+				view.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);
 				try {
 					glycanClient.addGlycan(view, user);
 				} catch (HttpClientErrorException e) {

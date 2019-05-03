@@ -2,6 +2,9 @@ package org.glygen.array.view;
 
 import java.util.Date;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
 public class GlycanView {
 	String id;
 	String internalId;
@@ -9,7 +12,7 @@ public class GlycanView {
 	String name;
 	String comment;
 	String sequence;
-	String sequenceFormat;
+	GlycanSequenceFormat sequenceFormat=GlycanSequenceFormat.GLYCOCT;
 	Date dateModified;
 	byte[] cartoon;
 	
@@ -21,6 +24,7 @@ public class GlycanView {
 		this.id = id;
 	}
 	
+	@Size(max=100, message="Id cannot exceed 100 characters")
 	public String getInternalId() {
 		return internalId;
 	}
@@ -32,6 +36,7 @@ public class GlycanView {
 	/**
 	 * @return the glytoucanId
 	 */
+	@Size(min=8, max=11, message="GlytoucanId should be 8 characters long")
 	public String getGlytoucanId() {
 		return glytoucanId;
 	}
@@ -44,6 +49,7 @@ public class GlycanView {
 	/**
 	 * @return the name
 	 */
+	@Size(max=100, message="Name cannot exceed 100 characters")
 	public String getName() {
 		return name;
 	}
@@ -68,6 +74,7 @@ public class GlycanView {
 	/**
 	 * @return the sequence
 	 */
+	@NotEmpty
 	public String getSequence() {
 		return sequence;
 	}
@@ -77,16 +84,12 @@ public class GlycanView {
 	public void setSequence(String sequence) {
 		this.sequence = sequence;
 	}
-	/**
-	 * @return the sequenceFormat
-	 */
-	public String getSequenceFormat() {
+	
+	public GlycanSequenceFormat getSequenceFormat() {
 		return sequenceFormat;
 	}
-	/**
-	 * @param sequenceFormat the sequenceFormat to set
-	 */
-	public void setSequenceFormat(String sequenceFormat) {
+	
+	public void setSequenceFormat(GlycanSequenceFormat sequenceFormat) {
 		this.sequenceFormat = sequenceFormat;
 	}
 	
