@@ -31,10 +31,45 @@ public interface GlygenArrayRepository {
 	//Glycan getGlycan (String glytoucanId) throws SparqlException, SQLException;
 	//Glycan getGlycan (String glytoucanId, UserEntity user) throws SparqlException, SQLException;
 	
-	Glycan getGlycanBySequence (String sequence) throws SparqlException;
-	Glycan getGlycanBySequence (String sequence, UserEntity user) throws SparqlException, SQLException;
+	/**
+	 * check if the glycan exists in global graph (default-graph)
+	 * @param sequence glycoCT sequence
+	 * @return the URI of the existing glycan or null if it does not exist
+	 * @throws SparqlException
+	 */
+	String getGlycanBySequence (String sequence) throws SparqlException;
 	
+	/**
+	 * check if the glycan with the given sequence is already in user's private graph
+	 * @param sequence glycoCT sequence
+	 * @param user user information
+	 * @return the URI of the existing glycan or null if it does not exist
+	 * @throws SparqlException 
+	 * @throws SQLException thrown if the user's graph cannot be accessed
+	 */
+	String getGlycanBySequence (String sequence, UserEntity user) throws SparqlException, SQLException;
+	
+	/**
+	 * get all glycans for the given user in descending order of the URI
+	 * @param user user information
+	 * @return list of Glycan objects
+	 * @throws SparqlException
+	 * @throws SQLException
+	 */
 	List<Glycan> getGlycanByUser (UserEntity user) throws SparqlException, SQLException;
+	
+	/**
+	 * get all glycans for the given user in the given sort order of the provided field
+	 * 
+	 * @param user user information
+	 * @param offset start index
+	 * @param limit total number to be returned
+	 * @param field name of the sort field
+	 * @param order 0 for descending, 1 for ascending sort order
+	 * @return list of Glycans
+	 * @throws SparqlException
+	 * @throws SQLException
+	 */
 	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;

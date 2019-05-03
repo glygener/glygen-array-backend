@@ -156,7 +156,7 @@ public class GlygenArrayController {
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
-	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, consumes = {"multipart/form-data"})
+	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
 	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p) {
 		BatchGlycanUploadResult result = new BatchGlycanUploadResult();
 		UserEntity user = userRepository.findByUsername(p.getName());
@@ -175,13 +175,14 @@ public class GlygenArrayController {
 						// sequence is not valid, ignore and add to the list of failed glycans
 						result.addWrongSequence(sequence);
 					} else {
+						String glycoCT = glycanObject.toGlycoCTCondensed();
 						Glycan g = new Glycan();
-						g.setSequence(sequence);
-						g.setSequenceType(GlycanSequenceFormat.GWS.getLabel());
-						Glycan existing = repository.getGlycanBySequence(sequence);
+						g.setSequence(glycoCT);
+						g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+						String existing = repository.getGlycanBySequence(glycoCT, user);
 						if (existing != null) {
 							// duplicate, ignore
-							String id = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
+							String id = existing.substring(existing.lastIndexOf("/")+1);
 							result.addDuplicateSequence(id);
 						} else {
 							repository.addGlycan(g, user);
@@ -228,8 +229,8 @@ public class GlygenArrayController {
 			g.setSequence(glycan.getSequence());
 			g.setSequenceType(glycan.getSequenceFormat().getLabel());
 			
-			Glycan existing = repository.getGlycanBySequence(glycan.getSequence());
-			if (existing == null) {
+			String existingURI = repository.getGlycanBySequence(glycan.getSequence());
+			if (existingURI == null) {
 				//TODO if there is a glytoucanId, check if it is valid
 				try {
 					if (glycan.getSequence() != null && !glycan.getSequence().isEmpty()) {
@@ -274,12 +275,12 @@ public class GlygenArrayController {
 			} else {
 				// still add to the user's local repo
 				// no need to generate the image again
-				// check if it already exists in local repo as well (by existing glycanURI, by label, by internalId)
-				String id = existing.getUri().substring(existing.getUri().lastIndexOf("/")+1);
-				Glycan local = repository.getGlycanById(id, user);
-				if (local != null)
+				// check if it already exists in local repo as well (by sequence, by label, by internalId)
+				existingURI = repository.getGlycanBySequence(glycan.getSequence(), user);
+				if (existingURI != null)
 					throw new GlycanExistsException("A glycan with the same sequence already exists");
 				
+				Glycan local = null;
 				// check if internalid and label are unique
 				if (glycan.getInternalId() != null) {
 					local = repository.getGlycanByInternalId(glycan.getInternalId(), user);
