@@ -270,10 +270,10 @@ public class GlygenArrayController {
 								throw new GlycanRepositoryException("Glycan image cannot be generated");
 							}
 						} else {
-							new IllegalArgumentException("Sequence format is not valid for the given sequence");
+							throw new IllegalArgumentException("Sequence format is not valid for the given sequence");
 						}
 					} else {
-						new GlycanRepositoryException("Cannot add a glycan without a sequence");
+						throw new GlycanRepositoryException("Cannot add a glycan without a sequence");
 					}
 				} catch (IOException e) {
 					logger.error("Glycan image cannot be generated", e);

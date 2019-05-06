@@ -12,7 +12,7 @@ public class GlycanView {
 	String name;
 	String comment;
 	String sequence;
-	GlycanSequenceFormat sequenceFormat=GlycanSequenceFormat.GLYCOCT;
+	GlycanSequenceFormat sequenceFormat=GlycanSequenceFormat.GWS;
 	Date dateModified;
 	byte[] cartoon;
 	
