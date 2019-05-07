@@ -15,6 +15,7 @@ public class GlycanView {
 	GlycanSequenceFormat sequenceFormat=GlycanSequenceFormat.GWS;
 	Date dateModified;
 	byte[] cartoon;
+	Double mass;
 	
 	public String getId() {
 		return id;
@@ -62,6 +63,7 @@ public class GlycanView {
 	/**
 	 * @return the comment
 	 */
+	@Size(max=250, message="Comment cannot exceed 250 characters")
 	public String getComment() {
 		return comment;
 	}
@@ -113,5 +115,19 @@ public class GlycanView {
 	
 	public void setCartoon(byte[] cartoon) {
 		this.cartoon = cartoon;
+	}
+
+	/**
+	 * @return the mass
+	 */
+	public Double getMass() {
+		return mass;
+	}
+
+	/**
+	 * @param mass the mass to set
+	 */
+	public void setMass(Double mass) {
+		this.mass = mass;
 	}
 }

@@ -11,6 +11,7 @@ public class Glycan {
 	String comment;
 	String sequence;
 	String sequenceType;
+	Double mass;
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
@@ -98,6 +99,18 @@ public class Glycan {
 	 */
 	public void setSequenceType(String sequenceType) {
 		this.sequenceType = sequenceType;
+	}
+	/**
+	 * @return the mass
+	 */
+	public Double getMass() {
+		return mass;
+	}
+	/**
+	 * @param mass the mass to set
+	 */
+	public void setMass(Double mass) {
+		this.mass = mass;
 	}
 	/**
 	 * @return the dateModified

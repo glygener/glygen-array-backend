@@ -58,8 +58,8 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            creds.getUsername(),
-                            creds.getPassword(),
+                            creds.getUsername().trim(),
+                            creds.getPassword().trim(),
                             new ArrayList<>())
             );
         } catch (IOException e) {

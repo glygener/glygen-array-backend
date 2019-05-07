@@ -18,6 +18,7 @@ import javax.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
+import org.eurocarbdb.application.glycanbuilder.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
@@ -28,12 +29,16 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.util.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
+import org.glygen.array.view.LinkerListResultView;
+import org.glygen.array.view.LinkerView;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +53,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -233,11 +237,11 @@ public class GlygenArrayController {
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
 			Glycan g = new Glycan();
-			g.setName(glycan.getName());
-			g.setGlyTouCanId(glycan.getGlytoucanId());
-			g.setInternalId(glycan.getInternalId());
-			g.setComment(glycan.getComment());
-			g.setSequence(glycan.getSequence());
+			g.setName(glycan.getName() != null ? glycan.getName().trim() : glycan.getName());
+			g.setGlyTouCanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
+			g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
+			g.setComment(glycan.getComment() != null ? glycan.getComment().trim() : glycan.getComment());
+			g.setSequence(glycan.getSequence().trim());
 			g.setSequenceType(glycan.getSequenceFormat().getLabel());
 			
 			String existingURI = repository.getGlycanBySequence(glycan.getSequence());
@@ -249,13 +253,14 @@ public class GlygenArrayController {
 						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
 						switch (glycan.getSequenceFormat()) {
 							case GLYCOCT:
-								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence());
+								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
 								break;
 							case GWS:
-								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence());
+								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
 								break;
 						}
 						if (glycanObject != null) {
+							g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
 							BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
 									.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
 							if (t_image != null) {
@@ -287,19 +292,19 @@ public class GlygenArrayController {
 				// still add to the user's local repo
 				// no need to generate the image again
 				// check if it already exists in local repo as well (by sequence, by label, by internalId)
-				existingURI = repository.getGlycanBySequence(glycan.getSequence(), user);
+				existingURI = repository.getGlycanBySequence(glycan.getSequence().trim(), user);
 				if (existingURI != null)
 					throw new GlycanExistsException("A glycan with the same sequence already exists");
 				
 				Glycan local = null;
 				// check if internalid and label are unique
 				if (glycan.getInternalId() != null) {
-					local = repository.getGlycanByInternalId(glycan.getInternalId(), user);
+					local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 					if (local != null) 
 						throw new GlycanExistsException("A glycan with the same source id already exists");
 				}
 				if (glycan.getName() != null) {
-					local = repository.getGlycanByLabel(glycan.getName(), user);
+					local = repository.getGlycanByLabel(glycan.getName().trim(), user);
 					if (local != null) 
 						throw new GlycanExistsException("A glycan with the same label/name already exists");
 				} 
@@ -337,6 +342,20 @@ public class GlygenArrayController {
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
+		} 
+	}
+	
+	@RequestMapping(value="/deleteLinker/{linkerId}", method = RequestMethod.DELETE, 
+			produces={"application/json", "application/xml"})
+	public Confirmation deleteLinker (
+			@ApiParam(required=true, value="id of the linker to delete") 
+			@PathVariable("linkerId") String linkerId, Principal principal) {
+		try {
+			UserEntity user = userRepository.findByUsername(principal.getName());
+			repository.deleteLinker(linkerId, user);
+			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot delete linker " + linkerId);
 		} 
 	}
 	
@@ -397,6 +416,51 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list linkers"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public LinkerListResultView listLinkers (
+			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@RequestParam("offset") Integer offset,
+			@ApiParam(required=true, value="limit of the number of linkers to be retrieved") 
+			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="name of the sort field, defaults to id") 
+			@RequestParam(value="sortBy", required=false) String field, 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@RequestParam(value="order", required=false) Integer order, Principal p) {
+		LinkerListResultView result = new LinkerListResultView();
+		List<LinkerView> linkerList = new ArrayList<LinkerView>();
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			if (offset == null)
+				offset = 0;
+			if (limit == null)
+				limit = 20;
+			if (field == null)
+				field = "id";
+			if (order == null)
+				order = 0; // DESC
+			
+			int total = repository.getLinkerCountByUser (user);
+			
+			List<Linker> linkers = repository.getLinkerByUser(user, offset, limit, field, order);
+			for (Linker linker : linkers) {
+				linkerList.add(getLinkerView(linker));
+			}
+			
+			result.setRows(linkerList);
+			result.setTotal(total);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+		}
+		
+		return result;
+	}
+
 	private byte[] getCartoonForGlycan (String glycanId) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
@@ -435,6 +499,64 @@ public class GlygenArrayController {
 		
 	}
 	
+	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Linker added successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register linkers"),
+			@ApiResponse(code=409, message="A linker with the given pubchemId already exists!"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation addLinker (@RequestBody @Valid LinkerView linker, Principal p) {
+		
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			String linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId().trim());
+			if (linkerURI == null) {
+				// get the linker details from pubChem
+				Linker l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId().trim());
+				if (l == null) {
+					// could not get details from PubChem
+					throw new EntityNotFoundException("A compound with the given pubChemId (" + linker.getPubChemId() + ") does not exist in PubChem");
+					
+				}
+				if (linker.getName() != null) l.setName(linker.getName().trim());
+				if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+			 
+				repository.addLinker(l, user);
+				
+			} else {
+				// still add to the user's local repo
+				// check if it already exists in local repo as well (by pubChemId, by label)
+				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId().trim(), user);
+				if (linkerURI != null)
+					throw new GlycanExistsException("A linker with the same pubChem Id already exists");
+				
+				if (linker.getName() != null) {
+					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) 
+						throw new GlycanExistsException("A linker with the same label/name already exists");
+				}
+				
+				// only add name and comment to the user's local repo
+				// pubChemId is required for insertion
+				Linker l = new Linker();
+				l.setPubChemId(linker.getPubChemId().trim());
+				if (linker.getName() != null) l.setName(linker.getName().trim());
+				if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+			 
+				repository.addLinker(l, user);
+				
+			}
+			
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
+		} 
+		
+		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
+	}
+	
 /*	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
 	public Confirmation addPrivateGraphForUser (Principal p) {
 		try {
@@ -467,5 +589,21 @@ public class GlygenArrayController {
 			logger.warn("Image cannot be retrieved", e);
 		}
 		return g;
+	}
+	
+	private LinkerView getLinkerView(Linker linker) {
+		LinkerView l = new LinkerView();
+		l.setName(linker.getName());
+		l.setComment(linker.getComment());
+		l.setDateModified(linker.getDateModified());
+		l.setPubChemId(linker.getPubChemId());
+		l.setId(linker.getUri().substring(linker.getUri().lastIndexOf("/")+1));
+		l.setImageURL(linker.getImageURL());
+		l.setInChiKey(linker.getInChiKey());
+		l.setInChiSequence(linker.getInChiSequence());
+		l.setIupacName(linker.getIupacName());
+		l.setMolecularFormula(linker.getMolecularFormula());
+		l.setMass(linker.getMass());
+		return l;
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Linker;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 
@@ -28,8 +29,29 @@ public interface GlygenArrayRepository {
 	
 	String addGlycan(Glycan g, UserEntity user) throws SparqlException;
 	
+	
+	String addLinker (Linker l, UserEntity user) throws SparqlException;
+	
 	//Glycan getGlycan (String glytoucanId) throws SparqlException, SQLException;
 	//Glycan getGlycan (String glytoucanId, UserEntity user) throws SparqlException, SQLException;
+	
+	/**
+	 * check if the linker exists in global graph (default-graph)
+	 * @param pubChemId pubchem id
+	 * @return the URI of the existing linker or null if it does not exist
+	 * @throws SparqlException
+	 */
+	public String getLinkerByPubChemId(String pubChemId) throws SparqlException;
+	
+	/**
+	 * check if the linker with the given pubchemId is already in user's private graph
+	 * @param pubChemId pubchem id
+	 * @param user user information
+	 * @return the URI of the existing linker or null if it does not exist
+	 * @throws SparqlException 
+	 * @throws SQLException thrown if the user's graph cannot be accessed
+	 */
+	public String getLinkerByPubChemId (String pubChemId, UserEntity user) throws SparqlException, SQLException;
 	
 	/**
 	 * check if the glycan exists in global graph (default-graph)
@@ -83,5 +105,20 @@ public interface GlygenArrayRepository {
 	Glycan getGlycanByLabel(String glycanId, UserEntity user) throws SparqlException, SQLException;
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
+
+	Linker getLinkerByLabel(String trim, UserEntity user) throws SparqlException, SQLException;
+
+	void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException;
+
+	Linker getLinkerById(String linkerId, UserEntity user) throws SparqlException, SQLException;
+
+	void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException;
+
+	int getLinkerCountByUser(UserEntity user) throws SQLException, SparqlException;
+
+	List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order)
+			throws SparqlException, SQLException;
+
+	List<Linker> getLinkerByUser(UserEntity user) throws SQLException, SparqlException;
 	
 }
