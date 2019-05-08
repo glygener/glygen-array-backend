@@ -23,14 +23,15 @@ public class UserRestClientImpl implements UserRestClient {
 	
 	@Value("${glygen.scheme}")
 	String scheme="https://";
+	//String scheme="http://";
 	
 	@Value("${glygen.host}")
 	String host="glygen.ccrc.uga.edu";
-	//String host="localhost:8080";
+//	String host="localhost:8080";
 	
 	@Value("${glygen.basePath}")
 	String basePath="/ggarray/api/";
-	//String basePath="/";
+//	String basePath="/";
 	
 	@Autowired
 	RestTemplateBuilder builder;

@@ -59,16 +59,9 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
         List<ObjectError> globalErrors = ex.getBindingResult().getGlobalErrors();
-        List<String> errors = new ArrayList<String>(fieldErrors.size() + globalErrors.size());
-        String error;
-        for (FieldError fieldError : fieldErrors) {
-            error = fieldError.getField() + ", " + fieldError.getDefaultMessage();
-            errors.add(error);
-        }
-        for (ObjectError objectError : globalErrors) {
-            error = objectError.getObjectName() + ", " + objectError.getDefaultMessage();
-            errors.add(error);
-        }
+        List<ObjectError> errors = new ArrayList<ObjectError>(fieldErrors.size() + globalErrors.size());
+        errors.addAll(fieldErrors);
+        errors.addAll(globalErrors);
         ErrorMessage errorMessage = new ErrorMessage(errors);
         errorMessage.setStatus(status.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -80,7 +73,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         String unsupported = "Unsupported content type: " + ex.getContentType();
         String supported = "Supported content types: " + MediaType.toString(ex.getSupportedMediaTypes());
-        ErrorMessage errorMessage = new ErrorMessage(unsupported, supported);
+        FieldError error = new FieldError(unsupported, supported, "Unsupported media type");
+        ErrorMessage errorMessage = new ErrorMessage(error);
         errorMessage.setStatus(status.value());
         errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_MEDIATYPE);
         logger.error("MediaType Problem: {}", errorMessage.toString());
@@ -158,8 +152,13 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         } else if (ex instanceof EntityExistsException || ex instanceof GlycanExistsException) {
             status = HttpStatus.CONFLICT;
-            errorMessage = new ErrorMessage (ex.getMessage());
-            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
+    			errorMessage = (ErrorMessage) ex.getCause();
+    			errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+    		} else {
+    			errorMessage = new ErrorMessage (ex.getMessage());
+    			errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+    		}
         } else if (ex instanceof EmailExistsException ) {
             status = HttpStatus.CONFLICT;
             errorMessage = new ErrorMessage (ex.getMessage());
@@ -186,6 +185,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         		}
         		if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
         			errorMessage = (ErrorMessage) ex.getCause();
+        			errorMessage.setErrorCode(code);
         		} else {
         			errorMessage = new ErrorMessage (ex.getMessage());
         			errorMessage.setErrorCode(code);
@@ -206,18 +206,19 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         } else if (ex instanceof DataIntegrityViolationException) {
         	Throwable cause = ((DataIntegrityViolationException)ex).getCause();
         	if (cause != null) {
-        		List<String> errors = new ArrayList<String>();
+        		List<ObjectError> errors = new ArrayList<ObjectError>();
         		if (cause instanceof ConstraintViolationException) {
         			Throwable mostSpecificCause = ((ConstraintViolationException)cause).getCause();
                     if (mostSpecificCause != null) {
                        // String exceptionName = mostSpecificCause.getClass().getName();
                         String message = mostSpecificCause.getMessage();
+                        errorMessage = new ErrorMessage(message);
                        // errors.add(exceptionName);
-                        errors.add(message);
+                       // errors.add(message);
                     } else {
-                        errors.add(ex.getMessage());
+                    	errorMessage = new ErrorMessage(ex.getMessage());
                     }
-                    errors.add("Violated constraint: " + ((ConstraintViolationException)cause).getConstraintName());
+                    errors.add(new ObjectError (((ConstraintViolationException)cause).getConstraintName(), ((ConstraintViolationException)ex).getMessage()));
                     status = HttpStatus.CONFLICT;
         		} else if (cause instanceof PropertyValueException) {
         			Throwable mostSpecificCause = ((PropertyValueException)cause).getCause();
@@ -225,12 +226,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                      //   String exceptionName = mostSpecificCause.getClass().getName();
                         String message = mostSpecificCause.getMessage();
                      //   errors.add(exceptionName);
-                        errors.add(message);
+                        errorMessage = new ErrorMessage(message);
                     } else {
-                        errors.add(ex.getMessage());
+                    	errorMessage = new ErrorMessage(ex.getMessage());
                     }
-                    errors.add(((PropertyValueException)ex).getEntityName());
-                    errors.add(((PropertyValueException)ex).getPropertyName());
+                    errors.add(new FieldError (((PropertyValueException)ex).getEntityName(), ((PropertyValueException)ex).getPropertyName(), "Property Value error"));
         		} else {
 		        	Throwable mostSpecificCause = ((DataIntegrityViolationException)ex).getMostSpecificCause();
 		            if (mostSpecificCause != null) {
@@ -241,7 +241,6 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		                errorMessage = new ErrorMessage(ex.getMessage());
 		            }
         		}
-        		errorMessage = new ErrorMessage(errors);
         	} else { // only put the message
         		errorMessage = new ErrorMessage(ex.getMessage());
         	}
@@ -249,34 +248,33 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             status = HttpStatus.CONFLICT;
         } else if (ex instanceof ConstraintViolationException) {
         	Throwable mostSpecificCause = ((ConstraintViolationException)ex).getCause();
-        	List<String> errors = new ArrayList<String>();
+        	
             if (mostSpecificCause != null) { 
                 if (mostSpecificCause instanceof PSQLException) {
                 	String detail = ((PSQLException)mostSpecificCause).getServerErrorMessage().getDetail();
-                	errors.add(detail);
+                	errorMessage = new ErrorMessage(detail);
+                	
                 }
                 else {
                 	//String exceptionName = mostSpecificCause.getClass().getName();
                     String message = mostSpecificCause.getMessage();
-                  //  errors.add(exceptionName);
-                    errors.add(message);
+                    errorMessage = new ErrorMessage(message);
                 }
                 
             } else {
-               errors.add(ex.getMessage());
+            	errorMessage = new ErrorMessage(ex.getMessage());
             }
-            errors.add("Violated constraint: " + ((ConstraintViolationException)ex).getConstraintName());
-            errorMessage = new ErrorMessage(errors);
+            errorMessage = new ErrorMessage(new ObjectError (((ConstraintViolationException)ex).getConstraintName(), ((ConstraintViolationException)ex).getMessage()));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             status = HttpStatus.CONFLICT;
         } else if (ex instanceof javax.validation.ConstraintViolationException) {
         	Set<javax.validation.ConstraintViolation<?>> constaintViolations = ((javax.validation.ConstraintViolationException)ex).getConstraintViolations();
-        	List<String> errors = new ArrayList<String>(constaintViolations.size());
+        	List<ObjectError> errors = new ArrayList<ObjectError>(constaintViolations.size());
         	for (Iterator iterator = constaintViolations.iterator(); iterator
 					.hasNext();) {
 				ConstraintViolation<?> constraintViolation = (ConstraintViolation<?>) iterator
 						.next();
-				String error = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+				ObjectError error = new ObjectError(constraintViolation.getPropertyPath().toString(), constraintViolation.getMessage());
 				errors.add(error);
 			}
         	errorMessage = new ErrorMessage(errors);
@@ -319,7 +317,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             logger.warn("Unknown exception type: " + ex.getClass().getName());
             logger.error("Internal Server Error.", ex);
             status = HttpStatus.INTERNAL_SERVER_ERROR;
-            ErrorMessage err = new ErrorMessage (ex.getClass().getName(), ex.getMessage());
+            ErrorMessage err = new ErrorMessage (ex.getClass().getName() + ": " + ex.getMessage());
             err.setStatus(status.value());
             err.setErrorCode(ErrorCodes.INTERNAL_ERROR);
             return handleExceptionInternal(ex, err, headers, status, request);

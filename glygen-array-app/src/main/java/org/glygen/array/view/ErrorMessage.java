@@ -11,6 +11,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.springframework.validation.ObjectError;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @XmlRootElement(name="result")
@@ -26,35 +28,39 @@ public class ErrorMessage extends Error {
 		return statusCode;
 	}
 
-	private List<String> errors;
+	private List<ObjectError> errors;
 	private int statusCode;
 	private ErrorCodes errorCode;
-	 
+	
 	public ErrorMessage() {
 	}
 	 
-	public ErrorMessage(List<String> errors) {
+	public ErrorMessage(String message) {
+		super(message);
+	}
+	 
+	public ErrorMessage(List<ObjectError> errors) {
 		this.errors = errors;
 	}
 	 
-	public ErrorMessage(String error) {
+	public ErrorMessage(ObjectError error) {
 		this(Collections.singletonList(error));
 	}
 	 
-	public ErrorMessage(String ... errors) {
+	public ErrorMessage(ObjectError ... errors) {
 		this(Arrays.asList(errors));
 	}
 	
 	@XmlElement(name="error")
-	public List<String> getErrors() {
+	public List<ObjectError> getErrors() {
 		return errors;
 	}
 	 
-	public void setErrors(List<String> errors) {
+	public void setErrors(List<ObjectError> errors) {
 		this.errors = errors;
 	}
 	
-	public void addError(String error) {
+	public void addError(ObjectError error) {
 		if (this.errors == null)
 			this.errors = new ArrayList<>();
 		this.errors.add(error);
@@ -77,12 +83,14 @@ public class ErrorMessage extends Error {
 
 	@Override
 	public String toString() {
-		String errorsString ="";
-		for (Iterator<String> iterator = errors.iterator(); iterator.hasNext();) {
-			String error = (String) iterator.next();
-			errorsString += error ;
-			if (iterator.hasNext()) {
-				errorsString += ", ";
+		String errorsString = getMessage() + " ";
+		if (errors != null) {
+			for (Iterator<ObjectError> iterator = errors.iterator(); iterator.hasNext();) {
+				ObjectError error = (ObjectError) iterator.next();
+				errorsString += error.toString() ;
+				if (iterator.hasNext()) {
+					errorsString += ", ";
+				}
 			}
 		}
 		return errorsString;

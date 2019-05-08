@@ -21,6 +21,7 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
+import org.glygen.array.service.UserManagerImpl;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -38,6 +39,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -94,7 +97,73 @@ public class UserController {
 	    				+ "or user with the given email already exists (ErrorCode=4006 Not Allowed)"),
 	    		@ApiResponse(code=415, message="Media type is not supported"),
 	    		@ApiResponse(code=500, message="Internal Server Error (Mail cannot be sent)")})
-	public Confirmation signup (@RequestBody(required=true) @Valid User user) {
+	public Confirmation signup (@RequestBody(required=true) User user) {
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			if (user.getEmail() == null || user.getEmail().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("email", "cannot be empty"));
+				}	
+			}
+			if (user.getUserName() == null || user.getUserName().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "userName", user.getUserName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("userName", "cannot be empty"));
+				}	
+			}
+			if (user.getPassword() == null || user.getPassword().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "password", user.getPassword());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("password", "cannot be empty"));
+				}	
+			}
+			if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "password", user.getPassword());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("password", "min 5, max 20 characters, at least 1 lowercase, 1 uppercase letter, 1 numeric and 1 special character"));
+				}	
+			}
+			if  (user.getEmail() != null && !user.getEmail().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("email", "not a valid email"));
+				}		
+			}
+			if (user.getAffiliation() != null) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliation", user.getAffiliation());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("affiliation", "exceeeds length restrictions"));
+				}		
+			}
+			if (user.getAffiliationWebsite() != null) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("affiliationWebsite", "exceeeds length restrictions"));
+				}		
+			}
+			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "firstName", user.getFirstName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("firstName", "exceeeds length restrictions"));
+				}		
+			}
+			if (user.getLastName() != null && !user.getLastName().isEmpty()) {
+				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "lastName", user.getLastName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("lastName", "exceeeds length restrictions"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid user information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -161,31 +230,31 @@ public class UserController {
 			if  (user.getEmail() != null && !user.getEmail().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
 				if (!violations.isEmpty()) {
-					errorMessage.addError("email, not a valid email");
+					errorMessage.addError(new ObjectError("email", "not a valid email"));
 				}		
 			}
 			if (user.getAffiliation() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliation", user.getAffiliation());
 				if (!violations.isEmpty()) {
-					errorMessage.addError("affiliation, exceeeds length restrictions");
+					errorMessage.addError(new ObjectError("affiliation", "exceeeds length restrictions"));
 				}		
 			}
 			if (user.getAffiliationWebsite() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
 				if (!violations.isEmpty()) {
-					errorMessage.addError("affiliationWebsite, exceeeds length restrictions");
+					errorMessage.addError(new ObjectError("affiliationWebsite", "exceeeds length restrictions"));
 				}		
 			}
 			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "firstName", user.getFirstName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError("firstName, exceeeds length restrictions");
+					errorMessage.addError(new ObjectError("firstName", "exceeeds length restrictions"));
 				}		
 			}
 			if (user.getLastName() != null && !user.getLastName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "lastName", user.getLastName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError("lastName, exceeeds length restrictions");
+					errorMessage.addError(new ObjectError("lastName", "exceeeds length restrictions"));
 				}		
 			}
 			
@@ -202,6 +271,8 @@ public class UserController {
     		// username of the authenticated user should match the username of the user retrieved from the db
     		
     		if (auth.getName().equals(loginId)) {
+    			//TODO if email has been changed, confirm user again with the new email
+    			//TODO update only when the email can be sent correctly
     			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
     			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
     			if (user.getEmail() != null && !user.getEmail().isEmpty()) userEntity.setEmail(user.getEmail());
@@ -231,7 +302,7 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException, LinkExpiredException {
         final String result = userManager.validateVerificationToken(token);
-        if (result.equals("valid")) {
+        if (result.equals(UserManagerImpl.TOKEN_VALID)) {
             final UserEntity user = userManager.getUserByToken(token);
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
         }
@@ -244,11 +315,8 @@ public class UserController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
-		boolean userNameAvailable = true;	
 		UserEntity user = userRepository.findByUsername(username);
-		if (user != null)
-			userNameAvailable = false;
-		return userNameAvailable;
+		return user == null;
 	}
 
 	@ApiIgnore

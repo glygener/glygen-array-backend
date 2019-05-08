@@ -38,7 +38,7 @@ public class User {
 	 * @return the password
 	 */
 	@NotEmpty
-	@Password
+	@Password(message="min 5, max 20 characters, at least 1 lowercase, 1 uppercase letter, 1 numeric and 1 special character")
 	public String getPassword() {
 		return password;
 	}

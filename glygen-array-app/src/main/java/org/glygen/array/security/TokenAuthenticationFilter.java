@@ -118,10 +118,7 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 	    if (mostSpecificCause != null) {
 	    	//String exceptionName = mostSpecificCause.getClass().getName();
 	    	String message = mostSpecificCause.getMessage();
-	        errorMessage = new ErrorMessage();
-	        List<String> errors = new ArrayList<>();
-	        errors.add(message);
-	        errorMessage.setErrors(errors);
+	        errorMessage = new ErrorMessage(message);
 	    } else {
 	    	errorMessage = new ErrorMessage(authEx.getMessage());
 	    }

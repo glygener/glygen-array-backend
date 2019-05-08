@@ -10,10 +10,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
@@ -34,6 +36,8 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.util.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.Confirmation;
+import org.glygen.array.view.ErrorCodes;
+import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
@@ -48,6 +52,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -78,6 +83,9 @@ public class GlygenArrayController {
 	
 	@Value("${spring.file.imagedirectory}")
 	String imageLocation;
+	
+	@Autowired
+	Validator validator;
 
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -96,62 +104,7 @@ public class GlygenArrayController {
 //			glycanWorkspase.setNotation(GraphicOptions.NOTATION_CFG);
 
 	}
-	
-//	@RequestMapping(value = "/addbinding", method = RequestMethod.POST, 
-//    		consumes={"application/json", "application/xml"},
-//    		produces={"application/json", "application/xml"})
-//	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Add a new glycan binding")})
-//	public Confirmation addGlycanBinding (@RequestBody GlycanBinding glycan) throws Exception {
-//		try {
-//			StringBuffer sparqlbuf = new StringBuffer();
-//			String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
-//			sparqlbuf.append(prefix);
-//			sparqlbuf.append("INSERT ");
-//			sparqlbuf.append("{ GRAPH <" + "http://array.glygen.org/demo/test" + ">\n");
-//			// sparqlbuf.append(getUsing());
-//			sparqlbuf.append("{ " + "<" +  "http://array.glygen.org/" + glycan.getGlycanId().hashCode() + "> glycan:has_binding \"" + glycan.getBindingValue() + "\" ." + " }\n");
-//			sparqlbuf.append("}\n");
-//			sparqlDAO.insert(sparqlbuf.toString());
-//			return new Confirmation("Binding added successfully", HttpStatus.CREATED.value());
-//		} catch (SparqlException se) {
-//			logger.error("Cannot insert into the Triple store", se);
-//			throw new GlycanRepositoryException("Binding cannot be added", se);
-//		} catch (Exception e) {
-//			logger.error("Cannot generate unique URI", e);
-//			throw new GlycanRepositoryException("Binding cannot be added", e);
-//		}
-//	}
 
-//	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to glycan binding")})
-//	@RequestMapping(value="/getbinding/{glycanId}", method = RequestMethod.GET, produces={"application/json", "application/xml"})
-//	public GlycanBinding getGlycanBinding (@ApiParam(required=true, value="id of the glycan to retrieve the binding for") 
-//											@PathVariable("glycanId") String glycanId) throws Exception {
-//		String uri = "http://array.glygen.org/" + glycanId.hashCode();
-//		StringBuffer query = new StringBuffer();
-//		// note the carriage return
-//		String prefix="PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \nPREFIX glygenarray: <http://array.glygen.org/demoprefix>\n PREFIX glycan: <http://purl.jp/bio/12/glyco/glycan>\n";
-//		query.append(prefix + "\n");
-//		query.append("SELECT ?" + "BINDING_VALUE" + "\n");
-//		query.append("FROM <http://array.glygen.org/demo/test>\n");
-//		query.append("{ <" + uri + "> glycan:has_binding ?" + "BINDING_VALUE" + " .}");
-//		try {
-//			List<SparqlEntity> results = sparqlDAO.query(query.toString());
-//			if (results == null || results.isEmpty()) {
-//				throw new BindingNotFoundException("Binding does not exist for the glycan " + glycanId);
-//			}
-//			SparqlEntity result = results.get(0);
-//			String binding = result.getValue("BINDING_VALUE");
-//			GlycanBinding bindingResult = new GlycanBinding();
-//			bindingResult.setGlycanId(glycanId);
-//			bindingResult.setBindingValue(Double.parseDouble(binding));
-//			return bindingResult;
-//		} catch (SparqlException e) {
-//			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
-//		} catch (Exception e) {
-//			throw new GlycanRepositoryException("Binding cannot be retrieved", e);
-//		}
-//	}
-	
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -234,7 +187,50 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addGlycan (@RequestBody @Valid GlycanView glycan, Principal p) {
+	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
+		if (glycan.getSequence() == null || glycan.getSequence().isEmpty()) {
+			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
+			errorMessage.addError(new ObjectError("sequence", "Sequence cannot be empty"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		}
+		// validate first
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			
+			if  (glycan.getName() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycan.getName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 100 characters"));
+				}		
+			}
+			if (glycan.getComment() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycan.getComment());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+				}		
+			}
+			if (glycan.getInternalId() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycan.getInternalId());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions"));
+				}		
+			}
+			if (glycan.getGlytoucanId() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "glytoucanId", glycan.getGlytoucanId());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("glytoucanId", "exceeeds length restrictions"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
 		try {
 			UserEntity user = userRepository.findByUsername(p.getName());
 			Glycan g = new Glycan();
@@ -276,7 +272,9 @@ public class GlygenArrayController {
 								throw new GlycanRepositoryException("Glycan image cannot be generated");
 							}
 						} else {
-							throw new IllegalArgumentException("Sequence format is not valid for the given sequence");
+							ErrorMessage errorMessage = new ErrorMessage("Sequence format is not valid for the given sequence");
+							errorMessage.addError(new ObjectError("sequence", "Sequence cannot be parsed. Not valid"));
+							throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
 						}
 					} else {
 						throw new GlycanRepositoryException("Cannot add a glycan without a sequence");
@@ -286,7 +284,9 @@ public class GlygenArrayController {
 					throw new GlycanRepositoryException("Glycan image cannot be generated", e);
 				} catch (Exception e) {
 					logger.error("Glycan sequence is not valid", e);
-					throw new IllegalArgumentException("Glycan sequence is not valid", e);
+					ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+					errorMessage.addError(new ObjectError("sequence", "Sequence cannot be parsed. Not valid"));
+					throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
 				}
 				
 			} else {
@@ -294,20 +294,29 @@ public class GlygenArrayController {
 				// no need to generate the image again
 				// check if it already exists in local repo as well (by sequence, by label, by internalId)
 				existingURI = repository.getGlycanBySequence(glycan.getSequence().trim(), user);
-				if (existingURI != null)
+				if (existingURI != null) {
+					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
+					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 					throw new GlycanExistsException("A glycan with the same sequence already exists");
+				}
 				
 				Glycan local = null;
 				// check if internalid and label are unique
 				if (glycan.getInternalId() != null) {
 					local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
-					if (local != null) 
-						throw new GlycanExistsException("A glycan with the same source id already exists");
+					if (local != null) {
+						ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
+						errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+						throw new GlycanExistsException("A glycan with the same internal id already exists", errorMessage);
+					}
 				}
 				if (glycan.getName() != null) {
 					local = repository.getGlycanByLabel(glycan.getName().trim(), user);
-					if (local != null) 
-						throw new GlycanExistsException("A glycan with the same label/name already exists");
+					if (local != null) {
+						ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
+						errorMessage.addError(new ObjectError("name", "Duplicate"));
+						throw new GlycanExistsException("A glycan with the same label/name already exists", errorMessage);
+					}
 				} 
 				repository.addGlycan(g, user);
 			}
@@ -509,7 +518,38 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A linker with the given pubchemId already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addLinker (@RequestBody @Valid LinkerView linker, Principal p) {
+	public Confirmation addLinker (@RequestBody LinkerView linker, Principal p) {
+		
+		if (linker.getPubChemId() == null || linker.getPubChemId().isEmpty()) {
+			ErrorMessage errorMessage = new ErrorMessage("PubChemId cannot be empty");
+			errorMessage.addError(new ObjectError("pubChemId", "PubChemId cannot be empty"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+		}
+		// validate first
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			
+			if  (linker.getName() != null) {
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 100 characters"));
+				}		
+			}
+			if (linker.getComment() != null) {
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getComment());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
 		
 		UserEntity user = userRepository.findByUsername(p.getName());
 		try {
@@ -531,13 +571,19 @@ public class GlygenArrayController {
 				// still add to the user's local repo
 				// check if it already exists in local repo as well (by pubChemId, by label)
 				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId().trim(), user);
-				if (linkerURI != null)
-					throw new GlycanExistsException("A linker with the same pubChem Id already exists");
+				if (linkerURI != null) {
+					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate linkers");
+					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+					throw new GlycanExistsException("A linker with the same pubChem Id already exists", errorMessage);
+				}
 				
 				if (linker.getName() != null) {
 					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
-					if (local != null) 
-						throw new GlycanExistsException("A linker with the same label/name already exists");
+					if (local != null) {
+						ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate linkers");
+						errorMessage.addError(new ObjectError("name", "Duplicate"));
+						throw new GlycanExistsException("A linker with the same label/name already exists", errorMessage);
+					}
 				}
 				
 				// only add name and comment to the user's local repo
@@ -557,18 +603,6 @@ public class GlygenArrayController {
 		
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
 	}
-	
-/*	@RequestMapping(value="/addgraph", method = RequestMethod.PUT, produces={"application/json", "application/xml"})
-	public Confirmation addPrivateGraphForUser (Principal p) {
-		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
-			String newGraphIRI = repository.addPrivateGraphForUser(user);
-			return new Confirmation("Private graph " + newGraphIRI + " added successfully", HttpStatus.CREATED.value());
-		} catch (SQLException e) {
-			throw new GlycanRepositoryException("Private Graph cannot be added for user " + p.getName(), e);
-		}
-		
-	}*/
 	
 	private GlycanView getGlycanView (Glycan glycan) {
 		GlycanView g = new GlycanView();
