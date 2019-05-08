@@ -183,6 +183,7 @@ public class GlygenArrayController {
 						Glycan g = new Glycan();
 						g.setSequence(glycoCT);
 						g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+						g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
 						String existing = repository.getGlycanBySequence(glycoCT, user);
 						if (existing != null) {
 							// duplicate, ignore
@@ -573,6 +574,7 @@ public class GlygenArrayController {
 		GlycanView g = new GlycanView();
 		g.setName(glycan.getName());
 		g.setComment(glycan.getComment());
+		g.setMass(glycan.getMass());
 		g.setSequence(glycan.getSequence());
 		if (glycan.getSequenceType().equals(GlycanSequenceFormat.GLYCOCT.getLabel()))
 			g.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);

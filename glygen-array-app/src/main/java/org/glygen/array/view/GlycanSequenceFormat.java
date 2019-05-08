@@ -1,5 +1,6 @@
 package org.glygen.array.view;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum GlycanSequenceFormat {
@@ -7,6 +8,15 @@ public enum GlycanSequenceFormat {
 	GWS("GlycoWorkbench");
 	
 	String label;
+	
+	@JsonCreator
+	public static GlycanSequenceFormat forValue(String value) {
+		if (value.equals("GlycoCT"))
+			return GLYCOCT;
+		else if (value.equals("GlycoWorkbench"))
+			return GWS;
+		return GLYCOCT;
+	}
 	
 	private GlycanSequenceFormat(String label) {
 		this.label = label;
