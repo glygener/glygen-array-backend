@@ -415,7 +415,7 @@ public class UserController {
     public @ResponseBody Confirmation changePassword (
     		Principal p,
     		@ApiParam(value = "your password", type = "string", format = "password")
-    		@RequestParam(required=true) 
+    		@RequestBody(required=true) 
     		String newPassword, 
     		@PathVariable("userName") String userName) {
     	if (p == null) {
@@ -429,15 +429,19 @@ public class UserController {
     	
     	// using @NotEmpty for newPassword didn't work, so have to handle it here
     	if (newPassword == null || newPassword.isEmpty()) {
-    		throw new IllegalArgumentException("Invalid Input: new password cannot be empty");
+    		ErrorMessage errorMessage = new ErrorMessage ("new password cannot be empty");
+    		errorMessage.addError(new ObjectError("password", "cannot be empty"));
+    		throw new IllegalArgumentException("Invalid Input: new password cannot be empty", errorMessage);
     	}
     	
     	//password validation 
     	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
     	if (!pattern.matcher(newPassword).matches()) {
     		logger.debug("Password fails pattern: " + newPassword);
-    		throw new IllegalArgumentException("Invalid Input: The password length must be greater than or equal to 5, must contain one or more uppercase characters, "
-    				+ "must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
+    		ErrorMessage errorMessage = new ErrorMessage ("new password is not valid");
+    		errorMessage.addError(new ObjectError("password", "The password length must be greater than or equal to 5, must contain one or more uppercase characters, \"\n" + 
+    				"    				+ \"must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters\""));
+    		throw new IllegalArgumentException("Invalid Input: Password is not valid", errorMessage);
     	}
     	// encrypt the password
 		String hashedPassword = passwordEncoder.encode(newPassword);
