@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: "dev"
+    active: "prod"
   datasource:
     url: jdbc:postgresql://localhost:5432/glygen
     username: glygen
