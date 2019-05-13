@@ -371,13 +371,18 @@ public class GlygenArrayController {
 	
 	
 	@RequestMapping(value = "/updateGlycan", method = RequestMethod.PUT)
-	public void updateGlycan(@ApiParam(required = true, value = "glycan need to be updated") Glycan glycan,
-			Principal principal) throws SQLException {
+	public void updateGlycan(@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
 		try {
 			UserEntity user = userRepository.findByUsername(principal.getName());
+			Glycan glycan= new Glycan();
+			glycan.setUri(glycanView.getId());
+			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
+			glycan.setComment(glycanView.getComment() != null ? glycanView.getComment().trim() : glycanView.getComment());
+			glycan.setName(glycanView.getName());			
 			repository.updateGlycan(glycan, user);
+			
 		} catch (SparqlException e) {
-			throw new GlycanRepositoryException("Error updating glycan with internalId: " + glycan.getInternalId());
+			throw new GlycanRepositoryException("Error updating glycan with internalId: " + glycanView.getInternalId());
 		}
 	}
 	
