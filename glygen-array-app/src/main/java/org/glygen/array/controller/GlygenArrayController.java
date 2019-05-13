@@ -33,6 +33,7 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.util.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.Confirmation;
@@ -375,7 +376,7 @@ public class GlygenArrayController {
 		try {
 			UserEntity user = userRepository.findByUsername(principal.getName());
 			Glycan glycan= new Glycan();
-			glycan.setUri(glycanView.getId());
+			glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
 			glycan.setComment(glycanView.getComment() != null ? glycanView.getComment().trim() : glycanView.getComment());
 			glycan.setName(glycanView.getName());			
