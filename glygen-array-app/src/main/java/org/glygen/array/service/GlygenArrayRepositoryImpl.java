@@ -519,6 +519,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		List<Glycan> glycans = new ArrayList<Glycan>();
 		
 		String sortPredicate = getSortPredicate (field);
+		
 		// get all glycanURIs from user's private graph
 		String graph = getGraphForUser(user);
 		if (graph != null) {
@@ -541,10 +542,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					" OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			List<String> processed = new ArrayList<String>();
 			for (SparqlEntity sparqlEntity : results) {
 				String glycanURI = sparqlEntity.getValue("s");
-				Glycan glycan = getGlycanFromURI(glycanURI, graph);
-				glycans.add(glycan);
+				if (!processed.contains(glycanURI)) {
+					Glycan glycan = getGlycanFromURI(glycanURI, graph);
+					glycans.add(glycan);
+					processed.add(glycanURI);
+				}
 			}
 		}
 		
@@ -589,10 +594,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					" OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			List<String> processed = new ArrayList<String>();
 			for (SparqlEntity sparqlEntity : results) {
 				String linkerURI = sparqlEntity.getValue("s");
-				Linker linker = getLinkerFromURI(linkerURI, graph);
-				linkers.add(linker);
+				if (!processed.contains(linkerURI)) {
+					Linker linker = getLinkerFromURI(linkerURI, graph);
+					linkers.add(linker);
+					processed.add(linkerURI);
+				}
 			}
 		}
 		
@@ -610,6 +619,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return "gadr:has_internal_id";
 		else if (field.equalsIgnoreCase("dateModified"))
 			return "gadr:has_date_modified";
+		else if (field.equalsIgnoreCase("mass"))
+			return "gadr:has_mass";
 		else if (field.equalsIgnoreCase("id"))
 			return null;
 		return null;

@@ -211,16 +211,16 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
 				}		
 			}
-			if (glycan.getInternalId() != null) {
+			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycan.getInternalId());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 100 characters)"));
 				}		
 			}
-			if (glycan.getGlytoucanId() != null) {
+			if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "glytoucanId", glycan.getGlytoucanId());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("glytoucanId", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("glytoucanId", "GlytoucanId should be 8 characters long"));
 				}		
 			}
 			
