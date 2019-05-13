@@ -56,9 +56,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			+ "\nPREFIX gadr: <http://purl.org/gadr/data#>"
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
 	
-	String uriPrefix = "http://glygen.org/glygenarray/";
-	String ontPrefix = "http://purl.org/gadr/data#";
-	
 	@Override
 	public String addGlycan(Glycan g, UserEntity user) throws SparqlException {
 		String graph = null;
