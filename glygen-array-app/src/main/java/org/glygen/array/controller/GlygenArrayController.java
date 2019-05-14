@@ -189,7 +189,7 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
-		if (glycan.getSequence() == null || glycan.getSequence().isEmpty()) {
+		if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
 			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
 			errorMessage.addError(new ObjectError("sequence", "Sequence cannot be empty"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
@@ -242,11 +242,11 @@ public class GlygenArrayController {
 			g.setSequence(glycan.getSequence().trim());
 			g.setSequenceType(glycan.getSequenceFormat().getLabel());
 			
-			String existingURI = repository.getGlycanBySequence(glycan.getSequence());
+			String existingURI = repository.getGlycanBySequence(glycan.getSequence().trim());
 			if (existingURI == null) {
 				//TODO if there is a glytoucanId, check if it is valid
 				try {
-					if (glycan.getSequence() != null && !glycan.getSequence().isEmpty()) {
+					if (glycan.getSequence() != null && !glycan.getSequence().trim().isEmpty()) {
 						//check if the given sequence is valid
 						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
 						switch (glycan.getSequenceFormat()) {

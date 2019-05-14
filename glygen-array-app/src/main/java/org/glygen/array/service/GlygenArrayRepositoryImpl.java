@@ -539,14 +539,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					" OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			List<String> processed = new ArrayList<String>();
+			
 			for (SparqlEntity sparqlEntity : results) {
 				String glycanURI = sparqlEntity.getValue("s");
-				if (!processed.contains(glycanURI)) {
-					Glycan glycan = getGlycanFromURI(glycanURI, graph);
-					glycans.add(glycan);
-					processed.add(glycanURI);
-				}
+				Glycan glycan = getGlycanFromURI(glycanURI, graph);
+				glycans.add(glycan);	
 			}
 		}
 		
@@ -591,14 +588,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					" OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			List<String> processed = new ArrayList<String>();
+			
 			for (SparqlEntity sparqlEntity : results) {
 				String linkerURI = sparqlEntity.getValue("s");
-				if (!processed.contains(linkerURI)) {
-					Linker linker = getLinkerFromURI(linkerURI, graph);
-					linkers.add(linker);
-					processed.add(linkerURI);
-				}
+				Linker linker = getLinkerFromURI(linkerURI, graph);
+				linkers.add(linker);
 			}
 		}
 		
