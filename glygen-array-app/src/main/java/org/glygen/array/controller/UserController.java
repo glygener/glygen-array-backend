@@ -372,14 +372,22 @@ public class UserController {
     }
 	
 	@RequestMapping(value="/recover", method = RequestMethod.GET)
-    @ApiOperation(value="Returns the user's login name when email is provided", response=String.class)
+    @ApiOperation(value="Recovers the user's username. Sends an email to the email provided by the user if it has valid account", response=String.class)
     @ApiResponses (value ={@ApiResponse(code=200, message="Username recovered successfully"), 
     		@ApiResponse(code=400, message="Illegal argument - valid email has to be provided"),
             @ApiResponse(code=404, message="User with given email does not exist"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public ResponseEntity<String> recoverUsername (@RequestParam(value="email", required=true) String email) {
-    	String loginId = userManager.recoverLogin(email);
-		return new ResponseEntity<String>(loginId, HttpStatus.OK);
+    public @ResponseBody Confirmation recoverUsername (@RequestParam(value="email", required=true) String email) {
+		UserEntity user = userManager.recoverLogin(email);
+    	String userEmail = user.getEmail();
+    	
+    	if (userEmail == null) 
+    		throw new UserNotFoundException ("A user with email " + email + " does not exist");
+    	
+    	emailManager.sendUserName(user);
+    	
+    	logger.info("UserName Recovery email is sent to {}", userEmail);
+    	return new Confirmation("Email with UserName was sent", HttpStatus.OK.value());
     }
     
 	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})

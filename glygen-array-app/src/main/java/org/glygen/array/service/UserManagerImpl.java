@@ -87,12 +87,12 @@ public class UserManagerImpl implements UserManager {
 	}
 
 	@Override
-	public String recoverLogin(String email) {
+	public UserEntity recoverLogin(String email) {
 		UserEntity user = repository.findByEmail(email);
 		if (user == null) {
 			throw new UserNotFoundException("No user is associated with " + email);
 		}
-		return user.getUsername();
+		return user;
 	}
 
 	@Override

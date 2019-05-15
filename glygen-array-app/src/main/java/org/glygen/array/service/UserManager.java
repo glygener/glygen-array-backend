@@ -19,7 +19,7 @@ public interface UserManager {
 	
 	void deleteUser (UserEntity user);
 	
-	String recoverLogin(String email);
+	UserEntity recoverLogin(String email);
 	
 	void changePassword (String username, String newPassword);
 

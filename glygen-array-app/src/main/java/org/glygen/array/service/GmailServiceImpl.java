@@ -11,15 +11,11 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.util.RandomPasswordGenerator;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -151,6 +147,19 @@ public final class GmailServiceImpl implements EmailManager {
                 .setAccessToken(accessToken)
                 .setRefreshToken(refreshToken);
     }
+    
+    @Override
+	public void sendUserName(UserEntity user) {
+		final String recipientAddress = user.getEmail();
+		final String subject = "UserName Recovery";
+	        
+		try {
+				sendMessage(recipientAddress, subject,  "Dear " + user.getFirstName() + " " + user.getLastName()
+                + ", \n\nYour Glygen password is reset. This is your temporary password: \n\n" + user.getUsername());
+			} catch (MessagingException | IOException e) {
+				throw new RuntimeException("Cannot send email.", e);
+			}
+	}
 
 	@Override
 	public void sendPasswordReminder(UserEntity user) {
