@@ -174,5 +174,16 @@ public class Linker {
 	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
 		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Linker))
+			return false;
+		if (uri != null && ((Linker)obj).getUri() != null)
+			return  uri.equals(((Linker)obj).getUri());
+		else { // check if pubchemids are the same
+			return pubChemId.equals(((Linker)obj).getPubChemId());
+		}
+	}
 
 }

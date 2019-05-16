@@ -6,6 +6,7 @@ spring:
     username: glygen
     password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
     driver-class-name: org.postgresql.Driver
+    separator: ^^^ END OF SCRIPT ^^^
   triplestore:
     driverClassName: virtuoso.jdbc4.Driver
     dialect: sparql
@@ -68,4 +69,6 @@ spring:
 spring:
   profiles: prod
   datasource:
+    initialization-mode: always
     schema: classpath:/schema-prod.sql
+    data: classpath:/data-prod.sql

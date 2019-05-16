@@ -148,4 +148,15 @@ public class Glycan {
 	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
 		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Glycan))
+			return false;
+		if (uri != null && ((Glycan)obj).getUri()!= null)
+			return  uri.equals(((Glycan)obj).getUri());
+		else { // check if sequences are the same
+			return sequence.equals(((Glycan)obj).getSequence());
+		}
+	}
 }

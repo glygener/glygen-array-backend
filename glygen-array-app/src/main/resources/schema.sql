@@ -20,6 +20,7 @@ drop sequence IF EXISTS user_seq;
 drop sequence IF EXISTS role_seq;
 drop sequence IF EXISTS TOKEN_SEQ;
 drop sequence IF EXISTS GRAPH_SEQ;
+drop sequence IF EXISTS EMAIL_SEQ;
 
 drop type IF EXISTS login CASCADE;
 create type login AS ENUM ('LOCAL', 'GOOGLE');
@@ -70,6 +71,13 @@ create table IF NOT EXISTS graphs (
   graphuri varchar(256) not null
 );
 
+create table IF NOT EXISTS email (
+  id bigint not null,
+  userid bigint not null,
+  oldemail varchar(256) not null,
+  newemail varchar(256) not null
+);
+
 alter table verification_token 
         add constraint FK_m1eg457wh2xxe878rx5y5limo 
         foreign key (userid) 
@@ -90,10 +98,16 @@ alter table user_roles
         foreign key (userId) 
         references users;
         
+alter table email 
+        add constraint FK_emailuser
+        foreign key (userId) 
+        references users;
+        
 create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ start 1;
 create sequence IF NOT EXISTS GRAPH_SEQ start 1;
+create sequence IF NOT EXISTS EMAIL_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;

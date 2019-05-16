@@ -154,10 +154,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             status = HttpStatus.CONFLICT;
             if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
     			errorMessage = (ErrorMessage) ex.getCause();
-    			errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+    			errorMessage.setErrorCode(ErrorCodes.DUPLICATE);
     		} else {
     			errorMessage = new ErrorMessage (ex.getMessage());
-    			errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+    			errorMessage.setErrorCode(ErrorCodes.DUPLICATE);
     		}
         } else if (ex instanceof EmailExistsException ) {
             status = HttpStatus.CONFLICT;

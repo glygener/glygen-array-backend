@@ -1,9 +1,39 @@
-DO $$ BEGIN
-    CREATE TYPE login AS ENUM ('LOCAL', 'GOOGLE');
-    CREATE CAST (CHARACTER VARYING as login) WITH INOUT AS IMPLICIT;
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+
+CREATE OR REPLACE FUNCTION create_login_type() RETURNS integer AS $$
+DECLARE v_exists INTEGER;
+
+BEGIN
+    SELECT into v_exists (SELECT 1 FROM pg_type WHERE typname = 'login');
+    IF v_exists IS NULL THEN
+        CREATE TYPE login AS ENUM ('LOCAL', 'GOOGLE');
+    	CREATE CAST (CHARACTER VARYING as login) WITH INOUT AS IMPLICIT;
+    END IF;
+    RETURN v_exists;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Call the function you just created
+SELECT create_login_type();
+
+-- Remove the function you just created
+DROP function create_login_type();
+
+CREATE OR REPLACE FUNCTION create_constraint_if_not_exists (
+    t_name text, c_name text, constraint_sql text
+) 
+returns void AS
+$$
+DECLARE v_exists INTEGER;
+BEGIN
+    -- Look for our constraint
+    SELECT into v_exists (select 1 
+                   from information_schema.table_constraints 
+                   where table_name = t_name  and constraint_name = c_name);
+    IF v_exists IS NULL then
+        execute constraint_sql;
+    END IF;
+END;
+$$ language plpgsql;
 
 create table IF NOT EXISTS users (
   userId bigint not null,
@@ -49,31 +79,40 @@ create table IF NOT EXISTS graphs (
   userid bigint not null,
   graphuri varchar(256) not null
 );
-        
-alter table graphs 
-        add constraint FK_m1eg457wh2xxe878rx5y5graph
-        foreign key (userid) 
-        references users;
-        
-alter table verification_token 
-        add constraint FK_m1eg457wh2xxe878rx5y5limo 
-        foreign key (userid) 
-        references users;
-        
-alter table user_roles 
-        add constraint FK_kt76tbwgvgf7m5rhnrkxxvgyc 
-        foreign key (roleId) 
-        references roles;
 
-alter table user_roles 
-        add constraint FK_oj50qpdthexxxmvur61ggy2fb 
-        foreign key (userId) 
-        references users;
+create table IF NOT EXISTS email (
+  id bigint not null,
+  userid bigint not null,
+  oldemail varchar(256) not null,
+  newemail varchar(256) not null
+);
+       
+select create_constraint_if_not_exists(
+        'graphs',
+        'fk_m1eg457wh2xxe878rx5y5graph',
+        'alter table graphs add constraint fk_m1eg457wh2xxe878rx5y5graph foreign key (userid) references users;');
+ 
+select create_constraint_if_not_exists(
+        'verification_token',
+        'fk_m1eg457wh2xxe878rx5y5limo', 'alter table verification_token add constraint fk_m1eg457wh2xxe878rx5y5limo foreign key (userid) references users;');
+        
+select create_constraint_if_not_exists(
+        'user_roles',
+        'fk_kt76tbwgvgf7m5rhnrkxxvgyc', 'alter table user_roles add constraint fk_kt76tbwgvgf7m5rhnrkxxvgyc foreign key (roleId) references roles;');
+
+select create_constraint_if_not_exists(
+        'user_roles',
+        'fk_oj50qpdthexxxmvur61ggy2fb', 'alter table user_roles add constraint fk_oj50qpdthexxxmvur61ggy2fb foreign key (userId) references users;');
+        
+select create_constraint_if_not_exists(
+        'email',
+        'fk_emailuser', 'alter table email add constraint fk_emailuser foreign key (userId) references users;');
         
 create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ start 1;
 create sequence IF NOT EXISTS GRAPH_SEQ start 1;
+create sequence IF NOT EXISTS EMAIL_SEQ start 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
@@ -106,7 +145,7 @@ CREATE TABLE IF NOT EXISTS logging_access
     caller_user       	VARCHAR(254) NOT NULL
   );
   
-  CREATE TABLE logging_event_exception
+  CREATE TABLE IF NOT EXISTS logging_event_exception
   (
     event_id         BIGINT NOT NULL,
     i                SMALLINT NOT NULL,

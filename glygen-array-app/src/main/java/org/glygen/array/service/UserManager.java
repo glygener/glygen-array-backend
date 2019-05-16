@@ -22,5 +22,7 @@ public interface UserManager {
 	UserEntity recoverLogin(String email);
 	
 	void changePassword (String username, String newPassword);
+	
+	void changeEmail (UserEntity user, String oldEmail, String newEmail);
 
 }

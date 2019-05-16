@@ -268,11 +268,34 @@ public class UserController {
     		// username of the authenticated user should match the username of the user retrieved from the db
     		
     		if (auth.getName().equals(loginId)) {
-    			//TODO if email has been changed, confirm user again with the new email
-    			//TODO update only when the email can be sent correctly
+    			if (user.getEmail() != null && !user.getEmail().isEmpty() && !user.getEmail().trim().equals(userEntity.getEmail())) {
+    				// send email confirmation
+    		        try {
+    		        	// make sure the new email is not assigned to a different user
+    		        	// check if the email is already in the system
+    		    		UserEntity existing = userRepository.findByEmail(user.getEmail().trim());
+    		    		if (existing != null && !existing.getUserId().equals(userEntity.getUserId())) {
+    		    			logger.info("There is already an account with this email: " + user.getEmail());
+    		    			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail());
+    		    		} 
+    		        	
+    		        	emailManager.sendEmailChangeNotification(userEntity);
+    		        	UserEntity userWithNewEmail = new UserEntity();
+    		        	userWithNewEmail.setEmail(user.getEmail().trim());
+    		        	userWithNewEmail.setUserId(userEntity.getUserId());
+    		        	userWithNewEmail.setUsername(userEntity.getUsername());
+    		        	userWithNewEmail.setRoles(userEntity.getRoles());
+    		        	emailManager.sendVerificationToken(userWithNewEmail);
+    		        	userManager.changeEmail(userEntity, userEntity.getEmail(), user.getEmail().trim());
+    		        } catch (MailSendException e) {
+    		        	// email cannot be sent, do not update the user
+    		        	logger.error("Mail cannot be sent: ", e);
+    		        	throw e;
+    		        }
+    			}
+    			
     			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
     			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
-    			if (user.getEmail() != null && !user.getEmail().isEmpty()) userEntity.setEmail(user.getEmail());
     			if (user.getPassword() != null && !user.getPassword().isEmpty()) userEntity.setPassword(user.getPassword());
     			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) userEntity.setFirstName(user.getFirstName());
     			if (user.getLastName() != null && !user.getLastName().isEmpty()) userEntity.setLastName(user.getLastName());

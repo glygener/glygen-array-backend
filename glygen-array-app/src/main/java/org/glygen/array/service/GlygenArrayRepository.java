@@ -5,10 +5,10 @@ import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
-import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
-import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
+import org.glygen.array.persistence.rdf.SlideLayout;
 
 public interface GlygenArrayRepository {
 	
@@ -19,7 +19,7 @@ public interface GlygenArrayRepository {
 
 	void addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException;
 	
-	void addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException;
+	String addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException;
 	
 	SlideLayout findSlideLayoutByName (String name) throws SparqlException;
 	SlideLayout findSlideLayoutByName (String name, String username) throws SparqlException;

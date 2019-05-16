@@ -12,6 +12,7 @@ public enum ErrorCodes {
 	UNSUPPORTED_MEDIATYPE (4007, "Unsupported"),
 	UNSUPPORTED_ENCODING (4008, "Unsupported"),
 	PARSE_ERROR (4009, "ParseError"),
+	DUPLICATE (4011, "Duplicate"),
 	NOT_FOUND (4040, "NotFound"),
 	UNAUTHORIZED(4010, "Unauthorized"), 
 	ACCESS_DENIED (4030, "AccessDenied"),

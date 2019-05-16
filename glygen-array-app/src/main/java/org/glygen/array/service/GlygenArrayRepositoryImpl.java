@@ -24,10 +24,12 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.PrivateGraphRepository;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
-import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
-import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
+import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -407,52 +409,99 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}*/
 
 	@Override
-	public void addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException {
-		String graph = DEFAULT_GRAPH;
-		
-			try {
-				// check if there is already a private graph for user
-				graph = getGraphForUser(user);
-				if (graph == null)
-					graph = addPrivateGraphForUser(user);
-			} catch (SQLException e) {
-				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
-			}
-		
+	public String addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException {
+		String graph = null;
+		try {
+			// check if there is already a private graph for user
+			graph = getGraphForUser(user);
+			if (graph == null)
+				graph = addPrivateGraphForUser(user);
+		} catch (SQLException e) {
+			throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
+		}
 		
 		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL");
 		String blockURI = generateUniqueURI(uriPrefix + "B");
+		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI block = f.createIRI(blockURI);
 		IRI graphIRI = f.createIRI(graph);
+		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
+		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
+		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
+		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
+		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+		IRI hasRow = f.createIRI(ontPrefix + "has_row");
+		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
+		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
+		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
+		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
+		IRI featureType = f.createIRI(ontPrefix + "Feature");
+		IRI spotType = f.createIRI(ontPrefix + "Spot");
+		IRI blockType = f.createIRI(ontPrefix + "Block");
+		IRI blockLayoutType = f.createIRI(ontPrefix + "BlockLayout");
 		
-	/*	Literal blockLayoutLabel = f.createLiteral(b.getName());
-		Literal blockLayoutComment = f.createLiteral(b.getComment());
-
-		Literal glytoucanId = f.createLiteral(g.getGlyTouCanId());
-		Literal sequenceValue = f.createLiteral(g.getSequence());
-		Literal format = f.createLiteral(g.getSequenceType());
-		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
-		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
-		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
-		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
-		IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
-		IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+		Literal blockLayoutLabel = f.createLiteral(b.getName());
+		Literal blockLayoutComment = f.createLiteral(b.getDescription());
 		
 		List<Statement> statements = new ArrayList<Statement>();
-		statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType));
-		statements.add(f.createStatement(glycan, RDF.TYPE, glycanType));
-		statements.add(f.createStatement(glycan, RDFS.LABEL, glycanLabel));
-		statements.add(f.createStatement(glycan, RDFS.COMMENT, glycanComment));
-		statements.add(f.createStatement(glycan, hasSequence, sequence));
-		statements.add(f.createStatement(glycan, hasGlytoucanId, glytoucanId));
-		statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue));
-		statements.add(f.createStatement(sequence, hasSequenceFormat, format));
+		statements.add(f.createStatement(block, RDF.TYPE, blockType));
+		statements.add(f.createStatement(blockLayout, RDF.TYPE, blockLayoutType));
+		statements.add(f.createStatement(blockLayout, RDFS.LABEL, blockLayoutLabel));
+		statements.add(f.createStatement(blockLayout, RDFS.COMMENT, blockLayoutComment));
+		statements.add(f.createStatement(block, hasBlockLayout, blockLayout));
 		
-		sparqlDAO.addStatements(statements, graphIRI);*/
+		List<Feature> processed = new ArrayList<Feature>();
+		for (Spot s : b.getSpots()) {
+			String spotURI = generateUniqueURI(uriPrefix + "S");
+			String concentrationURI = generateUniqueURI(uriPrefix + "C");
+			IRI spot = f.createIRI(spotURI);
+			IRI concentration = f.createIRI(concentrationURI);
+			Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+			Literal concentrationValue = f.createLiteral(s.getConcentration().getConcentration());
+			Literal row = f.createLiteral(s.getRow());
+			Literal column = f.createLiteral(s.getColumn());
+			Literal group = f.createLiteral(s.getGroup());
+			statements.add(f.createStatement(spot, RDF.TYPE, spotType));
+			statements.add(f.createStatement(block, hasSpot, spot));
+			statements.add(f.createStatement(spot, hasConcentration, concentration));
+			statements.add(f.createStatement(spot, hasRow, row));
+			statements.add(f.createStatement(spot, hasColumn, column));
+			statements.add(f.createStatement(spot, hasGroup, group));
+			statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+			statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+			
+			List<Feature> features = s.getFeatures();
+			for (Feature feat : features) {
+				if (!processed.contains(feat)) {
+					String featureURI = generateUniqueURI(uriPrefix + "F");
+					IRI feature = f.createIRI(featureURI);
+					String glycanURI = feat.getGlycan().getUri();
+					String linkerURI = feat.getLinker().getUri();
+					IRI glycan = f.createIRI(glycanURI);
+					IRI linker = f.createIRI(linkerURI);
+					Literal ratio = feat.getRatio() != null ? f.createLiteral(feat.getRatio()) : f.createLiteral(1.0) ;
+					statements.add(f.createStatement(feature, RDF.TYPE, featureType));
+					feat.setUri(featureURI);
+					statements.add(f.createStatement(spot, hasFeature, feature));
+					statements.add(f.createStatement(feature, hasGlycan, glycan));
+					statements.add(f.createStatement(feature, hasLinker, linker));
+					statements.add(f.createStatement(feature, hasRatio, ratio));
+					processed.add(feat);   // processed
+				} else {
+					Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
+					IRI feature = f.createIRI(existing.getUri());
+					statements.add(f.createStatement(spot, hasFeature, feature));
+				}
+			}
+		}
 		
+		sparqlDAO.addStatements(statements, graphIRI);
 		
+		return blockLayoutURI;
 	}
 
 	/**

@@ -2,7 +2,6 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.List;
 
-import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 
 public class BlockLayout {
 	String name;

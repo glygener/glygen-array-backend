@@ -4,8 +4,10 @@ import java.util.Calendar;
 import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
+import org.glygen.array.persistence.EmailChangeEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.VerificationToken;
+import org.glygen.array.persistence.dao.EmailRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class UserManagerImpl implements UserManager {
 
     @Autowired
     private VerificationTokenRepository tokenRepository;
+    
+    @Autowired
+    private EmailRepository emailRepository;
  
     @Override
     public UserEntity getUserByToken(final String verificationToken) {
@@ -64,11 +69,27 @@ public class UserManagerImpl implements UserManager {
         final Calendar cal = Calendar.getInstance();
         if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
             tokenRepository.delete(verificationToken);
-            repository.delete(user);
+            if (user.getEnabled()) {
+            	// do not delete the user, possible email change
+            	// delete email change request, if any
+            	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+            	if (emailChange != null) {
+            		emailRepository.delete(emailChange);
+            	}
+            } else 
+            	repository.delete(user);
             return TOKEN_EXPIRED;
         }
         
-        user.setEnabled(true);
+        if (user.getEnabled()) {
+        	// already enabled, possible email change
+        	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+        	if (emailChange != null) {
+        		user.setEmail(emailChange.getNewEmail());
+        		emailRepository.delete(emailChange);
+        	}
+        } else 
+        	user.setEnabled(true);
         repository.save(user);
         return TOKEN_VALID;
     }
@@ -103,6 +124,16 @@ public class UserManagerImpl implements UserManager {
 		}
 		user.setPassword(newPassword);
 		repository.save(user);
+	}
+
+	@Override
+	public void changeEmail(UserEntity user, String oldEmail, String newEmail) {
+		// store old email and new email in a separate table
+		EmailChangeEntity emailChange = new EmailChangeEntity();
+		emailChange.setUser(user);
+		emailChange.setOldEmail(oldEmail);
+		emailChange.setNewEmail(newEmail);
+		emailRepository.save(emailChange);
 	}    
 }
 

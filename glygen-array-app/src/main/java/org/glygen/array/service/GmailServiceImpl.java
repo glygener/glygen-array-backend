@@ -49,6 +49,9 @@ public final class GmailServiceImpl implements EmailManager {
 	@Value("${glygen.frontend.emailVerificationPage}")
 	String emailVerificationPage;
 	
+	@Value("${google.gmail.email}")
+	String email;
+	
 	@Value("${google.gmail.client-id}")
 	String clientId;
 	
@@ -202,6 +205,19 @@ public final class GmailServiceImpl implements EmailManager {
 	    
         try {
 			sendMessage(recipientAddress, subject, message + " \r\n" + confirmationUrl);
+		} catch (MessagingException | IOException e) {
+			throw new RuntimeException("Cannot send email.", e);
+		}
+	}
+
+	@Override
+	public void sendEmailChangeNotification(UserEntity user) {
+		final String recipientAddress = user.getEmail();
+		final String subject = "UserName Recovery";
+	        
+		try {
+			sendMessage(recipientAddress, subject,  "Dear " + user.getFirstName() + " " + user.getLastName()
+                + ", \n\nYour Glygen account email has been changed. If you have not made this change, please contact us at " + email);
 		} catch (MessagingException | IOException e) {
 			throw new RuntimeException("Cannot send email.", e);
 		}
