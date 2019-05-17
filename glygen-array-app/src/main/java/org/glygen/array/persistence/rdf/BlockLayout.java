@@ -4,6 +4,7 @@ import java.util.List;
 
 
 public class BlockLayout {
+	String uri;
 	String name;
 	String description;
 	Integer width;
@@ -68,6 +69,18 @@ public class BlockLayout {
 	 */
 	public void setSpots(List<Spot> spots) {
 		this.spots = spots;
+	}
+	/**
+	 * @return the uri
+	 */
+	public String getUri() {
+		return uri;
+	}
+	/**
+	 * @param uri the uri to set
+	 */
+	public void setUri(String uri) {
+		this.uri = uri;
 	}
 
 }

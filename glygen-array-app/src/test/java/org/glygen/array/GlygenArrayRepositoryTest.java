@@ -4,15 +4,21 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.util.PubChemAPI;
+import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
+import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -221,6 +227,83 @@ public class GlygenArrayRepositoryTest {
 		}
 	}
 	
+	@Test
+	public void testAddBlockLayout() {
+		UserEntity user = userRepository.findByUsername("user");
+		try {
+			Glycan g1 = addTestGlycan(user);
+			
+			// add another test glycan
+			//add a test glycan first
+			Glycan g = new Glycan();
+			g.setName("Test Glycan2");
+			g.setSequence("RES\n" + 
+					"\n" + 
+					"1b:x-dglc-HEX-1:5\n" + 
+					"\n" + 
+					"2s:n-acetyl\n" + 
+					"\n" + 
+					"3b:b-dgal-HEX-1:5\n" + 
+					"\n" + 
+					"4b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n" + 
+					"\n" + 
+					"5s:n-acetyl\n" + 
+					"\n" + 
+					"LIN\n" + 
+					"\n" + 
+					"1:1d(2+1)2n\n" + 
+					"\n" + 
+					"2:1o(4+1)3d\n" + 
+					"\n" + 
+					"3:3o(3+2)4d\n" + 
+					"\n" + 
+					"4:4d(5+1)5n");
+			g.setSequenceType("GlycoCT");
+			g.setInternalId("TestSource2");
+			g.setComment("My Comment2");
+			g.setMass(210.0);
+			
+			String glycanId = repository.addGlycan(g, user);
+			g.setUri(glycanId);
+			
+			Linker linker1 = addTestLinker(user);
+			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
+			
+			Linker l = PubChemAPI.getLinkerDetailsFromPubChem("2341");
+			l.setName("TestLinker2");
+			String linkerURI = repository.addLinker(l, user);
+			l.setUri(linkerURI);
+			String linkerId2 = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
+			
+			BlockLayout blockLayout= addTestBlockLayout(user, g1, g, linker1, l);
+			String blockLayoutURI = repository.addBlockLayout(blockLayout, user);
+			
+			BlockLayout existing = repository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			assertTrue ("Can retrieve added block layout", existing != null);
+			assertTrue ("Spots size is 4", existing.getSpots() != null && existing.getSpots().size() == 4);
+			
+			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user);
+			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
+			
+			// delete the glycans and linker and the block layout
+			repository.deleteLinker(linkerId1, user);
+			repository.deleteLinker(linkerId2, user);
+			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			repository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			repository.deleteBlockLayout (blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			
+			existing = repository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			assertTrue("Should be deleted", existing == null);
+			
+		} catch (SparqlException e) {
+			e.printStackTrace();
+			assertFalse("Failed to create block layout", true);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public Linker addTestLinker (UserEntity user) throws SparqlException { 
 		
@@ -230,5 +313,44 @@ public class GlygenArrayRepositoryTest {
 		l.setUri(linkerURI);
 		
 		return l;
+	}
+	
+	public BlockLayout addTestBlockLayout (UserEntity user, Glycan g1, Glycan g, Linker linker1, Linker l) throws SparqlException {
+		BlockLayout blockLayout = new BlockLayout();
+		blockLayout.setName("test layout");
+		blockLayout.setDescription("Test comments");
+		blockLayout.setHeight(2);
+		blockLayout.setWidth(2);
+		
+		LevelUnit concentration = new LevelUnit();
+		concentration.setConcentration(10.0);
+		concentration.setLevelUnit(UnitOfLevels.FMOL);
+		
+		List<Spot> spots = new ArrayList<Spot> ();
+		for (int i=0; i < blockLayout.getWidth(); i++) {
+			Feature feature = new Feature();
+			feature.setRatio(1.0);
+			if (i==0) {
+				feature.setGlycan(g1);
+				feature.setLinker(linker1);
+			}
+			if (i==1) {
+				feature.setGlycan(g);
+				feature.setLinker(l);
+			}
+			for (int j=0; j < blockLayout.getHeight(); j++) {
+				Spot spot = new Spot();
+				spot.setRow(j);
+				spot.setColumn(i);
+				spot.setConcentration(concentration);
+				spot.setGroup(j);
+				List<Feature> features = new ArrayList<Feature>();
+				features.add(feature);
+				spot.setFeatures(features);
+				spots.add(spot);
+			}
+		}
+		blockLayout.setSpots(spots);
+		return blockLayout;
 	}
 }
