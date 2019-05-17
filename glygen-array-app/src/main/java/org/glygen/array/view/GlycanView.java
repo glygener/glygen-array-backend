@@ -25,7 +25,7 @@ public class GlycanView {
 		this.id = id;
 	}
 	
-	@Size(max=100, message="Id cannot exceed 100 characters")
+	@Size(max=30, message="Id cannot exceed 30 characters")
 	public String getInternalId() {
 		return internalId;
 	}
@@ -50,7 +50,7 @@ public class GlycanView {
 	/**
 	 * @return the name
 	 */
-	@Size(max=100, message="Name cannot exceed 100 characters")
+	@Size(max=50, message="Name cannot exceed 50 characters")
 	public String getName() {
 		return name;
 	}

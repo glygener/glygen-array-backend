@@ -203,7 +203,7 @@ public class GlygenArrayController {
 			if  (glycan.getName() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycan.getName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 100 characters"));
+					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 50 characters"));
 				}		
 			}
 			if (glycan.getComment() != null) {
@@ -215,7 +215,7 @@ public class GlygenArrayController {
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycan.getInternalId());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 100 characters)"));
+					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 30 characters)"));
 				}		
 			}
 			if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
@@ -373,13 +373,45 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value = "/updateGlycan", method = RequestMethod.PUT)
 	public Confirmation updateGlycan(@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
+		// validate first
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			
+			if  (glycanView.getName() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycanView.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 50 characters"));
+				}		
+			}
+			if (glycanView.getComment() != null) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycanView.getComment().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+				}		
+			}
+			if (glycanView.getInternalId() != null && !glycanView.getInternalId().isEmpty()) {
+				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycanView.getInternalId().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 30 characters)"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
 		try {
 			UserEntity user = userRepository.findByUsername(principal.getName());
 			Glycan glycan= new Glycan();
 			glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
 			glycan.setComment(glycanView.getComment() != null ? glycanView.getComment().trim() : glycanView.getComment());
-			glycan.setName(glycanView.getName());			
+			glycan.setName(glycanView.getName() != null ? glycanView.getName().trim() : null);		
+			//TODO need to check if "internalId" and "name" are available (unique)
 			repository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
