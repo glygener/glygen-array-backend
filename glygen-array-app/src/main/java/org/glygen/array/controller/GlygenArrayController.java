@@ -298,7 +298,7 @@ public class GlygenArrayController {
 				if (existingURI != null) {
 					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
 					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
-					throw new GlycanExistsException("A glycan with the same sequence already exists");
+					throw new GlycanExistsException("A glycan with the same sequence already exists", errorMessage);
 				}
 				
 				Glycan local = null;
