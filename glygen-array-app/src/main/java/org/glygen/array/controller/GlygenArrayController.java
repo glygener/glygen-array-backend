@@ -278,7 +278,9 @@ public class GlygenArrayController {
 							throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
 						}
 					} else {
-						throw new GlycanRepositoryException("Cannot add a glycan without a sequence");
+						ErrorMessage errorMessage = new ErrorMessage("Sequence format is required for a glycan, cannot be empty");
+						errorMessage.addError(new ObjectError("sequence", "Sequence cannot be empty"));
+						throw new GlycanRepositoryException("Cannot add a glycan without a sequence", errorMessage);
 					}
 				} catch (IOException e) {
 					logger.error("Glycan image cannot be generated", e);
@@ -411,7 +413,25 @@ public class GlygenArrayController {
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
 			glycan.setComment(glycanView.getComment() != null ? glycanView.getComment().trim() : glycanView.getComment());
 			glycan.setName(glycanView.getName() != null ? glycanView.getName().trim() : null);		
-			//TODO need to check if "internalId" and "name" are available (unique)
+			
+			Glycan local = null;
+			// check if internalid and label are unique
+			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
+				local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same internal id
+					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
+					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+					throw new GlycanExistsException("A glycan with the same internal id already exists", errorMessage);
+				}
+			}
+			if (glycan.getName() != null && !glycan.getName().isEmpty()) {
+				local = repository.getGlycanByLabel(glycan.getName().trim(), user);
+				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same name
+					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+					throw new GlycanExistsException("A glycan with the same label/name already exists", errorMessage);
+				}
+			} 
 			repository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
