@@ -296,7 +296,6 @@ public class UserController {
     			
     			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
     			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
-    			if (user.getPassword() != null && !user.getPassword().isEmpty()) userEntity.setPassword(user.getPassword());
     			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) userEntity.setFirstName(user.getFirstName());
     			if (user.getLastName() != null && !user.getLastName().isEmpty()) userEntity.setLastName(user.getLastName());
     			if (user.getPublicFlag() != null) userEntity.setPublicFlag(user.getPublicFlag());
