@@ -269,7 +269,7 @@ public class GlygenArrayRepositoryTest {
 			Linker linker1 = addTestLinker(user);
 			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
 			
-			Linker l = PubChemAPI.getLinkerDetailsFromPubChem("2341");
+			Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2341);
 			l.setName("TestLinker2");
 			String linkerURI = repository.addLinker(l, user);
 			l.setUri(linkerURI);
@@ -307,7 +307,7 @@ public class GlygenArrayRepositoryTest {
 	
 	public Linker addTestLinker (UserEntity user) throws SparqlException { 
 		
-		Linker l = PubChemAPI.getLinkerDetailsFromPubChem("2444");
+		Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2444);
 		l.setName("TestLinker");
 		String linkerURI = repository.addLinker(l, user);
 		l.setUri(linkerURI);

@@ -5,7 +5,7 @@ import java.util.Date;
 public class Glycan {
 	
 	String uri;
-	String glyTouCanId;
+	String glytoucanId;
 	String internalId;
 	String name;
 	String comment;
@@ -31,14 +31,14 @@ public class Glycan {
 	/**
 	 * @return the glyTouCanId
 	 */
-	public String getGlyTouCanId() {
-		return glyTouCanId;
+	public String getGlytoucanId() {
+		return glytoucanId;
 	}
 	/**
 	 * @param glyTouCanId the glyTouCanId to set
 	 */
-	public void setGlyTouCanId(String glyTouCanId) {
-		this.glyTouCanId = glyTouCanId;
+	public void setGlytoucanId(String glyTouCanId) {
+		this.glytoucanId = glyTouCanId;
 	}
 	/**
 	 * @return the internalId
@@ -155,8 +155,9 @@ public class Glycan {
 			return false;
 		if (uri != null && ((Glycan)obj).getUri()!= null)
 			return  uri.equals(((Glycan)obj).getUri());
-		else { // check if sequences are the same
+		else if (sequence != null) { // check if sequences are the same
 			return sequence.equals(((Glycan)obj).getSequence());
 		}
+		return false;
 	}
 }

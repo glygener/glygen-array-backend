@@ -36,10 +36,6 @@ public interface GlygenArrayRepository {
 	
 	void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException;
 	
-	BlockLayout findBlockLayoutByName (String name, String username) throws SparqlException;
-	
-	SlideLayout findSlideLayoutByName (String name, String username) throws SparqlException;
-	
 	BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user) throws SparqlException, SQLException;
 	
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user) throws SparqlException, SQLException;
@@ -103,7 +99,7 @@ public interface GlygenArrayRepository {
 	 * @return the URI of the existing linker or null if it does not exist
 	 * @throws SparqlException
 	 */
-	public String getLinkerByPubChemId(String pubChemId) throws SparqlException;
+	public String getLinkerByPubChemId(Integer pubChemId) throws SparqlException;
 
 	/**
 	 * check if the linker with the given pubchemId is already in user's private graph
@@ -113,7 +109,7 @@ public interface GlygenArrayRepository {
 	 * @throws SparqlException 
 	 * @throws SQLException thrown if the user's graph cannot be accessed
 	 */
-	public String getLinkerByPubChemId (String pubChemId, UserEntity user) throws SparqlException, SQLException;
+	public String getLinkerByPubChemId (Integer pubChemId, UserEntity user) throws SparqlException, SQLException;
 
 	List<Linker> getLinkerByUser(UserEntity user) throws SQLException, SparqlException;
 
@@ -121,11 +117,14 @@ public interface GlygenArrayRepository {
 			throws SparqlException, SQLException;
 
 	int getLinkerCountByUser(UserEntity user) throws SQLException, SparqlException;
+	int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException;
 
 	List<SlideLayout> getSlideLayoutByUser(UserEntity user) throws SparqlException, SQLException;
 
 	void updateGlycan (Glycan g, UserEntity user) throws SparqlException, SQLException;
 
 	void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException;
+
+	BlockLayout getBlockLayoutByName(String name, UserEntity user) throws SparqlException, SQLException;
 	
 }

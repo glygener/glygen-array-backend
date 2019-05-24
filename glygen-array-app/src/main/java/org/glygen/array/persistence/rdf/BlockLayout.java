@@ -1,18 +1,29 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.Date;
 import java.util.List;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
+
+import org.glygen.array.service.GlygenArrayRepository;
 
 
 public class BlockLayout {
+	String id;
 	String uri;
 	String name;
 	String description;
 	Integer width;
 	Integer height;
 	List<Spot> spots;
+	Date dateCreated;
+	Date dateModified;
 	/**
 	 * @return the name
 	 */
+	
+	@Size(max=30, message="Name cannot exceed 50 characters")
 	public String getName() {
 		return name;
 	}
@@ -25,6 +36,7 @@ public class BlockLayout {
 	/**
 	 * @return the description
 	 */
+	@Size(max=30, message="description cannot exceed 250 characters")
 	public String getDescription() {
 		return description;
 	}
@@ -37,6 +49,7 @@ public class BlockLayout {
 	/**
 	 * @return the width
 	 */
+	@Min(value=1, message = "width must be a positive integer")
 	public Integer getWidth() {
 		return width;
 	}
@@ -49,6 +62,7 @@ public class BlockLayout {
 	/**
 	 * @return the height
 	 */
+	@Min(value=1, message = "width must be a positive integer")
 	public Integer getHeight() {
 		return height;
 	}
@@ -81,6 +95,46 @@ public class BlockLayout {
 	 */
 	public void setUri(String uri) {
 		this.uri = uri;
+		if (uri != null) 
+			this.id = uri.substring(uri.lastIndexOf("/")+1);
+	}
+	
+	public String getId () {
+		return id;
+	}
+	
+	public void setURIfromId (String id) {
+		this.uri = GlygenArrayRepository.uriPrefix + id;
+	}
+	/**
+	 * @return the dateCreated
+	 */
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+	/**
+	 * @param dateCreated the dateCreated to set
+	 */
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+	/**
+	 * @return the dateModified
+	 */
+	public Date getDateModified() {
+		return dateModified;
+	}
+	/**
+	 * @param dateModified the dateModified to set
+	 */
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
 	}
 
 }

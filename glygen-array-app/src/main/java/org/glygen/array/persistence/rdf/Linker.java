@@ -7,7 +7,7 @@ public class Linker {
 	String uri;
 	String name;
 	String comment;
-	String pubChemId;
+	Integer pubChemId;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
@@ -45,13 +45,13 @@ public class Linker {
 	/**
 	 * @return the pubChemId
 	 */
-	public String getPubChemId() {
+	public Integer getPubChemId() {
 		return pubChemId;
 	}
 	/**
 	 * @param pubChemId the pubChemId to set
 	 */
-	public void setPubChemId(String pubChemId) {
+	public void setPubChemId(Integer pubChemId) {
 		this.pubChemId = pubChemId;
 	}
 	/**
@@ -181,9 +181,10 @@ public class Linker {
 			return false;
 		if (uri != null && ((Linker)obj).getUri() != null)
 			return  uri.equals(((Linker)obj).getUri());
-		else { // check if pubchemids are the same
+		else if (pubChemId  != null){ // check if pubchemids are the same
 			return pubChemId.equals(((Linker)obj).getPubChemId());
 		}
+		return false;
 	}
 
 }

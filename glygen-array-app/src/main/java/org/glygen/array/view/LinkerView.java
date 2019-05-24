@@ -3,6 +3,7 @@ package org.glygen.array.view;
 import java.util.Date;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 public class LinkerView {
@@ -10,7 +11,7 @@ public class LinkerView {
 	String id;
 	String name;
 	String comment;
-	String pubChemId;
+	Integer pubChemId;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
@@ -49,14 +50,14 @@ public class LinkerView {
 	/**
 	 * @return the pubChemId
 	 */
-	@NotEmpty
-	public String getPubChemId() {
+	@NotNull
+	public Integer getPubChemId() {
 		return pubChemId;
 	}
 	/**
 	 * @param pubChemId the pubChemId to set
 	 */
-	public void setPubChemId(String pubChemId) {
+	public void setPubChemId(Integer pubChemId) {
 		this.pubChemId = pubChemId;
 	}
 	/**

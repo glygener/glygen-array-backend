@@ -11,14 +11,14 @@ public class PubChemAPI {
 	final static String url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
 	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName/JSON";
 	
-	public static Linker getLinkerDetailsFromPubChem (String pubChemId) {
+	public static Linker getLinkerDetailsFromPubChem (Integer pubChemId) {
 		RestTemplate restTemplate = new RestTemplate();
 		String requestURL = url + pubChemId + propertyURL;
 		ResponseEntity<PubChemResult> response = restTemplate.exchange(requestURL, HttpMethod.GET, null, PubChemResult.class);
 		return PubChemAPI.getLinkerFromResult (response.getBody(), pubChemId);
 	}
 
-	public static Linker getLinkerFromResult(PubChemResult response, String pubChemId) {
+	public static Linker getLinkerFromResult(PubChemResult response, Integer pubChemId) {
 		if (response != null && response.getPropertyTable() != null && 
 				response.getPropertyTable().getProperties() != null && !response.getPropertyTable().getProperties().isEmpty()) {
 			PubChemProperty prop = response.getPropertyTable().getProperties().get(0);
@@ -37,7 +37,7 @@ public class PubChemAPI {
 	}
 	
 	public static void main(String[] args) {
-		Linker linker = getLinkerDetailsFromPubChem ("2444");
+		Linker linker = getLinkerDetailsFromPubChem (2444);
 		System.out.println ("linker formula:"  + linker.getMolecularFormula());
 		System.out.println ("linker image URL:"  + linker.getImageURL());
 		System.out.println ("linker mass:"  + linker.getMass());

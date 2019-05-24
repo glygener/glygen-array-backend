@@ -89,6 +89,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
+		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
+		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
 		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
 		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
 		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
@@ -101,17 +103,23 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		Date date = new Date();
 		Literal dateCreated = f.createLiteral(date);
 		
-		Literal blockLayoutLabel = f.createLiteral(b.getName());
-		Literal blockLayoutComment = f.createLiteral(b.getDescription());
+		Literal blockLayoutLabel = f.createLiteral(b.getName().trim());
+		Literal blockLayoutComment = b.getDescription() == null ? null: f.createLiteral(b.getDescription().trim());
+		Literal blockLayoutWidth = b.getWidth() == null ? null : f.createLiteral(b.getWidth());
+		Literal blockLayoutHeight = b.getHeight() == null ? null : f.createLiteral(b.getHeight());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		statements.add(f.createStatement(block, RDF.TYPE, blockType));
 		statements.add(f.createStatement(blockLayout, RDF.TYPE, blockLayoutType));
+		statements.add(f.createStatement(blockLayout, hasCreatedDate, dateCreated));
+		statements.add(f.createStatement(blockLayout, hasModifiedDate, dateCreated));
 		statements.add(f.createStatement(blockLayout, RDFS.LABEL, blockLayoutLabel));
-		statements.add(f.createStatement(blockLayout, RDFS.COMMENT, blockLayoutComment));
+		if (blockLayoutComment != null) statements.add(f.createStatement(blockLayout, RDFS.COMMENT, blockLayoutComment));
 		statements.add(f.createStatement(block, hasBlockLayout, blockLayout));
 		statements.add(f.createStatement(block, hasCreatedDate, dateCreated));
 		statements.add(f.createStatement(block, hasModifiedDate, dateCreated));
+		if (blockLayoutWidth != null) statements.add(f.createStatement(blockLayout, hasWidth, blockLayoutWidth));
+		if (blockLayoutHeight != null) statements.add(f.createStatement(blockLayout, hasHeight, blockLayoutHeight));
 		
 		
 		List<Feature> processed = new ArrayList<Feature>();
@@ -120,36 +128,56 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			String concentrationURI = generateUniqueURI(uriPrefix + "C");
 			IRI spot = f.createIRI(spotURI);
 			IRI concentration = f.createIRI(concentrationURI);
-			Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-			Literal concentrationValue = f.createLiteral(s.getConcentration().getConcentration());
+			Literal concentrationUnit = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+			Literal concentrationValue = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
 			Literal row = f.createLiteral(s.getRow());
 			Literal column = f.createLiteral(s.getColumn());
-			Literal group = f.createLiteral(s.getGroup());
+			Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
 			statements.add(f.createStatement(spot, RDF.TYPE, spotType));
 			statements.add(f.createStatement(block, hasSpot, spot));
 			statements.add(f.createStatement(spot, hasConcentration, concentration));
 			statements.add(f.createStatement(spot, hasRow, row));
 			statements.add(f.createStatement(spot, hasColumn, column));
-			statements.add(f.createStatement(spot, hasGroup, group));
-			statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-			statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
-			
+			if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
+			if (s.getConcentration() != null) {
+				statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+				statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+			}
 			List<Feature> features = s.getFeatures();
 			for (Feature feat : features) {
 				if (!processed.contains(feat)) {
 					String featureURI = generateUniqueURI(uriPrefix + "F");
 					IRI feature = f.createIRI(featureURI);
-					String glycanURI = feat.getGlycan().getUri();
-					String linkerURI = feat.getLinker().getUri();
-					IRI glycan = f.createIRI(glycanURI);
-					IRI linker = f.createIRI(linkerURI);
+					String glycanURI = null;
+					if (feat.getGlycan() != null) {
+						glycanURI = feat.getGlycan().getUri();
+						if (glycanURI == null) {
+							if (feat.getGlycan().getSequence() != null)
+								glycanURI = getGlycanBySequence(feat.getGlycan().getSequence().trim());
+						}
+					}
+					String linkerURI = null;
+					if (feat.getLinker() != null) {
+						linkerURI = feat.getLinker().getUri();
+						if (linkerURI == null) {
+							linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
+						}
+					}
+					
 					Literal ratio = feat.getRatio() != null ? f.createLiteral(feat.getRatio()) : f.createLiteral(1.0) ;
-					statements.add(f.createStatement(feature, RDF.TYPE, featureType));
 					feat.setUri(featureURI);
+					
+					statements.add(f.createStatement(feature, RDF.TYPE, featureType));
 					statements.add(f.createStatement(spot, hasFeature, feature));
-					statements.add(f.createStatement(feature, hasGlycan, glycan));
-					statements.add(f.createStatement(feature, hasLinker, linker));
-					statements.add(f.createStatement(feature, hasRatio, ratio));
+					if (glycanURI != null) {
+						IRI glycan = f.createIRI(glycanURI);
+						statements.add(f.createStatement(feature, hasGlycan, glycan));	
+					}
+					if (linkerURI != null) {
+						IRI linker = f.createIRI(linkerURI);
+						statements.add(f.createStatement(feature, hasLinker, linker));
+					}
+					if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
 					processed.add(feat);   // processed
 				} else {
 					Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
@@ -198,7 +226,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			IRI glycan = f.createIRI(glycanURI);
 			IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
 			String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);  //TODO remove this later
-			Literal glytoucanId = g.getGlyTouCanId() == null ? f.createLiteral(id) : f.createLiteral(g.getGlyTouCanId());
+			Literal glytoucanId = g.getGlytoucanId() == null ? f.createLiteral(id) : f.createLiteral(g.getGlytoucanId());
 			Literal sequenceValue = f.createLiteral(g.getSequence());
 			Literal format = f.createLiteral(g.getSequenceType());
 			Literal date = f.createLiteral(new Date());
@@ -464,12 +492,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
 	}
 	
-	@Override
-	public BlockLayout findBlockLayoutByName(String name, String username) throws SparqlException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private String findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
 		String where = "WHERE { " + 
@@ -498,10 +520,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return glycanURI;
 	}
 	
-	private String findLinkerInGraphByPubChem (String pubChemId, String graph) throws SparqlException {
+	private String findLinkerInGraphByPubChem (Integer pubChemId, String graph) throws SparqlException {
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
 		String where = "WHERE { " + 
-				"				    ?s gadr:has_pubchem_compound_id \"" + pubChemId + "\"^^xsd:string .\n";
+				"				    ?s gadr:has_pubchem_compound_id \"" + pubChemId + "\"^^xsd:int .\n";
 		if (!graph.equals(DEFAULT_GRAPH)) {
 			// check if the user's private graph has this glycan
 			fromString += "FROM <" + graph + ">\n";
@@ -523,12 +545,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		String linkerURI = result.getValue("s");
 		
 		return linkerURI;
-	}
-
-	@Override
-	public SlideLayout findSlideLayoutByName(String name, String username) throws SparqlException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 	private String generateUniqueURI (String pre) throws SparqlException {
@@ -613,6 +629,33 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return layouts;
 	}
 	
+	@Override
+	public int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
+		String graph = getGraphForUser(user);
+		
+		int total = 0;
+		if (graph != null) {
+			StringBuffer queryBuf = new StringBuffer();
+			queryBuf.append (prefix + "\n");
+			queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+			queryBuf.append ("FROM <" + graph + ">\n");
+			queryBuf.append ("WHERE {\n");
+			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/data#BlockLayout> . }");
+			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			for (SparqlEntity sparqlEntity : results) {
+				String count = sparqlEntity.getValue("count");
+				try {
+					total = Integer.parseInt(count);
+					break;
+				} catch (NumberFormatException e) {
+					throw new SparqlException("Count query returned invalid result", e);
+				}
+				
+			}
+		}
+		return total;
+	}
+	
 	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, String graph) throws SparqlException {
 		BlockLayout blockLayoutObject = null;
 		
@@ -631,6 +674,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
 		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
 		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
+		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
+		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(blockLayout, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -645,6 +692,28 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
 				Value v = st.getObject();
 				blockLayoutObject.setDescription(v.stringValue());
+			} else if (st.getPredicate().equals(hasWidth)) {
+				Value v = st.getObject();
+				if (v != null) blockLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+			} else if (st.getPredicate().equals(hasHeight)) {
+				Value v = st.getObject();
+				if (v != null) blockLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+			} else if (st.getPredicate().equals(hasCreatedDate)) {
+				Value value = st.getObject();
+			    if (value instanceof Literal) {
+			    	Literal literal = (Literal)value;
+			    	XMLGregorianCalendar calendar = literal.calendarValue();
+			    	Date date = calendar.toGregorianCalendar().getTime();
+			    	blockLayoutObject.setDateCreated(date);
+			    }
+			} else if (st.getPredicate().equals(hasModifiedDate)) {
+				Value value = st.getObject();
+			    if (value instanceof Literal) {
+			    	Literal literal = (Literal)value;
+			    	XMLGregorianCalendar calendar = literal.calendarValue();
+			    	Date date = calendar.toGregorianCalendar().getTime();
+			    	blockLayoutObject.setDateModified(date);
+			    }
 			}
 		}
 		
@@ -735,6 +804,26 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		blockLayoutObject.setSpots(spots);
 		
 		return blockLayoutObject;
+	}
+	
+	@Override
+	public BlockLayout getBlockLayoutByName (String name, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s \n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
+		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+				+ "}\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			String blockLayoutURI = results.get(0).getValue("s");
+			return getBlockLayoutFromURI(blockLayoutURI, graph);
+		}
 	}
 	
 	/**
@@ -935,7 +1024,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(hasGlytoucanId)) {
 				Value glytoucanId = st.getObject();
-				glycanObject.setGlyTouCanId(glytoucanId.stringValue()); 
+				glycanObject.setGlytoucanId(glytoucanId.stringValue()); 
 			} else if (st.getPredicate().equals(hasMass)) {
 				Value mass = st.getObject();
 				try {
@@ -1056,11 +1145,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 	}
 
-	public String getLinkerByPubChemId(String pubChemId) throws SparqlException {
+	public String getLinkerByPubChemId(Integer pubChemId) throws SparqlException {
 		return findLinkerInGraphByPubChem(pubChemId, DEFAULT_GRAPH);
 	}
 
-	public String getLinkerByPubChemId (String pubChemId, UserEntity user) throws SparqlException, SQLException {
+	public String getLinkerByPubChemId (Integer pubChemId, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
 		return findLinkerInGraphByPubChem (pubChemId, graph);
 	}
@@ -1160,7 +1249,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				linkerObject.setImageURL(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasPubChemId)) {
 				Value val = st.getObject();
-				linkerObject.setPubChemId(val.stringValue()); 
+				if (val != null)
+					linkerObject.setPubChemId(Integer.parseInt(val.stringValue())); 
 			} else if (st.getPredicate().equals(hasMolecularFormula)) {
 				Value val = st.getObject();
 				linkerObject.setMolecularFormula(val.stringValue()); 

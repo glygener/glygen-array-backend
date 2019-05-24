@@ -62,8 +62,8 @@ public class Feature {
 		if (uri != null && ((Feature)obj).getUri() != null)
 			return  uri.equals(((Feature)obj).getUri());
 		else { // check if Glycan, Linker and the ratio are the same
-			return linker.equals(((Feature)obj).getLinker()) && glycan.equals(((Feature)obj).getGlycan()) 
-					&& ratio.equals(((Feature)obj).getRatio());
+			return linker != null && linker.equals(((Feature)obj).getLinker()) && glycan != null && glycan.equals(((Feature)obj).getGlycan()) 
+					&& ratio != null && ratio.equals(((Feature)obj).getRatio());
 		}
 	}
 }
