@@ -102,55 +102,55 @@ public class UserController {
 			if (user.getEmail() == null || user.getEmail().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("email", "cannot be empty"));
+					errorMessage.addError(new ObjectError("email", "NoEmpty"));
 				}	
 			}
 			if (user.getUserName() == null || user.getUserName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "userName", user.getUserName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("userName", "cannot be empty"));
+					errorMessage.addError(new ObjectError("userName", "NoEmpty"));
 				}	
 			}
 			if (user.getPassword() == null || user.getPassword().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "password", user.getPassword());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("password", "cannot be empty"));
+					errorMessage.addError(new ObjectError("password", "NoEmpty"));
 				}	
 			}
 			if (user.getPassword() != null && !user.getPassword().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "password", user.getPassword());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("password", "min 5, max 20 characters, at least 1 lowercase, 1 uppercase letter, 1 numeric and 1 special character"));
+					errorMessage.addError(new ObjectError("password", "NotValid"));
 				}	
 			}
 			if  (user.getEmail() != null && !user.getEmail().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("email", "not a valid email"));
+					errorMessage.addError(new ObjectError("email", "NotValid"));
 				}		
 			}
 			if (user.getAffiliation() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliation", user.getAffiliation());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("affiliation", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("affiliation", "LengthExceeded"));
 				}		
 			}
 			if (user.getAffiliationWebsite() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("affiliationWebsite", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("affiliationWebsite", "LengthExceeded"));
 				}		
 			}
 			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "firstName", user.getFirstName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("firstName", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("firstName", "LengthExceeded"));
 				}		
 			}
 			if (user.getLastName() != null && !user.getLastName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "lastName", user.getLastName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("lastName", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("lastName", "LengthExceeded"));
 				}		
 			}
 			
@@ -227,31 +227,31 @@ public class UserController {
 			if  (user.getEmail() != null && !user.getEmail().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", user.getEmail());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("email", "not a valid email"));
+					errorMessage.addError(new ObjectError("email", "NotValid"));
 				}		
 			}
 			if (user.getAffiliation() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliation", user.getAffiliation());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("affiliation", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("affiliation", "LengthExceeded"));
 				}		
 			}
 			if (user.getAffiliationWebsite() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("affiliationWebsite", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("affiliationWebsite", "LengthExceeded"));
 				}		
 			}
 			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "firstName", user.getFirstName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("firstName", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("firstName", "LengthExceeded"));
 				}		
 			}
 			if (user.getLastName() != null && !user.getLastName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "lastName", user.getLastName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("lastName", "exceeeds length restrictions"));
+					errorMessage.addError(new ObjectError("lastName", "LengthExceeded"));
 				}		
 			}
 			
@@ -457,7 +457,7 @@ public class UserController {
     	// using @NotEmpty for newPassword didn't work, so have to handle it here
     	if (newPassword == null || newPassword.isEmpty()) {
     		ErrorMessage errorMessage = new ErrorMessage ("new password cannot be empty");
-    		errorMessage.addError(new ObjectError("password", "cannot be empty"));
+    		errorMessage.addError(new ObjectError("password", "NoEmpty"));
     		throw new IllegalArgumentException("Invalid Input: new password cannot be empty", errorMessage);
     	}
     	
@@ -465,9 +465,9 @@ public class UserController {
     	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
     	if (!pattern.matcher(newPassword).matches()) {
     		logger.debug("Password fails pattern: " + newPassword);
-    		ErrorMessage errorMessage = new ErrorMessage ("new password is not valid");
-    		errorMessage.addError(new ObjectError("password", "The password length must be greater than or equal to 5, must contain one or more uppercase characters, \"\n" + 
-    				"    				+ \"must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters\""));
+    		ErrorMessage errorMessage = new ErrorMessage ("new password is not valid. The password length must be greater than or equal to 5, must contain one or more uppercase characters, \n " + 
+    				"must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
+    		errorMessage.addError(new ObjectError("password", "NotValid"));
     		throw new IllegalArgumentException("Invalid Input: Password is not valid", errorMessage);
     	}
     	// encrypt the password

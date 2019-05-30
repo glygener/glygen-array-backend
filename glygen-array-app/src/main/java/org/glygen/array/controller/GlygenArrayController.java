@@ -193,7 +193,7 @@ public class GlygenArrayController {
 	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
 		if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
 			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
-			errorMessage.addError(new ObjectError("sequence", "Sequence cannot be empty"));
+			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
 		}
 		// validate first
@@ -205,25 +205,25 @@ public class GlygenArrayController {
 			if  (glycan.getName() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycan.getName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 50 characters"));
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getComment() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycan.getComment());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycan.getInternalId());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 30 characters)"));
+					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "glytoucanId", glycan.getGlytoucanId());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("glytoucanId", "GlytoucanId should be 8 characters long"));
+					errorMessage.addError(new ObjectError("glytoucanId", "LengthExceeded"));
 				}		
 			}
 			
@@ -276,12 +276,12 @@ public class GlygenArrayController {
 							}
 						} else {
 							ErrorMessage errorMessage = new ErrorMessage("Sequence format is not valid for the given sequence");
-							errorMessage.addError(new ObjectError("sequence", "Sequence cannot be parsed. Not valid"));
+							errorMessage.addError(new ObjectError("sequence", "NotValid"));
 							throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
 						}
 					} else {
 						ErrorMessage errorMessage = new ErrorMessage("Sequence format is required for a glycan, cannot be empty");
-						errorMessage.addError(new ObjectError("sequence", "Sequence cannot be empty"));
+						errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 						throw new GlycanRepositoryException("Cannot add a glycan without a sequence", errorMessage);
 					}
 				} catch (IOException e) {
@@ -290,7 +290,7 @@ public class GlygenArrayController {
 				} catch (Exception e) {
 					logger.error("Glycan sequence is not valid", e);
 					ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
-					errorMessage.addError(new ObjectError("sequence", "Sequence cannot be parsed. Not valid"));
+					errorMessage.addError(new ObjectError("sequence", "NotValid"));
 					throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
 				}
 				
@@ -400,19 +400,19 @@ public class GlygenArrayController {
 			if  (glycanView.getName() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycanView.getName().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 50 characters"));
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (glycanView.getComment() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycanView.getComment().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
 			if (glycanView.getInternalId() != null && !glycanView.getInternalId().isEmpty()) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycanView.getInternalId().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("internalId", "exceeeds length restrictions (max 30 characters)"));
+					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
 				}		
 			}
 			
@@ -635,7 +635,7 @@ public class GlygenArrayController {
 		
 		if (linker.getPubChemId() == null) {
 			ErrorMessage errorMessage = new ErrorMessage("PubChemId cannot be null");
-			errorMessage.addError(new ObjectError("pubChemId", "PubChemId cannot be null"));
+			errorMessage.addError(new ObjectError("pubChemId", "NoEmpty"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 		}
 		// validate first
@@ -647,13 +647,13 @@ public class GlygenArrayController {
 			if  (linker.getName() != null) {
 				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 100 characters"));
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (linker.getComment() != null) {
 				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "exceeeds length restrictions (max 250 characters)"));
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
 			
@@ -672,6 +672,7 @@ public class GlygenArrayController {
 				Linker l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
 				if (l == null) {
 					// could not get details from PubChem
+					// TODO errormessage
 					throw new EntityNotFoundException("A compound with the given pubChemId (" + linker.getPubChemId() + ") does not exist in PubChem");
 					
 				}
@@ -742,25 +743,25 @@ public class GlygenArrayController {
 			if  (layout.getName() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("name", "exceeds length restrictions (max 50 characters"));
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (layout.getDescription() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "description", layout.getDescription());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("description", "exceeeds length restrictions (max 250 characters)"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (layout.getWidth() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "width", layout.getWidth());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("width", "width should be > 0"));
+					errorMessage.addError(new ObjectError("width", "PositiveOnly"));
 				}		
 			}
 			if (layout.getHeight() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "height", layout.getHeight());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("height", "height should be > 0"));
+					errorMessage.addError(new ObjectError("height", "PositiveOnly"));
 				}		
 			}
 			

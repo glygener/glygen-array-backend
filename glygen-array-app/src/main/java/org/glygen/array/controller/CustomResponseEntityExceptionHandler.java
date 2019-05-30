@@ -218,7 +218,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                     } else {
                     	errorMessage = new ErrorMessage(ex.getMessage());
                     }
-                    errors.add(new ObjectError (((ConstraintViolationException)cause).getConstraintName(), ((ConstraintViolationException)ex).getMessage()));
+                    errors.add(new ObjectError (((ConstraintViolationException)cause).getConstraintName(), "ConstraintViolated"));
                     status = HttpStatus.CONFLICT;
         		} else if (cause instanceof PropertyValueException) {
         			Throwable mostSpecificCause = ((PropertyValueException)cause).getCause();
@@ -230,7 +230,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
                     } else {
                     	errorMessage = new ErrorMessage(ex.getMessage());
                     }
-                    errors.add(new FieldError (((PropertyValueException)ex).getEntityName(), ((PropertyValueException)ex).getPropertyName(), "Property Value error"));
+                    errors.add(new FieldError (((PropertyValueException)ex).getEntityName(), ((PropertyValueException)ex).getPropertyName(), "PropertyValueError"));
         		} else {
 		        	Throwable mostSpecificCause = ((DataIntegrityViolationException)ex).getMostSpecificCause();
 		            if (mostSpecificCause != null) {
@@ -264,7 +264,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             } else {
             	errorMessage = new ErrorMessage(ex.getMessage());
             }
-            errorMessage = new ErrorMessage(new ObjectError (((ConstraintViolationException)ex).getConstraintName(), ((ConstraintViolationException)ex).getMessage()));
+            errorMessage = new ErrorMessage(new ObjectError (((ConstraintViolationException)ex).getConstraintName(), "ConstraintViolated"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             status = HttpStatus.CONFLICT;
         } else if (ex instanceof javax.validation.ConstraintViolationException) {
@@ -274,7 +274,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 					.hasNext();) {
 				ConstraintViolation<?> constraintViolation = (ConstraintViolation<?>) iterator
 						.next();
-				ObjectError error = new ObjectError(constraintViolation.getPropertyPath().toString(), constraintViolation.getMessage());
+				ObjectError error = new ObjectError(constraintViolation.getPropertyPath().toString(), "ConstraintViolated");
 				errors.add(error);
 			}
         	errorMessage = new ErrorMessage(errors);
