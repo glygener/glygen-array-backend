@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -106,10 +105,13 @@ public class UserController {
 				}	
 			}
 			if (user.getUserName() == null || user.getUserName().isEmpty()) {
+				errorMessage.addError(new ObjectError("userName", "NoEmpty"));
+			}
+			if (user.getUserName() != null && !user.getUserName().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "userName", user.getUserName());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("userName", "NoEmpty"));
-				}	
+					errorMessage.addError(new ObjectError("userName", "NotValid"));
+				}
 			}
 			if (user.getPassword() == null || user.getPassword().isEmpty()) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "password", user.getPassword());
