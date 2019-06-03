@@ -185,7 +185,7 @@ public class GlygenArrayController {
 							org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence);
 					if (glycanObject == null) {
 						// sequence is not valid, ignore and add to the list of failed glycans
-						result.addWrongSequence((count + 1) + ":" + sequence);
+						result.addWrongSequence(count + ":" + sequence);
 					} else {
 						String glycoCT = glycanObject.toGlycoCTCondensed();
 						Glycan g = new Glycan();
@@ -222,7 +222,7 @@ public class GlygenArrayController {
 				} catch (Exception e) {
 					logger.error ("Exception adding the sequence: " + sequence, e);
 					// sequence is not valid
-					result.addWrongSequence((count + 1) + ":" + sequence);
+					result.addWrongSequence(count + ":" + sequence);
 				}
 			}
 			scanner.close();
