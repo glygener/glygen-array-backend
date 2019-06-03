@@ -935,6 +935,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	@Override
 	public String getGlycanBySequence(String sequence, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
+		if (graph == null) {
+			try {
+				// check if there is already a private graph for user
+				graph = getGraphForUser(user);
+				if (graph == null)
+					graph = addPrivateGraphForUser(user);
+			} catch (SQLException e) {
+				throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
+			}
+		}
 		return findGlycanInGraphBySequence(sequence, graph);
 	}
 
