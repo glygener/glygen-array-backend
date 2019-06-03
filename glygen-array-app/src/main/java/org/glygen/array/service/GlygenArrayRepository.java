@@ -126,5 +126,6 @@ public interface GlygenArrayRepository {
 	void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException;
 
 	BlockLayout getBlockLayoutByName(String name, UserEntity user) throws SparqlException, SQLException;
+	SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException;
 	
 }

@@ -23,7 +23,7 @@ public class BlockLayout {
 	 * @return the name
 	 */
 	
-	@Size(max=30, message="Name cannot exceed 50 characters")
+	@Size(max=50, message="Name cannot exceed 50 characters")
 	public String getName() {
 		return name;
 	}
@@ -36,7 +36,7 @@ public class BlockLayout {
 	/**
 	 * @return the description
 	 */
-	@Size(max=30, message="description cannot exceed 250 characters")
+	@Size(max=250, message="description cannot exceed 250 characters")
 	public String getDescription() {
 		return description;
 	}
@@ -62,7 +62,7 @@ public class BlockLayout {
 	/**
 	 * @return the height
 	 */
-	@Min(value=1, message = "width must be a positive integer")
+	@Min(value=1, message = "height must be a positive integer")
 	public Integer getHeight() {
 		return height;
 	}

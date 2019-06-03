@@ -2,7 +2,8 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.List;
 
-import org.grits.toolbox.glycanarray.om.model.Block;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 
 public class SlideLayout {
 	String name;
@@ -13,6 +14,7 @@ public class SlideLayout {
 	/**
 	 * @return the name
 	 */
+	@Size(max=50, message="Name cannot exceed 50 characters")
 	public String getName() {
 		return name;
 	}
@@ -25,6 +27,7 @@ public class SlideLayout {
 	/**
 	 * @return the description
 	 */
+	@Size(max=250, message="description cannot exceed 250 characters")
 	public String getDescription() {
 		return description;
 	}
@@ -49,6 +52,7 @@ public class SlideLayout {
 	/**
 	 * @return the width
 	 */
+	@Min(value=1, message = "width must be a positive integer")
 	public Integer getWidth() {
 		return width;
 	}
@@ -61,6 +65,7 @@ public class SlideLayout {
 	/**
 	 * @return the height
 	 */
+	@Min(value=1, message = "height must be a positive integer")
 	public Integer getHeight() {
 		return height;
 	}

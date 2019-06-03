@@ -33,8 +33,8 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.service.GlygenArrayRepository;
-import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.util.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
@@ -46,7 +46,6 @@ import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.LinkerView;
-import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,8 +110,61 @@ public class GlygenArrayController {
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	public Confirmation addSlideLayout (@RequestBody SlideLayout layout) {
-		//TODO
+	public Confirmation addSlideLayout (@RequestBody SlideLayout layout, Principal p) {
+		
+		// validate first
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			
+			if  (layout.getName() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (layout.getDescription() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "description", layout.getDescription());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+				}		
+			}
+			if (layout.getWidth() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "width", layout.getWidth());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("width", "PositiveOnly"));
+				}		
+			}
+			if (layout.getHeight() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "height", layout.getHeight());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("height", "PositiveOnly"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			SlideLayout existing = repository.getSlideLayoutByName(layout.getName(), user);
+			if (existing != null) {
+				// duplicate
+				ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate slide layouts");
+				errorMessage.addError(new ObjectError("name", "Duplicate"));
+				throw new GlycanExistsException("A slide layout with the same name already exists", errorMessage);
+			} else {
+				repository.addSlideLayout(layout, user);
+			}
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Slide layout cannot be added for user " + p.getName(), e);
+		}
+		
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
@@ -133,7 +185,7 @@ public class GlygenArrayController {
 							org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence);
 					if (glycanObject == null) {
 						// sequence is not valid, ignore and add to the list of failed glycans
-						result.addWrongSequence(sequence);
+						result.addWrongSequence((count + 1) + ":" + sequence);
 					} else {
 						String glycoCT = glycanObject.toGlycoCTCondensed();
 						Glycan g = new Glycan();
@@ -168,8 +220,9 @@ public class GlygenArrayController {
 					stream.close();
 					throw new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage());
 				} catch (Exception e) {
+					logger.error ("Exception adding the sequence: " + sequence, e);
 					// sequence is not valid
-					result.addWrongSequence(sequence);
+					result.addWrongSequence((count + 1) + ":" + sequence);
 				}
 			}
 			scanner.close();

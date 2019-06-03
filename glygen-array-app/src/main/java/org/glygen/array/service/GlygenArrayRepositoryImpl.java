@@ -17,7 +17,6 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.elasticsearch.common.inject.spi.HasDependencies;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.PrivateGraphEntity;
 import org.glygen.array.persistence.SparqlEntity;
@@ -1432,5 +1431,32 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 		
 		sparqlDAO.addStatements(statements, graphIRI);
+	}
+
+	@Override
+	public SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s \n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
+		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+				+ "}\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			String slideLayoutURI = results.get(0).getValue("s");
+			return getSlideLayoutFromURI(slideLayoutURI, graph);
+		}
+	}
+
+	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, String graph) {
+		SlideLayout slideLayoutObject = null;
+		
+		// TODO Auto-generated method stub
+		return slideLayoutObject;
 	}
 }

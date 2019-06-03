@@ -1,0 +1,70 @@
+package org.glygen.array.persistence.rdf;
+
+import javax.validation.constraints.Min;
+
+public class Block {
+	String uri;
+	String id;
+	Integer row;
+	Integer column;
+	BlockLayout blockLayout;
+	/**
+	 * @return the row
+	 */
+	@Min(value=1, message = "row must be a positive integer")
+	public Integer getRow() {
+		return row;
+	}
+	/**
+	 * @param row the row to set
+	 */
+	public void setRow(Integer row) {
+		this.row = row;
+	}
+	/**
+	 * @return the column
+	 */
+	@Min(value=1, message = "column must be a positive integer")
+	public Integer getColumn() {
+		return column;
+	}
+	/**
+	 * @param column the column to set
+	 */
+	public void setColumn(Integer column) {
+		this.column = column;
+	}
+	/**
+	 * @return the blockLayout
+	 */
+	public BlockLayout getBlockLayout() {
+		return blockLayout;
+	}
+	/**
+	 * @param blockLayout the blockLayout to set
+	 */
+	public void setBlockLayout(BlockLayout blockLayout) {
+		this.blockLayout = blockLayout;
+	}
+	/**
+	 * @return the uri
+	 */
+	public String getUri() {
+		return uri;
+	}
+	/**
+	 * @param uri the uri to set
+	 */
+	public void setUri(String uri) {
+		this.uri = uri;
+		this.uri = uri;
+		if (uri != null) 
+			this.id = uri.substring(uri.lastIndexOf("/")+1);
+	}
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+}

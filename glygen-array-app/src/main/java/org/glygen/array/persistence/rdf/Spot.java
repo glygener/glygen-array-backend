@@ -2,6 +2,8 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.List;
 
+import javax.validation.constraints.Min;
+
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 public class Spot {
@@ -25,6 +27,7 @@ public class Spot {
 	/**
 	 * @return the row
 	 */
+	@Min(value=1, message = "row must be a positive integer")
 	public Integer getRow() {
 		return row;
 	}
@@ -37,6 +40,7 @@ public class Spot {
 	/**
 	 * @return the column
 	 */
+	@Min(value=1, message = "column must be a positive integer")
 	public Integer getColumn() {
 		return column;
 	}
