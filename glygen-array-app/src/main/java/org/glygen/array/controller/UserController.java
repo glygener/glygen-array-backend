@@ -179,7 +179,9 @@ public class UserController {
 		UserEntity existing = userRepository.findByUsername(user.getUserName());
 		if (existing != null) {
 			logger.info("This user " + user.getUserName() + " already exists!");
-			throw new EntityExistsException ("This user " + user.getUserName() + " already exists!");
+			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
+			errorMessage.addError(new ObjectError("username", "Duplicate"));
+			throw new EntityExistsException("This user " + user.getUserName() + " already exists!", errorMessage);
 		}
 		
 		// check if the email is already in the system
@@ -337,6 +339,11 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
 		UserEntity user = userRepository.findByUsername(username);
+		if(user!=null) {
+			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
+			errorMessage.addError(new ObjectError("username", "Duplicate"));
+			throw new EntityExistsException("This user " + username + " already exists!", errorMessage);
+		}
 		return user == null;
 	}
 
