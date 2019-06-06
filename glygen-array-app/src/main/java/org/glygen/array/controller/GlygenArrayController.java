@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -174,11 +175,11 @@ public class GlygenArrayController {
 		UserEntity user = userRepository.findByUsername(p.getName());
 		try {
 			ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
-			Scanner scanner = new Scanner(stream);
+			String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+			String[] structures = fileAsString.split(";");
 			int count = 0;
 			int countSuccess = 0;
-			while (scanner.hasNext()) {
-				String sequence = scanner.nextLine();
+			for (String sequence: structures) {
 				count++;
 				try {
 					org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
@@ -196,7 +197,8 @@ public class GlygenArrayController {
 						if (existing != null) {
 							// duplicate, ignore
 							String id = existing.substring(existing.lastIndexOf("/")+1);
-							result.addDuplicateSequence(id);
+							Glycan glycan = repository.getGlycanById(id, user);
+							result.addDuplicateSequence(getGlycanView(glycan));
 						} else {
 							String added = repository.addGlycan(g, user);
 							String id = added.substring(added.lastIndexOf("/")+1);
@@ -216,7 +218,6 @@ public class GlygenArrayController {
 				}
 				catch (SparqlException e) {
 					// cannot add glycan
-					scanner.close();
 					stream.close();
 					throw new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage());
 				} catch (Exception e) {
@@ -225,7 +226,6 @@ public class GlygenArrayController {
 					result.addWrongSequence(count + ":" + sequence);
 				}
 			}
-			scanner.close();
 			stream.close();
 			result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
 			return result;
@@ -249,12 +249,12 @@ public class GlygenArrayController {
 			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
 		}
+		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		// validate first
 		if (validator != null) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			
 			if  (glycan.getName() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycan.getName());
 				if (!violations.isEmpty()) {
@@ -280,107 +280,124 @@ public class GlygenArrayController {
 				}		
 			}
 			
-			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
-		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		
+		org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
+		Glycan g = new Glycan();
+		g.setName(glycan.getName() != null ? glycan.getName().trim() : glycan.getName());
+		g.setGlytoucanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
+		g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
+		g.setComment(glycan.getComment() != null ? glycan.getComment().trim() : glycan.getComment());
+		//g.setSequence(glycan.getSequence().trim());
+		//g.setSequenceType(glycan.getSequenceFormat().getLabel());
+		
+		String glycoCT = glycan.getSequence().trim();
+		UserEntity user;
 		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
-			Glycan g = new Glycan();
-			g.setName(glycan.getName() != null ? glycan.getName().trim() : glycan.getName());
-			g.setGlytoucanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
-			g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
-			g.setComment(glycan.getComment() != null ? glycan.getComment().trim() : glycan.getComment());
-			g.setSequence(glycan.getSequence().trim());
-			g.setSequenceType(glycan.getSequenceFormat().getLabel());
+			user = userRepository.findByUsername(p.getName());
 			
-			String existingURI = repository.getGlycanBySequence(glycan.getSequence().trim());
-			if (existingURI == null) {
-				//TODO if there is a glytoucanId, check if it is valid
+			if (glycan.getSequence() != null && !glycan.getSequence().trim().isEmpty()) {
+				//check if the given sequence is valid
+				
+				boolean parseError = false;
 				try {
-					if (glycan.getSequence() != null && !glycan.getSequence().trim().isEmpty()) {
-						//check if the given sequence is valid
-						org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
-						switch (glycan.getSequenceFormat()) {
-							case GLYCOCT:
-								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
-								break;
-							case GWS:
-								glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
-								break;
-						}
-						if (glycanObject != null) {
-							g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
-							BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-									.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-							if (t_image != null) {
-								String glycanURI = repository.addGlycan(g, user);
-								String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-								//save the image into a file
-								logger.debug("Adding image to " + imageLocation);
-								File imageFile = new File(imageLocation + File.separator + id + ".png");
-								ImageIO.write(t_image, "png", imageFile);
-							} else {
-								logger.error("Glycan image is null");
-								throw new GlycanRepositoryException("Glycan image cannot be generated");
-							}
+					switch (glycan.getSequenceFormat()) {
+						case GLYCOCT:
+							glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+							break;
+						case GWS:
+							glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
+							glycoCT = glycanObject.toGlycoCTCondensed();
+							break;
+					}
+				} catch (Exception e) {
+					// parse error
+					parseError = true;
+				}
+				// check for all possible errors 
+				if (glycanObject == null) {
+					parseError = true;
+				} else {
+					String existingURI = repository.getGlycanBySequence(glycoCT, user);
+					if (existingURI != null) {
+						errorMessage.addError(new ObjectError("sequence", "Duplicate"));
+					}
+				}
+				if (parseError)
+					errorMessage.addError(new ObjectError("sequence", "NotValid"));
+			} else {
+				errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+			}
+			Glycan local = null;
+			// check if internalid and label are unique
+			if (glycan.getInternalId() != null) {
+				local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+				}
+			}
+			if (glycan.getName() != null) {
+				local = repository.getGlycanByLabel(glycan.getName().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				}
+			} 
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+				
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		try {	
+			// no errors add the glycan
+			if (glycanObject != null) {
+				g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
+				g.setSequence(glycoCT);
+				g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+				String existingURI = repository.getGlycanBySequence(g.getSequence());
+				if (existingURI == null) {
+					BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+							.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+					if (t_image != null) {
+						String glycanURI = repository.addGlycan(g, user);
+						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+						Glycan added = repository.getGlycanById(id, user);
+						if (added != null) {
+							String filename = null;
+							if (added.getGlytoucanId() == null || added.getGlytoucanId().isEmpty()) 
+								filename = id + ".png";
+							else
+								filename = added.getGlytoucanId() + ".png";
+							//save the image into a file
+							logger.debug("Adding image to " + imageLocation);
+							File imageFile = new File(imageLocation + File.separator + filename);
+							ImageIO.write(t_image, "png", imageFile);
 						} else {
-							ErrorMessage errorMessage = new ErrorMessage("Sequence format is not valid for the given sequence");
-							errorMessage.addError(new ObjectError("sequence", "NotValid"));
-							throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
+							logger.error("Added glycan cannot be retrieved back");
+							throw new GlycanRepositoryException("Glycan image cannot be generated");
 						}
 					} else {
-						ErrorMessage errorMessage = new ErrorMessage("Sequence format is required for a glycan, cannot be empty");
-						errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
-						throw new GlycanRepositoryException("Cannot add a glycan without a sequence", errorMessage);
-					}
-				} catch (IOException e) {
-					logger.error("Glycan image cannot be generated", e);
-					throw new GlycanRepositoryException("Glycan image cannot be generated", e);
-				} catch (Exception e) {
-					logger.error("Glycan sequence is not valid", e);
-					ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
-					errorMessage.addError(new ObjectError("sequence", "NotValid"));
-					throw new IllegalArgumentException("Sequence format is not valid for the given sequence", errorMessage);
-				}
-				
-			} else {
-				// still add to the user's local repo
-				// no need to generate the image again
-				// check if it already exists in local repo as well (by sequence, by label, by internalId)
-				existingURI = repository.getGlycanBySequence(glycan.getSequence().trim(), user);
-				if (existingURI != null) {
-					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
-					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
-					throw new GlycanExistsException("A glycan with the same sequence already exists", errorMessage);
-				}
-				
-				Glycan local = null;
-				// check if internalid and label are unique
-				if (glycan.getInternalId() != null) {
-					local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
-					if (local != null) {
-						ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
-						errorMessage.addError(new ObjectError("internalId", "Duplicate"));
-						throw new GlycanExistsException("A glycan with the same internal id already exists", errorMessage);
+						logger.error("Glycan image is null");
+						throw new GlycanRepositoryException("Glycan image cannot be generated");
 					}
 				}
-				if (glycan.getName() != null) {
-					local = repository.getGlycanByLabel(glycan.getName().trim(), user);
-					if (local != null) {
-						ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
-						errorMessage.addError(new ObjectError("name", "Duplicate"));
-						throw new GlycanExistsException("A glycan with the same label/name already exists", errorMessage);
-					}
-				} 
-				repository.addGlycan(g, user);
+				else {
+					// still add to the user's local repo
+					// no need to generate the image again
+					repository.addGlycan(g, user);
+				}
 			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
-		} 
+		} catch (IOException e) {
+			logger.error("Glycan image cannot be generated", e);
+			throw new GlycanRepositoryException("Glycan image cannot be generated", e);
+		} catch (Exception e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+		
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}
 	
@@ -858,7 +875,12 @@ public class GlygenArrayController {
 		g.setGlytoucanId(glycan.getGlytoucanId());
 		g.setDateModified(glycan.getDateModified());
 		try {
-			byte[] image = getCartoonForGlycan(g.getId());
+			byte[] image = null;
+			if (g.getGlytoucanId() != null) {
+				image = getCartoonForGlycan(g.getGlytoucanId());
+			} else {
+				image = getCartoonForGlycan(g.getId());
+			}
 			g.setCartoon(image);
 		} catch (Exception e) {
 			logger.warn("Image cannot be retrieved", e);
