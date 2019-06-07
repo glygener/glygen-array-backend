@@ -10,7 +10,7 @@ public class LinkerView {
 	String id;
 	String name;
 	String comment;
-	Integer pubChemId;
+	Long pubChemId;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
@@ -50,13 +50,13 @@ public class LinkerView {
 	 * @return the pubChemId
 	 */
 	@NotNull
-	public Integer getPubChemId() {
+	public Long getPubChemId() {
 		return pubChemId;
 	}
 	/**
 	 * @param pubChemId the pubChemId to set
 	 */
-	public void setPubChemId(Integer pubChemId) {
+	public void setPubChemId(Long pubChemId) {
 		this.pubChemId = pubChemId;
 	}
 	/**

@@ -1,16 +1,21 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
 public class SlideLayout {
+	String id;
+	String uri;
 	String name;
 	String description;
 	List <Block> blocks;
 	Integer width;
 	Integer height;
+	Date dateCreated;
+	Date dateModified;
 	/**
 	 * @return the name
 	 */
@@ -74,6 +79,56 @@ public class SlideLayout {
 	 */
 	public void setHeight(Integer height) {
 		this.height = height;
+	}
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+	/**
+	 * @return the uri
+	 */
+	public String getUri() {
+		return uri;
+	}
+	/**
+	 * @param uri the uri to set
+	 */
+	public void setUri(String uri) {
+		this.uri = uri;
+		if (uri != null) 
+			this.id = uri.substring(uri.lastIndexOf("/")+1);
+	}
+	/**
+	 * @return the dateCreated
+	 */
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+	/**
+	 * @param dateCreated the dateCreated to set
+	 */
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+	/**
+	 * @return the dateModified
+	 */
+	public Date getDateModified() {
+		return dateModified;
+	}
+	/**
+	 * @param dateModified the dateModified to set
+	 */
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
 	}
 
 	
