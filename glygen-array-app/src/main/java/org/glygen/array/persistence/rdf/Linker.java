@@ -7,7 +7,7 @@ public class Linker {
 	String uri;
 	String name;
 	String comment;
-	Integer pubChemId;
+	Long pubChemId;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
@@ -45,13 +45,13 @@ public class Linker {
 	/**
 	 * @return the pubChemId
 	 */
-	public Integer getPubChemId() {
+	public Long getPubChemId() {
 		return pubChemId;
 	}
 	/**
 	 * @param pubChemId the pubChemId to set
 	 */
-	public void setPubChemId(Integer pubChemId) {
+	public void setPubChemId(Long pubChemId) {
 		this.pubChemId = pubChemId;
 	}
 	/**

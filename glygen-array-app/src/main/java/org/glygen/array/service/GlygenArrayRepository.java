@@ -25,9 +25,10 @@ public interface GlygenArrayRepository {
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
 	
-	void addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException;
+	String addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException, SQLException;
 	
 	void deleteBlockLayout(String blockLayoutId, UserEntity user) throws SparqlException, SQLException;
+	void deleteSlideLayout(String slideLayoutId, UserEntity user) throws SparqlException, SQLException;
 	
 	//Glycan getGlycan (String glytoucanId) throws SparqlException, SQLException;
 	//Glycan getGlycan (String glytoucanId, UserEntity user) throws SparqlException, SQLException;
@@ -37,6 +38,7 @@ public interface GlygenArrayRepository {
 	void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException;
 	
 	BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user) throws SparqlException, SQLException;
+	SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user) throws SparqlException, SQLException;
 	
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user) throws SparqlException, SQLException;
 	
@@ -99,7 +101,7 @@ public interface GlygenArrayRepository {
 	 * @return the URI of the existing linker or null if it does not exist
 	 * @throws SparqlException
 	 */
-	public String getLinkerByPubChemId(Integer pubChemId) throws SparqlException;
+	public String getLinkerByPubChemId(Long pubChemId) throws SparqlException;
 
 	/**
 	 * check if the linker with the given pubchemId is already in user's private graph
@@ -109,7 +111,7 @@ public interface GlygenArrayRepository {
 	 * @throws SparqlException 
 	 * @throws SQLException thrown if the user's graph cannot be accessed
 	 */
-	public String getLinkerByPubChemId (Integer pubChemId, UserEntity user) throws SparqlException, SQLException;
+	public String getLinkerByPubChemId (Long pubChemId, UserEntity user) throws SparqlException, SQLException;
 
 	List<Linker> getLinkerByUser(UserEntity user) throws SQLException, SparqlException;
 
@@ -127,5 +129,10 @@ public interface GlygenArrayRepository {
 
 	BlockLayout getBlockLayoutByName(String name, UserEntity user) throws SparqlException, SQLException;
 	SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException;
+
+	List<SlideLayout> getSlideLayoutByUser(UserEntity user, int offset, int limit, String field, int order)
+			throws SparqlException, SQLException;
+	
+	int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException;
 	
 }
