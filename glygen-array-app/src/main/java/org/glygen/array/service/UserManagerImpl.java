@@ -117,11 +117,7 @@ public class UserManagerImpl implements UserManager {
 	}
 
 	@Override
-	public void changePassword(String username, String newPassword) {
-		UserEntity user = repository.findByUsername(username);
-		if (user == null) {
-			throw new UserNotFoundException("No user is associated with " + username);
-		}
+	public void changePassword(UserEntity user, String newPassword) {
 		user.setPassword(newPassword);
 		repository.save(user);
 	}
@@ -135,5 +131,10 @@ public class UserManagerImpl implements UserManager {
 		emailChange.setNewEmail(newEmail);
 		emailRepository.save(emailChange);
 	}    
+	
+	@Override
+	public UserEntity getUserByUsername(String userName) {
+		UserEntity user = repository.findByUsername(userName);
+		return user;
+	}
 }
-

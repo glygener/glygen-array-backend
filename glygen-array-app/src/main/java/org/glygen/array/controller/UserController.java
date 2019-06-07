@@ -21,6 +21,7 @@ import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
 import org.glygen.array.service.UserManagerImpl;
+import org.glygen.array.view.ChangePassword;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -188,8 +189,11 @@ public class UserController {
 		existing = userRepository.findByEmail(user.getEmail());
 		if (existing != null) {
 			logger.info("There is already an account with this email: " + user.getEmail());
-			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail());
+			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");
+			errorMessage.addError(new ObjectError("email", "Duplicate"));
+			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail(), errorMessage);
 		}
+			
         userManager.createUser(newUser);  
         // send email confirmation
         try {
@@ -280,7 +284,9 @@ public class UserController {
     		    		UserEntity existing = userRepository.findByEmail(user.getEmail().trim());
     		    		if (existing != null && !existing.getUserId().equals(userEntity.getUserId())) {
     		    			logger.info("There is already an account with this email: " + user.getEmail());
-    		    			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail());
+    		    			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");
+    		    			errorMessage.addError(new ObjectError("email", "Duplicate"));
+    		    			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail(), errorMessage);
     		    		} 
     		        	
     		        	emailManager.sendEmailChangeNotification(userEntity);
@@ -452,7 +458,7 @@ public class UserController {
     		Principal p,
     		@ApiParam(value = "your password", type = "string", format = "password")
     		@RequestBody(required=true) 
-    		String newPassword, 
+    		ChangePassword changePassword, 
     		@PathVariable("userName") String userName) {
     	if (p == null) {
     		// not authenticated
@@ -464,25 +470,43 @@ public class UserController {
     	}
     	
     	// using @NotEmpty for newPassword didn't work, so have to handle it here
-    	if (newPassword == null || newPassword.isEmpty()) {
+    	if (null == changePassword.getNewPassword() || changePassword.getNewPassword().isEmpty()) {
     		ErrorMessage errorMessage = new ErrorMessage ("new password cannot be empty");
     		errorMessage.addError(new ObjectError("password", "NoEmpty"));
     		throw new IllegalArgumentException("Invalid Input: new password cannot be empty", errorMessage);
     	}
     	
+    	if (null == changePassword.getCurrentPassword() || changePassword.getCurrentPassword().isEmpty()) {
+    		ErrorMessage errorMessage = new ErrorMessage ("current password cannot be empty");
+    		errorMessage.addError(new ObjectError("currentpassword", "NoEmpty"));
+    		throw new IllegalArgumentException("Invalid Input: current password cannot be empty", errorMessage);
+    	}
+    	
     	//password validation 
     	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
-    	if (!pattern.matcher(newPassword).matches()) {
-    		logger.debug("Password fails pattern: " + newPassword);
+    	
+    	if (!pattern.matcher(changePassword.getNewPassword()).matches()) {
+    		logger.debug("Password fails pattern: " + changePassword.getNewPassword());
     		ErrorMessage errorMessage = new ErrorMessage ("new password is not valid. The password length must be greater than or equal to 5, must contain one or more uppercase characters, \n " + 
     				"must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
     		errorMessage.addError(new ObjectError("password", "NotValid"));
     		throw new IllegalArgumentException("Invalid Input: Password is not valid", errorMessage);
     	}
-    	// encrypt the password
-		String hashedPassword = passwordEncoder.encode(newPassword);
-    	logger.debug("new password is {}", hashedPassword);
-    	userManager.changePassword(p.getName(), hashedPassword);
-    	return new Confirmation("Password changed successfully", HttpStatus.OK.value());
+    	
+    	UserEntity user = userManager.getUserByUsername(userName);
+    	
+    	if(passwordEncoder.encode(changePassword.getCurrentPassword()).equals(user.getPassword())) {
+    		// encrypt the password
+    		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword());
+        	logger.debug("new password is {}", hashedPassword);
+        	userManager.changePassword(user, hashedPassword);
+    	}else {
+    		logger.error("Current Password is not valid!");
+    		ErrorMessage errorMessage = new ErrorMessage("Current Password is not valid. Please try again!");
+			errorMessage.addError(new ObjectError("currentPassword", "Invalid"));
+			throw new IllegalArgumentException("Current password s invalid", errorMessage);
+    	}
+    	return new Confirmation("Password changed successfully", HttpStatus.OK.value()); 
     }
 }
+
