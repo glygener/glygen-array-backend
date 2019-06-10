@@ -161,8 +161,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     		}
         } else if (ex instanceof EmailExistsException ) {
             status = HttpStatus.CONFLICT;
-            errorMessage = new ErrorMessage (ex.getMessage());
-            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            //errorMessage = new ErrorMessage (ex.getMessage());
+            errorMessage = (ErrorMessage) ex.getCause();
+            errorMessage.setErrorCode(ErrorCodes.DUPLICATE);
+//            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
         } else if (ex instanceof IllegalArgumentException) { //|| ex instanceof UserRoleViolationException || ex instanceof SugarImporterException || ex instanceof GlycoVisitorException) {
         	status = HttpStatus.BAD_REQUEST;
         	ErrorCodes code;
