@@ -781,9 +781,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	public List<BlockLayout> getBlockLayoutByUser(UserEntity user) throws SparqlException, SQLException {
 		return getBlockLayoutByUser(user, 0, -1, "id", 0);
 	}
-
+	
 	@Override
-	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
+			Boolean loadAll, Integer order) throws SparqlException, SQLException {
+		
 		List<BlockLayout> layouts = new ArrayList<BlockLayout>();
 		
 		String sortPredicate = getSortPredicateForLayout (field);
@@ -810,12 +812,17 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String blockLayoutURI = sparqlEntity.getValue("s");
-				BlockLayout layout = getBlockLayoutFromURI(blockLayoutURI, graph);
+				BlockLayout layout = getBlockLayoutFromURI(blockLayoutURI, loadAll, graph);
 				layouts.add(layout);
 			}
 		}
 		
 		return layouts;
+	}
+
+	@Override
+	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+		return getBlockLayoutByUser(user, offset, limit, field, true, order);
 	}
 	
 	@Override
@@ -845,7 +852,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return total;
 	}
 	
+	
 	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, String graph) throws SparqlException {
+		return getBlockLayoutFromURI(blockLayoutURI, true, graph);
+	}
+	
+	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, String graph) throws SparqlException {
 		BlockLayout blockLayoutObject = null;
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -903,7 +915,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			    	Date date = calendar.toGregorianCalendar().getTime();
 			    	blockLayoutObject.setDateModified(date);
 			    }
-			} else if (st.getPredicate().equals(hasSpot)) {
+			} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasSpot)) {
 				Value v = st.getObject();
 				String spotURI = v.stringValue();
 				Spot s = new Spot();

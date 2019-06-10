@@ -46,6 +46,7 @@ import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.LinkerView;
+import org.glygen.array.view.SlideLayoutResultView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,12 +113,12 @@ public class GlygenArrayController {
 			produces={"application/json", "application/xml"})
 	public Confirmation addSlideLayout (@RequestBody SlideLayout layout, Principal p) {
 		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
 		// validate first
 		if (validator != null) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			
 			if  (layout.getName() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName());
 				if (!violations.isEmpty()) {
@@ -143,9 +144,7 @@ public class GlygenArrayController {
 				}		
 			}
 			
-			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
-		
+			
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
 		}
@@ -155,16 +154,22 @@ public class GlygenArrayController {
 			SlideLayout existing = repository.getSlideLayoutByName(layout.getName(), user);
 			if (existing != null) {
 				// duplicate
-				ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate slide layouts");
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
-				throw new GlycanExistsException("A slide layout with the same name already exists", errorMessage);
-			} else {
-				repository.addSlideLayout(layout, user);
 			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Slide layout cannot be added for user " + p.getName(), e);
 		}
 		
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+		
+		try {
+			repository.addSlideLayout(layout, user);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Slide layout cannot be added for user " + p.getName(), e);
+		}
+		
+	
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
@@ -629,7 +634,10 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, Principal p) {
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam (required=false, defaultValue = "true", value="if false, do not load spot details. Default is true (to load all)")
+			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
+			Principal p) {
 		BlockLayoutResultView result = new BlockLayoutResultView();
 		UserEntity user = userRepository.findByUsername(p.getName());
 		try {
@@ -643,11 +651,50 @@ public class GlygenArrayController {
 				order = 0; // DESC
 			
 			int total = repository.getBlockLayoutCountByUser (user);
-			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user, offset, limit, field, order);
+			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order);
 			result.setRows(layouts);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve block layouts for user. Reason: " + e.getMessage());
+		}
+		
+		return result;
+	}
+	
+	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list slide layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public SlideLayoutResultView listSlideLayouts (
+			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@RequestParam("offset") Integer offset,
+			@ApiParam(required=true, value="limit of the number of layouts to be retrieved") 
+			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="name of the sort field, defaults to id") 
+			@RequestParam(value="sortBy", required=false) String field, 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@RequestParam(value="order", required=false) Integer order, Principal p) {
+		SlideLayoutResultView result = new SlideLayoutResultView();
+		UserEntity user = userRepository.findByUsername(p.getName());
+		try {
+			if (offset == null)
+				offset = 0;
+			if (limit == null)
+				limit = 20;
+			if (field == null)
+				field = "id";
+			if (order == null)
+				order = 0; // DESC
+			
+			int total = repository.getSlideLayoutCountByUser (user);
+			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, order);
+			result.setRows(layouts);
+			result.setTotal(total);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
 		}
 		
 		return result;
@@ -803,12 +850,11 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 		}
 		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		// validate first
-		if (validator != null) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			
+		if (validator != null) {			
 			if  (layout.getName() != null) {
 				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName());
 				if (!violations.isEmpty()) {
@@ -833,10 +879,6 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("height", "PositiveOnly"));
 				}		
 			}
-			
-			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
-		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
 		}
@@ -846,13 +888,19 @@ public class GlygenArrayController {
 			BlockLayout existing = repository.getBlockLayoutByName(layout.getName(), user);
 			if (existing != null) {
 				// duplicate
-				ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate block layouts");
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
 				throw new GlycanExistsException("A block layout with the same name already exists", errorMessage);
-			} else {
-				repository.addBlockLayout(layout, user);
-			}
+			} 
 		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
+		}
+		
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+		
+		try {
+			repository.addBlockLayout(layout, user);
+		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
 		

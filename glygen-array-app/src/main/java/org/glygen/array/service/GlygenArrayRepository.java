@@ -134,5 +134,8 @@ public interface GlygenArrayRepository {
 			throws SparqlException, SQLException;
 	
 	int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException;
+
+	List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
+			Boolean loadAll, Integer order) throws SparqlException, SQLException;
 	
 }
