@@ -891,7 +891,11 @@ public class GlygenArrayController {
 			
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
-		} 
+		} catch (Exception e) {
+			// could not get details from PubChem
+			errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+		}
 		
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
 	}
