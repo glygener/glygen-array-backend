@@ -831,13 +831,13 @@ public class GlygenArrayController {
 			}
 			
 			if  (linker.getName() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName());
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (linker.getComment() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment());
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -852,14 +852,18 @@ public class GlygenArrayController {
 			String linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId());
 			if (linkerURI == null) {
 				// get the linker details from pubChem
-				l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
-				if (l == null) {
+				try {
+					l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+					if (l == null) {
+						// could not get details from PubChem
+						errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+					} else {
+						if (linker.getName() != null) l.setName(linker.getName().trim());
+						if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+					}
+				} catch (Exception e) {
 					// could not get details from PubChem
 					errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
-					
-				} else {
-					if (linker.getName() != null) l.setName(linker.getName().trim());
-					if (linker.getComment() != null) l.setComment(linker.getComment().trim());
 				}
 				
 				// check if it already exists in local repo as well (by pubChemId, by label)
@@ -869,12 +873,24 @@ public class GlygenArrayController {
 				}
 				
 				if (linker.getName() != null) {
-					Linker local = repository.getLinkerByLabel(linker.getName(), user);
+					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
 				}
 			} else {
+				// check if it already exists in local repo as well (by pubChemId, by label)
+				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+				if (linkerURI != null) {
+					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				}
+				
+				if (linker.getName() != null) {
+					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) {
+						errorMessage.addError(new ObjectError("name", "Duplicate"));	
+					}
+				}
 				// only add name and comment to the user's local repo
 				// pubChemId is required for insertion
 				l = new Linker();
@@ -891,11 +907,7 @@ public class GlygenArrayController {
 			
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
-		} catch (Exception e) {
-			// could not get details from PubChem
-			errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
-			throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
-		}
+		} 
 		
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
 	}
