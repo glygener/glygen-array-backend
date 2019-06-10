@@ -884,103 +884,105 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			blockLayoutObject = new BlockLayout();
 			blockLayoutObject.setUri(blockLayoutURI);
 		}
-		List<Spot> spots = new ArrayList<Spot>();
-		while (statements.hasNext()) {
-			Statement st = statements.next();
-			if (st.getPredicate().equals(RDFS.LABEL)) {
-				Value v = st.getObject();
-				blockLayoutObject.setName(v.stringValue());
-			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
-				Value v = st.getObject();
-				blockLayoutObject.setDescription(v.stringValue());
-			} else if (st.getPredicate().equals(hasWidth)) {
-				Value v = st.getObject();
-				if (v != null) blockLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
-			} else if (st.getPredicate().equals(hasHeight)) {
-				Value v = st.getObject();
-				if (v != null) blockLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
-			} else if (st.getPredicate().equals(hasCreatedDate)) {
-				Value value = st.getObject();
-			    if (value instanceof Literal) {
-			    	Literal literal = (Literal)value;
-			    	XMLGregorianCalendar calendar = literal.calendarValue();
-			    	Date date = calendar.toGregorianCalendar().getTime();
-			    	blockLayoutObject.setDateCreated(date);
-			    }
-			} else if (st.getPredicate().equals(hasModifiedDate)) {
-				Value value = st.getObject();
-			    if (value instanceof Literal) {
-			    	Literal literal = (Literal)value;
-			    	XMLGregorianCalendar calendar = literal.calendarValue();
-			    	Date date = calendar.toGregorianCalendar().getTime();
-			    	blockLayoutObject.setDateModified(date);
-			    }
-			} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasSpot)) {
-				Value v = st.getObject();
-				String spotURI = v.stringValue();
-				Spot s = new Spot();
-				IRI spot = f.createIRI(spotURI);
-				RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
-				List<Feature> features = new ArrayList<Feature>();
-				s.setFeatures(features);
-				while (statements2.hasNext()) {
-					Statement st2 = statements2.next();
-					if (st2.getPredicate().equals(hasRow)) {
-						v = st2.getObject();
-						s.setRow(Integer.parseInt(v.stringValue()));
-					} else if (st2.getPredicate().equals(hasColumn)) {
-						v = st2.getObject();
-						s.setColumn(Integer.parseInt(v.stringValue()));
-					} else if (st2.getPredicate().equals(hasGroup)) {
-						v = st2.getObject();
-						s.setGroup(Integer.parseInt(v.stringValue()));
-					} else if (st2.getPredicate().equals(hasConcentration)) {
-						LevelUnit c = new LevelUnit();
-						v = st2.getObject();
-						String conURI = v.stringValue();
-						IRI concentration = f.createIRI(conURI);
-						RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-						while (statements3.hasNext()) {
-							Statement st3 = statements3.next();
-							if (st3.getPredicate().equals(hasConcentrationValue)) {
-								v = st3.getObject();
-								c.setConcentration(Double.parseDouble(v.stringValue()));
-							} else if (st3.getPredicate().equals(hasConcentrationUnit)) {
-								v = st3.getObject();
-								c.setLevelUnit(UnitOfLevels.lookUp(v.stringValue()));
+		if (blockLayoutObject != null) {
+			List<Spot> spots = new ArrayList<Spot>();
+			while (statements.hasNext()) {
+				Statement st = statements.next();
+				if (st.getPredicate().equals(RDFS.LABEL)) {
+					Value v = st.getObject();
+					blockLayoutObject.setName(v.stringValue());
+				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+					Value v = st.getObject();
+					blockLayoutObject.setDescription(v.stringValue());
+				} else if (st.getPredicate().equals(hasWidth)) {
+					Value v = st.getObject();
+					if (v != null) blockLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasHeight)) {
+					Value v = st.getObject();
+					if (v != null) blockLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasCreatedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	blockLayoutObject.setDateCreated(date);
+				    }
+				} else if (st.getPredicate().equals(hasModifiedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	blockLayoutObject.setDateModified(date);
+				    }
+				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasSpot)) {
+					Value v = st.getObject();
+					String spotURI = v.stringValue();
+					Spot s = new Spot();
+					IRI spot = f.createIRI(spotURI);
+					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
+					List<Feature> features = new ArrayList<Feature>();
+					s.setFeatures(features);
+					while (statements2.hasNext()) {
+						Statement st2 = statements2.next();
+						if (st2.getPredicate().equals(hasRow)) {
+							v = st2.getObject();
+							s.setRow(Integer.parseInt(v.stringValue()));
+						} else if (st2.getPredicate().equals(hasColumn)) {
+							v = st2.getObject();
+							s.setColumn(Integer.parseInt(v.stringValue()));
+						} else if (st2.getPredicate().equals(hasGroup)) {
+							v = st2.getObject();
+							s.setGroup(Integer.parseInt(v.stringValue()));
+						} else if (st2.getPredicate().equals(hasConcentration)) {
+							LevelUnit c = new LevelUnit();
+							v = st2.getObject();
+							String conURI = v.stringValue();
+							IRI concentration = f.createIRI(conURI);
+							RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
+							while (statements3.hasNext()) {
+								Statement st3 = statements3.next();
+								if (st3.getPredicate().equals(hasConcentrationValue)) {
+									v = st3.getObject();
+									c.setConcentration(Double.parseDouble(v.stringValue()));
+								} else if (st3.getPredicate().equals(hasConcentrationUnit)) {
+									v = st3.getObject();
+									c.setLevelUnit(UnitOfLevels.lookUp(v.stringValue()));
+								}
 							}
-						}
-						s.setConcentration(c);
-					} else if (st2.getPredicate().equals(hasFeature)) {
-						Feature feat = new Feature();
-						v = st2.getObject();
-						String featureURI = v.stringValue();
-						IRI feature = f.createIRI(featureURI);
-						feat.setUri(featureURI);
-						RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(feature, null, null, graphIRI);
-						while (statements3.hasNext()) {
-							Statement st3 = statements3.next();
-							if (st3.getPredicate().equals(hasGlycan)) {
-								v = st3.getObject();
-								String glycanURI = v.stringValue();
-								feat.setGlycan(getGlycanFromURI(glycanURI, graph));
-							} else if (st3.getPredicate().equals(hasLinker)) {
-								v = st3.getObject();
-								String linkerURI = v.stringValue();
-								feat.setLinker(getLinkerFromURI(linkerURI, graph));
-							} else if (st3.getPredicate().equals(hasRatio)) {
-								v = st3.getObject();
-								feat.setRatio(Double.parseDouble(v.stringValue()));
+							s.setConcentration(c);
+						} else if (st2.getPredicate().equals(hasFeature)) {
+							Feature feat = new Feature();
+							v = st2.getObject();
+							String featureURI = v.stringValue();
+							IRI feature = f.createIRI(featureURI);
+							feat.setUri(featureURI);
+							RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(feature, null, null, graphIRI);
+							while (statements3.hasNext()) {
+								Statement st3 = statements3.next();
+								if (st3.getPredicate().equals(hasGlycan)) {
+									v = st3.getObject();
+									String glycanURI = v.stringValue();
+									feat.setGlycan(getGlycanFromURI(glycanURI, graph));
+								} else if (st3.getPredicate().equals(hasLinker)) {
+									v = st3.getObject();
+									String linkerURI = v.stringValue();
+									feat.setLinker(getLinkerFromURI(linkerURI, graph));
+								} else if (st3.getPredicate().equals(hasRatio)) {
+									v = st3.getObject();
+									feat.setRatio(Double.parseDouble(v.stringValue()));
+								}
 							}
+							features.add(feat);
 						}
-						features.add(feat);
 					}
+					spots.add(s);
 				}
-				spots.add(s);
 			}
+			
+			blockLayoutObject.setSpots(spots);
 		}
-		
-		blockLayoutObject.setSpots(spots);
 		
 		return blockLayoutObject;
 	}
@@ -1715,46 +1717,48 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			slideLayoutObject = new SlideLayout();
 			slideLayoutObject.setUri(slideLayoutURI);
 		}
-		List<Block> blocks = new ArrayList<>();
-		while (statements.hasNext()) {
-			Statement st = statements.next();
-			if (st.getPredicate().equals(RDFS.LABEL)) {
-				Value v = st.getObject();
-				slideLayoutObject.setName(v.stringValue());
-			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
-				Value v = st.getObject();
-				slideLayoutObject.setDescription(v.stringValue());
-			} else if (st.getPredicate().equals(hasWidth)) {
-				Value v = st.getObject();
-				if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
-			} else if (st.getPredicate().equals(hasHeight)) {
-				Value v = st.getObject();
-				if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
-			} else if (st.getPredicate().equals(hasCreatedDate)) {
-				Value value = st.getObject();
-			    if (value instanceof Literal) {
-			    	Literal literal = (Literal)value;
-			    	XMLGregorianCalendar calendar = literal.calendarValue();
-			    	Date date = calendar.toGregorianCalendar().getTime();
-			    	slideLayoutObject.setDateCreated(date);
-			    }
-			} else if (st.getPredicate().equals(hasModifiedDate)) {
-				Value value = st.getObject();
-			    if (value instanceof Literal) {
-			    	Literal literal = (Literal)value;
-			    	XMLGregorianCalendar calendar = literal.calendarValue();
-			    	Date date = calendar.toGregorianCalendar().getTime();
-			    	slideLayoutObject.setDateModified(date);
-			    }
-			} else if (st.getPredicate().equals(hasBlock)) {
-				Value v = st.getObject();
-				String blockURI = v.stringValue();
-				Block block = getBlock (blockURI, graph);
-				blocks.add(block);
+		if (slideLayoutObject != null) {
+			List<Block> blocks = new ArrayList<>();
+			while (statements.hasNext()) {
+				Statement st = statements.next();
+				if (st.getPredicate().equals(RDFS.LABEL)) {
+					Value v = st.getObject();
+					slideLayoutObject.setName(v.stringValue());
+				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+					Value v = st.getObject();
+					slideLayoutObject.setDescription(v.stringValue());
+				} else if (st.getPredicate().equals(hasWidth)) {
+					Value v = st.getObject();
+					if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasHeight)) {
+					Value v = st.getObject();
+					if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasCreatedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	slideLayoutObject.setDateCreated(date);
+				    }
+				} else if (st.getPredicate().equals(hasModifiedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	slideLayoutObject.setDateModified(date);
+				    }
+				} else if (st.getPredicate().equals(hasBlock)) {
+					Value v = st.getObject();
+					String blockURI = v.stringValue();
+					Block block = getBlock (blockURI, graph);
+					blocks.add(block);
+				}
 			}
+			
+			slideLayoutObject.setBlocks(blocks);
 		}
-		
-		slideLayoutObject.setBlocks(blocks);
 		return slideLayoutObject;
 	}
 

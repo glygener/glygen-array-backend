@@ -448,7 +448,7 @@ public class GlygenArrayController {
 		} 
 	}
 	
-	@RequestMapping(value="/deleteBlockLayout/{layoutId}", method = RequestMethod.DELETE, 
+	@RequestMapping(value="/deleteblocklayout/{layoutId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	public Confirmation deleteBlockLayout (
 			@ApiParam(required=true, value="id of the block layout to delete") 
@@ -459,6 +459,20 @@ public class GlygenArrayController {
 			return new Confirmation("Block Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete block layout " + blockLayoutId);
+		} 
+	}
+	
+	@RequestMapping(value="/deleteslidelayout/{layoutId}", method = RequestMethod.DELETE, 
+			produces={"application/json", "application/xml"})
+	public Confirmation deleteSlideLayout (
+			@ApiParam(required=true, value="id of the block layout to delete") 
+			@PathVariable("layoutId") String layoutId, Principal principal) {
+		try {
+			UserEntity user = userRepository.findByUsername(principal.getName());
+			repository.deleteSlideLayout(layoutId, user);
+			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId);
 		} 
 	}
 	
@@ -659,6 +673,54 @@ public class GlygenArrayController {
 		}
 		
 		return result;
+	}
+	
+	@RequestMapping(value="/getblocklayout/{layoutId}", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list block layouts"),
+			@ApiResponse(code=404, message="Block layout with given id does not exist"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public BlockLayout getBlockLayout (
+			@ApiParam(required=true, value="id of the block layout to retrieve") 
+			@PathVariable("layoutId") String layoutId, Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			BlockLayout layout = repository.getBlockLayoutById(layoutId, user);
+			if (layout == null) {
+				throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
+			}
+			
+			return layout;
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Block Layout cannot be retrieved for user " + p.getName(), e);
+		}
+	}
+	
+	@RequestMapping(value="/getslidelayout/{layoutId}", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list slide layouts"),
+			@ApiResponse(code=404, message="Slide layout with given id does not exist"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public SlideLayout getSlideLayout (
+			@ApiParam(required=true, value="id of the slide layout to retrieve") 
+			@PathVariable("layoutId") String layoutId, Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			SlideLayout layout = repository.getSlideLayoutById(layoutId, user);
+			if (layout == null) {
+				throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
+			}
+			
+			return layout;
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Slide Layout cannot be retrieved for user " + p.getName(), e);
+		}
 	}
 	
 	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
