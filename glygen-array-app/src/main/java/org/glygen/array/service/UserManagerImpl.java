@@ -1,6 +1,7 @@
 package org.glygen.array.service;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
@@ -136,5 +137,26 @@ public class UserManagerImpl implements UserManager {
 	public UserEntity getUserByUsername(String userName) {
 		UserEntity user = repository.findByUsername(userName);
 		return user;
+	}
+
+	@Override
+	public void cleanUpExpiredSignup() {
+		final Calendar cal = Calendar.getInstance();
+		// get all expired token and delete their users
+		for (VerificationToken verificationToken: tokenRepository.findAll()) {
+			final UserEntity user = verificationToken.getUser();
+	        if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+	            tokenRepository.delete(verificationToken);
+	            if (user.getEnabled()) {
+	            	// do not delete the user, possible email change
+	            	// delete email change request, if any
+	            	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+	            	if (emailChange != null) {
+	            		emailRepository.delete(emailChange);
+	            	}
+	            } else 
+	            	repository.delete(user);
+	        }
+		}
 	}
 }

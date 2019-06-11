@@ -3,6 +3,7 @@ package org.glygen.array.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -176,6 +177,10 @@ public class UserController {
 		newUser.setPublicFlag(user.getPublicFlag());
 		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
 		newUser.setLoginType(UserLoginType.LOCAL); 
+		
+		// clean up expired tokens if any
+		userManager.cleanUpExpiredSignup();
+		
     	// check if the user already exists
 		UserEntity existing = userRepository.findByUsername(user.getUserName());
 		if (existing != null) {

@@ -26,5 +26,7 @@ public interface UserManager {
 	void changeEmail (UserEntity user, String oldEmail, String newEmail);
 	
 	UserEntity getUserByUsername(String userName);
+	
+	void cleanUpExpiredSignup ();
 
 }

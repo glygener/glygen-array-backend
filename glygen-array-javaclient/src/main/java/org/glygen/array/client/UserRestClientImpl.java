@@ -2,7 +2,6 @@ package org.glygen.array.client;
 
 import java.util.Arrays;
 
-import org.glygen.array.client.Application.GlygenSettings;
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.LoginRequest;
@@ -27,11 +26,11 @@ public class UserRestClientImpl implements UserRestClient {
 	
 	@Value("${glygen.host}")
 	String host="glygen.ccrc.uga.edu";
-//	String host="localhost:8080";
+	//String host="localhost:8080";
 	
 	@Value("${glygen.basePath}")
 	String basePath="/ggarray/api/";
-//	String basePath="/";
+	//String basePath="/";
 	
 	@Autowired
 	RestTemplateBuilder builder;
