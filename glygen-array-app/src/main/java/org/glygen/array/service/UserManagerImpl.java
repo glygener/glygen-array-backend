@@ -2,7 +2,9 @@ package org.glygen.array.service;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
@@ -148,6 +150,8 @@ public class UserManagerImpl implements UserManager {
 	public void cleanUpExpiredSignup() {
 		final Calendar cal = Calendar.getInstance();
 		// get all expired token and delete their users
+		Set<EmailChangeEntity> toBeDeleted = new HashSet<>();
+		Set<UserEntity> usersToBeDeleted = new HashSet<UserEntity>();
 		for (VerificationToken verificationToken: tokenRepository.findAll()) {
 			final UserEntity user = verificationToken.getUser();
 	        if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
@@ -158,12 +162,18 @@ public class UserManagerImpl implements UserManager {
 	            	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
 	            	if (emailChange != null) {
 	            		for (EmailChangeEntity e: emailChange) {
-	            			emailRepository.delete(e);
+	            			toBeDeleted.add(e);
 	            		}
 	            	}
 	            } else 
-	            	repository.delete(user);
+	            	usersToBeDeleted.add(user);
 	        }
+		}
+		for (EmailChangeEntity e: toBeDeleted) {
+			emailRepository.delete(e);
+		}
+		for (UserEntity u: usersToBeDeleted) {
+			repository.delete(u);
 		}
 	}
 }
