@@ -2,6 +2,7 @@ package org.glygen.array.service;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
@@ -73,9 +74,10 @@ public class UserManagerImpl implements UserManager {
             if (user.getEnabled()) {
             	// do not delete the user, possible email change
             	// delete email change request, if any
-            	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+            	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
             	if (emailChange != null) {
-            		emailRepository.delete(emailChange);
+            		for (EmailChangeEntity e: emailChange) 
+            			emailRepository.delete(e);
             	}
             } else 
             	repository.delete(user);
@@ -84,10 +86,13 @@ public class UserManagerImpl implements UserManager {
         
         if (user.getEnabled()) {
         	// already enabled, possible email change
-        	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+        	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
         	if (emailChange != null) {
-        		user.setEmail(emailChange.getNewEmail());
-        		emailRepository.delete(emailChange);
+        		for (EmailChangeEntity e: emailChange) {
+        			user.setEmail(e.getNewEmail());
+        			emailRepository.delete(e);
+        			break;
+        		}
         	}
         } else 
         	user.setEnabled(true);
@@ -150,9 +155,11 @@ public class UserManagerImpl implements UserManager {
 	            if (user.getEnabled()) {
 	            	// do not delete the user, possible email change
 	            	// delete email change request, if any
-	            	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+	            	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
 	            	if (emailChange != null) {
-	            		emailRepository.delete(emailChange);
+	            		for (EmailChangeEntity e: emailChange) {
+	            			emailRepository.delete(e);
+	            		}
 	            	}
 	            } else 
 	            	repository.delete(user);
