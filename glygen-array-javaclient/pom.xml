@@ -20,7 +20,7 @@
   <repositories>
 		<repository>
 			<id>nexus</id>
-			<url>http://glycomics.ccrc.uga.edu/repository/content/repositories/thirdparty/</url>
+			<url>https://glygen.ccrc.uga.edu/repository/content/repositories/thirdparty/</url>
 		</repository>
 	</repositories>
   
@@ -46,7 +46,7 @@
 	<dependency>
 	  <groupId>grits</groupId>
 	  <artifactId>glycanarray</artifactId>
-	  <version>1.17</version>
+	  <version>1.18</version>
 	</dependency>
 	<dependency>
 	    <groupId>grits</groupId>

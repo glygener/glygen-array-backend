@@ -3,8 +3,10 @@ package org.glygen.array.client;
 import java.util.Arrays;
 
 import org.glygen.array.client.exception.CustomClientException;
+import org.glygen.array.client.model.BlockLayout;
 import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.GlycanView;
+import org.glygen.array.client.model.LinkerView;
 import org.glygen.array.client.model.LoginRequest;
 import org.glygen.array.client.model.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	@Value("${glygen.scheme}")
 	String scheme="https://";
+	//String scheme="http://";
 	
 	@Value("${glygen.host}")
 	String host="glygen.ccrc.uga.edu";
@@ -72,4 +75,31 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
+	@Override
+	public Confirmation addBlockLayout(BlockLayout layout, User user) {
+		if (token == null) login(this.username, this.password);
+		//set the header with token
+		HttpHeaders headers = new HttpHeaders();
+	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+	    headers.add("Authorization", token);
+	    HttpEntity<BlockLayout> requestEntity = new HttpEntity<BlockLayout>(layout, headers);
+		String url = scheme + host + basePath + "array/addblocklayout";
+		System.out.println("URL: " + url);
+		ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+		return response.getBody();
+	}
+
+	@Override
+	public Confirmation addLinker(LinkerView linker, User user) {
+		if (token == null) login(this.username, this.password);
+		//set the header with token
+		HttpHeaders headers = new HttpHeaders();
+	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+	    headers.add("Authorization", token);
+	    HttpEntity<LinkerView> requestEntity = new HttpEntity<LinkerView>(linker, headers);
+		String url = scheme + host + basePath + "array/addlinker";
+		System.out.println("URL: " + url);
+		ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+		return response.getBody();	}
 }
