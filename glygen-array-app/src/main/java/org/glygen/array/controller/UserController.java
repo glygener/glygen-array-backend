@@ -500,7 +500,7 @@ public class UserController {
     	
     	UserEntity user = userManager.getUserByUsername(userName);
     	
-    	if(passwordEncoder.encode(changePassword.getCurrentPassword()).equals(user.getPassword())) {
+    	if(passwordEncoder.matches(changePassword.getCurrentPassword(), user.getPassword())) {
     		// encrypt the password
     		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword());
         	logger.debug("new password is {}", hashedPassword);
