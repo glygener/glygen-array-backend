@@ -155,7 +155,6 @@ public class UserManagerImpl implements UserManager {
 		for (VerificationToken verificationToken: tokenRepository.findAll()) {
 			final UserEntity user = verificationToken.getUser();
 	        if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
-	            tokenRepository.delete(verificationToken);
 	            if (user.getEnabled()) {
 	            	// do not delete the user, possible email change
 	            	// delete email change request, if any
@@ -169,6 +168,7 @@ public class UserManagerImpl implements UserManager {
 	            	usersToBeDeleted.add(user);
 	        }
 		}
+		tokenRepository.deleteAllExpiredSince(cal.getTime());
 		for (EmailChangeEntity e: toBeDeleted) {
 			emailRepository.delete(e);
 		}
