@@ -14,6 +14,8 @@ public interface UserManager {
 	VerificationToken generateNewVerificationToken(String existingVerificationToken);
 
 	String validateVerificationToken(String token);
+	
+	void deleteVerificationToken (String token);
 
 	void createUser(UserEntity newUser);
 	

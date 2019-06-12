@@ -182,6 +182,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         			code = ErrorCodes.INTERNAL_ERROR;
         		} else if (err.toLowerCase().contains("support")) {
         			code = ErrorCodes.UNSUPPORTED_ENCODING;
+        		} else if (err.toLowerCase().contains("expired")) {
+        			code = ErrorCodes.EXPIRED;
         		} else {
         			code = ErrorCodes.INVALID_INPUT;
         		}

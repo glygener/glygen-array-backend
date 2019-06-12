@@ -338,12 +338,19 @@ public class UserController {
         final String result = userManager.validateVerificationToken(token);
         if (result.equals(UserManagerImpl.TOKEN_VALID)) {
             final UserEntity user = userManager.getUserByToken(token);
+            // we don't need the token after confirmation
+            userManager.deleteVerificationToken(token);
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
         } else if (result.equals(UserManagerImpl.TOKEN_INVALID)) {
         	logger.error("Token entered is not valid!");
     		ErrorMessage errorMessage = new ErrorMessage("Please enter a valid token!");
 			errorMessage.addError(new ObjectError("token", "Invalid"));
 			throw new IllegalArgumentException("Token entered is not valid", errorMessage);
+        } else if (result.equals(UserManagerImpl.TOKEN_EXPIRED)) {
+        	logger.error("Token is expired, please signup again!");
+    		ErrorMessage errorMessage = new ErrorMessage("Token is expired, please signup again!");
+			errorMessage.addError(new ObjectError("token", "Expired"));
+			throw new IllegalArgumentException("Token is expired, please signup again!", errorMessage);
         }
         throw new LinkExpiredException("User verification link is expired");
     }
@@ -354,6 +361,7 @@ public class UserController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
+		userManager.cleanUpExpiredSignup(); // to make sure we are not holding onto any user name which is not verified and expired
 		UserEntity user = userRepository.findByUsername(username);
 		if(user!=null) {
 			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
