@@ -339,6 +339,11 @@ public class UserController {
         if (result.equals(UserManagerImpl.TOKEN_VALID)) {
             final UserEntity user = userManager.getUserByToken(token);
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
+        } else if (result.equals(UserManagerImpl.TOKEN_INVALID)) {
+        	logger.error("Token entered is not valid!");
+    		ErrorMessage errorMessage = new ErrorMessage("Please enter a valid token!");
+			errorMessage.addError(new ObjectError("token", "Invalid"));
+			throw new IllegalArgumentException("Token entered is not valid", errorMessage);
         }
         throw new LinkExpiredException("User verification link is expired");
     }
@@ -500,12 +505,12 @@ public class UserController {
     	
     	UserEntity user = userManager.getUserByUsername(userName);
     	
-    	if(passwordEncoder.encode(changePassword.getCurrentPassword()).equals(user.getPassword())) {
+    	if(passwordEncoder.matches(changePassword.getCurrentPassword(), user.getPassword())) {
     		// encrypt the password
     		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword());
         	logger.debug("new password is {}", hashedPassword);
         	userManager.changePassword(user, hashedPassword);
-    	}else {
+    	} else {
     		logger.error("Current Password is not valid!");
     		ErrorMessage errorMessage = new ErrorMessage("Current Password is not valid. Please try again!");
 			errorMessage.addError(new ObjectError("currentPassword", "Invalid"));
