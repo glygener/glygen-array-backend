@@ -47,6 +47,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -269,7 +270,11 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     	
     	ErrorMessage errorMessage = new ErrorMessage();
 	    errorMessage.setStatus(HttpStatus.UNAUTHORIZED.value());
-	    errorMessage.setErrorCode(ErrorCodes.UNAUTHORIZED);
+	    
+	    if (e instanceof DisabledException)
+	    	errorMessage.setErrorCode(ErrorCodes.DISABLED);
+	    else
+	    	errorMessage.setErrorCode(ErrorCodes.UNAUTHORIZED);
 	    
     	String acceptString = request.getHeader("Accept");
 		if (acceptString.contains("xml")) {
