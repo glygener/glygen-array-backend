@@ -176,4 +176,12 @@ public class UserManagerImpl implements UserManager {
 			repository.delete(u);
 		}
 	}
+
+	@Override
+	public void deleteVerificationToken(String token) {
+		VerificationToken v = tokenRepository.findByToken(token);
+		if (v != null)
+			tokenRepository.delete(v);
+		
+	}
 }
