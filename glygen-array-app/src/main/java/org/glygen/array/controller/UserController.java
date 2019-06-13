@@ -346,6 +346,11 @@ public class UserController {
     		ErrorMessage errorMessage = new ErrorMessage("Please enter a valid token!");
 			errorMessage.addError(new ObjectError("token", "Invalid"));
 			throw new IllegalArgumentException("Token entered is not valid", errorMessage);
+        } else if (result.equals(UserManagerImpl.TOKEN_EXPIRED)) {
+        	logger.error("Token is expired, please signup again!");
+    		ErrorMessage errorMessage = new ErrorMessage("Token is expired, please signup again!");
+			errorMessage.addError(new ObjectError("token", "Expired"));
+			throw new IllegalArgumentException("Token is expired, please signup again!", errorMessage);
         }
         throw new LinkExpiredException("User verification link is expired");
     }
