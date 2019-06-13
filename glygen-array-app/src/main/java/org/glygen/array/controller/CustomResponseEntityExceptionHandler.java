@@ -15,6 +15,7 @@ import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.LinkExpiredException;
+import org.glygen.array.exception.UploadNotFinishedException;
 import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -114,6 +115,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     @ExceptionHandler(value={
     		ObjectNotFoundException.class,
     		EntityNotFoundException.class,
+    		UploadNotFinishedException.class,
     		EntityExistsException.class,
     		DataIntegrityViolationException.class,
     		ConstraintViolationException.class,
@@ -145,6 +147,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         	//	|| ex instanceof MotifNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+        } else if (ex instanceof UploadNotFinishedException) {
+        	status = HttpStatus.NO_CONTENT;
+        	errorMessage = new ErrorMessage (ex.getMessage());
             errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         } else if (ex instanceof EntityNotFoundException) {
             status = HttpStatus.NOT_FOUND;
@@ -182,6 +188,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         			code = ErrorCodes.INTERNAL_ERROR;
         		} else if (err.toLowerCase().contains("support")) {
         			code = ErrorCodes.UNSUPPORTED_ENCODING;
+        		} else if (err.toLowerCase().contains("expired")) {
+        			code = ErrorCodes.EXPIRED;
         		} else {
         			code = ErrorCodes.INVALID_INPUT;
         		}
