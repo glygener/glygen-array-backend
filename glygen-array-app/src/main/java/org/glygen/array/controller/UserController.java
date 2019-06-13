@@ -3,7 +3,6 @@ package org.glygen.array.controller;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -191,7 +190,7 @@ public class UserController {
 		}
 		
 		// check if the email is already in the system
-		existing = userRepository.findByEmail(user.getEmail());
+		existing = userRepository.findByEmailIgnoreCase(user.getEmail());
 		if (existing != null) {
 			logger.info("There is already an account with this email: " + user.getEmail());
 			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");
@@ -286,7 +285,7 @@ public class UserController {
     		        try {
     		        	// make sure the new email is not assigned to a different user
     		        	// check if the email is already in the system
-    		    		UserEntity existing = userRepository.findByEmail(user.getEmail().trim());
+    		    		UserEntity existing = userRepository.findByEmailIgnoreCase(user.getEmail().trim());
     		    		if (existing != null && !existing.getUserId().equals(userEntity.getUserId())) {
     		    			logger.info("There is already an account with this email: " + user.getEmail());
     		    			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");

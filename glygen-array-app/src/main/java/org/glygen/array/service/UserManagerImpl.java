@@ -1,7 +1,6 @@
 package org.glygen.array.service;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -117,7 +116,7 @@ public class UserManagerImpl implements UserManager {
 
 	@Override
 	public UserEntity recoverLogin(String email) {
-		UserEntity user = repository.findByEmail(email);
+		UserEntity user = repository.findByEmailIgnoreCase(email);
 		if (user == null) {
 			throw new UserNotFoundException("No user is associated with " + email);
 		}
