@@ -16,6 +16,7 @@ spring:
     graph: graph
   file:
     imagedirectory: ./images
+    uploaddirectory: ./uploads
 google:
     client:
         client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
