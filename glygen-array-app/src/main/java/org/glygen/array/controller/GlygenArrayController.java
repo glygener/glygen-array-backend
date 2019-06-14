@@ -800,6 +800,33 @@ public class GlygenArrayController {
 		
 	}
 	
+	@RequestMapping(value="/getlinker/{linkerId}", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
+			@ApiResponse(code=404, message="Linker with given id does not exist"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public LinkerView getLinker (
+			@ApiParam(required=true, value="id of the linker to retrieve") 
+			@PathVariable("linkerId") String linkerId, Principal p) {
+		try {
+			UserEntity user = userRepository.findByUsername(p.getName());
+			Linker linker = repository.getLinkerById(linkerId, user);
+			if (linker == null) {
+				throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
+			}
+			
+			return getLinkerView(linker);
+			
+			
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Linker cannot be retrieved for user " + p.getName(), e);
+		}
+		
+	}
+	
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -894,6 +921,57 @@ public class GlygenArrayController {
 		} 
 		
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
+	}
+	
+	@RequestMapping(value = "/updateLinker", method = RequestMethod.PUT)
+	public Confirmation updateLinker(@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
+		// validate first
+		if (validator != null) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			
+			if  (linkerView.getName() != null) {
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linkerView.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (linkerView.getComment() != null) {
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linkerView.getComment().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+				}		
+			}
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		try {
+			UserEntity user = userRepository.findByUsername(principal.getName());
+			Linker linker= new Linker();
+			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
+			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
+			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);		
+			
+			Linker local = null;
+			// check if internalid and label are unique
+			if (linker.getName() != null && !linker.getName().isEmpty()) {
+				local = repository.getLinkerByLabel(linker.getName().trim(), user);
+				if (local != null && !local.getUri().equals(linker.getUri())) {   // there is another with the same name
+					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate linkers");
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+					throw new GlycanExistsException("A linker with the same label/name already exists", errorMessage);
+				}
+			} 
+			repository.updateLinker(linker, user);
+			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Error updating linker with id: " + linkerView.getId());
+		}
 	}
 	
 	@RequestMapping(value="/addblocklayout", method = RequestMethod.POST, 
