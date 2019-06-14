@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -27,6 +29,7 @@ import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.exception.UploadNotFinishedException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
@@ -46,6 +49,8 @@ import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.LinkerView;
+import org.glygen.array.view.ResumableFileInfo;
+import org.glygen.array.view.ResumableInfoStorage;
 import org.glygen.array.view.SlideLayoutResultView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.ObjectError;
@@ -86,6 +92,9 @@ public class GlygenArrayController {
 	
 	@Value("${spring.file.imagedirectory}")
 	String imageLocation;
+	
+	@Value("${spring.file.uploaddirectory}")
+	String uploadDir;
 	
 	@Autowired
 	Validator validator;
@@ -858,13 +867,13 @@ public class GlygenArrayController {
 			}
 			
 			if  (linker.getName() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName());
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (linker.getComment() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment());
+				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -879,14 +888,18 @@ public class GlygenArrayController {
 			String linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId());
 			if (linkerURI == null) {
 				// get the linker details from pubChem
-				l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
-				if (l == null) {
+				try {
+					l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+					if (l == null) {
+						// could not get details from PubChem
+						errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+					} else {
+						if (linker.getName() != null) l.setName(linker.getName().trim());
+						if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+					}
+				} catch (Exception e) {
 					// could not get details from PubChem
 					errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
-					
-				} else {
-					if (linker.getName() != null) l.setName(linker.getName().trim());
-					if (linker.getComment() != null) l.setComment(linker.getComment().trim());
 				}
 				
 				// check if it already exists in local repo as well (by pubChemId, by label)
@@ -896,12 +909,24 @@ public class GlygenArrayController {
 				}
 				
 				if (linker.getName() != null) {
-					Linker local = repository.getLinkerByLabel(linker.getName(), user);
+					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
 				}
 			} else {
+				// check if it already exists in local repo as well (by pubChemId, by label)
+				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+				if (linkerURI != null) {
+					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				}
+				
+				if (linker.getName() != null) {
+					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) {
+						errorMessage.addError(new ObjectError("name", "Duplicate"));	
+					}
+				}
 				// only add name and comment to the user's local repo
 				// pubChemId is required for insertion
 				l = new Linker();
@@ -1047,6 +1072,85 @@ public class GlygenArrayController {
 		return new Confirmation("Block layout added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
+			produces={"application/json", "application/xml"})
+	public Confirmation uploadFile(
+			HttpEntity<byte[]> requestEntity,
+            @RequestParam("resumableFilename") String resumableFilename,
+            @RequestParam ("resumableRelativePath") String resumableRelativePath,
+            @RequestParam ("resumableTotalChunks") String resumableTotalChunks,
+            @RequestParam("resumableChunkSize") int resumableChunkSize,
+            @RequestParam("resumableChunkNumber") int resumableChunkNumber,
+            @RequestParam("resumableTotalSize") long resumableTotalSize,
+            @RequestParam("resumableIdentifier") String resumableIdentifier
+    ) throws IOException, InterruptedException {
+        String resumableFilePath = new File(uploadDir, resumableFilename).getAbsolutePath() + ".temp";
+        
+        ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
+        if (info == null) {
+        	info = new ResumableFileInfo();
+            info.resumableChunkSize = resumableChunkSize;
+            info.resumableIdentifier = resumableIdentifier;
+            info.resumableTotalSize = resumableTotalSize;
+            info.resumableFilename = resumableFilename;
+            info.resumableRelativePath = resumableRelativePath;
+            info.resumableFilePath = resumableFilePath;
+        	ResumableInfoStorage.getInstance().add(info);
+        }
+        
+		RandomAccessFile raf = new RandomAccessFile(info.resumableFilePath, "rw");
+
+        //Seek to position
+        raf.seek((resumableChunkNumber - 1) * (long)resumableChunkSize);
+        byte[] payload = requestEntity.getBody();
+        InputStream is = new ByteArrayInputStream(payload);
+        long content_length = payload.length;
+        long read = 0;
+        byte[] bytes = new byte[1024 * 100];
+        while(read < content_length) {
+            int r = is.read(bytes);
+            if (r < 0)  {
+                break;
+            }
+            raf.write(bytes, 0, r);
+            read += r;
+        }
+        raf.close();
+        
+        info.uploadedChunks.add(new ResumableFileInfo.ResumableChunkNumber(resumableChunkNumber));
+        
+        if (info.checkIfUploadFinished()) { //Check if all chunks uploaded, and change filename
+            ResumableInfoStorage.getInstance().remove(info);
+            return new Confirmation ("All Finished", HttpStatus.OK.value());
+        } else {
+        	return new Confirmation ("Upload", HttpStatus.ACCEPTED.value());
+        }
+	}
+	
+	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	public Confirmation resumeUpload (
+			@RequestParam("resumableFilename") String resumableFilename,
+			@RequestParam ("resumableRelativePath") String resumableRelativePath,
+            @RequestParam ("resumableTotalChunks") String resumableTotalChunks,
+            @RequestParam("resumableChunkSize") int resumableChunkSize,
+            @RequestParam("resumableChunkNumber") int resumableChunkNumber,
+            @RequestParam("resumableTotalSize") long resumableTotalSize,
+            @RequestParam("resumableIdentifier") String resumableIdentifier) {
+
+		
+        ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
+        if (info == null || !info.vaild()) {
+        	if (info != null) ResumableInfoStorage.getInstance().remove(info);
+        	throw new IllegalArgumentException("Chunk identifier is not valid");
+        }
+        if (info.uploadedChunks.contains(new ResumableFileInfo.ResumableChunkNumber(resumableChunkNumber))) {
+        	return new Confirmation ("Upload", HttpStatus.OK.value()); //This Chunk has been Uploaded.
+        } else {
+            throw new UploadNotFinishedException("Not found");  // this will return HttpStatus no_content 204
+        }
+    }
+	 
 	private GlycanView getGlycanView (Glycan glycan) {
 		GlycanView g = new GlycanView();
 		g.setName(glycan.getName());

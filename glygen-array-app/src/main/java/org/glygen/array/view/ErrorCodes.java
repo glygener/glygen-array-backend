@@ -15,6 +15,7 @@ public enum ErrorCodes {
 	DUPLICATE (4011, "Duplicate"),
 	NOT_FOUND (4040, "NotFound"),
 	UNAUTHORIZED(4010, "Unauthorized"), 
+	DISABLED (4011, "Disabled"),
 	ACCESS_DENIED (4030, "AccessDenied"),
 	EXPIRED (4050, "Expired");
 	

@@ -68,20 +68,20 @@ create table IF NOT EXISTS settings (
 );
 
 create table IF NOT EXISTS verification_token (
-  id bigint not null,
+  id bigint not null PRIMARY KEY,
   userid bigint not null,
   token varchar(256) not null,
   expirydate date
 );
 
 create table IF NOT EXISTS graphs (
-  id bigint not null,
+  id bigint not null PRIMARY KEY,
   userid bigint not null,
   graphuri varchar(256) not null
 );
 
 create table IF NOT EXISTS email (
-  id bigint not null,
+  id bigint not null PRIMARY KEY,
   userid bigint not null,
   oldemail varchar(256) not null,
   newemail varchar(256) not null
@@ -110,9 +110,9 @@ select create_constraint_if_not_exists(
         
 create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
 create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
-create sequence IF NOT EXISTS TOKEN_SEQ start 1;
-create sequence IF NOT EXISTS GRAPH_SEQ start 1;
-create sequence IF NOT EXISTS EMAIL_SEQ start 1;
+create sequence IF NOT EXISTS TOKEN_SEQ minvalue 1 start 1 increment 1;
+create sequence IF NOT EXISTS GRAPH_SEQ minvalue 1 start 1 increment 1;
+create sequence IF NOT EXISTS EMAIL_SEQ minvalue 1 start 1 increment 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;

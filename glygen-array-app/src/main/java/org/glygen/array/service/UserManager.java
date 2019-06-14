@@ -14,6 +14,8 @@ public interface UserManager {
 	VerificationToken generateNewVerificationToken(String existingVerificationToken);
 
 	String validateVerificationToken(String token);
+	
+	void deleteVerificationToken (String token);
 
 	void createUser(UserEntity newUser);
 	
@@ -26,5 +28,7 @@ public interface UserManager {
 	void changeEmail (UserEntity user, String oldEmail, String newEmail);
 	
 	UserEntity getUserByUsername(String userName);
+	
+	void cleanUpExpiredSignup ();
 
 }

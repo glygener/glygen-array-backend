@@ -3,6 +3,7 @@ package org.glygen.array.persistence;
 import java.util.Calendar;
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -18,18 +19,9 @@ import javax.persistence.SequenceGenerator;
 public class VerificationToken {
 	private static final int EXPIRATION = 60 * 24;
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="token_seq")
-    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ")
     private Long id;
-
     private String token;
-
-    @OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false, name = "userid", foreignKey = @ForeignKey(name = "FK_VERIFY_USER"))
     private UserEntity user;
-
-    @Column(name="expirydate")
     private Date expiryDate;
 
     public VerificationToken() {
@@ -51,9 +43,16 @@ public class VerificationToken {
         this.expiryDate = calculateExpiryDate(EXPIRATION);
     }
 
+    @Id
+    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="token_seq")
+    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ")
     public Long getId() {
         return id;
     }
+    
+    public void setId(Long id) {
+		this.id = id;
+	}
 
     public String getToken() {
         return token;
@@ -63,6 +62,8 @@ public class VerificationToken {
         this.token = token;
     }
 
+    @OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER, cascade=CascadeType.MERGE)
+    @JoinColumn(nullable = false, name = "userid", foreignKey = @ForeignKey(name = "FK_VERIFY_USER"))
     public UserEntity getUser() {
         return user;
     }
@@ -71,6 +72,7 @@ public class VerificationToken {
         this.user = user;
     }
 
+    @Column(name="expirydate")
     public Date getExpiryDate() {
         return expiryDate;
     }

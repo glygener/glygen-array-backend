@@ -176,6 +176,10 @@ public class UserController {
 		newUser.setPublicFlag(user.getPublicFlag());
 		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
 		newUser.setLoginType(UserLoginType.LOCAL); 
+		
+		// clean up expired tokens if any
+		userManager.cleanUpExpiredSignup();
+		
     	// check if the user already exists
 		UserEntity existing = userRepository.findByUsername(user.getUserName());
 		if (existing != null) {
@@ -186,7 +190,7 @@ public class UserController {
 		}
 		
 		// check if the email is already in the system
-		existing = userRepository.findByEmail(user.getEmail());
+		existing = userRepository.findByEmailIgnoreCase(user.getEmail());
 		if (existing != null) {
 			logger.info("There is already an account with this email: " + user.getEmail());
 			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");
@@ -281,7 +285,7 @@ public class UserController {
     		        try {
     		        	// make sure the new email is not assigned to a different user
     		        	// check if the email is already in the system
-    		    		UserEntity existing = userRepository.findByEmail(user.getEmail().trim());
+    		    		UserEntity existing = userRepository.findByEmailIgnoreCase(user.getEmail().trim());
     		    		if (existing != null && !existing.getUserId().equals(userEntity.getUserId())) {
     		    			logger.info("There is already an account with this email: " + user.getEmail());
     		    			ErrorMessage errorMessage = new ErrorMessage("There is already an account with this email, please use a different one!");
@@ -333,7 +337,19 @@ public class UserController {
         final String result = userManager.validateVerificationToken(token);
         if (result.equals(UserManagerImpl.TOKEN_VALID)) {
             final UserEntity user = userManager.getUserByToken(token);
+            // we don't need the token after confirmation
+            userManager.deleteVerificationToken(token);
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
+        } else if (result.equals(UserManagerImpl.TOKEN_INVALID)) {
+        	logger.error("Token entered is not valid!");
+    		ErrorMessage errorMessage = new ErrorMessage("Please enter a valid token!");
+			errorMessage.addError(new ObjectError("token", "Invalid"));
+			throw new IllegalArgumentException("Token entered is not valid", errorMessage);
+        } else if (result.equals(UserManagerImpl.TOKEN_EXPIRED)) {
+        	logger.error("Token is expired, please signup again!");
+    		ErrorMessage errorMessage = new ErrorMessage("Token is expired, please signup again!");
+			errorMessage.addError(new ObjectError("token", "Expired"));
+			throw new IllegalArgumentException("Token is expired, please signup again!", errorMessage);
         }
         throw new LinkExpiredException("User verification link is expired");
     }
@@ -344,6 +360,7 @@ public class UserController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
+		userManager.cleanUpExpiredSignup(); // to make sure we are not holding onto any user name which is not verified and expired
 		UserEntity user = userRepository.findByUsername(username);
 		if(user!=null) {
 			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
@@ -495,12 +512,12 @@ public class UserController {
     	
     	UserEntity user = userManager.getUserByUsername(userName);
     	
-    	if(passwordEncoder.encode(changePassword.getCurrentPassword()).equals(user.getPassword())) {
+    	if(passwordEncoder.matches(changePassword.getCurrentPassword(), user.getPassword())) {
     		// encrypt the password
     		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword());
         	logger.debug("new password is {}", hashedPassword);
         	userManager.changePassword(user, hashedPassword);
-    	}else {
+    	} else {
     		logger.error("Current Password is not valid!");
     		ErrorMessage errorMessage = new ErrorMessage("Current Password is not valid. Please try again!");
 			errorMessage.addError(new ObjectError("currentPassword", "Invalid"));

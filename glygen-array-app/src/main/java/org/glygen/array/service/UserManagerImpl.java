@@ -1,6 +1,9 @@
 package org.glygen.array.service;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
@@ -72,9 +75,10 @@ public class UserManagerImpl implements UserManager {
             if (user.getEnabled()) {
             	// do not delete the user, possible email change
             	// delete email change request, if any
-            	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+            	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
             	if (emailChange != null) {
-            		emailRepository.delete(emailChange);
+            		for (EmailChangeEntity e: emailChange) 
+            			emailRepository.delete(e);
             	}
             } else 
             	repository.delete(user);
@@ -83,10 +87,13 @@ public class UserManagerImpl implements UserManager {
         
         if (user.getEnabled()) {
         	// already enabled, possible email change
-        	EmailChangeEntity emailChange = emailRepository.findByUser(user);
+        	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
         	if (emailChange != null) {
-        		user.setEmail(emailChange.getNewEmail());
-        		emailRepository.delete(emailChange);
+        		for (EmailChangeEntity e: emailChange) {
+        			user.setEmail(e.getNewEmail());
+        			emailRepository.delete(e);
+        			break;
+        		}
         	}
         } else 
         	user.setEnabled(true);
@@ -109,7 +116,7 @@ public class UserManagerImpl implements UserManager {
 
 	@Override
 	public UserEntity recoverLogin(String email) {
-		UserEntity user = repository.findByEmail(email);
+		UserEntity user = repository.findByEmailIgnoreCase(email);
 		if (user == null) {
 			throw new UserNotFoundException("No user is associated with " + email);
 		}
@@ -136,5 +143,44 @@ public class UserManagerImpl implements UserManager {
 	public UserEntity getUserByUsername(String userName) {
 		UserEntity user = repository.findByUsername(userName);
 		return user;
+	}
+
+	@Override
+	public void cleanUpExpiredSignup() {
+		final Calendar cal = Calendar.getInstance();
+		// get all expired token and delete their users
+		Set<EmailChangeEntity> toBeDeleted = new HashSet<>();
+		Set<UserEntity> usersToBeDeleted = new HashSet<UserEntity>();
+		for (VerificationToken verificationToken: tokenRepository.findAll()) {
+			final UserEntity user = verificationToken.getUser();
+	        if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+	            if (user.getEnabled()) {
+	            	// do not delete the user, possible email change
+	            	// delete email change request, if any
+	            	List<EmailChangeEntity> emailChange = emailRepository.findByUser(user);
+	            	if (emailChange != null) {
+	            		for (EmailChangeEntity e: emailChange) {
+	            			toBeDeleted.add(e);
+	            		}
+	            	}
+	            } else 
+	            	usersToBeDeleted.add(user);
+	        }
+		}
+		tokenRepository.deleteAllExpiredSince(cal.getTime());
+		for (EmailChangeEntity e: toBeDeleted) {
+			emailRepository.delete(e);
+		}
+		for (UserEntity u: usersToBeDeleted) {
+			repository.delete(u);
+		}
+	}
+
+	@Override
+	public void deleteVerificationToken(String token) {
+		VerificationToken v = tokenRepository.findByToken(token);
+		if (v != null)
+			tokenRepository.delete(v);
+		
 	}
 }

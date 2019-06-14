@@ -1308,6 +1308,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
 	@Override
 	public Linker getLinkerByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+		if (label == null || label.isEmpty())
+			return null;
 		String graph = getGraphForUser(user);
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
