@@ -158,7 +158,7 @@ public class GlygenArrayController {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			SlideLayout existing = repository.getSlideLayoutByName(layout.getName(), user);
 			if (existing != null) {
@@ -185,7 +185,7 @@ public class GlygenArrayController {
 	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
 	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p) {
 		BatchGlycanUploadResult result = new BatchGlycanUploadResult();
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
 			String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
@@ -309,7 +309,7 @@ public class GlygenArrayController {
 		String glycoCT = glycan.getSequence().trim();
 		UserEntity user;
 		try {
-			user = userRepository.findByUsername(p.getName());
+			user = userRepository.findByUsernameIgnoreCase(p.getName());
 			
 			if (glycan.getSequence() != null && !glycan.getSequence().trim().isEmpty()) {
 				//check if the given sequence is valid
@@ -435,7 +435,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the glycan to delete") 
 			@PathVariable("glycanId") String glycanId, Principal principal) {
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			repository.deleteGlycan(glycanId, user);
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
@@ -449,7 +449,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the linker to delete") 
 			@PathVariable("linkerId") String linkerId, Principal principal) {
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			repository.deleteLinker(linkerId, user);
 			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
@@ -463,7 +463,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the block layout to delete") 
 			@PathVariable("layoutId") String blockLayoutId, Principal principal) {
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			repository.deleteBlockLayout(blockLayoutId, user);
 			return new Confirmation("Block Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
@@ -477,7 +477,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the block layout to delete") 
 			@PathVariable("layoutId") String layoutId, Principal principal) {
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			repository.deleteSlideLayout(layoutId, user);
 			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
@@ -520,7 +520,7 @@ public class GlygenArrayController {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			Glycan glycan= new Glycan();
 			glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
@@ -570,7 +570,7 @@ public class GlygenArrayController {
 			@RequestParam(value="order", required=false) Integer order, Principal p) {
 		GlycanListResultView result = new GlycanListResultView();
 		List<GlycanView> glycanList = new ArrayList<GlycanView>();
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
 				offset = 0;
@@ -615,7 +615,7 @@ public class GlygenArrayController {
 			@RequestParam(value="order", required=false) Integer order, Principal p) {
 		LinkerListResultView result = new LinkerListResultView();
 		List<LinkerView> linkerList = new ArrayList<LinkerView>();
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
 				offset = 0;
@@ -662,7 +662,7 @@ public class GlygenArrayController {
 			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
 			Principal p) {
 		BlockLayoutResultView result = new BlockLayoutResultView();
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
 				offset = 0;
@@ -696,7 +696,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the block layout to retrieve") 
 			@PathVariable("layoutId") String layoutId, Principal p) {
 		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			BlockLayout layout = repository.getBlockLayoutById(layoutId, user);
 			if (layout == null) {
 				throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
@@ -720,7 +720,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the slide layout to retrieve") 
 			@PathVariable("layoutId") String layoutId, Principal p) {
 		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			SlideLayout layout = repository.getSlideLayoutById(layoutId, user);
 			if (layout == null) {
 				throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
@@ -749,7 +749,7 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
 			@RequestParam(value="order", required=false) Integer order, Principal p) {
 		SlideLayoutResultView result = new SlideLayoutResultView();
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
 				offset = 0;
@@ -794,7 +794,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the glycan to retrieve") 
 			@PathVariable("glycanId") String glycanId, Principal p) {
 		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			Glycan glycan = repository.getGlycanById(glycanId, user);
 			if (glycan == null) {
 				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
@@ -821,7 +821,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="id of the linker to retrieve") 
 			@PathVariable("linkerId") String linkerId, Principal p) {
 		try {
-			UserEntity user = userRepository.findByUsername(p.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			Linker linker = repository.getLinkerById(linkerId, user);
 			if (linker == null) {
 				throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
@@ -847,7 +847,7 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation addLinker (@RequestBody LinkerView linker, Principal p) {
 		
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -976,7 +976,7 @@ public class GlygenArrayController {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		try {
-			UserEntity user = userRepository.findByUsername(principal.getName());
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			Linker linker= new Linker();
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
 			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
@@ -1048,7 +1048,7 @@ public class GlygenArrayController {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		
-		UserEntity user = userRepository.findByUsername(p.getName());
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			BlockLayout existing = repository.getBlockLayoutByName(layout.getName(), user);
 			if (existing != null) {

@@ -38,7 +38,7 @@ public class GooglePrincipalExtractor implements PrincipalExtractor {
         String principalId = (String) map.get("id");
         if (principalId == null)
         	principalId = (String) map.get("sub");
-        UserEntity user = userRepository.findByUsername(principalId);
+        UserEntity user = userRepository.findByUsernameIgnoreCase(principalId);
         if (user == null) {
             logger.info("No user found, generating profile for {}", principalId);
             user = new UserEntity();

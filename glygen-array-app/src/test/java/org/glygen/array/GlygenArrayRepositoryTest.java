@@ -42,7 +42,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testUpdate() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		
 		try {
 			//add a test glycan first
@@ -75,7 +75,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testGlycanCount() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		try {
 			//add a test glycan first
 			Glycan g = addTestGlycan(user);
@@ -91,7 +91,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testLinkerCount() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		try {
 			//add a test linker first
 			Linker g = addTestLinker(user);
@@ -107,7 +107,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testListGlycans() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		
 		try {
 			//add a test glycan first
@@ -140,7 +140,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testListLinkers() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		
 		try {
 			//add a test linker first
@@ -201,7 +201,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testUpdateLinker() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		
 		try {
 			//add a test linker first
@@ -232,7 +232,7 @@ public class GlygenArrayRepositoryTest {
 	
 	@Test
 	public void testAddBlockLayout() {
-		UserEntity user = userRepository.findByUsername("user");
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 		try {
 			Glycan g1 = addTestGlycan(user);
 			
@@ -310,7 +310,7 @@ public class GlygenArrayRepositoryTest {
 	@Test
 	public void testAddSlideLayout() {
 		try {
-			UserEntity user = userRepository.findByUsername("user");
+			UserEntity user = userRepository.findByUsernameIgnoreCase("user");
 			Glycan g1 = addTestGlycan(user);
 			
 			// add another test glycan

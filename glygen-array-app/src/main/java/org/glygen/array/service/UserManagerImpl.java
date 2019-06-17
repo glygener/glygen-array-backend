@@ -141,7 +141,7 @@ public class UserManagerImpl implements UserManager {
 	
 	@Override
 	public UserEntity getUserByUsername(String userName) {
-		UserEntity user = repository.findByUsername(userName);
+		UserEntity user = repository.findByUsernameIgnoreCase(userName);
 		return user;
 	}
 

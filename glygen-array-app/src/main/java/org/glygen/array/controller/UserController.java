@@ -181,7 +181,7 @@ public class UserController {
 		userManager.cleanUpExpiredSignup();
 		
     	// check if the user already exists
-		UserEntity existing = userRepository.findByUsername(user.getUserName());
+		UserEntity existing = userRepository.findByUsernameIgnoreCase(user.getUserName());
 		if (existing != null) {
 			logger.info("This user " + user.getUserName() + " already exists!");
 			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
@@ -224,7 +224,7 @@ public class UserController {
 	    		@ApiResponse(code=415, message="Media type is not supported"),
 	    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
-		UserEntity userEntity = userRepository.findByUsername(loginId);
+		UserEntity userEntity = userRepository.findByUsernameIgnoreCase(loginId);
 		if (userEntity == null)
 	    	throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
     	
@@ -361,7 +361,7 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
 		userManager.cleanUpExpiredSignup(); // to make sure we are not holding onto any user name which is not verified and expired
-		UserEntity user = userRepository.findByUsername(username);
+		UserEntity user = userRepository.findByUsernameIgnoreCase(username);
 		if(user!=null) {
 			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
 			errorMessage.addError(new ObjectError("username", "Duplicate"));
@@ -398,10 +398,10 @@ public class UserController {
     		
     		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))
     		{
-    			user = userRepository.findByUsername(userName);
+    			user = userRepository.findByUsernameIgnoreCase(userName);
     		}
     		else if (auth.getName().equals(userName)) {
-    			user = userRepository.findByUsername(userName);
+    			user = userRepository.findByUsernameIgnoreCase(userName);
     		}
     		else {
     			logger.info("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
@@ -453,7 +453,7 @@ public class UserController {
     public @ResponseBody Confirmation recoverPassword (
     		@PathVariable("userName") String loginId) {
     	
-    	UserEntity user = userRepository.findByUsername(loginId);
+    	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId);
     	if (user == null) 
     		throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
     	emailManager.sendPasswordReminder(user);

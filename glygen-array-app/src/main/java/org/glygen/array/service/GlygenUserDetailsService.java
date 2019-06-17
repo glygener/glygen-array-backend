@@ -8,6 +8,8 @@ import org.glygen.array.persistence.GlygenUser;
 import org.glygen.array.persistence.RoleEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,15 +24,18 @@ public class GlygenUserDetailsService implements UserDetailsService {
 	@Autowired
 	private UserRepository userRepository;
 	
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
+	
 	public GlygenUserDetailsService() {
 		super();
 	}
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		UserEntity user = userRepository.findByUsername(username);
+		UserEntity user = userRepository.findByUsernameIgnoreCase(username);
 		if (user == null) 
 			throw new UsernameNotFoundException("User with username " + username + " does not exist!");
+			
 		return new GlygenUser(username, user.getPassword(), user.getEnabled(), true, true, true,
 				getAuthorities(user.getRoles()), user.getFirstName(), user.getLastName(), 
 				user.getEmail(), user.getAffiliation(), user.getAffiliationWebsite(), user.getPublicFlag());
