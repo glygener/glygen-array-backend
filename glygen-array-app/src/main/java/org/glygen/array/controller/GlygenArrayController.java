@@ -488,12 +488,11 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value = "/updateGlycan", method = RequestMethod.PUT)
 	public Confirmation updateGlycan(@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		// validate first
 		if (validator != null) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			
 			if  (glycanView.getName() != null) {
 				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycanView.getName().trim());
 				if (!violations.isEmpty()) {
@@ -512,13 +511,10 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
 				}		
 			}
-			
-			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
-		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
 		}
+		
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			Glycan glycan= new Glycan();
@@ -532,19 +528,19 @@ public class GlygenArrayController {
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
 				local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same internal id
-					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
-					throw new GlycanExistsException("A glycan with the same internal id already exists", errorMessage);
 				}
 			}
 			if (glycan.getName() != null && !glycan.getName().isEmpty()) {
 				local = repository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same name
-					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate glycans");
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
-					throw new GlycanExistsException("A glycan with the same label/name already exists", errorMessage);
 				}
 			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+			
 			repository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
@@ -885,7 +881,9 @@ public class GlygenArrayController {
 		
 		try {
 			Linker l = null;
-			String linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId());
+			String linkerURI = null;
+			if (linker.getPubChemId() != null) 
+				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId());
 			if (linkerURI == null) {
 				// get the linker details from pubChem
 				try {
@@ -903,9 +901,11 @@ public class GlygenArrayController {
 				}
 				
 				// check if it already exists in local repo as well (by pubChemId, by label)
-				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
-				if (linkerURI != null) {
-					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				if (linker.getPubChemId() != null) {
+					linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+					if (linkerURI != null) {
+						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+					}
 				}
 				
 				if (linker.getName() != null) {
@@ -916,9 +916,11 @@ public class GlygenArrayController {
 				}
 			} else {
 				// check if it already exists in local repo as well (by pubChemId, by label)
-				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
-				if (linkerURI != null) {
-					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				if (linker.getPubChemId() != null) {
+					linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+					if (linkerURI != null) {
+						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+					}
 				}
 				
 				if (linker.getName() != null) {
@@ -950,12 +952,11 @@ public class GlygenArrayController {
 	
 	@RequestMapping(value = "/updateLinker", method = RequestMethod.PUT)
 	public Confirmation updateLinker(@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		// validate first
 		if (validator != null) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			
 			if  (linkerView.getName() != null) {
 				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linkerView.getName().trim());
 				if (!violations.isEmpty()) {
@@ -968,9 +969,6 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
-			
-			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -983,15 +981,17 @@ public class GlygenArrayController {
 			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);		
 			
 			Linker local = null;
-			// check if internalid and label are unique
+			// check if name is unique
 			if (linker.getName() != null && !linker.getName().isEmpty()) {
 				local = repository.getLinkerByLabel(linker.getName().trim(), user);
 				if (local != null && !local.getUri().equals(linker.getUri())) {   // there is another with the same name
-					ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate linkers");
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
-					throw new GlycanExistsException("A linker with the same label/name already exists", errorMessage);
 				}
 			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+			
 			repository.updateLinker(linker, user);
 			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
