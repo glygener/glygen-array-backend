@@ -11,6 +11,7 @@ public class LinkerView {
 	String name;
 	String comment;
 	Long pubChemId;
+	String pubChemUrl;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
@@ -18,7 +19,6 @@ public class LinkerView {
 	Double mass;
 	String molecularFormula;
 	Date dateModified;
-	
 	
 	/**
 	 * @return the name
@@ -154,6 +154,18 @@ public class LinkerView {
 	 */
 	public void setDateModified(Date dateModified) {
 		this.dateModified = dateModified;
+	}
+	/**
+	 * @return the pubChemUrl
+	 */
+	public String getPubChemUrl() {
+		return pubChemUrl;
+	}
+	/**
+	 * @param pubChemUrl the pubChemUrl to set
+	 */
+	public void setPubChemUrl(String pubChemUrl) {
+		this.pubChemUrl = pubChemUrl;
 	}
 	
 	

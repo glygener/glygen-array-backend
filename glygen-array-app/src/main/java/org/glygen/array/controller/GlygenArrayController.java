@@ -202,30 +202,34 @@ public class GlygenArrayController {
 						result.addWrongSequence(count + ":" + sequence);
 					} else {
 						String glycoCT = glycanObject.toGlycoCTCondensed();
-						Glycan g = new Glycan();
-						g.setSequence(glycoCT);
-						g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
-						g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
-						String existing = repository.getGlycanBySequence(glycoCT, user);
-						if (existing != null) {
-							// duplicate, ignore
-							String id = existing.substring(existing.lastIndexOf("/")+1);
-							Glycan glycan = repository.getGlycanById(id, user);
-							result.addDuplicateSequence(getGlycanView(glycan));
+						if (glycoCT == null || glycoCT.isEmpty()) {
+							result.addWrongSequence(count + ":" + sequence);
 						} else {
-							String added = repository.addGlycan(g, user);
-							String id = added.substring(added.lastIndexOf("/")+1);
-							BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-									.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-							if (t_image != null) {
-								//save the image into a file
-								logger.debug("Adding image to " + imageLocation);
-								File imageFile = new File(imageLocation + File.separator + id + ".png");
-								ImageIO.write(t_image, "png", imageFile);
+							Glycan g = new Glycan();
+							g.setSequence(glycoCT);
+							g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+							g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
+							String existing = repository.getGlycanBySequence(glycoCT, user);
+							if (existing != null) {
+								// duplicate, ignore
+								String id = existing.substring(existing.lastIndexOf("/")+1);
+								Glycan glycan = repository.getGlycanById(id, user);
+								result.addDuplicateSequence(getGlycanView(glycan));
+							} else {
+								String added = repository.addGlycan(g, user);
+								String id = added.substring(added.lastIndexOf("/")+1);
+								BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+										.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+								if (t_image != null) {
+									//save the image into a file
+									logger.debug("Adding image to " + imageLocation);
+									File imageFile = new File(imageLocation + File.separator + id + ".png");
+									ImageIO.write(t_image, "png", imageFile);
+								}
+								Glycan addedGlycan = repository.getGlycanById(id, user);
+								result.getAddedGlycans().add(getGlycanView(addedGlycan));
+								countSuccess ++;
 							}
-							Glycan addedGlycan = repository.getGlycanById(id, user);
-							result.getAddedGlycans().add(getGlycanView(addedGlycan));
-							countSuccess ++;
 						}
 					}
 				}
@@ -1192,6 +1196,7 @@ public class GlygenArrayController {
 		l.setIupacName(linker.getIupacName());
 		l.setMolecularFormula(linker.getMolecularFormula());
 		l.setMass(linker.getMass());
+		l.setPubChemUrl(linker.getPubChemUrl());
 		return l;
 	}
 }

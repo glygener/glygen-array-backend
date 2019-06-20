@@ -2,6 +2,8 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.Date;
 
+import org.glygen.array.util.PubChemAPI;
+
 public class Linker {
 	
 	String uri;
@@ -173,6 +175,10 @@ public class Linker {
 	 */
 	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
 		this.dateAddedToLibrary = dateAddedToLibrary;
+	}
+	
+	public String getPubChemUrl () {
+		return PubChemAPI.PUBCHEM_CID + pubChemId; 
 	}
 	
 	@Override

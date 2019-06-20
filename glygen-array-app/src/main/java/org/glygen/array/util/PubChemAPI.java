@@ -8,10 +8,13 @@ import org.springframework.web.client.RestTemplate;
 
 public class PubChemAPI {
 	
+	public final static String PUBCHEM_CID = "https://pubchem.ncbi.nlm.nih.gov/compound/";
 	final static String url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
 	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName/JSON";
 	
 	public static Linker getLinkerDetailsFromPubChem (Long pubChemId) {
+		if (pubChemId == null)
+			return null;
 		RestTemplate restTemplate = new RestTemplate();
 		String requestURL = url + pubChemId + propertyURL;
 		ResponseEntity<PubChemResult> response = restTemplate.exchange(requestURL, HttpMethod.GET, null, PubChemResult.class);

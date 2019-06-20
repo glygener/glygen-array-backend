@@ -512,9 +512,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			if (st.getPredicate().equals(hasBlockLayout)) {
 				Value v = st.getObject();
 				String blockLayoutURI = v.stringValue();
-				BlockLayout blockLayout = getBlockLayoutFromURI(blockLayoutURI, graph);
+				BlockLayout blockLayout = getBlockLayoutFromURI(blockLayoutURI, false, graph);    // no need to load all, just the name 
 				blockObject.setBlockLayout(blockLayout);
-			} if (st.getPredicate().equals(hasRow)) {
+			} else if (st.getPredicate().equals(hasRow)) {
 				Value v = st.getObject();
 				blockObject.setRow(Integer.parseInt(v.stringValue()));
 			} else if (st.getPredicate().equals(hasColumn)) {
@@ -583,8 +583,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				}
 				spots.add(s);
 			}
-			blockObject.setSpots (spots);
 		}
+		blockObject.setSpots (spots);
 		
 		return blockObject;
 	}
