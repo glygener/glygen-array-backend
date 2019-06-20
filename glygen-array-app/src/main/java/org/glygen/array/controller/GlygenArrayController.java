@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -189,6 +190,16 @@ public class GlygenArrayController {
 		try {
 			ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
 			String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+			
+			boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
+			if (!isTextFile) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("file", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("File is not acceptable", errorMessage);
+			}
+			
 			String[] structures = fileAsString.split(";");
 			int count = 0;
 			int countSuccess = 0;
