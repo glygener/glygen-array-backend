@@ -433,11 +433,14 @@ public class UserController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation recoverUsername (@RequestParam(value="email", required=true) String email) {
 		UserEntity user = userManager.recoverLogin(email);
+    	
+    	if (user == null) {
+    		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this email");
+    		errorMessage.addError(new ObjectError("email", "NotFound"));
+    		throw new UserNotFoundException ("A user with email " + email + " does not exist", errorMessage);
+    	}
+    	
     	String userEmail = user.getEmail();
-    	
-    	if (userEmail == null) 
-    		throw new UserNotFoundException ("A user with email " + email + " does not exist");
-    	
     	emailManager.sendUserName(user);
     	
     	logger.info("UserName Recovery email is sent to {}", userEmail);

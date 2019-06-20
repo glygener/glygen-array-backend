@@ -145,9 +145,15 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         
         if (ex instanceof ObjectNotFoundException || ex instanceof UserNotFoundException || ex instanceof BindingNotFoundException) {
         	//	|| ex instanceof MotifNotFoundException) {
-            status = HttpStatus.NOT_FOUND;
-            errorMessage = new ErrorMessage (ex.getMessage());
-            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+        	 status = HttpStatus.NOT_FOUND;
+        	
+        	if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
+    			errorMessage = (ErrorMessage) ex.getCause();
+    			errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+    		} else {
+    			errorMessage = new ErrorMessage (ex.getMessage());
+    			errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+    		}
         } else if (ex instanceof UploadNotFinishedException) {
         	status = HttpStatus.NO_CONTENT;
         	errorMessage = new ErrorMessage (ex.getMessage());
