@@ -433,11 +433,14 @@ public class UserController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation recoverUsername (@RequestParam(value="email", required=true) String email) {
 		UserEntity user = userManager.recoverLogin(email);
+    	
+    	if (user == null) {
+    		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this email");
+    		errorMessage.addError(new ObjectError("email", "NotFound"));
+    		throw new UserNotFoundException ("A user with email " + email + " does not exist", errorMessage);
+    	}
+    	
     	String userEmail = user.getEmail();
-    	
-    	if (userEmail == null) 
-    		throw new UserNotFoundException ("A user with email " + email + " does not exist");
-    	
     	emailManager.sendUserName(user);
     	
     	logger.info("UserName Recovery email is sent to {}", userEmail);
@@ -452,10 +455,13 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation recoverPassword (
     		@PathVariable("userName") String loginId) {
-    	
     	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId);
-    	if (user == null) 
-    		throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
+    	
+    	if (user == null) {
+    		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
+    		errorMessage.addError(new ObjectError("username", "NotFound"));
+    		throw new UserNotFoundException ("A user with loginId \" + loginId + \" does not exist", errorMessage);
+    	}
     	emailManager.sendPasswordReminder(user);
     	logger.info("Password reminder email is sent to {}", loginId);
 		return new Confirmation("Password reminder email is sent", HttpStatus.OK.value());

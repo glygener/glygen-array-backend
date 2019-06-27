@@ -155,10 +155,9 @@ public final class GmailServiceImpl implements EmailManager {
 	public void sendUserName(UserEntity user) {
 		final String recipientAddress = user.getEmail();
 		final String subject = "UserName Recovery";
-	        
 		try {
 				sendMessage(recipientAddress, subject,  "Dear " + user.getFirstName() + " " + user.getLastName()
-                + ", \n\nYour Glygen password is reset. This is your temporary password: \n\n" + user.getUsername());
+                + ", \n\n Your Username is: \n\n" + user.getUsername());
 			} catch (MessagingException | IOException e) {
 				throw new RuntimeException("Cannot send email.", e);
 			}

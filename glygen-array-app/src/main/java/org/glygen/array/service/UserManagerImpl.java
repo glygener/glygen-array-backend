@@ -117,9 +117,6 @@ public class UserManagerImpl implements UserManager {
 	@Override
 	public UserEntity recoverLogin(String email) {
 		UserEntity user = repository.findByEmailIgnoreCase(email);
-		if (user == null) {
-			throw new UserNotFoundException("No user is associated with " + email);
-		}
 		return user;
 	}
 
