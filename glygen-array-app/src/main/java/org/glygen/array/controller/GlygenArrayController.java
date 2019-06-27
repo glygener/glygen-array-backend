@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -501,7 +503,7 @@ public class GlygenArrayController {
 	}
 	
 	
-	@RequestMapping(value = "/updateGlycan", method = RequestMethod.PUT)
+	@RequestMapping(value = "/updateGlycan", method = RequestMethod.POST)
 	public Confirmation updateGlycan(@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -559,8 +561,37 @@ public class GlygenArrayController {
 			repository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
-			throw new GlycanRepositoryException("Error updating glycan with internalId: " + glycanView.getInternalId());
+			throw new GlycanRepositoryException("Error updating glycan with id: " + glycanView.getId());
 		}
+	}
+	
+	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST)
+	public Confirmation addAliasForGlycan(@PathVariable("glycanId") String glycanId, @RequestBody String alias, Principal principal) throws SQLException {
+		try {
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			repository.addAliasForGlycan(glycanId, alias, user);
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Error updating glycan with glycanId: " +glycanId);
+		}
+		return new Confirmation("Glycan updated successfully with new alias", HttpStatus.OK.value());
+	}
+	
+	@RequestMapping(value="/getGlycanBySequence", method = RequestMethod.GET)
+	public String getGlycanBySequence (@RequestParam String sequence, Principal principal) {
+		if (sequence == null || sequence.isEmpty())
+			return null;
+		try {
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			String seq = URLDecoder.decode(sequence, StandardCharsets.UTF_8.name());
+			String glycanURI = repository.getGlycanBySequence(seq.trim(), user);
+			if (glycanURI != null)
+				return glycanURI.substring(glycanURI.lastIndexOf("/") + 1);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("error getting glycan: ", e);
+		} catch (UnsupportedEncodingException e) {
+			logger.info(e.getMessage());  // ignore, should not happen
+		}
+		return null;
 	}
 	
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
@@ -591,6 +622,14 @@ public class GlygenArrayController {
 				field = "id";
 			if (order == null)
 				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
 			
 			int total = repository.getGlycanCountByUser (user);
 			
@@ -636,6 +675,14 @@ public class GlygenArrayController {
 				field = "id";
 			if (order == null)
 				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
 			
 			int total = repository.getLinkerCountByUser (user);
 			
@@ -683,6 +730,14 @@ public class GlygenArrayController {
 				field = "id";
 			if (order == null)
 				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
 			
 			int total = repository.getBlockLayoutCountByUser (user);
 			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order);
@@ -770,6 +825,14 @@ public class GlygenArrayController {
 				field = "id";
 			if (order == null)
 				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
 			
 			int total = repository.getSlideLayoutCountByUser (user);
 			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, order);
@@ -1180,6 +1243,7 @@ public class GlygenArrayController {
 		g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
 		g.setGlytoucanId(glycan.getGlytoucanId());
 		g.setDateModified(glycan.getDateModified());
+		g.setAliases(glycan.getAliases());
 		try {
 			byte[] image = null;
 			if (g.getGlytoucanId() != null) {

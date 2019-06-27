@@ -21,6 +21,8 @@ public interface GlygenArrayRepository {
 	
 	String addGlycan(Glycan g, UserEntity user) throws SparqlException;
 	
+	void addAliasForGlycan (String glycanId, String alias, UserEntity user) throws SparqlException, SQLException;
+	
 	String addLinker (Linker l, UserEntity user) throws SparqlException;
 	
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
@@ -47,7 +49,7 @@ public interface GlygenArrayRepository {
 	Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException;
 	
 	Glycan getGlycanByInternalId(String glycanId, UserEntity user) throws SparqlException, SQLException;
-	Glycan getGlycanByLabel(String glycanId, UserEntity user) throws SparqlException, SQLException;
+	Glycan getGlycanByLabel(String label, UserEntity user) throws SparqlException, SQLException;
 	/**
 	 * check if the glycan exists in global graph (default-graph)
 	 * @param sequence glycoCT sequence

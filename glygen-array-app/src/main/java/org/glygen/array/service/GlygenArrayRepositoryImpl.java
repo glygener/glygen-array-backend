@@ -152,7 +152,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					if (feat.getLinker() != null) {
 						linkerURI = feat.getLinker().getUri();
 						if (linkerURI == null) {
-							linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
+							if (feat.getLinker().getPubChemId() != null)
+								linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
 						}
 					}
 					
@@ -268,6 +269,41 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		sparqlDAO.addStatements(statements, graphIRI);
 		
 		return glycanURI;
+	}
+	
+	@Override
+	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
+		if (alias == null || alias.isEmpty())
+			return;
+		
+		String graph;
+		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given glycanId is in this graph
+			String glycanURI = uriPrefix + glycanId;
+			Glycan existing = getGlycanFromURI (glycanURI, graph);
+			if (existing != null) {
+				// check if the alias is unique
+				if (existing.getAliases().contains(alias))
+					return;
+				Glycan byAlias = getGlycanByLabel (alias, user);  // checks the alias as well
+				if (byAlias != null)
+					return; // cannot add
+				
+				ValueFactory f = sparqlDAO.getValueFactory();
+				IRI glycan = f.createIRI(glycanURI);
+				IRI graphIRI = f.createIRI(graph);
+				Literal aliasLiteral = f.createLiteral(alias);
+				IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
+				
+				List<Statement> statements = new ArrayList<Statement>();
+				statements.add(f.createStatement(glycan, hasAlias, aliasLiteral, graphIRI));
+				
+				sparqlDAO.addStatements(statements, graphIRI);
+			}
+		}
+		
 	}
 
 	@Override
@@ -453,8 +489,13 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				String concentrationURI = generateUniqueURI(uriPrefix + "C");
 				IRI spot = f.createIRI(spotURI);
 				IRI concentration = f.createIRI(concentrationURI);
-				Literal concentrationUnit = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-				Literal concentrationValue = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
+				if (s.getConcentration() != null) {
+					Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+					Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
+					if (concentrationValue != null) statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+				}
+				
 				row = f.createLiteral(s.getRow());
 				column = f.createLiteral(s.getColumn());
 				Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
@@ -464,10 +505,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				statements.add(f.createStatement(spot, hasRow, row));
 				statements.add(f.createStatement(spot, hasColumn, column));
 				if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
-				if (s.getConcentration() != null) {
-					statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
-				}
+				
 				List<Feature> features = s.getFeatures();
 				for (Feature feat : features) {
 					IRI featureIRI = f.createIRI(feat.getUri());
@@ -1092,8 +1130,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		queryBuf.append ("WHERE {\n");
 		queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
 		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
-		queryBuf.append ( " ?s rdfs:label \"" + label + "\"^^xsd:string . \n"
-				+ "}\n");
+		queryBuf.append ( " {?s rdfs:label \"" + label + "\"^^xsd:string . \n }");
+		queryBuf.append ( " UNION {?s gadr:has_alias \"" + label + "\"^^xsd:string . \n }");
+		queryBuf.append ( "}\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
@@ -1188,6 +1227,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
 		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
 		IRI hasMass = f.createIRI(ontPrefix + "has_mass");
+		IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
 		IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
@@ -1253,6 +1293,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				} else if (st.getPredicate().equals(hasInternalId)) {
 					Value internalId = st.getObject();
 					glycanObject.setInternalId(internalId.stringValue());
+				} else if (st.getPredicate().equals(hasAlias)) {
+					Value alias = st.getObject();
+					glycanObject.addAlias(alias.stringValue());
 				} else if (st.getPredicate().equals(hasModifiedDate)) {
 					Value value = st.getObject();
 				    if (value instanceof Literal) {
@@ -1830,4 +1873,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return getSlideLayoutFromURI(uriPrefix + slideLayoutId, graph);
 		}
 	}
+
+	
 }

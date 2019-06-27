@@ -1,6 +1,7 @@
 package org.glygen.array.view;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
@@ -16,6 +17,8 @@ public class GlycanView {
 	Date dateModified;
 	byte[] cartoon;
 	Double mass;
+	
+	List<String> aliases;
 	
 	public String getId() {
 		return id;
@@ -129,5 +132,13 @@ public class GlycanView {
 	 */
 	public void setMass(Double mass) {
 		this.mass = mass;
+	}
+	
+	public List<String> getAliases() {
+		return aliases;
+	}
+	
+	public void setAliases(List<String> aliases) {
+		this.aliases = aliases;
 	}
 }

@@ -1,6 +1,8 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Glycan {
 	
@@ -15,6 +17,7 @@ public class Glycan {
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
+	List<String> aliases = new ArrayList<String>();
 	
 	/**
 	 * @return the uri
@@ -147,6 +150,21 @@ public class Glycan {
 	 */
 	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
 		this.dateAddedToLibrary = dateAddedToLibrary;
+	}
+	
+	public List<String> getAliases() {
+		return aliases;
+	}
+	
+	public void setAliases(List<String> aliases) {
+		this.aliases = aliases;
+	}
+	
+	public void addAlias (String alias) {
+		if (this.aliases == null)
+			this.aliases = new ArrayList<String>();
+		if (!this.aliases.contains(alias))
+			this.aliases.add(alias);
 	}
 	
 	@Override
