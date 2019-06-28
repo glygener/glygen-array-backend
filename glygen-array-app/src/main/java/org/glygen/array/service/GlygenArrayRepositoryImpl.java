@@ -1540,7 +1540,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	@Override
-	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
+			Boolean loadAll, Integer order) throws SparqlException, SQLException {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		
 		String sortPredicate = getSortPredicateForLayout (field);
@@ -1567,12 +1568,17 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String slideLayoutURI = sparqlEntity.getValue("s");
-				SlideLayout layout = getSlideLayoutFromURI(slideLayoutURI, graph);
+				SlideLayout layout = getSlideLayoutFromURI(slideLayoutURI, loadAll, graph);
 				layouts.add(layout);
 			}
 		}
 		
 		return layouts;
+	}
+	
+	@Override
+	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+		return getSlideLayoutByUser(user, offset, limit, field, true, order);
 	}
 	
 	@Override
@@ -1741,11 +1747,15 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return null;
 		else {
 			String slideLayoutURI = results.get(0).getValue("s");
-			return getSlideLayoutFromURI(slideLayoutURI, graph);
+			return getSlideLayoutFromURI(slideLayoutURI, false, graph);
 		}
 	}
-
+	
 	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, String graph) throws SparqlException, SQLException {
+		return getSlideLayoutFromURI(slideLayoutURI, true, graph);
+	}
+
+	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, String graph) throws SparqlException, SQLException {
 		SlideLayout slideLayoutObject = null;
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -1794,7 +1804,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				    	Date date = calendar.toGregorianCalendar().getTime();
 				    	slideLayoutObject.setDateModified(date);
 				    }
-				} else if (st.getPredicate().equals(hasBlock)) {
+				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
 					Value v = st.getObject();
 					String blockURI = v.stringValue();
 					Block block = getBlock (blockURI, graph);
@@ -1814,7 +1824,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		graph = getGraphForUser(user);
 		if (graph != null) {
 			// check to see if the given slideLayoutId is in this graph
-			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, graph);
+			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, graph);
 			if (existing != null) {
 				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
 				return;

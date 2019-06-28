@@ -4,8 +4,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -14,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +24,9 @@ import javax.imageio.ImageIO;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
@@ -55,6 +61,8 @@ import org.glygen.array.view.LinkerView;
 import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
 import org.glygen.array.view.SlideLayoutResultView;
+import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
+import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -813,7 +821,10 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, Principal p) {
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
+			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
+			Principal p) {
 		SlideLayoutResultView result = new SlideLayoutResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
@@ -835,7 +846,7 @@ public class GlygenArrayController {
 			}
 			
 			int total = repository.getSlideLayoutCountByUser (user);
-			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, order);
+			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
 			result.setRows(layouts);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
@@ -1228,6 +1239,54 @@ public class GlygenArrayController {
             throw new UploadNotFinishedException("Not found");  // this will return HttpStatus no_content 204
         }
     }
+	
+	@RequestMapping(value = "/getSlideLayoutFromLibrary", method=RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	public List<SlideLayout> getSlideLayoutsFromLibrary(@RequestParam String uploadedFileName) {
+		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
+		if (uploadedFileName != null) {
+			File libraryFile = new File(uploadDir, uploadedFileName);
+			if (libraryFile.exists()) {
+				try {
+					FileInputStream inputStream2 = new FileInputStream(libraryFile);
+			        InputStreamReader reader2 = new InputStreamReader(inputStream2, "UTF-8");
+			        List<Class> contextList = new ArrayList<Class>(Arrays.asList(FilterUtils.filterClassContext));
+		    		contextList.add(ArrayDesignLibrary.class);
+			        JAXBContext context2 = JAXBContext.newInstance(contextList.toArray(new Class[contextList.size()]));
+			        Unmarshaller unmarshaller2 = context2.createUnmarshaller();
+			        ArrayDesignLibrary library = (ArrayDesignLibrary) unmarshaller2.unmarshal(reader2);
+			        List<org.grits.toolbox.glycanarray.library.om.layout.SlideLayout> layoutList = 
+			        		library.getLayoutLibrary().getSlideLayout();
+			        for (org.grits.toolbox.glycanarray.library.om.layout.SlideLayout slideLayout : layoutList) {
+		        		SlideLayout mySlideLayout = new SlideLayout();
+		        		mySlideLayout.setName(slideLayout.getName());
+		        		mySlideLayout.setDescription(slideLayout.getDescription());
+		        		mySlideLayout.setHeight(slideLayout.getHeight());
+		        		mySlideLayout.setWidth(slideLayout.getWidth());
+		        		layouts.add(mySlideLayout);
+					}
+			        return layouts;
+				} catch (JAXBException e) {
+					ErrorMessage errorMessage = new ErrorMessage();
+					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+					errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+					throw new IllegalArgumentException("Not a valid array library!", errorMessage);
+				} catch (IOException e) {
+					ErrorMessage errorMessage = new ErrorMessage();
+					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+					errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+					throw new IllegalArgumentException("File cannot be found!", errorMessage);
+				}
+			}
+		}
+		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+		throw new IllegalArgumentException("File is not valid", errorMessage);
+	}
+	
+	
 	 
 	private GlycanView getGlycanView (Glycan glycan) {
 		GlycanView g = new GlycanView();
