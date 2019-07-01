@@ -19,7 +19,7 @@ public class SlideLayout {
 	/**
 	 * @return the name
 	 */
-	@Size(max=50, message="Name cannot exceed 50 characters")
+	@Size(max=100, message="Name cannot exceed 100 characters")
 	public String getName() {
 		return name;
 	}

@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -62,6 +61,12 @@ import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
 import org.glygen.array.view.SlideLayoutResultView;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
+import org.grits.toolbox.glycanarray.library.om.LibraryInterface;
+import org.grits.toolbox.glycanarray.library.om.feature.Feature;
+import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
+import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
+import org.grits.toolbox.glycanarray.library.om.layout.Block;
+import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1240,9 +1245,15 @@ public class GlygenArrayController {
         }
     }
 	
+	/**
+	 * the library file should already be uploaded to "uploadDir" before calling this service.
+	 * 
+	 * @param uploadedFileName the name of the library file already uploaded
+	 * @return list of slide layouts in the library
+	 */
 	@RequestMapping(value = "/getSlideLayoutFromLibrary", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
-	public List<SlideLayout> getSlideLayoutsFromLibrary(@RequestParam String uploadedFileName) {
+	public List<SlideLayout> getSlideLayoutsFromLibrary(@RequestParam("file") String uploadedFileName) {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
@@ -1261,20 +1272,42 @@ public class GlygenArrayController {
 		        		SlideLayout mySlideLayout = new SlideLayout();
 		        		mySlideLayout.setName(slideLayout.getName());
 		        		mySlideLayout.setDescription(slideLayout.getDescription());
-		        		mySlideLayout.setHeight(slideLayout.getHeight());
-		        		mySlideLayout.setWidth(slideLayout.getWidth());
+		        		
+		        		List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
+		        		int width = 0;
+		        		int height = 0;
+		        		for (Block block: slideLayout.getBlock()) {
+		        			org.glygen.array.persistence.rdf.Block myBlock = new org.glygen.array.persistence.rdf.Block();
+		        			myBlock.setColumn(block.getColumn());
+		        			myBlock.setRow(block.getRow());
+		        			if (block.getColumn() > width)
+		        				width = block.getColumn();
+		        			if (block.getRow() > height)
+		        				height = block.getRow();
+		        			Integer blockLayoutId = block.getLayoutId();
+		        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
+		        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
+		        			myLayout.setName(blockLayout.getName());
+		        			myBlock.setBlockLayout(myLayout);
+		        			myBlock.setSpots(getSpotsFromBlockLayout(library, blockLayout));
+		        			blocks.add(myBlock);
+		        		}
+		        		
+		        		mySlideLayout.setHeight(slideLayout.getHeight() == null ? height: slideLayout.getHeight());
+		        		mySlideLayout.setWidth(slideLayout.getWidth() == null ? width: slideLayout.getWidth());
+		        		mySlideLayout.setBlocks(blocks);
 		        		layouts.add(mySlideLayout);
 					}
 			        return layouts;
 				} catch (JAXBException e) {
 					ErrorMessage errorMessage = new ErrorMessage();
 					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-					errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+					errorMessage.addError(new ObjectError("file", "NotValid"));
 					throw new IllegalArgumentException("Not a valid array library!", errorMessage);
 				} catch (IOException e) {
 					ErrorMessage errorMessage = new ErrorMessage();
 					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-					errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+					errorMessage.addError(new ObjectError("file", "NotValid"));
 					throw new IllegalArgumentException("File cannot be found!", errorMessage);
 				}
 			}
@@ -1282,8 +1315,97 @@ public class GlygenArrayController {
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-		errorMessage.addError(new ObjectError("uploadedFileName", "NotValid"));
+		errorMessage.addError(new ObjectError("file", "NotValid"));
 		throw new IllegalArgumentException("File is not valid", errorMessage);
+	}
+	
+	
+	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout) {
+		List<org.glygen.array.persistence.rdf.Spot> spots = new ArrayList<>();
+    	for (Spot spot: blockLayout.getSpot()) {
+    		org.glygen.array.persistence.rdf.Spot s = new org.glygen.array.persistence.rdf.Spot();
+    		s.setRow(spot.getY());
+    		s.setColumn(spot.getX());
+    		s.setGroup(spot.getGroup());
+    		s.setConcentration(spot.getConcentration());
+    		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
+    		List<org.glygen.array.persistence.rdf.Feature> features = new ArrayList<>();
+    		if (feature != null) {
+        		for (Ratio r : feature.getRatio()) {
+        			GlycanProbe probe = null;
+        			for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
+        				if (p.getId().equals(r.getItemId())) {
+        					probe = p;
+        					break;
+        				}
+        			}
+        			if (probe != null) {
+        				for (Ratio r1 : probe.getRatio()) {
+        					org.glygen.array.persistence.rdf.Feature myFeature = new org.glygen.array.persistence.rdf.Feature();
+        					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
+        					if (glycan != null) {
+		        				Glycan myGlycan = new Glycan();
+		        				myGlycan.setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
+		        				myFeature.setGlycan(myGlycan);
+        					}
+		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+		        			if (linker != null) {
+		        				Linker myLinker = new Linker();
+		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
+		        				myFeature.setLinker(myLinker);
+		        			}
+		        			myFeature.setRatio(r1.getItemRatio());
+		        			features.add(myFeature);
+        				}
+        			}			
+        		}
+    		}
+    		s.setFeatures(features);
+    		spots.add(s);
+    	}
+    	
+    	return spots;
+	}
+	
+	@RequestMapping(value = "/getSlideLayoutFromLibrary", method=RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	public Confirmation addSlideLayoutFromLibrary (@RequestBody SlideLayout slideLayout, Principal p) {
+		// find all block layouts, glycans, linkers and add them first
+		List<Glycan> added = new ArrayList<Glycan>();
+		List<Linker> addedLinkers = new ArrayList<Linker>();
+		List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
+		for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
+			if (block.getBlockLayout() != null) { 
+				try {
+					if (!addedLayouts.contains(block.getBlockLayout())) {
+						addBlockLayout(block.getBlockLayout(), p);
+						for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
+							for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
+								if (feature.getGlycan() != null) {
+									if (!added.contains(feature.getGlycan())) {
+										addGlycan(getGlycanView(feature.getGlycan()), p);
+										added.add(feature.getGlycan());
+									}
+								}
+								if (feature.getLinker() != null) {
+									if (!addedLinkers.contains(feature.getLinker())) {
+										addLinker(getLinkerView(feature.getLinker()), p);
+										addedLinkers.add(feature.getLinker());
+									}
+								}
+							}
+						}
+						addedLayouts.add(block.getBlockLayout());
+					}
+				} catch (Exception e) {
+					logger.info("Cannot add", e);
+				}
+			}
+		}
+		
+		addSlideLayout(slideLayout, p);
+		return new Confirmation ("Slide layout added successfully", HttpStatus.OK.value());
 	}
 	
 	

@@ -1041,7 +1041,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return null;
 		else {
 			String blockLayoutURI = results.get(0).getValue("s");
-			return getBlockLayoutFromURI(blockLayoutURI, graph);
+			return getBlockLayoutFromURI(blockLayoutURI, false, graph);
 		}
 	}
 	
