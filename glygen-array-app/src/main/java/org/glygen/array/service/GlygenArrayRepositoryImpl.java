@@ -71,7 +71,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
 		}
 		
-		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL");
+		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL", graph);
 		
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -116,8 +116,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		List<Feature> processed = new ArrayList<Feature>();
 		for (Spot s : b.getSpots()) {
-			String spotURI = generateUniqueURI(uriPrefix + "S");
-			String concentrationURI = generateUniqueURI(uriPrefix + "C");
+			String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+			String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
 			IRI spot = f.createIRI(spotURI);
 			IRI concentration = f.createIRI(concentrationURI);
 			Literal concentrationUnit = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
@@ -138,7 +138,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			List<Feature> features = s.getFeatures();
 			for (Feature feat : features) {
 				if (!processed.contains(feat)) {
-					String featureURI = generateUniqueURI(uriPrefix + "F");
+					String featureURI = generateUniqueURI(uriPrefix + "F", graph);
 					IRI feature = f.createIRI(featureURI);
 					String glycanURI = null;
 					if (feat.getGlycan() != null) {
@@ -410,7 +410,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
 		}
 		
-		String slideLayoutURI = generateUniqueURI(uriPrefix + "SL");
+		String slideLayoutURI = generateUniqueURI(uriPrefix + "SL", graph);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
@@ -439,7 +439,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		if (slideLayoutHeight != null) statements.add(f.createStatement(slideLayout, hasHeight, slideLayoutHeight));
 		
 		for (Block b: s.getBlocks()) {
-			String blockURI = addBlock (b, user, graphIRI);
+			String blockURI = addBlock (b, user, graph);
 			IRI block = f.createIRI(blockURI);
 			statements.add(f.createStatement(slideLayout, hasBlock, block));
 		}
@@ -448,11 +448,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return slideLayoutURI;
 	}
 	
-	private String addBlock(Block b, UserEntity user, IRI graphIRI) throws SparqlException, SQLException {
+	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
 
-		String blockURI = generateUniqueURI(uriPrefix + "B");
+		String blockURI = generateUniqueURI(uriPrefix + "B", graph);
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
+		IRI graphIRI = f.createIRI(graph);
 		IRI block = f.createIRI(blockURI);
 		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
 		IRI blockType = f.createIRI(ontPrefix + "Block");
@@ -485,8 +486,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			statements.add(f.createStatement(block, hasColumn, column));
 			// copy spots from layout
 			for (Spot s : layoutFromRepository.getSpots()) {
-				String spotURI = generateUniqueURI(uriPrefix + "S");
-				String concentrationURI = generateUniqueURI(uriPrefix + "C");
+				String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+				String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
 				IRI spot = f.createIRI(spotURI);
 				IRI concentration = f.createIRI(concentrationURI);
 				if (s.getConcentration() != null) {
@@ -562,6 +563,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				Value v = st.getObject();
 				String spotURI = v.stringValue();
 				Spot s = new Spot();
+				s.setUri(spotURI);
 				IRI spot = f.createIRI(spotURI);
 				RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
 				List<Feature> features = new ArrayList<Feature>();
@@ -775,6 +777,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	private String generateUniqueURI (String pre) throws SparqlException {
+		return generateUniqueURI(pre, null);
+	}
+	
+	private String generateUniqueURI (String pre, String graph) throws SparqlException {
 		// check the repository to see if the generated URI is unique
 		boolean unique = false;
 		String newURI = null;
@@ -783,7 +789,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?s\n");
-			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+			queryBuf.append("FROM <" + DEFAULT_GRAPH + ">\n");
+			if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n" + 
 					"				    ?s ?p ?o .\n" + 
 					"				  FILTER (?s = '" + pre + "')\n" + 

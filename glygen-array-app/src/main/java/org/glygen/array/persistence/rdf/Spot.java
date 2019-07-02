@@ -12,6 +12,8 @@ public class Spot {
 	Integer column;
 	LevelUnit concentration;
 	Integer group;
+	String uri;
+	
 	/**
 	 * @return the feature
 	 */
@@ -73,5 +75,13 @@ public class Spot {
 	 */
 	public void setGroup(Integer group) {
 		this.group = group;
+	}
+	
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+	
+	public String getUri() {
+		return uri;
 	}
 }
