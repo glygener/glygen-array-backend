@@ -212,7 +212,7 @@ public final class GmailServiceImpl implements EmailManager {
 	@Override
 	public void sendEmailChangeNotification(UserEntity user) {
 		final String recipientAddress = user.getEmail();
-		final String subject = "UserName Recovery";
+		final String subject = "Email Change Notification";
 	        
 		try {
 			sendMessage(recipientAddress, subject,  "Dear " + user.getFirstName() + " " + user.getLastName()
