@@ -42,6 +42,9 @@ public interface GlygenArrayRepository {
 	BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user) throws SparqlException, SQLException;
 	SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user) throws SparqlException, SQLException;
 	
+	BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user, boolean loadAll) throws SparqlException, SQLException;
+	SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user, boolean loadAll) throws SparqlException, SQLException;
+	
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user) throws SparqlException, SQLException;
 	
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order)

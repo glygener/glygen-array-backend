@@ -62,6 +62,117 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
 	
 	@Override
+	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
+		if (alias == null || alias.isEmpty())
+			return;
+		
+		String graph;
+		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given glycanId is in this graph
+			String glycanURI = uriPrefix + glycanId;
+			Glycan existing = getGlycanFromURI (glycanURI, graph);
+			if (existing != null) {
+				// check if the alias is unique
+				if (existing.getAliases().contains(alias))
+					return;
+				Glycan byAlias = getGlycanByLabel (alias, user);  // checks the alias as well
+				if (byAlias != null)
+					return; // cannot add
+				
+				ValueFactory f = sparqlDAO.getValueFactory();
+				IRI glycan = f.createIRI(glycanURI);
+				IRI graphIRI = f.createIRI(graph);
+				Literal aliasLiteral = f.createLiteral(alias);
+				IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
+				
+				List<Statement> statements = new ArrayList<Statement>();
+				statements.add(f.createStatement(glycan, hasAlias, aliasLiteral, graphIRI));
+				
+				sparqlDAO.addStatements(statements, graphIRI);
+			}
+		}
+		
+	}
+	
+	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
+
+		String blockURI = generateUniqueURI(uriPrefix + "B", graph);
+		ValueFactory f = sparqlDAO.getValueFactory();
+		
+		IRI graphIRI = f.createIRI(graph);
+		IRI block = f.createIRI(blockURI);
+		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
+		IRI blockType = f.createIRI(ontPrefix + "Block");
+		IRI hasRow = f.createIRI(ontPrefix + "has_row");
+		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
+		IRI spotType = f.createIRI(ontPrefix + "Spot");
+		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
+		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
+		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
+		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+		Literal row = f.createLiteral(b.getRow());
+		Literal column = f.createLiteral(b.getColumn());
+		
+		BlockLayout layoutFromRepository = null;
+		BlockLayout blockLayout = b.getBlockLayout();
+		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty())
+			layoutFromRepository = getBlockLayoutById(blockLayout.getId(), user);
+		else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
+			layoutFromRepository = getBlockLayoutByName(blockLayout.getName(), user);
+		
+		if (layoutFromRepository != null) {
+			IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
+			// create Block and copy spots from Layout
+			List<Statement> statements = new ArrayList<Statement>();
+			statements.add(f.createStatement(block, RDF.TYPE, blockType));
+			statements.add(f.createStatement(block, hasBlockLayout, blockLayoutIRI));
+			statements.add(f.createStatement(block, hasRow, row));
+			statements.add(f.createStatement(block, hasColumn, column));
+			
+			sparqlDAO.addStatements(statements, graphIRI);
+			// copy spots from layout
+			for (Spot s : layoutFromRepository.getSpots()) {
+				statements = new ArrayList<Statement>();
+				String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+				String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+				IRI spot = f.createIRI(spotURI);
+				IRI concentration = f.createIRI(concentrationURI);
+				if (s.getConcentration() != null) {
+					Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+					Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
+					if (concentrationValue != null) statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+				}
+				
+				row = f.createLiteral(s.getRow());
+				column = f.createLiteral(s.getColumn());
+				Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
+				statements.add(f.createStatement(spot, RDF.TYPE, spotType));
+				statements.add(f.createStatement(block, hasSpot, spot));
+				statements.add(f.createStatement(spot, hasConcentration, concentration));
+				statements.add(f.createStatement(spot, hasRow, row));
+				statements.add(f.createStatement(spot, hasColumn, column));
+				if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
+				
+				List<Feature> features = s.getFeatures();
+				for (Feature feat : features) {
+					IRI featureIRI = f.createIRI(feat.getUri());
+					statements.add(f.createStatement(spot, hasFeature, featureIRI));
+				}
+				sparqlDAO.addStatements(statements, graphIRI);
+			}
+			
+		} else 
+			throw new SparqlException ("Block layout cannot be found in repository");
+		
+		return blockURI;
+	}
+	
+	@Override
 	public String addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException {
 		String graph = null;
 		try {
@@ -72,7 +183,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 		
 		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL", graph);
-		
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
@@ -113,9 +223,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		if (blockLayoutWidth != null) statements.add(f.createStatement(blockLayout, hasWidth, blockLayoutWidth));
 		if (blockLayoutHeight != null) statements.add(f.createStatement(blockLayout, hasHeight, blockLayoutHeight));
 		
+		sparqlDAO.addStatements(statements, graphIRI);
 		
 		List<Feature> processed = new ArrayList<Feature>();
 		for (Spot s : b.getSpots()) {
+			statements = new ArrayList<Statement>();
 			String spotURI = generateUniqueURI(uriPrefix + "S", graph);
 			String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
 			IRI spot = f.createIRI(spotURI);
@@ -135,9 +247,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
 				statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
 			}
+			
+			sparqlDAO.addStatements(statements, graphIRI);
 			List<Feature> features = s.getFeatures();
 			for (Feature feat : features) {
 				if (!processed.contains(feat)) {
+					statements = new ArrayList<Statement>();
 					String featureURI = generateUniqueURI(uriPrefix + "F", graph);
 					IRI feature = f.createIRI(featureURI);
 					String glycanURI = null;
@@ -172,19 +287,20 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					}
 					if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
 					processed.add(feat);   // processed
+					sparqlDAO.addStatements(statements, graphIRI);
 				} else {
+					statements = new ArrayList<Statement>();
 					Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
 					IRI feature = f.createIRI(existing.getUri());
 					statements.add(f.createStatement(spot, hasFeature, feature));
+					sparqlDAO.addStatements(statements, graphIRI);
 				}
 			}
 		}
 		
-		sparqlDAO.addStatements(statements, graphIRI);
-		
 		return blockLayoutURI;
 	}
-	
+
 	@Override
 	public String addGlycan(Glycan g, UserEntity user) throws SparqlException {
 		String graph = null;
@@ -271,41 +387,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return glycanURI;
 	}
 	
-	@Override
-	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
-		if (alias == null || alias.isEmpty())
-			return;
-		
-		String graph;
-		
-		graph = getGraphForUser(user);
-		if (graph != null) {
-			// check to see if the given glycanId is in this graph
-			String glycanURI = uriPrefix + glycanId;
-			Glycan existing = getGlycanFromURI (glycanURI, graph);
-			if (existing != null) {
-				// check if the alias is unique
-				if (existing.getAliases().contains(alias))
-					return;
-				Glycan byAlias = getGlycanByLabel (alias, user);  // checks the alias as well
-				if (byAlias != null)
-					return; // cannot add
-				
-				ValueFactory f = sparqlDAO.getValueFactory();
-				IRI glycan = f.createIRI(glycanURI);
-				IRI graphIRI = f.createIRI(graph);
-				Literal aliasLiteral = f.createLiteral(alias);
-				IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
-				
-				List<Statement> statements = new ArrayList<Statement>();
-				statements.add(f.createStatement(glycan, hasAlias, aliasLiteral, graphIRI));
-				
-				sparqlDAO.addStatements(statements, graphIRI);
-			}
-		}
-		
-	}
-
 	@Override
 	public String addLinker(Linker l, UserEntity user) throws SparqlException {
 		
@@ -448,76 +529,226 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return slideLayoutURI;
 	}
 	
-	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
-
-		String blockURI = generateUniqueURI(uriPrefix + "B", graph);
-		ValueFactory f = sparqlDAO.getValueFactory();
+	@Override
+	public void deleteBlockLayout(String blockLayoutId, UserEntity user) throws SparqlException, SQLException {
+		String graph;
 		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given blockLayoutId is in this graph
+			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, graph);
+			if (existing != null) {
+				deleteBlockLayoutByURI (uriPrefix + blockLayoutId, graph);
+				return;
+			}
+		}
+	}
+
+	private void deleteBlockLayoutByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI blockLayout = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
-		IRI block = f.createIRI(blockURI);
-		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
-		IRI blockType = f.createIRI(ontPrefix + "Block");
-		IRI hasRow = f.createIRI(ontPrefix + "has_row");
-		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
 		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
 		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
-		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
-		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
-		Literal row = f.createLiteral(b.getRow());
-		Literal column = f.createLiteral(b.getColumn());
 		
-		BlockLayout layoutFromRepository = null;
-		BlockLayout blockLayout = b.getBlockLayout();
-		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty())
-			layoutFromRepository = getBlockLayoutById(blockLayout.getId(), user);
-		else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
-			layoutFromRepository = getBlockLayoutByName(blockLayout.getName(), user);
+		RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(blockLayout, hasSpot, null, graphIRI);
+		while (statements4.hasNext()) {
+			Statement st = statements4.next();
+			if (st.getPredicate().equals(hasFeature)) {
+				Value v = st.getObject();
+				String featureURI = v.stringValue();
+				IRI feature = f.createIRI(featureURI);
+				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(feature, null, null, graphIRI);
+				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
+			} else if (st.getPredicate().equals(hasConcentration)) {
+				Value v = st.getObject();
+				String conURI = v.stringValue();
+				IRI concentration = f.createIRI(conURI);
+				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
+				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
+			}
+		}
 		
-		if (layoutFromRepository != null) {
-			IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
-			// create Block and copy spots from Layout
-			List<Statement> statements = new ArrayList<Statement>();
-			statements.add(f.createStatement(block, RDF.TYPE, blockType));
-			statements.add(f.createStatement(block, hasBlockLayout, blockLayoutIRI));
-			statements.add(f.createStatement(block, hasRow, row));
-			statements.add(f.createStatement(block, hasColumn, column));
-			// copy spots from layout
-			for (Spot s : layoutFromRepository.getSpots()) {
-				String spotURI = generateUniqueURI(uriPrefix + "S", graph);
-				String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
-				IRI spot = f.createIRI(spotURI);
-				IRI concentration = f.createIRI(concentrationURI);
-				if (s.getConcentration() != null) {
-					Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-					Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-					if (concentrationValue != null) statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
-				}
-				
-				row = f.createLiteral(s.getRow());
-				column = f.createLiteral(s.getColumn());
-				Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
-				statements.add(f.createStatement(spot, RDF.TYPE, spotType));
-				statements.add(f.createStatement(block, hasSpot, spot));
-				statements.add(f.createStatement(spot, hasConcentration, concentration));
-				statements.add(f.createStatement(spot, hasRow, row));
-				statements.add(f.createStatement(spot, hasColumn, column));
-				if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
-				
-				List<Feature> features = s.getFeatures();
-				for (Feature feat : features) {
-					IRI featureIRI = f.createIRI(feat.getUri());
-					statements.add(f.createStatement(spot, hasFeature, featureIRI));
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(blockLayout, null, null, graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+	}
+	
+	@Override
+	public void deleteGlycan(String glycanId, UserEntity user) throws SQLException, SparqlException {
+		String graph;
+		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given glycanId is in this graph
+			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, graph);
+			if (existing != null) {
+				deleteGlycanByURI (uriPrefix + glycanId, graph);
+				return;
+			}
+		}
+	}
+
+	private void deleteGlycanByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI glycan = f.createIRI(uri);
+		IRI graphIRI = f.createIRI(graph);
+		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+	}
+
+	@Override
+	public void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException {
+		String graph;
+		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given linkerId is in this graph
+			Linker existing = getLinkerFromURI (uriPrefix + linkerId, graph);
+			if (existing != null) {
+				deleteLinkerByURI (uriPrefix + linkerId, graph);
+				return;
+			}
+		}
+	}
+
+	private void deleteLinkerByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI linker = f.createIRI(uri);
+		IRI graphIRI = f.createIRI(graph);
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+	}
+	
+	
+	@Override
+	public void deleteSlideLayout(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
+		String graph;
+		
+		graph = getGraphForUser(user);
+		if (graph != null) {
+			// check to see if the given slideLayoutId is in this graph
+			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, graph);
+			if (existing != null) {
+				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
+				return;
+			}
+		}
+	}
+	
+	private void deleteSlideLayoutByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI slideLayout = f.createIRI(uri);
+		IRI graphIRI = f.createIRI(graph);
+		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
+		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
+		
+		RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(slideLayout, hasBlock, null, graphIRI);
+		while (statements3.hasNext()) {
+			Statement st = statements3.next();
+			Value v = st.getObject();
+			String blockURI = v.stringValue();
+			IRI block = f.createIRI(blockURI);
+			RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(block, hasSpot, null, graphIRI);
+			while (statements4.hasNext()) {
+				st = statements4.next();
+				if (st.getPredicate().equals(hasConcentration)) {
+					v = st.getObject();
+					String conURI = v.stringValue();
+					IRI concentration = f.createIRI(conURI);
+					RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
+					sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
 				}
 			}
-			sparqlDAO.addStatements(statements, graphIRI);
-		} else 
-			throw new SparqlException ("Block layout cannot be found in repository");
+			statements4 = sparqlDAO.getStatements(block, null, null, graphIRI);
+			sparqlDAO.removeStatements(Iterations.asList(statements4), graphIRI);
+		}
 		
-		return blockURI;
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+	}
+	
+	private String findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
+		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
+		String where = "WHERE { " + 
+				"				    ?s gadr:has_sequence ?o .\n" +
+				"                    ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string .\n";
+		if (!graph.equals(DEFAULT_GRAPH)) {
+			// check if the user's private graph has this glycan
+			fromString += "FROM <" + graph + ">\n";
+			where += "              ?s gadr:has_date_addedtolibrary ?d .\n";
+			
+		}
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s ?o\n");
+		queryBuf.append (fromString);
+		queryBuf.append (where + 
+				"				}\n" + 
+				"				LIMIT 10");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.size() == 0) 
+			return null;
+		
+		SparqlEntity result = results.get(0);
+		String glycanURI = result.getValue("s");
+		
+		return glycanURI;
+	}
+	
+	private String findLinkerInGraphByPubChem (Long pubChemId, String graph) throws SparqlException {
+		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
+		String where = "WHERE { " + 
+				"				    ?s gadr:has_pubchem_compound_id \"" + pubChemId + "\"^^xsd:long .\n";
+		if (!graph.equals(DEFAULT_GRAPH)) {
+			// check if the user's private graph has this glycan
+			fromString += "FROM <" + graph + ">\n";
+			where += "              ?s gadr:has_date_addedtolibrary ?d .\n";
+			
+		}
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s \n");
+		queryBuf.append (fromString);
+		queryBuf.append (where + 
+				"				}\n" + 
+				"				LIMIT 10");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.size() == 0) 
+			return null;
+		
+		SparqlEntity result = results.get(0);
+		String linkerURI = result.getValue("s");
+		
+		return linkerURI;
+	}
+	
+	private String generateUniqueURI (String pre) throws SparqlException {
+		return generateUniqueURI(pre, null);
+	}
+	
+	private String generateUniqueURI (String pre, String graph) throws SparqlException {
+		// check the repository to see if the generated URI is unique
+		boolean unique = false;
+		String newURI = null;
+		do {
+			newURI = pre + (1000000 + random.nextInt(9999999));
+			StringBuffer queryBuf = new StringBuffer();
+			queryBuf.append (prefix + "\n");
+			queryBuf.append ("SELECT DISTINCT ?s\n");
+			queryBuf.append("FROM <" + DEFAULT_GRAPH + ">\n");
+			if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
+			queryBuf.append ("WHERE {\n" + 
+					"				    ?s ?p ?o .\n" + 
+					"				  FILTER (?s = '" + pre + "')\n" + 
+					"				}\n" + 
+					"				LIMIT 10");
+			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			unique = results.size() == 0;
+		} while (!unique);
+		
+		return newURI;
 	}
 	
 	private Block getBlock (String blockURI, String graph) throws SparqlException {
@@ -628,184 +859,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return blockObject;
 	}
-
-	@Override
-	public void deleteBlockLayout(String blockLayoutId, UserEntity user) throws SparqlException, SQLException {
-		String graph;
-		
-		graph = getGraphForUser(user);
-		if (graph != null) {
-			// check to see if the given blockLayoutId is in this graph
-			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, graph);
-			if (existing != null) {
-				deleteBlockLayoutByURI (uriPrefix + blockLayoutId, graph);
-				return;
-			}
-		}
-	}
-	
-	private void deleteBlockLayoutByURI(String uri, String graph) throws SparqlException {
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI blockLayout = f.createIRI(uri);
-		IRI graphIRI = f.createIRI(graph);
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
-		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		
-		RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(blockLayout, hasSpot, null, graphIRI);
-		while (statements4.hasNext()) {
-			Statement st = statements4.next();
-			if (st.getPredicate().equals(hasFeature)) {
-				Value v = st.getObject();
-				String featureURI = v.stringValue();
-				IRI feature = f.createIRI(featureURI);
-				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(feature, null, null, graphIRI);
-				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-			} else if (st.getPredicate().equals(hasConcentration)) {
-				Value v = st.getObject();
-				String conURI = v.stringValue();
-				IRI concentration = f.createIRI(conURI);
-				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-			}
-		}
-		
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(blockLayout, null, null, graphIRI);
-		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-	}
-
-	@Override
-	public void deleteGlycan(String glycanId, UserEntity user) throws SQLException, SparqlException {
-		String graph;
-		
-		graph = getGraphForUser(user);
-		if (graph != null) {
-			// check to see if the given glycanId is in this graph
-			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, graph);
-			if (existing != null) {
-				deleteGlycanByURI (uriPrefix + glycanId, graph);
-				return;
-			}
-		}
-	}
-
-	private void deleteGlycanByURI(String uri, String graph) throws SparqlException {
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI glycan = f.createIRI(uri);
-		IRI graphIRI = f.createIRI(graph);
-		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
-		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-	}
-
-	@Override
-	public void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException {
-		String graph;
-		
-		graph = getGraphForUser(user);
-		if (graph != null) {
-			// check to see if the given linkerId is in this graph
-			Linker existing = getLinkerFromURI (uriPrefix + linkerId, graph);
-			if (existing != null) {
-				deleteLinkerByURI (uriPrefix + linkerId, graph);
-				return;
-			}
-		}
-	}
-	
-	
-	private void deleteLinkerByURI(String uri, String graph) throws SparqlException {
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI linker = f.createIRI(uri);
-		IRI graphIRI = f.createIRI(graph);
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
-		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-	}
-	
-	private String findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
-		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
-		String where = "WHERE { " + 
-				"				    ?s gadr:has_sequence ?o .\n" +
-				"                    ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string .\n";
-		if (!graph.equals(DEFAULT_GRAPH)) {
-			// check if the user's private graph has this glycan
-			fromString += "FROM <" + graph + ">\n";
-			where += "              ?s gadr:has_date_addedtolibrary ?d .\n";
-			
-		}
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s ?o\n");
-		queryBuf.append (fromString);
-		queryBuf.append (where + 
-				"				}\n" + 
-				"				LIMIT 10");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-		if (results.size() == 0) 
-			return null;
-		
-		SparqlEntity result = results.get(0);
-		String glycanURI = result.getValue("s");
-		
-		return glycanURI;
-	}
-	
-	private String findLinkerInGraphByPubChem (Long pubChemId, String graph) throws SparqlException {
-		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
-		String where = "WHERE { " + 
-				"				    ?s gadr:has_pubchem_compound_id \"" + pubChemId + "\"^^xsd:long .\n";
-		if (!graph.equals(DEFAULT_GRAPH)) {
-			// check if the user's private graph has this glycan
-			fromString += "FROM <" + graph + ">\n";
-			where += "              ?s gadr:has_date_addedtolibrary ?d .\n";
-			
-		}
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s \n");
-		queryBuf.append (fromString);
-		queryBuf.append (where + 
-				"				}\n" + 
-				"				LIMIT 10");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-		if (results.size() == 0) 
-			return null;
-		
-		SparqlEntity result = results.get(0);
-		String linkerURI = result.getValue("s");
-		
-		return linkerURI;
-	}
-	
-	private String generateUniqueURI (String pre) throws SparqlException {
-		return generateUniqueURI(pre, null);
-	}
-	
-	private String generateUniqueURI (String pre, String graph) throws SparqlException {
-		// check the repository to see if the generated URI is unique
-		boolean unique = false;
-		String newURI = null;
-		do {
-			newURI = pre + (1000000 + random.nextInt(9999999));
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s\n");
-			queryBuf.append("FROM <" + DEFAULT_GRAPH + ">\n");
-			if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n" + 
-					"				    ?s ?p ?o .\n" + 
-					"				  FILTER (?s = '" + pre + "')\n" + 
-					"				}\n" + 
-					"				LIMIT 10");
-			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			unique = results.size() == 0;
-		} while (!unique);
-		
-		return newURI;
-	}
 	
 	@Override
 	public BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user) throws SparqlException, SQLException {
-		// make sure the glycan belongs to this user
+		return getBlockLayoutById(blockLayoutId, user, true);
+	}
+
+	@Override
+	public BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user, boolean loadAll)
+			throws SparqlException, SQLException {
+		// make sure the blocklayout belongs to this user
 		String graph = getGraphForUser(user);
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
@@ -818,13 +881,39 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		if (results.isEmpty())
 			return null;
 		else {
-			return getBlockLayoutFromURI(uriPrefix + blockLayoutId, graph);
+			return getBlockLayoutFromURI(uriPrefix + blockLayoutId, loadAll, graph);
 		}
 	}
 	
 	@Override
+	public BlockLayout getBlockLayoutByName (String name, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s \n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
+		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+				+ "}\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			String blockLayoutURI = results.get(0).getValue("s");
+			return getBlockLayoutFromURI(blockLayoutURI, false, graph);
+		}
+	}
+	
+	
+	@Override
 	public List<BlockLayout> getBlockLayoutByUser(UserEntity user) throws SparqlException, SQLException {
 		return getBlockLayoutByUser(user, 0, -1, "id", 0);
+	}
+	
+	@Override
+	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+		return getBlockLayoutByUser(user, offset, limit, field, true, order);
 	}
 	
 	@Override
@@ -864,11 +953,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return layouts;
 	}
-
-	@Override
-	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
-		return getBlockLayoutByUser(user, offset, limit, field, true, order);
-	}
 	
 	@Override
 	public int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
@@ -895,11 +979,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			}
 		}
 		return total;
-	}
-	
-	
-	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, String graph) throws SparqlException {
-		return getBlockLayoutFromURI(blockLayoutURI, true, graph);
 	}
 	
 	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, String graph) throws SparqlException {
@@ -1031,25 +1110,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return blockLayoutObject;
 	}
-	
-	@Override
-	public BlockLayout getBlockLayoutByName (String name, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s \n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
-		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
-				+ "}\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-		if (results.isEmpty())
-			return null;
-		else {
-			String blockLayoutURI = results.get(0).getValue("s");
-			return getBlockLayoutFromURI(blockLayoutURI, false, graph);
-		}
+
+	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, String graph) throws SparqlException {
+		return getBlockLayoutFromURI(blockLayoutURI, true, graph);
 	}
 	
 	/**
@@ -1103,7 +1166,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return getGlycanFromURI(uriPrefix + glycanId, graph);
 		}
 	}
-
+	
 	@Override
 	public Glycan getGlycanByInternalId(String internalId, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
@@ -1125,7 +1188,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return getGlycanFromURI(glycanURI, graph);
 		}
 	}
-	
+
+
+
 	@Override
 	public Glycan getGlycanByLabel(String label, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
@@ -1165,8 +1230,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		String graph = getGraphForUser(user);
 		return findGlycanInGraphBySequence(sequence, graph);
 	}
-
-
 
 	/**
 	 * {@inheritDoc}
@@ -1223,6 +1286,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		String graph = getGraphForUser(user);
 		return getCountByUserByType(graph, "Glycan");
 	}
+
 
 	private Glycan getGlycanFromURI (String glycanURI, String graph) throws SparqlException {
 		Glycan glycanObject = null;
@@ -1325,7 +1389,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return glycanObject;
 	}
-	
+
 	@Override
 	public String getGraphForUser (UserEntity user) throws SQLException {
 		PrivateGraphEntity graph = graphRepository.findByUser(user);
@@ -1335,7 +1399,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return addPrivateGraphForUser(user);
 		}
 	}
-	
+
 	@Override
 	public Linker getLinkerById(String linkerId, UserEntity user) throws SparqlException, SQLException {
 		// make sure the glycan belongs to this user
@@ -1354,7 +1418,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return getLinkerFromURI(uriPrefix + linkerId, graph);
 		}
 	}
-
 
 	@Override
 	public Linker getLinkerByLabel(String label, UserEntity user) throws SparqlException, SQLException {
@@ -1380,15 +1443,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 	}
 
+
 	public String getLinkerByPubChemId(Long long1) throws SparqlException {
 		return findLinkerInGraphByPubChem(long1, DEFAULT_GRAPH);
 	}
-
+	
 	public String getLinkerByPubChemId (Long pubChemId, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
 		return findLinkerInGraphByPubChem (pubChemId, graph);
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1396,8 +1460,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	public List<Linker> getLinkerByUser(UserEntity user) throws SQLException, SparqlException {
 		return getLinkerByUser(user, 0, -1, "id", 0 );  // no limit
 	}
-
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1542,10 +1605,61 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	@Override
+	public SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
+		return getSlideLayoutById(slideLayoutId, user, true);
+	}
+
+	@Override
+	public SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user, boolean loadAll)
+			throws SparqlException, SQLException {
+		// make sure the slidelayout belongs to this user
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?o \n");
+		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( "<" +  uriPrefix + slideLayoutId + "> ?p ?o . }\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			return getSlideLayoutFromURI(uriPrefix + slideLayoutId, loadAll, graph);
+		}
+	}
+
+	@Override
+	public SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		StringBuffer queryBuf = new StringBuffer();
+		queryBuf.append (prefix + "\n");
+		queryBuf.append ("SELECT DISTINCT ?s \n");
+		queryBuf.append ("FROM <" + graph + ">\n");
+		queryBuf.append ("WHERE {\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
+		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+				+ "}\n");
+		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		if (results.isEmpty())
+			return null;
+		else {
+			String slideLayoutURI = results.get(0).getValue("s");
+			return getSlideLayoutFromURI(slideLayoutURI, false, graph);
+		}
+	}
+	
+
+	@Override
 	public List<SlideLayout> getSlideLayoutByUser(UserEntity user) throws SparqlException, SQLException {
 		return getSlideLayoutByUser(user, 0, -1, "id", 0);
 	}
 	
+	@Override
+	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
+		return getSlideLayoutByUser(user, offset, limit, field, true, order);
+	}
+
 	@Override
 	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
 			Boolean loadAll, Integer order) throws SparqlException, SQLException {
@@ -1582,12 +1696,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		return layouts;
 	}
-	
-	@Override
-	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
-		return getSlideLayoutByUser(user, offset, limit, field, true, order);
-	}
-	
+
 	@Override
 	public int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
 		String graph = getGraphForUser(user);
@@ -1615,6 +1724,72 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return total;
 	}
 
+	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, String graph) throws SparqlException, SQLException {
+		SlideLayout slideLayoutObject = null;
+		
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI slideLayout = f.createIRI(slideLayoutURI);
+		IRI graphIRI = f.createIRI(graph);
+		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
+		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
+		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
+		if (statements.hasNext()) {
+			slideLayoutObject = new SlideLayout();
+			slideLayoutObject.setUri(slideLayoutURI);
+		}
+		if (slideLayoutObject != null) {
+			List<Block> blocks = new ArrayList<>();
+			while (statements.hasNext()) {
+				Statement st = statements.next();
+				if (st.getPredicate().equals(RDFS.LABEL)) {
+					Value v = st.getObject();
+					slideLayoutObject.setName(v.stringValue());
+				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+					Value v = st.getObject();
+					slideLayoutObject.setDescription(v.stringValue());
+				} else if (st.getPredicate().equals(hasWidth)) {
+					Value v = st.getObject();
+					if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasHeight)) {
+					Value v = st.getObject();
+					if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+				} else if (st.getPredicate().equals(hasCreatedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	slideLayoutObject.setDateCreated(date);
+				    }
+				} else if (st.getPredicate().equals(hasModifiedDate)) {
+					Value value = st.getObject();
+				    if (value instanceof Literal) {
+				    	Literal literal = (Literal)value;
+				    	XMLGregorianCalendar calendar = literal.calendarValue();
+				    	Date date = calendar.toGregorianCalendar().getTime();
+				    	slideLayoutObject.setDateModified(date);
+				    }
+				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
+					Value v = st.getObject();
+					String blockURI = v.stringValue();
+					Block block = getBlock (blockURI, graph);
+					blocks.add(block);
+				}
+			}
+			
+			slideLayoutObject.setBlocks(blocks);
+		}
+		return slideLayoutObject;
+	}
+
+	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, String graph) throws SparqlException, SQLException {
+		return getSlideLayoutFromURI(slideLayoutURI, true, graph);
+	}
+	
 	private String getSortPredicate(String field) {
 		if (field == null || field.equalsIgnoreCase("name")) 
 			return "rdfs:label";
@@ -1644,7 +1819,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return null;	
 		return null;
 	}
-	
 
 	private String getSortPredicateForLinker (String field) {
 		if (field == null || field.equalsIgnoreCase("name")) 
@@ -1736,159 +1910,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 		
 		sparqlDAO.addStatements(statements, graphIRI);
-	}
-
-	@Override
-	public SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s \n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
-		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
-				+ "}\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-		if (results.isEmpty())
-			return null;
-		else {
-			String slideLayoutURI = results.get(0).getValue("s");
-			return getSlideLayoutFromURI(slideLayoutURI, false, graph);
-		}
-	}
-	
-	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, String graph) throws SparqlException, SQLException {
-		return getSlideLayoutFromURI(slideLayoutURI, true, graph);
-	}
-
-	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, String graph) throws SparqlException, SQLException {
-		SlideLayout slideLayoutObject = null;
-		
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI slideLayout = f.createIRI(slideLayoutURI);
-		IRI graphIRI = f.createIRI(graph);
-		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-		
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
-		if (statements.hasNext()) {
-			slideLayoutObject = new SlideLayout();
-			slideLayoutObject.setUri(slideLayoutURI);
-		}
-		if (slideLayoutObject != null) {
-			List<Block> blocks = new ArrayList<>();
-			while (statements.hasNext()) {
-				Statement st = statements.next();
-				if (st.getPredicate().equals(RDFS.LABEL)) {
-					Value v = st.getObject();
-					slideLayoutObject.setName(v.stringValue());
-				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
-					Value v = st.getObject();
-					slideLayoutObject.setDescription(v.stringValue());
-				} else if (st.getPredicate().equals(hasWidth)) {
-					Value v = st.getObject();
-					if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
-				} else if (st.getPredicate().equals(hasHeight)) {
-					Value v = st.getObject();
-					if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
-				} else if (st.getPredicate().equals(hasCreatedDate)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	slideLayoutObject.setDateCreated(date);
-				    }
-				} else if (st.getPredicate().equals(hasModifiedDate)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	slideLayoutObject.setDateModified(date);
-				    }
-				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
-					Value v = st.getObject();
-					String blockURI = v.stringValue();
-					Block block = getBlock (blockURI, graph);
-					blocks.add(block);
-				}
-			}
-			
-			slideLayoutObject.setBlocks(blocks);
-		}
-		return slideLayoutObject;
-	}
-
-	@Override
-	public void deleteSlideLayout(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
-		String graph;
-		
-		graph = getGraphForUser(user);
-		if (graph != null) {
-			// check to see if the given slideLayoutId is in this graph
-			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, graph);
-			if (existing != null) {
-				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
-				return;
-			}
-		}
-	}
-	
-	private void deleteSlideLayoutByURI(String uri, String graph) throws SparqlException {
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI slideLayout = f.createIRI(uri);
-		IRI graphIRI = f.createIRI(graph);
-		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		
-		RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(slideLayout, hasBlock, null, graphIRI);
-		while (statements3.hasNext()) {
-			Statement st = statements3.next();
-			Value v = st.getObject();
-			String blockURI = v.stringValue();
-			IRI block = f.createIRI(blockURI);
-			RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(block, hasSpot, null, graphIRI);
-			while (statements4.hasNext()) {
-				st = statements4.next();
-				if (st.getPredicate().equals(hasConcentration)) {
-					v = st.getObject();
-					String conURI = v.stringValue();
-					IRI concentration = f.createIRI(conURI);
-					RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-					sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-				}
-			}
-			statements4 = sparqlDAO.getStatements(block, null, null, graphIRI);
-			sparqlDAO.removeStatements(Iterations.asList(statements4), graphIRI);
-		}
-		
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
-		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-	}
-
-	@Override
-	public SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
-		// make sure the slidelayout belongs to this user
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?o \n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( "<" +  uriPrefix + slideLayoutId + "> ?p ?o . }\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-		if (results.isEmpty())
-			return null;
-		else {
-			return getSlideLayoutFromURI(uriPrefix + slideLayoutId, graph);
-		}
 	}
 
 	
