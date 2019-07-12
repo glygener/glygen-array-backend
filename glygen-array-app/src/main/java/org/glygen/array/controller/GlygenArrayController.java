@@ -1145,7 +1145,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 			
 			repository.updateBlockLayout(blockLayout, user);
-			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
+			return new Confirmation("Block Layout updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating block layout with id: " + layout.getId());
 		}
@@ -1196,7 +1196,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
 			
 			repository.updateSlideLayout(slideLayout, user);
-			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
+			return new Confirmation("Slide Layout updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating slide layout with id: " + layout.getId());
 		}
