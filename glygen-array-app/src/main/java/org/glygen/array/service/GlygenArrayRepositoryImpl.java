@@ -876,7 +876,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( "<" +  uriPrefix + blockLayoutId + "> ?p ?o . }\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
+		queryBuf.append ( "<" +  uriPrefix + blockLayoutId + "> rdfs:label ?o . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
@@ -1620,7 +1621,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( "<" +  uriPrefix + slideLayoutId + "> ?p ?o . }\n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
+		queryBuf.append ( "<" +  uriPrefix + slideLayoutId + "> rdfs:label ?o . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
@@ -1908,6 +1910,70 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		statements.add(f.createStatement(linker, RDFS.LABEL, label, graphIRI));
 		statements.add(f.createStatement(linker, RDFS.COMMENT, comment, graphIRI));
 		statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
+		
+		sparqlDAO.addStatements(statements, graphIRI);
+	}
+	
+	@Override
+	public void updateBlockLayout(BlockLayout layout, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		BlockLayout existing = getBlockLayoutFromURI(layout.getUri(), false, graph);
+		if (graph != null && existing !=null) {
+			updateBlockLayoutInGraph(layout, graph);
+		}
+	}
+
+	void updateBlockLayoutInGraph (BlockLayout layout, String graph) throws SparqlException {	
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI graphIRI = f.createIRI(graph);
+		String layoutURI = layout.getUri();
+		IRI blockLayout = f.createIRI(layoutURI);
+		Literal label = f.createLiteral(layout.getName());
+		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription());
+		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		Literal date = f.createLiteral(new Date());
+		
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(blockLayout, RDFS.LABEL, null, graphIRI)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(blockLayout, RDFS.COMMENT, null, graphIRI)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(blockLayout, hasModifiedDate, null, graphIRI)), graphIRI);
+		
+		List<Statement> statements = new ArrayList<Statement>();
+		
+		statements.add(f.createStatement(blockLayout, RDFS.LABEL, label, graphIRI));
+		statements.add(f.createStatement(blockLayout, RDFS.COMMENT, comment, graphIRI));
+		statements.add(f.createStatement(blockLayout, hasModifiedDate, date, graphIRI));
+		
+		sparqlDAO.addStatements(statements, graphIRI);
+	}
+	
+	@Override
+	public void updateSlideLayout(SlideLayout layout, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
+		SlideLayout existing = getSlideLayoutFromURI(layout.getUri(), false, graph);
+		if (graph != null && existing !=null) {
+			updateSlideLayoutInGraph(layout, graph);
+		}
+	}
+
+	void updateSlideLayoutInGraph (SlideLayout layout, String graph) throws SparqlException {	
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI graphIRI = f.createIRI(graph);
+		String layoutURI = layout.getUri();
+		IRI slideLayout = f.createIRI(layoutURI);
+		Literal label = f.createLiteral(layout.getName());
+		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription());
+		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		Literal date = f.createLiteral(new Date());
+		
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideLayout, RDFS.LABEL, null, graphIRI)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideLayout, RDFS.COMMENT, null, graphIRI)), graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideLayout, hasModifiedDate, null, graphIRI)), graphIRI);
+		
+		List<Statement> statements = new ArrayList<Statement>();
+		
+		statements.add(f.createStatement(slideLayout, RDFS.LABEL, label, graphIRI));
+		statements.add(f.createStatement(slideLayout, RDFS.COMMENT, comment, graphIRI));
+		statements.add(f.createStatement(slideLayout, hasModifiedDate, date, graphIRI));
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 	}

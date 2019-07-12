@@ -1100,6 +1100,108 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.PUT)
+	public Confirmation updateBlockLayout(@RequestBody BlockLayout layout, Principal principal) throws SQLException {
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		// validate first
+		if (validator != null) {
+			if (layout.getName() == null || layout.getName().isEmpty()) 
+				errorMessage.addError(new ObjectError("name", "NoEmpty"));
+			if  (layout.getName() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (layout.getDescription() != null) {
+				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "description", layout.getDescription().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+				}		
+			}
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		try {
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			BlockLayout blockLayout= new BlockLayout();
+			blockLayout.setUri(GlygenArrayRepository.uriPrefix + layout.getId());
+			blockLayout.setDescription(layout.getDescription() != null ? layout.getDescription().trim() : layout.getDescription());
+			blockLayout.setName(layout.getName() != null ? layout.getName().trim() : null);		
+			
+			BlockLayout local = null;
+			// check if name is unique
+			if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
+				local = repository.getBlockLayoutByName(blockLayout.getName().trim(), user);
+				if (local != null && !local.getUri().equals(blockLayout.getUri())) {   // there is another with the same name
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				}
+			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+			
+			repository.updateBlockLayout(blockLayout, user);
+			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Error updating block layout with id: " + layout.getId());
+		}
+	}
+	
+	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.PUT)
+	public Confirmation updateSlideLayout(@RequestBody SlideLayout layout, Principal principal) throws SQLException {
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		// validate first
+		if (validator != null) {
+			if (layout.getName() == null || layout.getName().isEmpty()) 
+				errorMessage.addError(new ObjectError("name", "NoEmpty"));
+			if  (layout.getName() != null) {
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "name", layout.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (layout.getDescription() != null) {
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "description", layout.getDescription().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+				}		
+			}
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		try {
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			SlideLayout slideLayout= new SlideLayout();
+			slideLayout.setUri(GlygenArrayRepository.uriPrefix + layout.getId());
+			slideLayout.setDescription(layout.getDescription() != null ? layout.getDescription().trim() : layout.getDescription());
+			slideLayout.setName(layout.getName() != null ? layout.getName().trim() : null);		
+			
+			SlideLayout local = null;
+			// check if name is unique
+			if (slideLayout.getName() != null && !slideLayout.getName().isEmpty()) {
+				local = repository.getSlideLayoutByName(slideLayout.getName().trim(), user);
+				if (local != null && !local.getUri().equals(slideLayout.getUri())) {   // there is another with the same name
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				}
+			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
+			
+			repository.updateSlideLayout(slideLayout, user);
+			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
+		} catch (SparqlException e) {
+			throw new GlycanRepositoryException("Error updating slide layout with id: " + layout.getId());
+		}
+	}
+	
 	@RequestMapping(value="/addblocklayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -1185,7 +1287,9 @@ public class GlygenArrayController {
             @RequestParam("resumableTotalSize") long resumableTotalSize,
             @RequestParam("resumableIdentifier") String resumableIdentifier
     ) throws IOException, InterruptedException {
-        String resumableFilePath = new File(uploadDir, resumableFilename).getAbsolutePath() + ".temp";
+		
+		String uniqueFileName = resumableFilename + System.currentTimeMillis();
+        String resumableFilePath = new File(uploadDir, uniqueFileName).getAbsolutePath() + ".temp";
         
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
         if (info == null) {
@@ -1221,11 +1325,13 @@ public class GlygenArrayController {
         info.uploadedChunks.add(new ResumableFileInfo.ResumableChunkNumber(resumableChunkNumber));
         
         UploadResult result = new UploadResult();
-        result.setAssignedFileName(resumableFilename);
+        result.setAssignedFileName(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1));
         
         if (info.checkIfUploadFinished()) { //Check if all chunks uploaded, and change filename
             ResumableInfoStorage.getInstance().remove(info);
             result.setStatusCode(HttpStatus.OK.value());
+            int index = info.resumableFilePath.indexOf(".temp") == -1 ? info.resumableFilePath.length() : info.resumableFilePath.indexOf(".temp");
+            result.setAssignedFileName(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1, index));
             return result;
         } else {
         	result.setStatusCode(HttpStatus.ACCEPTED.value());
