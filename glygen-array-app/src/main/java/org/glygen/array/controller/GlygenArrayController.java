@@ -1288,11 +1288,10 @@ public class GlygenArrayController {
             @RequestParam("resumableIdentifier") String resumableIdentifier
     ) throws IOException, InterruptedException {
 		
-		String uniqueFileName = resumableFilename + System.currentTimeMillis();
-        String resumableFilePath = new File(uploadDir, uniqueFileName).getAbsolutePath() + ".temp";
-        
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
         if (info == null) {
+        	String uniqueFileName = resumableFilename + System.currentTimeMillis();
+            String resumableFilePath = new File(uploadDir, uniqueFileName).getAbsolutePath() + ".temp";
         	info = new ResumableFileInfo();
             info.resumableChunkSize = resumableChunkSize;
             info.resumableIdentifier = resumableIdentifier;
@@ -1301,7 +1300,7 @@ public class GlygenArrayController {
             info.resumableRelativePath = resumableRelativePath;
             info.resumableFilePath = resumableFilePath;
         	ResumableInfoStorage.getInstance().add(info);
-        }
+        } 
         
 		RandomAccessFile raf = new RandomAccessFile(info.resumableFilePath, "rw");
 
@@ -1517,7 +1516,9 @@ public class GlygenArrayController {
 	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
 	        			myLayout.setName(blockLayout.getName());
 	        			myBlock.setBlockLayout(myLayout);
-	        			myBlock.setSpots(getSpotsFromBlockLayout(library, blockLayout));
+	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
+	        			myBlock.setSpots(spots);
+	        			myLayout.setSpots(spots);
 	        			blocks.add(myBlock);
 	        		}
 	        		
