@@ -40,16 +40,6 @@ public class ResumableFileInfo {
 
     public String resumableFilePath;
 
-    public boolean vaild(){
-        if (resumableChunkSize < 0 || resumableTotalSize < 0
-                || HttpUtils.isEmpty(resumableIdentifier)
-                || HttpUtils.isEmpty(resumableFilename)
-                || HttpUtils.isEmpty(resumableRelativePath)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
     public boolean checkIfUploadFinished() {
         //check if upload finished
         int count = (int) Math.ceil(((double) resumableTotalSize) / ((double) resumableChunkSize));
@@ -65,4 +55,14 @@ public class ResumableFileInfo {
         file.renameTo(new File(new_path));
         return true;
     }
+	public boolean valid() {
+		if (resumableChunkSize < 0 || resumableTotalSize < 0
+                || HttpUtils.isEmpty(resumableIdentifier)
+                || HttpUtils.isEmpty(resumableFilename)
+                || HttpUtils.isEmpty(resumableRelativePath)) {
+            return false;
+        } else {
+            return true;
+        }
+	}
 }

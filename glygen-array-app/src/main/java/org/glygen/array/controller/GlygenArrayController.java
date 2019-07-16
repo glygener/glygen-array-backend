@@ -55,6 +55,7 @@ import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.GlycanSequenceFormat;
 import org.glygen.array.view.GlycanView;
+import org.glygen.array.view.ImportGRITSLibraryResult;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.LinkerView;
 import org.glygen.array.view.ResumableFileInfo;
@@ -1345,13 +1346,15 @@ public class GlygenArrayController {
 			@RequestParam ("resumableRelativePath") String resumableRelativePath,
             @RequestParam ("resumableTotalChunks") String resumableTotalChunks,
             @RequestParam("resumableChunkSize") int resumableChunkSize,
+            @RequestParam("resumableCurrentChunkSize") int resumableCurrentChunkSize,
             @RequestParam("resumableChunkNumber") int resumableChunkNumber,
             @RequestParam("resumableTotalSize") long resumableTotalSize,
+            @RequestParam("resumableType") String resumableType,
             @RequestParam("resumableIdentifier") String resumableIdentifier) {
 
 		
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
-        if (info == null || !info.vaild()) {
+        if (info == null || !info.valid()) {
         	if (info != null) ResumableInfoStorage.getInstance().remove(info);
         	throw new IllegalArgumentException("Chunk identifier is not valid");
         }
@@ -1462,13 +1465,19 @@ public class GlygenArrayController {
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
 		        				Glycan myGlycan = new Glycan();
-		        				myGlycan.setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
+		        				myGlycan.setSequence(glycan.getSequence());  
+		        				myGlycan.setName(glycan.getName());
+		        				myGlycan.setComment(glycan.getComment());
+		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
+		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
 		        				myFeature.setGlycan(myGlycan);
         					}
 		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
 		        			if (linker != null) {
 		        				Linker myLinker = new Linker();
-		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
+		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());
+		        				myLinker.setName(linker.getName());
+		        				myLinker.setComment(linker.getComment());
 		        				myFeature.setLinker(myLinker);
 		        			}
 		        			myFeature.setRatio(r1.getItemRatio());
@@ -1545,47 +1554,122 @@ public class GlygenArrayController {
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	public Confirmation addSlideLayoutFromLibrary (@RequestParam("file") String uploadedFileName,
-			@RequestBody SlideLayout slideLayout, Principal p) {
+	public ImportGRITSLibraryResult addSlideLayoutFromLibrary (@RequestParam("file") String uploadedFileName,
+			@RequestBody List<SlideLayout> slideLayouts, Principal p) {
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
-				slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
-				// find all block layouts, glycans, linkers and add them first
-				List<Glycan> added = new ArrayList<Glycan>();
-				List<Linker> addedLinkers = new ArrayList<Linker>();
-				List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
-				for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
-					if (block.getBlockLayout() != null) { 
+				if (slideLayouts == null || slideLayouts.isEmpty()) {
+					ErrorMessage errorMessage = new ErrorMessage();
+					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+					errorMessage.addError(new ObjectError("slideLayouts", "NoEmpty"));
+					throw new IllegalArgumentException("No slide layouts to add provided", errorMessage);
+				}
+				ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
+				for (SlideLayout slideLayout: slideLayouts) {
+					// check if already exists before trying to import
+					if (slideLayout.getName() != null) {
 						try {
-							if (!addedLayouts.contains(block.getBlockLayout())) {
-								addBlockLayout(block.getBlockLayout(), p);
-								for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
-									for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
-										if (feature.getGlycan() != null) {
-											if (!added.contains(feature.getGlycan())) {
-												addGlycan(getGlycanView(feature.getGlycan()), p);
-												added.add(feature.getGlycan());
+							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+							SlideLayout existing = repository.getSlideLayoutByName(slideLayout.getName(), user);
+							if (existing != null) {
+								result.getDuplicates().add(slideLayout);
+								continue;
+							}
+						} catch (Exception e) {
+							result.getErrors().add(slideLayout);
+							continue;
+						}
+					}
+					
+					slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
+					// find all block layouts, glycans, linkers and add them first
+					List<Glycan> added = new ArrayList<Glycan>();
+					List<Linker> addedLinkers = new ArrayList<Linker>();
+					List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
+					for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
+						if (block.getBlockLayout() != null) { 
+							try {
+								if (!addedLayouts.contains(block.getBlockLayout())) {
+									for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
+										for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
+											if (feature.getGlycan() != null) {
+												if (!added.contains(feature.getGlycan())) {
+													try {	
+														addGlycan(getGlycanView(feature.getGlycan()), p);
+														added.add(feature.getGlycan());
+													} catch (Exception e) {
+														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+															ErrorMessage error = (ErrorMessage) e.getCause();
+															for (ObjectError err: error.getErrors()) {
+																if (err.getObjectName().equalsIgnoreCase("sequence") && 
+																		err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
+																	if (feature.getGlycan().getName() != null) {
+																		// add name as an alias
+																		String existingId = getGlycanBySequence(feature.getGlycan().getSequence(), p);
+																		addAliasForGlycan(existingId, feature.getGlycan().getName(), p);
+																	}
+																	break;
+																}
+															}
+														} else {
+															logger.info("Could not add glycan: ", e);
+														}
+													}
+												}
 											}
-										}
-										if (feature.getLinker() != null) {
-											if (!addedLinkers.contains(feature.getLinker())) {
-												addLinker(getLinkerView(feature.getLinker()), p);
-												addedLinkers.add(feature.getLinker());
+											if (feature.getLinker() != null) {
+												if (!addedLinkers.contains(feature.getLinker())) {
+													try {
+														addLinker(getLinkerView(feature.getLinker()), p);
+														addedLinkers.add(feature.getLinker());
+													} catch (Exception e) {
+														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+															ErrorMessage error = (ErrorMessage) e.getCause();
+															for (ObjectError err: error.getErrors()) {
+																if (err.getDefaultMessage().contains("Duplicate") &&
+																		!err.getObjectName().contains("pubChemId")) {
+																	LinkerView linker = getLinkerView(feature.getLinker());
+																	linker.setName(linker.getName()+"B");
+																	addLinker (linker, p);
+																}
+															}
+														}
+														else {
+															logger.info("Could not add linker: ", e);
+														}
+													}
+												}
 											}
 										}
 									}
+									addBlockLayout(block.getBlockLayout(), p);
+									addedLayouts.add(block.getBlockLayout());
 								}
-								addedLayouts.add(block.getBlockLayout());
+							} catch (Exception e) {
+								logger.info("Cannot add block layout", e);
 							}
-						} catch (Exception e) {
-							logger.info("Cannot add", e);
+						}
+					}
+					
+					try {
+						addSlideLayout(slideLayout, p);
+						result.getAddedLayouts().add(slideLayout);
+					} catch (Exception e) {
+						if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+							ErrorMessage error = (ErrorMessage) e.getCause();
+							for (ObjectError err: error.getErrors()) {
+								if (err.getDefaultMessage().contains("Duplicate")) {
+									result.getDuplicates().add(slideLayout);
+								}
+							}
+						} else {
+							logger.debug("Could not add slide layout", e);
+							result.getErrors().add(slideLayout);
 						}
 					}
 				}
-				
-				addSlideLayout(slideLayout, p);
-				return new Confirmation ("Slide layout added successfully", HttpStatus.OK.value());
+				return result;
 			} else {
 				ErrorMessage errorMessage = new ErrorMessage();
 				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1606,12 +1690,13 @@ public class GlygenArrayController {
 		g.setComment(glycan.getComment());
 		g.setMass(glycan.getMass());
 		g.setSequence(glycan.getSequence());
-		if (glycan.getSequenceType().equals(GlycanSequenceFormat.GLYCOCT.getLabel()))
+		if (glycan.getSequenceType() == null || glycan.getSequenceType().equals(GlycanSequenceFormat.GLYCOCT.getLabel()))
 			g.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);
 		else if (glycan.getSequenceType().equals(GlycanSequenceFormat.GWS.getLabel()))
 			g.setSequenceFormat(GlycanSequenceFormat.GWS);
 		g.setInternalId(glycan.getInternalId());
-		g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
+		if (glycan.getUri() != null)
+			g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
 		g.setGlytoucanId(glycan.getGlytoucanId());
 		g.setDateModified(glycan.getDateModified());
 		g.setAliases(glycan.getAliases());
@@ -1619,7 +1704,7 @@ public class GlygenArrayController {
 			byte[] image = null;
 			if (g.getGlytoucanId() != null) {
 				image = getCartoonForGlycan(g.getGlytoucanId());
-			} else {
+			} else if (g.getId() != null){
 				image = getCartoonForGlycan(g.getId());
 			}
 			g.setCartoon(image);
@@ -1635,7 +1720,8 @@ public class GlygenArrayController {
 		l.setComment(linker.getComment());
 		l.setDateModified(linker.getDateModified());
 		l.setPubChemId(linker.getPubChemId());
-		l.setId(linker.getUri().substring(linker.getUri().lastIndexOf("/")+1));
+		if (linker.getUri() != null) 
+			l.setId(linker.getUri().substring(linker.getUri().lastIndexOf("/")+1));
 		l.setImageURL(linker.getImageURL());
 		l.setInChiKey(linker.getInChiKey());
 		l.setInChiSequence(linker.getInChiSequence());

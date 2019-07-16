@@ -736,12 +736,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			newURI = pre + (1000000 + random.nextInt(9999999));
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s\n");
+			queryBuf.append ("SELECT DISTINCT ?o\n");
 			queryBuf.append("FROM <" + DEFAULT_GRAPH + ">\n");
 			if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n" + 
-					"				    ?s ?p ?o .\n" + 
-					"				  FILTER (?s = '" + pre + "')\n" + 
+					"<"+ newURI + "> ?p ?o .\n" + 
 					"				}\n" + 
 					"				LIMIT 10");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
