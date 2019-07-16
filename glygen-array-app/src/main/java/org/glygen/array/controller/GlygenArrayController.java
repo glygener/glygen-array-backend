@@ -619,8 +619,8 @@ public class GlygenArrayController {
 	public GlycanListResultView listGlycans (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=true, value="limit of the number of glycans to be retrieved") 
-			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
@@ -632,7 +632,7 @@ public class GlygenArrayController {
 			if (offset == null)
 				offset = 0;
 			if (limit == null)
-				limit = 20;
+				limit = -1;
 			if (field == null)
 				field = "id";
 			if (order == null)
@@ -672,8 +672,8 @@ public class GlygenArrayController {
 	public LinkerListResultView listLinkers (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=true, value="limit of the number of linkers to be retrieved") 
-			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
@@ -685,7 +685,7 @@ public class GlygenArrayController {
 			if (offset == null)
 				offset = 0;
 			if (limit == null)
-				limit = 20;
+				limit = -1;
 			if (field == null)
 				field = "id";
 			if (order == null)
@@ -725,8 +725,8 @@ public class GlygenArrayController {
 	public BlockLayoutResultView listBlockLayouts (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=true, value="limit of the number of layouts to be retrieved") 
-			@RequestParam("limit") Integer limit, 
+			@ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
@@ -740,7 +740,7 @@ public class GlygenArrayController {
 			if (offset == null)
 				offset = 0;
 			if (limit == null)
-				limit = 20;
+				limit = -1;
 			if (field == null)
 				field = "id";
 			if (order == null)
@@ -765,6 +765,56 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list slide layouts"),
+			@ApiResponse(code=415, message="Media type is not supported"),
+			@ApiResponse(code=500, message="Internal Server Error")})
+	public SlideLayoutResultView listSlideLayouts (
+			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@RequestParam("offset") Integer offset,
+			@ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+			@RequestParam(value="limit", required=false) Integer limit, 
+			@ApiParam(required=false, value="name of the sort field, defaults to id") 
+			@RequestParam(value="sortBy", required=false) String field, 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
+			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
+			Principal p) {
+		SlideLayoutResultView result = new SlideLayoutResultView();
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		try {
+			if (offset == null)
+				offset = 0;
+			if (limit == null)
+				limit = -1;
+			if (field == null)
+				field = "id";
+			if (order == null)
+				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
+			
+			int total = repository.getSlideLayoutCountByUser (user);
+			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
+			result.setRows(layouts);
+			result.setTotal(total);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
+		}
+		
+		return result;
+	}
+
 	@RequestMapping(value="/getblocklayout/{layoutId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout retrieved successfully"), 
@@ -819,56 +869,6 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
-			produces={"application/json", "application/xml"})
-	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
-			@ApiResponse(code=401, message="Unauthorized"),
-			@ApiResponse(code=403, message="Not enough privileges to list slide layouts"),
-    		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
-	public SlideLayoutResultView listSlideLayouts (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
-			@RequestParam("offset") Integer offset,
-			@ApiParam(required=true, value="limit of the number of layouts to be retrieved") 
-			@RequestParam("limit") Integer limit, 
-			@ApiParam(required=false, value="name of the sort field, defaults to id") 
-			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, 
-			@ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
-			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
-			Principal p) {
-		SlideLayoutResultView result = new SlideLayoutResultView();
-		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-		try {
-			if (offset == null)
-				offset = 0;
-			if (limit == null)
-				limit = 20;
-			if (field == null)
-				field = "id";
-			if (order == null)
-				order = 0; // DESC
-			
-			if (order != 0 && order != 1) {
-				ErrorMessage errorMessage = new ErrorMessage();
-				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-				errorMessage.addError(new ObjectError("order", "NotValid"));
-				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
-			}
-			
-			int total = repository.getSlideLayoutCountByUser (user);
-			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
-			result.setRows(layouts);
-			result.setTotal(total);
-		} catch (SparqlException | SQLException e) {
-			throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
-		}
-		
-		return result;
-	}
-
 	private byte[] getCartoonForGlycan (String glycanId) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
@@ -1052,7 +1052,7 @@ public class GlygenArrayController {
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
 	}
 	
-	@RequestMapping(value = "/updateLinker", method = RequestMethod.PUT)
+	@RequestMapping(value = "/updateLinker", method = RequestMethod.POST)
 	public Confirmation updateLinker(@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1101,7 +1101,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.PUT)
+	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST)
 	public Confirmation updateBlockLayout(@RequestBody BlockLayout layout, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1152,7 +1152,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.PUT)
+	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.POST)
 	public Confirmation updateSlideLayout(@RequestBody SlideLayout layout, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1470,6 +1470,7 @@ public class GlygenArrayController {
 		        				myGlycan.setComment(glycan.getComment());
 		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
 		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
 		        				myFeature.setGlycan(myGlycan);
         					}
 		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
