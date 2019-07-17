@@ -1567,6 +1567,10 @@ public class GlygenArrayController {
 					throw new IllegalArgumentException("No slide layouts to add provided", errorMessage);
 				}
 				ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
+				
+				List<Glycan> added = new ArrayList<Glycan>();
+				List<Linker> addedLinkers = new ArrayList<Linker>();
+				List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
 				for (SlideLayout slideLayout: slideLayouts) {
 					// check if already exists before trying to import
 					if (slideLayout.getName() != null) {
@@ -1582,23 +1586,25 @@ public class GlygenArrayController {
 							continue;
 						}
 					}
-					
 					slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
 					// find all block layouts, glycans, linkers and add them first
-					List<Glycan> added = new ArrayList<Glycan>();
-					List<Linker> addedLinkers = new ArrayList<Linker>();
-					List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
 					for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
 						if (block.getBlockLayout() != null) { 
 							try {
+								UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+								BlockLayout existing = repository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
+								if (existing != null) { // already added no need to go through glycans/linkers
+									continue;
+								}
 								if (!addedLayouts.contains(block.getBlockLayout())) {
+									addedLayouts.add(block.getBlockLayout());
 									for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
 										for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
 											if (feature.getGlycan() != null) {
 												if (!added.contains(feature.getGlycan())) {
+													added.add(feature.getGlycan());
 													try {	
 														addGlycan(getGlycanView(feature.getGlycan()), p);
-														added.add(feature.getGlycan());
 													} catch (Exception e) {
 														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 															ErrorMessage error = (ErrorMessage) e.getCause();
@@ -1621,18 +1627,30 @@ public class GlygenArrayController {
 											}
 											if (feature.getLinker() != null) {
 												if (!addedLinkers.contains(feature.getLinker())) {
+													addedLinkers.add(feature.getLinker());
 													try {
 														addLinker(getLinkerView(feature.getLinker()), p);
-														addedLinkers.add(feature.getLinker());
 													} catch (Exception e) {
 														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 															ErrorMessage error = (ErrorMessage) e.getCause();
+															boolean needAlias = false;
 															for (ObjectError err: error.getErrors()) {
-																if (err.getDefaultMessage().contains("Duplicate") &&
-																		!err.getObjectName().contains("pubChemId")) {
-																	LinkerView linker = getLinkerView(feature.getLinker());
-																	linker.setName(linker.getName()+"B");
+																if (err.getDefaultMessage().contains("Duplicate")) {
+																	needAlias = true;
+																	if (err.getObjectName().contains("pubChemId")) {
+																		needAlias = false;
+																		break;
+																	}
+																}
+															}
+															if (needAlias) {		
+																LinkerView linker = getLinkerView(feature.getLinker());
+																linker.setName(linker.getName()+"B");
+																try {
 																	addLinker (linker, p);
+																} catch (IllegalArgumentException e1) {
+																	// ignore, probably already added
+																	logger.debug ("duplicate linker cannot be added", e1);
 																}
 															}
 														}
@@ -1645,7 +1663,6 @@ public class GlygenArrayController {
 										}
 									}
 									addBlockLayout(block.getBlockLayout(), p);
-									addedLayouts.add(block.getBlockLayout());
 								}
 							} catch (Exception e) {
 								logger.info("Cannot add block layout", e);

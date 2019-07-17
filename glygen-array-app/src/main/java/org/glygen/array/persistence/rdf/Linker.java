@@ -192,5 +192,14 @@ public class Linker {
 		}
 		return false;
 	}
+	
+	@Override
+	public int hashCode() {
+		if (uri != null)
+			return uri.hashCode();
+		else if (pubChemId != null)
+			return pubChemId.hashCode();
+		return super.hashCode();
+	}
 
 }

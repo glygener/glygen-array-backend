@@ -3,7 +3,9 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -61,6 +63,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			+ "\nPREFIX gadr: <http://purl.org/gadr/data#>"
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
 	
+	Map<String, BlockLayout> blockLayoutCache = new HashMap<String, BlockLayout>();
+	Map<Long, String> linkerCache = new HashMap<Long, String>();
+	Map<String, String> glycanCache = new HashMap<String, String>();
+	Map<LevelUnit, String> concentrationCache = new HashMap<LevelUnit, String>();
+	
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
 		if (alias == null || alias.isEmpty())
@@ -93,7 +100,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				sparqlDAO.addStatements(statements, graphIRI);
 			}
 		}
-		
 	}
 	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
@@ -119,10 +125,22 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		BlockLayout layoutFromRepository = null;
 		BlockLayout blockLayout = b.getBlockLayout();
-		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty())
-			layoutFromRepository = getBlockLayoutById(blockLayout.getId(), user);
+		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
+			layoutFromRepository = blockLayoutCache.get(blockLayout.getId().trim());
+		}
 		else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
-			layoutFromRepository = getBlockLayoutByName(blockLayout.getName(), user);
+			layoutFromRepository = blockLayoutCache.get(blockLayout.getName().trim());
+			
+		if (layoutFromRepository == null) {  // first time loading
+			if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
+				layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user);
+				blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
+			}
+			else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
+				layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user);
+				blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
+			}
+		}
 		
 		if (layoutFromRepository != null) {
 			IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
@@ -138,14 +156,22 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			for (Spot s : layoutFromRepository.getSpots()) {
 				statements = new ArrayList<Statement>();
 				String spotURI = generateUniqueURI(uriPrefix + "S", graph);
-				String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
 				IRI spot = f.createIRI(spotURI);
-				IRI concentration = f.createIRI(concentrationURI);
 				if (s.getConcentration() != null) {
+					// check if it has already been created before
+					String concentrationURI = concentrationCache.get(s.getConcentration());
+					if (concentrationURI == null) {
+						concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+						concentrationCache.put(s.getConcentration(), concentrationURI);
+					}
+					IRI concentration = f.createIRI(concentrationURI);
 					Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
 					Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-					if (concentrationValue != null) statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+					if (concentrationValue != null) {
+						statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+						statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+					}
+					statements.add(f.createStatement(spot, hasConcentration, concentration));
 				}
 				
 				row = f.createLiteral(s.getRow());
@@ -153,7 +179,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
 				statements.add(f.createStatement(spot, RDF.TYPE, spotType));
 				statements.add(f.createStatement(block, hasSpot, spot));
-				statements.add(f.createStatement(spot, hasConcentration, concentration));
 				statements.add(f.createStatement(spot, hasRow, row));
 				statements.add(f.createStatement(spot, hasColumn, column));
 				if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
@@ -229,23 +254,31 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		for (Spot s : b.getSpots()) {
 			statements = new ArrayList<Statement>();
 			String spotURI = generateUniqueURI(uriPrefix + "S", graph);
-			String concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
 			IRI spot = f.createIRI(spotURI);
-			IRI concentration = f.createIRI(concentrationURI);
-			Literal concentrationUnit = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-			Literal concentrationValue = s.getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
 			Literal row = f.createLiteral(s.getRow());
 			Literal column = f.createLiteral(s.getColumn());
 			Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
 			statements.add(f.createStatement(spot, RDF.TYPE, spotType));
 			statements.add(f.createStatement(blockLayout, hasSpot, spot));
-			statements.add(f.createStatement(spot, hasConcentration, concentration));
+			
 			statements.add(f.createStatement(spot, hasRow, row));
 			statements.add(f.createStatement(spot, hasColumn, column));
 			if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
 			if (s.getConcentration() != null) {
-				statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-				statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+				// check if it has already been created before
+				String concentrationURI = concentrationCache.get(s.getConcentration());
+				if (concentrationURI == null) {
+					concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+					concentrationCache.put(s.getConcentration(), concentrationURI);
+				}
+				IRI concentration = f.createIRI(concentrationURI);
+				Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+				Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
+				if (concentrationValue != null) {
+					statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
+					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
+				}
+				statements.add(f.createStatement(spot, hasConcentration, concentration));
 			}
 			
 			sparqlDAO.addStatements(statements, graphIRI);
@@ -259,16 +292,27 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 					if (feat.getGlycan() != null) {
 						glycanURI = feat.getGlycan().getUri();
 						if (glycanURI == null) {
-							if (feat.getGlycan().getSequence() != null)
-								glycanURI = getGlycanBySequence(feat.getGlycan().getSequence().trim());
+							if (feat.getGlycan().getSequence() != null) {
+								String seq = feat.getGlycan().getSequence().trim();
+								glycanURI = glycanCache.get(seq);
+								if (glycanURI == null) {
+									glycanURI = getGlycanBySequence(seq);
+									glycanCache.put(seq, glycanURI);
+								}
+							}
 						}
 					}
 					String linkerURI = null;
 					if (feat.getLinker() != null) {
 						linkerURI = feat.getLinker().getUri();
 						if (linkerURI == null) {
-							if (feat.getLinker().getPubChemId() != null)
-								linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
+							if (feat.getLinker().getPubChemId() != null) {
+								linkerURI = linkerCache.get(feat.getLinker().getPubChemId());
+								if (linkerURI == null) {
+									linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
+									linkerCache.put(feat.getLinker().getPubChemId(), linkerURI);
+								}
+							}
 						}
 					}
 					

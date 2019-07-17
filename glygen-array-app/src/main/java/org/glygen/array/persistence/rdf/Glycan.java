@@ -178,4 +178,13 @@ public class Glycan {
 		}
 		return false;
 	}
+	
+	@Override
+	public int hashCode() {
+		if (uri != null)
+			return uri.hashCode();
+		else if (sequence != null) 
+			return sequence.hashCode();
+		return super.hashCode();
+	}
 }
