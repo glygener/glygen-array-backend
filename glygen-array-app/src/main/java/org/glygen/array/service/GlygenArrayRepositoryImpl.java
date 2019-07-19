@@ -155,7 +155,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			// copy spots from layout
 			for (Spot s : layoutFromRepository.getSpots()) {
 				statements = new ArrayList<Statement>();
-				String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+				/*String spotURI = generateUniqueURI(uriPrefix + "S", graph);
 				IRI spot = f.createIRI(spotURI);
 				if (s.getConcentration() != null) {
 					// check if it has already been created before
@@ -187,7 +187,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 				for (Feature feat : features) {
 					IRI featureIRI = f.createIRI(feat.getUri());
 					statements.add(f.createStatement(spot, hasFeature, featureIRI));
-				}
+				}*/
+				IRI spot = f.createIRI(s.getUri());
+				statements.add(f.createStatement(block, hasSpot, spot));
 				sparqlDAO.addStatements(statements, graphIRI);
 			}
 			

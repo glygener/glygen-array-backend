@@ -120,6 +120,9 @@ public class GlygenArrayController {
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
 	
+	List<Glycan> glycanCache = new ArrayList<Glycan>();
+	List<Linker> linkerCache = new ArrayList<Linker>();
+	
 	static {
 			// Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
 			glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
@@ -1525,6 +1528,9 @@ public class GlygenArrayController {
 	        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
 	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
 	        			myLayout.setName(blockLayout.getName());
+	        			myLayout.setWidth(blockLayout.getColumnNum());
+	        			myLayout.setHeight(blockLayout.getRowNum());
+	        			myLayout.setDescription(blockLayout.getComment());
 	        			myBlock.setBlockLayout(myLayout);
 	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
 	        			myBlock.setSpots(spots);
@@ -1564,13 +1570,12 @@ public class GlygenArrayController {
 					ErrorMessage errorMessage = new ErrorMessage();
 					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 					errorMessage.addError(new ObjectError("slideLayouts", "NoEmpty"));
-					throw new IllegalArgumentException("No slide layouts to add provided", errorMessage);
+					throw new IllegalArgumentException("No slide layouts provided", errorMessage);
 				}
 				ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
 				
-				List<Glycan> added = new ArrayList<Glycan>();
-				List<Linker> addedLinkers = new ArrayList<Linker>();
 				List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
+				
 				for (SlideLayout slideLayout: slideLayouts) {
 					// check if already exists before trying to import
 					if (slideLayout.getName() != null) {
@@ -1601,8 +1606,8 @@ public class GlygenArrayController {
 									for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
 										for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
 											if (feature.getGlycan() != null) {
-												if (!added.contains(feature.getGlycan())) {
-													added.add(feature.getGlycan());
+												if (!glycanCache.contains(feature.getGlycan())) {
+													glycanCache.add(feature.getGlycan());
 													try {	
 														addGlycan(getGlycanView(feature.getGlycan()), p);
 													} catch (Exception e) {
@@ -1626,8 +1631,8 @@ public class GlygenArrayController {
 												}
 											}
 											if (feature.getLinker() != null) {
-												if (!addedLinkers.contains(feature.getLinker())) {
-													addedLinkers.add(feature.getLinker());
+												if (!linkerCache.contains(feature.getLinker())) {
+													linkerCache.add(feature.getLinker());
 													try {
 														addLinker(getLinkerView(feature.getLinker()), p);
 													} catch (Exception e) {
