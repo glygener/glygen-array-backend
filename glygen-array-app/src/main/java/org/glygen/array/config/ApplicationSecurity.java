@@ -340,7 +340,6 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/users/recover"),
 				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
 				new AntPathRequestMatcher("/array/getimage/**"),
-				new AntPathRequestMatcher("/array/upload"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		
 		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);

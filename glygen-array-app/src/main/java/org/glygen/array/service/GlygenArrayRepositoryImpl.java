@@ -254,6 +254,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		List<Feature> processed = new ArrayList<Feature>();
 		for (Spot s : b.getSpots()) {
+			if (s == null)
+				continue;
 			statements = new ArrayList<Statement>();
 			String spotURI = generateUniqueURI(uriPrefix + "S", graph);
 			IRI spot = f.createIRI(spotURI);
@@ -566,6 +568,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		if (slideLayoutHeight != null) statements.add(f.createStatement(slideLayout, hasHeight, slideLayoutHeight));
 		
 		for (Block b: s.getBlocks()) {
+			if (b == null)
+				continue;
 			String blockURI = addBlock (b, user, graph);
 			IRI block = f.createIRI(blockURI);
 			statements.add(f.createStatement(slideLayout, hasBlock, block));

@@ -89,6 +89,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -138,14 +139,31 @@ public class GlygenArrayController {
 
 	}
 
+	@ApiOperation(value = "Add given slide layout for the user")
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	public Confirmation addSlideLayout (@RequestBody SlideLayout layout, Principal p) {
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout added successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register slide layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation addSlideLayout (
+			@ApiParam(required=true, value="Slide Layout to be added, name, width, height and blocks are required")
+			@RequestBody SlideLayout layout, Principal p) {
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
+		if (layout.getName() == null || layout.getName().trim().isEmpty()) {
+			errorMessage.addError(new ObjectError("name", "NoEmpty"));
+		} 
+		if (layout.getWidth() == null || layout.getHeight() == null)
+			errorMessage.addError(new ObjectError(layout.getWidth() == null ? "width" : "height", "NoEmpty"));
+		if (layout.getBlocks() == null)
+			errorMessage.addError(new ObjectError("blocks", "NoEmpty"));
 		
 		// validate first
 		if (validator != null) {
@@ -203,7 +221,15 @@ public class GlygenArrayController {
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
-	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
+	@ApiOperation(value = "Register all glycans listed in a glycoworkbench file")
+	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, 
+			consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 
+			@ApiResponse(code=400, message="Invalid request if file is not a text file"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p) {
 		BatchGlycanUploadResult result = new BatchGlycanUploadResult();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -282,10 +308,12 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Add given glycan for the user")
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan added successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
@@ -449,8 +477,13 @@ public class GlygenArrayController {
 		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@ApiOperation(value = "Retrieve image for given glycan")
 	@RequestMapping(value="/getimage/{glycanId}", method = RequestMethod.GET, 
 		produces = MediaType.IMAGE_PNG_VALUE )
+	@ApiResponses (value ={@ApiResponse(code=200, message="Image retrieved successfully"), 
+			@ApiResponse(code=404, message="Image for the given glycan is not available"),
+			@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public @ResponseBody byte[] getImageForGlycan (
 			@ApiParam(required=true, value="GlyToucan id of the glycan to retrieve the image for") 
 			@PathVariable("glycanId") String glycanId) {
@@ -464,8 +497,14 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Delete given glycan from the user's list")
 	@RequestMapping(value="/delete/{glycanId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan deleted successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to delete glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation deleteGlycan (
 			@ApiParam(required=true, value="id of the glycan to delete") 
 			@PathVariable("glycanId") String glycanId, Principal principal) {
@@ -478,8 +517,14 @@ public class GlygenArrayController {
 		} 
 	}
 	
+	@ApiOperation(value = "Delete given linker from the user's list")
 	@RequestMapping(value="/deleteLinker/{linkerId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Linker deleted successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to delete linkers"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation deleteLinker (
 			@ApiParam(required=true, value="id of the linker to delete") 
 			@PathVariable("linkerId") String linkerId, Principal principal) {
@@ -492,8 +537,14 @@ public class GlygenArrayController {
 		} 
 	}
 	
+	@ApiOperation(value = "Delete given block layout")
 	@RequestMapping(value="/deleteblocklayout/{layoutId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout deleted successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to delete block layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation deleteBlockLayout (
 			@ApiParam(required=true, value="id of the block layout to delete") 
 			@PathVariable("layoutId") String blockLayoutId, Principal principal) {
@@ -506,8 +557,14 @@ public class GlygenArrayController {
 		} 
 	}
 	
+	@ApiOperation(value = "Delete given slide layout")
 	@RequestMapping(value="/deleteslidelayout/{layoutId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout deleted successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to delete slide layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation deleteSlideLayout (
 			@ApiParam(required=true, value="id of the block layout to delete") 
 			@PathVariable("layoutId") String layoutId, Principal principal) {
@@ -520,9 +577,19 @@ public class GlygenArrayController {
 		} 
 	}
 	
-	
-	@RequestMapping(value = "/updateGlycan", method = RequestMethod.POST)
-	public Confirmation updateGlycan(@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
+	@ApiOperation(value = "Update given glycan for the user")
+	@RequestMapping(value = "/updateGlycan", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan updated successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to update glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation updateGlycan(
+			@ApiParam(required=true, value="Glycan with updated fields") 
+			@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -583,9 +650,29 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST)
-	public Confirmation addAliasForGlycan(@PathVariable("glycanId") String glycanId, @RequestBody String alias, Principal principal) throws SQLException {
+	@ApiOperation(value = "Add an alias to given glycan for the user")
+	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Alias added to glycan successfully"), 
+			@ApiResponse(code=400, message="Invalid request, alias cannot be empty"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to update glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation addAliasForGlycan(
+			@ApiParam(required=true, value="Id of the glycan to add alias for") 
+			@PathVariable("glycanId") String glycanId, 
+			@ApiParam(required=true, value="alias for the glycan") 
+			@RequestBody String alias, Principal principal) throws SQLException {
 		try {
+			if (alias == null || alias.isEmpty()) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("alias", "NoEmpty"));
+				throw new IllegalArgumentException("Invalid Input: Not a valid alias", errorMessage);
+			}
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			repository.addAliasForGlycan(glycanId, alias, user);
 		} catch (SparqlException e) {
@@ -594,8 +681,16 @@ public class GlygenArrayController {
 		return new Confirmation("Glycan updated successfully with new alias", HttpStatus.OK.value());
 	}
 	
+	@ApiOperation(value = "Retrieve id for a glycan given the sequence")
 	@RequestMapping(value="/getGlycanBySequence", method = RequestMethod.GET)
-	public String getGlycanBySequence (@RequestParam String sequence, Principal principal) {
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan id retrieved successfully", response = String.class), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public String getGlycanBySequence (
+			@ApiParam(required=true, value="Sequence of the glycan to retrieve (in GlycoCT)") 
+			@RequestParam String sequence, Principal principal) {
 		if (sequence == null || sequence.isEmpty())
 			return null;
 		try {
@@ -612,13 +707,15 @@ public class GlygenArrayController {
 		return null;
 	}
 	
+	@ApiOperation(value = "List all glycans for the user")
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
-	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully"), 
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to list glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+    		@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
 	public GlycanListResultView listGlycans (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
@@ -665,9 +762,11 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@ApiOperation(value = "List all linkers for the user")
 	@RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to list linkers"),
     		@ApiResponse(code=415, message="Media type is not supported"),
@@ -718,9 +817,11 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@ApiOperation(value = "List all block layouts for the user")
 	@RequestMapping(value="/listBlocklayouts", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block layouts retrieved successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to list block layouts"),
     		@ApiResponse(code=415, message="Media type is not supported"),
@@ -768,9 +869,11 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@ApiOperation(value = "List all slide layouts for the user")
 	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to list slide layouts"),
 			@ApiResponse(code=415, message="Media type is not supported"),
@@ -818,6 +921,7 @@ public class GlygenArrayController {
 		return result;
 	}
 
+	@ApiOperation(value = "Retrieve block layout with the given id")
 	@RequestMapping(value="/getblocklayout/{layoutId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout retrieved successfully"), 
@@ -845,6 +949,7 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Retrieve slide layout with the given id")
 	@RequestMapping(value="/getslidelayout/{layoutId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout retrieved successfully"), 
@@ -883,6 +988,7 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Retrieve glycan with the given id")
 	@RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
@@ -910,6 +1016,7 @@ public class GlygenArrayController {
 		
 	}
 	
+	@ApiOperation(value = "Retrieve linker with the given id")
 	@RequestMapping(value="/getlinker/{linkerId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
@@ -937,16 +1044,19 @@ public class GlygenArrayController {
 		
 	}
 	
+	@ApiOperation(value = "Add given linker for the user")
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linker added successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register linkers"),
-			@ApiResponse(code=409, message="A linker with the given pubchemId already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addLinker (@RequestBody LinkerView linker, Principal p) {
+	public Confirmation addLinker (
+			@ApiParam(required=true, value="Linker to be added, only pubChemId is required, other fields are optional") 
+			@RequestBody LinkerView linker, Principal p) {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
@@ -1055,8 +1165,19 @@ public class GlygenArrayController {
 		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
 	}
 	
-	@RequestMapping(value = "/updateLinker", method = RequestMethod.POST)
-	public Confirmation updateLinker(@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
+	@ApiOperation(value = "Update given linker for the user")
+	@RequestMapping(value = "/updateLinker", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Linker updated successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to update linkers"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation updateLinker(
+			@ApiParam(required=true, value="Linker to be updated, id is required, name and comment can be updated only") 
+			@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1104,8 +1225,19 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST)
-	public Confirmation updateBlockLayout(@RequestBody BlockLayout layout, Principal principal) throws SQLException {
+	@ApiOperation(value = "Update given block layout for the user")
+	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Block layout updated successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to update block layout"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation updateBlockLayout(
+			@ApiParam(required=true, value="Block layout to be updated, id is required, name and comment can be updated only") 
+			@RequestBody BlockLayout layout, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1155,8 +1287,19 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.POST)
-	public Confirmation updateSlideLayout(@RequestBody SlideLayout layout, Principal principal) throws SQLException {
+	@ApiOperation(value = "Update given slide layout for the user")
+	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout updated successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to update slide layout"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation updateSlideLayout(
+			@ApiParam(required=true, value="Slide layout to be updated, id is required, name and comment can be updated only") 
+			@RequestBody SlideLayout layout, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1206,25 +1349,32 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Add given block layout for the user")
 	@RequestMapping(value="/addblocklayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block layout added successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register block layouts"),
-			@ApiResponse(code=409, message="A block layout with the given name already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addBlockLayout (@RequestBody BlockLayout layout, Principal p) {
-		if (layout.getName() == null || layout.getName().trim().isEmpty()) {
-			ErrorMessage errorMessage = new ErrorMessage("Name cannot be empty");
-			errorMessage.addError(new ObjectError("name", "Name cannot be empty"));
-			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
-		}
+	public Confirmation addBlockLayout (
+			@ApiParam(required=true, value="Block layout to be added, name, width, height, and spots are required")
+			@RequestBody BlockLayout layout, Principal p) {
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
+		if (layout.getName() == null || layout.getName().trim().isEmpty()) {
+			errorMessage.addError(new ObjectError("name", "NoEmpty"));
+		} 
+		if (layout.getWidth() == null || layout.getHeight() == null)
+			errorMessage.addError(new ObjectError(layout.getWidth() == null ? "width" : "height", "NoEmpty"));
+		if (layout.getSpots() == null)
+			errorMessage.addError(new ObjectError("spots", "NoEmpty"));
+		
 		// validate first
 		if (validator != null) {			
 			if  (layout.getName() != null) {
@@ -1279,6 +1429,7 @@ public class GlygenArrayController {
 		return new Confirmation("Block layout added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@ApiOperation(value = "Upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
 			produces={"application/json", "application/xml"})
 	public UploadResult uploadFile(
@@ -1342,6 +1493,7 @@ public class GlygenArrayController {
         }
 	}
 	
+	@ApiOperation(value = "Check status for upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	public Confirmation resumeUpload (
@@ -1374,9 +1526,18 @@ public class GlygenArrayController {
 	 * @param uploadedFileName the name of the library file already uploaded
 	 * @return list of slide layouts in the library
 	 */
+	@ApiOperation(value = "Retrieve slide layouts from uploaded GRITS array library file")
 	@RequestMapping(value = "/getSlideLayoutFromLibrary", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
-	public List<SlideLayout> getSlideLayoutsFromLibrary(@RequestParam("file") String uploadedFileName) {
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout retrieved from file successfully"), 
+			@ApiResponse(code=400, message="Invalid request, file is not valid or cannot be found"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to retrieve slide layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public List<SlideLayout> getSlideLayoutsFromLibrary(
+			@ApiParam(required=true, value="uploaded file with slide layouts")
+			@RequestParam("file") String uploadedFileName) {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
@@ -1558,10 +1719,20 @@ public class GlygenArrayController {
 		return null;
 	}
 	
+	@ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	public ImportGRITSLibraryResult addSlideLayoutFromLibrary (@RequestParam("file") String uploadedFileName,
+	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts imported into repository successfully"), 
+			@ApiResponse(code=400, message="Invalid request, file cannot be found"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register slide layouts"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public ImportGRITSLibraryResult addSlideLayoutFromLibrary (
+			@ApiParam(required=true, value="uploaded file with slide layouts")
+			@RequestParam("file") String uploadedFileName,
+			@ApiParam(required=true, value="list of slide layouts to be imported, only name is sufficient for a slide layout")
 			@RequestBody List<SlideLayout> slideLayouts, Principal p) {
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);

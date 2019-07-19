@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+
 @RestController
 @RequestMapping("/weblogger")
 public class LoggingController {
@@ -27,9 +30,12 @@ public class LoggingController {
 	@Autowired
 	WebEventLoggingDAO eventRepository;
 	
+	@ApiOperation(value = "Add given log object into the event log")
 	@RequestMapping(value = "/event", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	public void webEventLogger(@RequestBody(required=true) WebLogger logger) {
+	public void webEventLogger(
+			@ApiParam(required=true, value="object to be saved into the event log database")
+			@RequestBody(required=true) WebLogger logger) {
 		try {
 			WebEventLoggingEntity newEvent = new WebEventLoggingEntity();
 			
@@ -48,9 +54,12 @@ public class LoggingController {
 				
 	}
 	
+	@ApiOperation(value = "Add given log object into the access log")
 	@RequestMapping(value = "/access", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	public void webAccessLogger(@RequestBody(required=true) WebLogger logger) {
+	public void webAccessLogger(
+			@ApiParam(required=true, value="object to be saved into the access log database")
+			@RequestBody(required=true) WebLogger logger) {
 		
 		try {
 		WebAccessLoggingEntity newEvent = new WebAccessLoggingEntity();
