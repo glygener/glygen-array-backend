@@ -1673,7 +1673,14 @@ public class GlygenArrayController {
 	        	if (slideLayout.getName().equalsIgnoreCase(layout.getName())) {
 	        		SlideLayout mySlideLayout = new SlideLayout();
 	        		mySlideLayout.setName(slideLayout.getName());
-	        		mySlideLayout.setDescription(slideLayout.getDescription());
+	        		String desc = null;
+	        		if (slideLayout.getDescription() != null) {
+	        			desc = slideLayout.getDescription();
+	        			if (desc.length() >= 250) {
+	        				desc = desc.substring(0, 249);
+	        			}
+	        		}
+	        		mySlideLayout.setDescription(desc);
 	        		List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
 	        		int width = 0;
 	        		int height = 0;
@@ -1688,10 +1695,24 @@ public class GlygenArrayController {
 	        			Integer blockLayoutId = block.getLayoutId();
 	        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
 	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
-	        			myLayout.setName(blockLayout.getName());
+	        			String name = null;
+	        			if (blockLayout.getName() != null) {
+	        				name = blockLayout.getName();
+	        				if (name.length() >= 100) {
+	        					name = name.substring(0, 99);
+	        				}
+	        			}
+	        			myLayout.setName(name);
 	        			myLayout.setWidth(blockLayout.getColumnNum());
 	        			myLayout.setHeight(blockLayout.getRowNum());
-	        			myLayout.setDescription(blockLayout.getComment());
+	        			String comment = null;
+	        			if (blockLayout.getComment() != null) {
+	        				comment = blockLayout.getComment().replaceAll("\\r", " ").replaceAll("\\n", " ");
+	        				if (comment.length() >= 250) {
+	        					comment = comment.substring(0, 249);
+	        				}
+	        			}
+	        			myLayout.setDescription(comment);
 	        			myBlock.setBlockLayout(myLayout);
 	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
 	        			myBlock.setSpots(spots);

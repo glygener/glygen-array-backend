@@ -113,13 +113,13 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI blockType = f.createIRI(ontPrefix + "Block");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-		IRI spotType = f.createIRI(ontPrefix + "Spot");
+//		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
-		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
-		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
-		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+//		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+//		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
+//		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
+//		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
+//		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		Literal row = f.createLiteral(b.getRow());
 		Literal column = f.createLiteral(b.getColumn());
 		
@@ -792,7 +792,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			queryBuf.append ("WHERE {\n" + 
 					"<"+ newURI + "> ?p ?o .\n" + 
 					"				}\n" + 
-					"				LIMIT 10");
+					"				LIMIT 1");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			unique = results.size() == 0;
 		} while (!unique);
