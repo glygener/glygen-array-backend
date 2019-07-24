@@ -221,6 +221,28 @@ public class GlygenArrayController {
 		return new Confirmation("Slide Layout added successfully", HttpStatus.CREATED.value());
 	}
 	
+	@ApiOperation(value = "Checks whether the given slidelayout name is available to be used (returns true if available, false if alredy in use", response = Boolean.class)
+	@RequestMapping(value = "/checkSlidelayoutName", method = RequestMethod.GET)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Check performed successfully"),
+			@ApiResponse(code = 415, message = "Media type is not supported"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	public Boolean checkSlidelayoutName(@RequestParam("slidelayoutname") final String slidelayoutname, Principal principal) throws SparqlException, SQLException {
+
+		UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+		
+		SlideLayout existing = repository.getSlideLayoutByName(slidelayoutname, user);
+
+		if (existing != null) {
+			// duplicate
+			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate slide layout");
+			errorMessage.addError(new ObjectError("slidelayoutname", "Duplicate"));
+			throw new GlycanExistsException("A slide layout with the same name already exists", errorMessage);
+		}
+
+		return true;
+	}
+	
+	
 	@ApiOperation(value = "Register all glycans listed in a glycoworkbench file")
 	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, 
 			consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
