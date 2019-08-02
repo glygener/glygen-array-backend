@@ -1776,7 +1776,10 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="uploaded file with slide layouts")
 			@RequestParam("file") String uploadedFileName,
 			@ApiParam(required=true, value="list of slide layouts to be imported, only name is sufficient for a slide layout")
-			@RequestBody List<SlideLayout> slideLayouts, Principal p) {
+			@RequestBody List<SlideLayout> slideLayouts, 
+			@ApiParam(required=false, value="if new name is provided, it is assumed that the list (post data) contains a single slide layout"
+					+ " and that layout is added to the repository with the given new name")
+			@RequestParam(value="newname", required=false) String newName, Principal p) {
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
@@ -1795,7 +1798,11 @@ public class GlygenArrayController {
 					if (slideLayout.getName() != null) {
 						try {
 							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-							SlideLayout existing = repository.getSlideLayoutByName(slideLayout.getName(), user);
+							String searchName = slideLayout.getName();
+							if (newName != null && newName.length() > 0) {
+								searchName = newName;
+							}
+							SlideLayout existing = repository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
 								result.getDuplicates().add(slideLayout);
 								continue;
@@ -1806,103 +1813,108 @@ public class GlygenArrayController {
 						}
 					}
 					slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
-					// find all block layouts, glycans, linkers and add them first
-					for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
-						if (block.getBlockLayout() != null) { 
-							try {
-								UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-								BlockLayout existing = repository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
-								if (existing != null) { // already added no need to go through glycans/linkers
-									continue;
-								}
-								if (!addedLayouts.contains(block.getBlockLayout())) {
-									addedLayouts.add(block.getBlockLayout());
-									for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
-										for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
-											if (feature.getGlycan() != null) {
-												if (!glycanCache.contains(feature.getGlycan())) {
-													glycanCache.add(feature.getGlycan());
-													try {	
-														addGlycan(getGlycanView(feature.getGlycan()), p);
-													} catch (Exception e) {
-														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-															ErrorMessage error = (ErrorMessage) e.getCause();
-															for (ObjectError err: error.getErrors()) {
-																if (err.getObjectName().equalsIgnoreCase("sequence") && 
-																		err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
-																	if (feature.getGlycan().getName() != null) {
-																		// add name as an alias
-																		String existingId = getGlycanBySequence(feature.getGlycan().getSequence(), p);
-																		addAliasForGlycan(existingId, feature.getGlycan().getName(), p);
-																	}
-																	break;
-																}
-															}
-														} else {
-															logger.info("Could not add glycan: ", e);
-														}
-													}
-												}
-											}
-											if (feature.getLinker() != null) {
-												if (!linkerCache.contains(feature.getLinker())) {
-													linkerCache.add(feature.getLinker());
-													try {
-														addLinker(getLinkerView(feature.getLinker()), p);
-													} catch (Exception e) {
-														if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-															ErrorMessage error = (ErrorMessage) e.getCause();
-															boolean needAlias = false;
-															for (ObjectError err: error.getErrors()) {
-																if (err.getDefaultMessage().contains("Duplicate")) {
-																	needAlias = true;
-																	if (err.getObjectName().contains("pubChemId")) {
-																		needAlias = false;
+					if (slideLayout != null) {
+						// find all block layouts, glycans, linkers and add them first
+						for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
+							if (block.getBlockLayout() != null) { 
+								try {
+									UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+									BlockLayout existing = repository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
+									if (existing != null) { // already added no need to go through glycans/linkers
+										continue;
+									}
+									if (!addedLayouts.contains(block.getBlockLayout())) {
+										addedLayouts.add(block.getBlockLayout());
+										for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
+											for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
+												if (feature.getGlycan() != null) {
+													if (!glycanCache.contains(feature.getGlycan())) {
+														glycanCache.add(feature.getGlycan());
+														try {	
+															addGlycan(getGlycanView(feature.getGlycan()), p);
+														} catch (Exception e) {
+															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+																ErrorMessage error = (ErrorMessage) e.getCause();
+																for (ObjectError err: error.getErrors()) {
+																	if (err.getObjectName().equalsIgnoreCase("sequence") && 
+																			err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
+																		if (feature.getGlycan().getName() != null) {
+																			// add name as an alias
+																			String existingId = getGlycanBySequence(feature.getGlycan().getSequence(), p);
+																			addAliasForGlycan(existingId, feature.getGlycan().getName(), p);
+																		}
 																		break;
 																	}
 																}
-															}
-															if (needAlias) {		
-																LinkerView linker = getLinkerView(feature.getLinker());
-																linker.setName(linker.getName()+"B");
-																try {
-																	addLinker (linker, p);
-																} catch (IllegalArgumentException e1) {
-																	// ignore, probably already added
-																	logger.debug ("duplicate linker cannot be added", e1);
-																}
+															} else {
+																logger.info("Could not add glycan: ", e);
 															}
 														}
-														else {
-															logger.info("Could not add linker: ", e);
+													}
+												}
+												if (feature.getLinker() != null) {
+													if (!linkerCache.contains(feature.getLinker())) {
+														linkerCache.add(feature.getLinker());
+														try {
+															addLinker(getLinkerView(feature.getLinker()), p);
+														} catch (Exception e) {
+															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+																ErrorMessage error = (ErrorMessage) e.getCause();
+																boolean needAlias = false;
+																for (ObjectError err: error.getErrors()) {
+																	if (err.getDefaultMessage().contains("Duplicate")) {
+																		needAlias = true;
+																		if (err.getObjectName().contains("pubChemId")) {
+																			needAlias = false;
+																			break;
+																		}
+																	}
+																}
+																if (needAlias) {		
+																	LinkerView linker = getLinkerView(feature.getLinker());
+																	linker.setName(linker.getName()+"B");
+																	try {
+																		addLinker (linker, p);
+																	} catch (IllegalArgumentException e1) {
+																		// ignore, probably already added
+																		logger.debug ("duplicate linker cannot be added", e1);
+																	}
+																}
+															}
+															else {
+																logger.info("Could not add linker: ", e);
+															}
 														}
 													}
 												}
 											}
 										}
+										addBlockLayout(block.getBlockLayout(), p);
 									}
-									addBlockLayout(block.getBlockLayout(), p);
+								} catch (Exception e) {
+									logger.info("Cannot add block layout", e);
 								}
-							} catch (Exception e) {
-								logger.info("Cannot add block layout", e);
 							}
 						}
-					}
-					
-					try {
-						addSlideLayout(slideLayout, p);
-						result.getAddedLayouts().add(slideLayout);
-					} catch (Exception e) {
-						if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-							ErrorMessage error = (ErrorMessage) e.getCause();
-							for (ObjectError err: error.getErrors()) {
-								if (err.getDefaultMessage().contains("Duplicate")) {
-									result.getDuplicates().add(slideLayout);
-								}
+						
+						try {
+							if (newName != null && newName.length() > 0) {
+								slideLayout.setName(newName);
 							}
-						} else {
-							logger.debug("Could not add slide layout", e);
-							result.getErrors().add(slideLayout);
+							addSlideLayout(slideLayout, p);
+							result.getAddedLayouts().add(slideLayout);
+						} catch (Exception e) {
+							if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+								ErrorMessage error = (ErrorMessage) e.getCause();
+								for (ObjectError err: error.getErrors()) {
+									if (err.getDefaultMessage().contains("Duplicate")) {
+										result.getDuplicates().add(slideLayout);
+									}
+								}
+							} else {
+								logger.debug("Could not add slide layout", e);
+								result.getErrors().add(slideLayout);
+							}
 						}
 					}
 				}
