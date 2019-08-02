@@ -209,7 +209,7 @@ public class GlygenArrayController {
 		}
 		
 		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+			throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
 		
 		try {
 			repository.addSlideLayout(layout, user);
