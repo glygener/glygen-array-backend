@@ -125,6 +125,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		
 		BlockLayout layoutFromRepository = null;
 		BlockLayout blockLayout = b.getBlockLayout();
+		if (blockLayout == null)
+			return null;
 		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
 			layoutFromRepository = blockLayoutCache.get(blockLayout.getId().trim());
 		}
@@ -286,62 +288,64 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			}
 			
 			sparqlDAO.addStatements(statements, graphIRI);
-			List<Feature> features = s.getFeatures();
-			for (Feature feat : features) {
-				if (!processed.contains(feat)) {
-					statements = new ArrayList<Statement>();
-					String featureURI = generateUniqueURI(uriPrefix + "F", graph);
-					IRI feature = f.createIRI(featureURI);
-					String glycanURI = null;
-					if (feat.getGlycan() != null) {
-						glycanURI = feat.getGlycan().getUri();
-						if (glycanURI == null) {
-							if (feat.getGlycan().getSequence() != null) {
-								String seq = feat.getGlycan().getSequence().trim();
-								glycanURI = glycanCache.get(seq);
-								if (glycanURI == null) {
-									glycanURI = getGlycanBySequence(seq);
-									glycanCache.put(seq, glycanURI);
+			if (s.getFeatures() != null) {
+				List<Feature> features = s.getFeatures();
+				for (Feature feat : features) {
+					if (!processed.contains(feat)) {
+						statements = new ArrayList<Statement>();
+						String featureURI = generateUniqueURI(uriPrefix + "F", graph);
+						IRI feature = f.createIRI(featureURI);
+						String glycanURI = null;
+						if (feat.getGlycan() != null) {
+							glycanURI = feat.getGlycan().getUri();
+							if (glycanURI == null) {
+								if (feat.getGlycan().getSequence() != null) {
+									String seq = feat.getGlycan().getSequence().trim();
+									glycanURI = glycanCache.get(seq);
+									if (glycanURI == null) {
+										glycanURI = getGlycanBySequence(seq);
+										glycanCache.put(seq, glycanURI);
+									}
 								}
 							}
 						}
-					}
-					String linkerURI = null;
-					if (feat.getLinker() != null) {
-						linkerURI = feat.getLinker().getUri();
-						if (linkerURI == null) {
-							if (feat.getLinker().getPubChemId() != null) {
-								linkerURI = linkerCache.get(feat.getLinker().getPubChemId());
-								if (linkerURI == null) {
-									linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
-									linkerCache.put(feat.getLinker().getPubChemId(), linkerURI);
+						String linkerURI = null;
+						if (feat.getLinker() != null) {
+							linkerURI = feat.getLinker().getUri();
+							if (linkerURI == null) {
+								if (feat.getLinker().getPubChemId() != null) {
+									linkerURI = linkerCache.get(feat.getLinker().getPubChemId());
+									if (linkerURI == null) {
+										linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
+										linkerCache.put(feat.getLinker().getPubChemId(), linkerURI);
+									}
 								}
 							}
 						}
+						
+						Literal ratio = feat.getRatio() != null ? f.createLiteral(feat.getRatio()) : f.createLiteral(1.0) ;
+						feat.setUri(featureURI);
+						
+						statements.add(f.createStatement(feature, RDF.TYPE, featureType));
+						statements.add(f.createStatement(spot, hasFeature, feature));
+						if (glycanURI != null) {
+							IRI glycan = f.createIRI(glycanURI);
+							statements.add(f.createStatement(feature, hasGlycan, glycan));	
+						}
+						if (linkerURI != null) {
+							IRI linker = f.createIRI(linkerURI);
+							statements.add(f.createStatement(feature, hasLinker, linker));
+						}
+						if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
+						processed.add(feat);   // processed
+						sparqlDAO.addStatements(statements, graphIRI);
+					} else {
+						statements = new ArrayList<Statement>();
+						Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
+						IRI feature = f.createIRI(existing.getUri());
+						statements.add(f.createStatement(spot, hasFeature, feature));
+						sparqlDAO.addStatements(statements, graphIRI);
 					}
-					
-					Literal ratio = feat.getRatio() != null ? f.createLiteral(feat.getRatio()) : f.createLiteral(1.0) ;
-					feat.setUri(featureURI);
-					
-					statements.add(f.createStatement(feature, RDF.TYPE, featureType));
-					statements.add(f.createStatement(spot, hasFeature, feature));
-					if (glycanURI != null) {
-						IRI glycan = f.createIRI(glycanURI);
-						statements.add(f.createStatement(feature, hasGlycan, glycan));	
-					}
-					if (linkerURI != null) {
-						IRI linker = f.createIRI(linkerURI);
-						statements.add(f.createStatement(feature, hasLinker, linker));
-					}
-					if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
-					processed.add(feat);   // processed
-					sparqlDAO.addStatements(statements, graphIRI);
-				} else {
-					statements = new ArrayList<Statement>();
-					Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
-					IRI feature = f.createIRI(existing.getUri());
-					statements.add(f.createStatement(spot, hasFeature, feature));
-					sparqlDAO.addStatements(statements, graphIRI);
 				}
 			}
 		}
@@ -567,12 +571,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		if (slideLayoutWidth != null) statements.add(f.createStatement(slideLayout, hasWidth, slideLayoutWidth));
 		if (slideLayoutHeight != null) statements.add(f.createStatement(slideLayout, hasHeight, slideLayoutHeight));
 		
-		for (Block b: s.getBlocks()) {
-			if (b == null)
-				continue;
-			String blockURI = addBlock (b, user, graph);
-			IRI block = f.createIRI(blockURI);
-			statements.add(f.createStatement(slideLayout, hasBlock, block));
+		if (s.getBlocks() != null) {
+			for (Block b: s.getBlocks()) {
+				if (b == null)
+					continue;
+				String blockURI = addBlock (b, user, graph);
+				if (blockURI == null)
+					continue;
+				IRI block = f.createIRI(blockURI);
+				statements.add(f.createStatement(slideLayout, hasBlock, block));
+			}
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
