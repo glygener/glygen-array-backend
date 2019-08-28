@@ -515,7 +515,7 @@ Inverse of created_by object property</rdfs:comment>
     <!-- http://purl.org/gadr/data/has_inChI_key -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_key">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -524,7 +524,7 @@ Inverse of created_by object property</rdfs:comment>
     <!-- http://purl.org/gadr/data/has_inChI_sequence -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_sequence">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -629,6 +629,16 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_pubmed_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubmed_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>a link to pubmed id of the publication describing this peptide or protein linker</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_ratio -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_ratio">
@@ -684,6 +694,15 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:comment>stdev as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_uniprot_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_uniprot_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
 
@@ -758,6 +777,26 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/is_mixture -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/is_mixture">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:comment>boolean value indicating wheter this feature contains mixtures of glycans. If false and if the feature has multiple glycans/linkers that means there is uncertainity about which glycan is actually on the spot</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/opens_ring -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/opens_ring">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:comment>Whether this linker opens the ring on the reducing end of the glycan when attached</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
     //
@@ -778,11 +817,35 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/PeptideLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/PeptideLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/ProteinLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/ProteinLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/data/Sequence -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/Sequence">
         <rdfs:comment>Sequence for a chemical entity</rdfs:comment>
         <rdfs:label>Sequence</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/SmallMoleculeLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/SmallMoleculeLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
     </owl:Class>
     
 
