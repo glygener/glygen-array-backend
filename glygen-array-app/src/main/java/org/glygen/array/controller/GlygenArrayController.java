@@ -1780,6 +1780,14 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="if new name is provided, it is assumed that the list (post data) contains a single slide layout"
 					+ " and that layout is added to the repository with the given new name")
 			@RequestParam(value="newname", required=false) String newName, Principal p) {
+		if (newName != null) {
+			try {
+				newName = URLDecoder.decode(newName, StandardCharsets.UTF_8.name());
+			} catch (UnsupportedEncodingException e) {
+				// should not happen
+				logger.debug("Cannot decode newName", e);
+			}
+		}
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
