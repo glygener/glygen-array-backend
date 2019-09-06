@@ -2,8 +2,6 @@ package org.glygen.array.persistence;
 
 import java.util.Collection;
 
-import javax.persistence.Entity;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -23,7 +21,7 @@ public class GlygenUser extends User {
         boolean accountNonLocked,
         Collection<? extends GrantedAuthority> authorities,
         String firstName, String lastName, String email, String affiliation,
-        String affiliationWebsite, boolean publicFlag) {
+        String affiliationWebsite, Boolean publicFlag) {
 
             super(username, password, enabled, accountNonExpired,
                credentialsNonExpired, accountNonLocked, authorities);
@@ -33,6 +31,8 @@ public class GlygenUser extends User {
             this.email = email;
             this.affiliation = affiliation;
             this.affiliationWebsite = affiliationWebsite;
+            if (publicFlag == null)
+            	publicFlag = false;
             this.publicFlag = publicFlag;
     }
 
