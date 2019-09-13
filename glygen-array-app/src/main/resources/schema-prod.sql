@@ -1,3 +1,8 @@
+/*drop legacy stuff*/
+DROP TABLE IF EXISTS web_logging_event CASCADE;
+DROP TABLE IF EXISTS web_logging_access CASCADE;
+DROP SEQUENCE IF EXISTS web_access_id_seq;
+DROP SEQUENCE IF EXISTS web_error_id_seq;
 
 CREATE OR REPLACE FUNCTION create_login_type() RETURNS integer AS $$
 DECLARE v_exists INTEGER;
@@ -116,8 +121,8 @@ create sequence IF NOT EXISTS EMAIL_SEQ minvalue 1 start 1 increment 1;
 
 CREATE SEQUENCE IF NOT EXISTS error_id_seq MINVALUE 1 START 1;
 CREATE SEQUENCE IF NOT EXISTS access_id_seq MINVALUE 1 START 1;
-CREATE SEQUENCE IF NOT EXISTS web_error_id_seq MINVALUE 1 START 1;
-CREATE SEQUENCE IF NOT EXISTS web_access_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_event_id_seq MINVALUE 1 START 1;
+CREATE SEQUENCE IF NOT EXISTS web_acc_id_seq MINVALUE 1 START 1;
 
 
 CREATE TABLE IF NOT EXISTS logging_event
@@ -154,24 +159,30 @@ CREATE TABLE IF NOT EXISTS logging_access
     FOREIGN KEY (event_id) REFERENCES logging_event(event_id)
   );
   
-  CREATE TABLE IF NOT EXISTS web_logging_access
+  CREATE TABLE IF NOT EXISTS web_log_access
   (
-    event_id          	BIGINT DEFAULT nextval('web_access_id_seq') PRIMARY KEY,
-    dates				date,
-    level_string      	VARCHAR(254) NOT NULL,
+    log_id          	BIGINT DEFAULT nextval('web_acc_id_seq') PRIMARY KEY,
+    loggedin_user		BIGINT NOT NULL,
     page				VARCHAR(254) NOT NULL,
-    message  			TEXT NOT NULL,
-    comment				TEXT,
-    caller_user       	VARCHAR(254) NOT NULL
+    session_id		    VARCHAR(254) NOT NULL,
+    log_timestamp		TIMESTAMP NOT NULL,
+    FOREIGN KEY(loggedin_user) REFERENCES users(userId)
   );
   
-  CREATE TABLE IF NOT EXISTS web_logging_event
+  CREATE TABLE IF NOT EXISTS web_log_event
   (
-    event_id          	BIGINT DEFAULT nextval('web_error_id_seq') PRIMARY KEY,
-    dates				date,
-    level_string      	VARCHAR(254) NOT NULL,
+    log_id          	BIGINT DEFAULT nextval('web_event_id_seq') PRIMARY KEY,
+    loggedin_user		BIGINT NOT NULL,
     page				VARCHAR(254) NOT NULL,
-    message  			TEXT NOT NULL,
-    comment				TEXT,
-    caller_user      	VARCHAR(254) NOT NULL
+    session_id		    VARCHAR(254) NOT NULL,
+    event_type			VARCHAR(15) NOT NULL,
+    params				VARCHAR(254),
+    info				TEXT,
+    comments			TEXT,
+    log_timestamp		TIMESTAMP NOT NULL,
+    FOREIGN KEY(loggedin_user) REFERENCES users(userId)
   );
+  
+  
+  
+  
