@@ -55,6 +55,9 @@ create table IF NOT EXISTS users (
   primary key (userId)
 );
 
+alter table users drop constraint if exists unq_username cascade;
+alter table users add constraint unq_username unique(username);
+
 create table IF NOT EXISTS roles (
   roleId bigint not null,
   name varchar(256) not null,
@@ -162,27 +165,29 @@ CREATE TABLE IF NOT EXISTS logging_access
   CREATE TABLE IF NOT EXISTS web_log_access
   (
     log_id          	BIGINT DEFAULT nextval('web_acc_id_seq') PRIMARY KEY,
-    loggedin_user		BIGINT NOT NULL,
+    loggedin_user		varchar(256) NOT NULL,
     page				VARCHAR(254) NOT NULL,
     session_id		    VARCHAR(254) NOT NULL,
-    log_timestamp		TIMESTAMP NOT NULL,
-    FOREIGN KEY(loggedin_user) REFERENCES users(userId)
+    log_timestamp		TIMESTAMP NOT NULL
   );
+  
+  ALTER TABLE web_log_access DROP CONSTRAINT IF EXISTS web_log_access_loggedin_user_fkey;
+  ALTER TABLE web_log_access ADD CONSTRAINT web_log_access_user_fkey FOREIGN KEY(loggedin_user) REFERENCES users(username);
   
   CREATE TABLE IF NOT EXISTS web_log_event
   (
     log_id          	BIGINT DEFAULT nextval('web_event_id_seq') PRIMARY KEY,
-    loggedin_user		BIGINT NOT NULL,
+    loggedin_user		varchar(256) NOT NULL,
     page				VARCHAR(254) NOT NULL,
     session_id		    VARCHAR(254) NOT NULL,
     event_type			VARCHAR(15) NOT NULL,
     params				VARCHAR(254),
     info				TEXT,
     comments			TEXT,
-    log_timestamp		TIMESTAMP NOT NULL,
-    FOREIGN KEY(loggedin_user) REFERENCES users(userId)
+    log_timestamp		TIMESTAMP NOT NULL    
   );
   
-  
+  ALTER TABLE web_log_event DROP CONSTRAINT IF EXISTS web_log_event_loggedin_user_fkey;
+  ALTER TABLE web_log_event ADD CONSTRAINT web_log_event_user_fkey FOREIGN KEY(loggedin_user) REFERENCES users(username);
   
   
