@@ -36,9 +36,6 @@ public class LoggingController {
 	public void webEventLogger(
 			@ApiParam(required = true, value = "object to be saved into the event log database") @RequestBody(required = true) WebLogger logger) {
 		try {
-			UserEntity userEntity = new UserEntity();
-			userEntity.setUsername(logger.getUser());
-
 			WebEventLoggingEntity newEventLog = new WebEventLoggingEntity();
 			
 			newEventLog.setLog_timestamp(LocalDate.now());
@@ -46,7 +43,7 @@ public class LoggingController {
 			newEventLog.setPage(logger.getPage());
 			newEventLog.setSession_id(logger.getSession_id());
 			newEventLog.setComments(logger.getComments());
-			newEventLog.setUser(userEntity);
+			newEventLog.setUser(logger.getUser());
 			newEventLog.setInfo(logger.getInfo());
 			newEventLog.setParams(logger.getParams());
 
@@ -63,15 +60,12 @@ public class LoggingController {
 	public void webAccessLogger(
 			@ApiParam(required = true, value = "object to be saved into the access log database") @RequestBody(required = true) WebLogger logger) {
 		try {
-			UserEntity userEntity = new UserEntity();
-			userEntity.setUsername(logger.getUser());
-			
 			WebAccessLoggingEntity newAccessLog = new WebAccessLoggingEntity();
 			
 			newAccessLog.setLog_timestamp(LocalDate.now());
 			newAccessLog.setPage(logger.getPage());
 			newAccessLog.setSession_id(logger.getSession_id());
-			newAccessLog.setUser(userEntity);
+			newAccessLog.setUser(logger.getUser());
 
 			accessRepository.save(newAccessLog);
 		} catch (Exception e) {

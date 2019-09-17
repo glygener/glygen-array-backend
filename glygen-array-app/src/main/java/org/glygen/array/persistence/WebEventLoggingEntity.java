@@ -2,16 +2,11 @@ package org.glygen.array.persistence;
 
 import java.time.LocalDate;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -26,9 +21,8 @@ public class WebEventLoggingEntity {
     @SequenceGenerator(name="web_event_seq", sequenceName="web_event_id_seq", initialValue=1, allocationSize=1)
 	private Long log_id;
 	
-	@OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER, cascade=CascadeType.MERGE)
-    @JoinColumn(nullable = false, name = "userid", foreignKey = @ForeignKey(name = "FK_LOG_EVENT_USER"))
-	private UserEntity user;
+	@Column(name="loggedin_user", nullable = false)
+	private String user;
 	
 	@Column(name="page", nullable = false)
 	private String page;
@@ -69,14 +63,14 @@ public class WebEventLoggingEntity {
 	/**
 	 * @return the user
 	 */
-	public UserEntity getUser() {
+	public String getUser() {
 		return user;
 	}
 
 	/**
 	 * @param user the user to set
 	 */
-	public void setUser(UserEntity user) {
+	public void setUser(String user) {
 		this.user = user;
 	}
 
