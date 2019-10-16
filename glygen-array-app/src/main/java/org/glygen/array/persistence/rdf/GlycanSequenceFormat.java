@@ -1,4 +1,4 @@
-package org.glygen.array.view;
+package org.glygen.array.persistence.rdf;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

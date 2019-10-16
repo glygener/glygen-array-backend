@@ -7,17 +7,15 @@ import java.util.List;
 public class Glycan {
 	
 	String uri;
-	String glytoucanId;
 	String internalId;
 	String name;
 	String comment;
-	String sequence;
-	String sequenceType;
 	Double mass;
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
 	List<String> aliases = new ArrayList<String>();
+	GlycanType type;
 	
 	/**
 	 * @return the uri
@@ -31,18 +29,7 @@ public class Glycan {
 	public void setUri(String uri) {
 		this.uri = uri;
 	}
-	/**
-	 * @return the glyTouCanId
-	 */
-	public String getGlytoucanId() {
-		return glytoucanId;
-	}
-	/**
-	 * @param glyTouCanId the glyTouCanId to set
-	 */
-	public void setGlytoucanId(String glyTouCanId) {
-		this.glytoucanId = glyTouCanId;
-	}
+	
 	/**
 	 * @return the internalId
 	 */
@@ -79,30 +66,7 @@ public class Glycan {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	/**
-	 * @return the sequence
-	 */
-	public String getSequence() {
-		return sequence;
-	}
-	/**
-	 * @param sequence the sequence to set
-	 */
-	public void setSequence(String sequence) {
-		this.sequence = sequence;
-	}
-	/**
-	 * @return the sequenceType
-	 */
-	public String getSequenceType() {
-		return sequenceType;
-	}
-	/**
-	 * @param sequenceType the sequenceType to set
-	 */
-	public void setSequenceType(String sequenceType) {
-		this.sequenceType = sequenceType;
-	}
+	
 	/**
 	 * @return the mass
 	 */
@@ -160,6 +124,14 @@ public class Glycan {
 		this.aliases = aliases;
 	}
 	
+	public GlycanType getType() {
+		return this.type;
+	}
+
+	public void setType(GlycanType t) {
+		this.type = t;
+	}	
+	
 	public void addAlias (String alias) {
 		if (this.aliases == null)
 			this.aliases = new ArrayList<String>();
@@ -173,9 +145,7 @@ public class Glycan {
 			return false;
 		if (uri != null && ((Glycan)obj).getUri()!= null)
 			return  uri.equals(((Glycan)obj).getUri());
-		else if (sequence != null) { // check if sequences are the same
-			return sequence.equals(((Glycan)obj).getSequence());
-		}
+		
 		return false;
 	}
 	
@@ -183,8 +153,8 @@ public class Glycan {
 	public int hashCode() {
 		if (uri != null)
 			return uri.hashCode();
-		else if (sequence != null) 
-			return sequence.hashCode();
+		
 		return super.hashCode();
 	}
+
 }

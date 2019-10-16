@@ -164,6 +164,9 @@ public class UserController {
 			throw new RuntimeException("Validator cannot be found!");
 		}
 		
+		if (user.getPublicFlag() == null)   // set to default, not public
+			user.setPublicFlag(false);
+		
 		UserEntity newUser = new UserEntity();
 		newUser.setUsername(user.getUserName());		
 		newUser.setPassword(passwordEncoder.encode(user.getPassword()));

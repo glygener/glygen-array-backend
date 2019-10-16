@@ -2,6 +2,7 @@ package org.glygen.array.util;
 
 
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -27,7 +28,7 @@ public class PubChemAPI {
 			PubChemProperty prop = response.getPropertyTable().getProperties().get(0);
 			if (prop.getInChI() == null && prop.getInChIKey() == null && prop.getIUPACName() == null && prop.getMass() == null && prop.getMolecularFormula() == null)
 				return null;   // invalid pubChem
-			Linker linker = new Linker();
+			SmallMoleculeLinker linker = new SmallMoleculeLinker();
 			linker.setInChiKey(prop.getInChIKey());
 			linker.setInChiSequence(prop.getInChI());
 			linker.setMass(prop.getMass());
@@ -43,9 +44,9 @@ public class PubChemAPI {
 	
 	public static void main(String[] args) {
 		Linker linker = getLinkerDetailsFromPubChem (2444L);
-		System.out.println ("linker formula:"  + linker.getMolecularFormula());
-		System.out.println ("linker image URL:"  + linker.getImageURL());
-		System.out.println ("linker mass:"  + linker.getMass());
+		System.out.println ("linker formula:"  + ((SmallMoleculeLinker)linker).getMolecularFormula());
+		System.out.println ("linker image URL:"  + ((SmallMoleculeLinker)linker).getImageURL());
+		System.out.println ("linker mass:"  + ((SmallMoleculeLinker)linker).getMass());
 		
 	}
 	

@@ -13,6 +13,15 @@ public class Spot {
 	LevelUnit concentration;
 	Integer group;
 	String uri;
+	SpotFlag flag;
+	
+	public void setFlag(SpotFlag flag) {
+		this.flag = flag;
+	}
+	
+	public SpotFlag getFlag() {
+		return flag;
+	}
 	
 	/**
 	 * @return the feature

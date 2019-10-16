@@ -1,6 +1,7 @@
 drop table IF EXISTS settings;
 drop table IF EXISTS verification_token;
 drop table IF EXISTS graphs;
+drop table IF EXISTS permissions;
 drop table IF EXISTS user_roles;
 drop table IF EXISTS roles;
 drop table IF EXISTS users;
@@ -71,6 +72,14 @@ create table IF NOT EXISTS graphs (
   graphuri varchar(256) not null
 );
 
+create table IF NOT EXISTS permissions (
+  id bigint not null PRIMARY KEY,
+  userid bigint not null,
+  graphuri varchar(256),
+  resourceuri varchar(256),
+  permissiontype bigint not null
+);
+
 create table IF NOT EXISTS email (
   id bigint not null PRIMARY KEY,
   userid bigint not null,
@@ -85,6 +94,11 @@ alter table verification_token
         
 alter table graphs 
         add constraint FK_m1eg457wh2xxe878rx5y5graph
+        foreign key (userid) 
+        references users;
+        
+alter table permissions 
+        add constraint FK_m1eg457wh2xxe878rx5y5permission
         foreign key (userid) 
         references users;
         

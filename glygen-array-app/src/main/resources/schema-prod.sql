@@ -86,11 +86,24 @@ create table IF NOT EXISTS email (
   oldemail varchar(256) not null,
   newemail varchar(256) not null
 );
+
+create table IF NOT EXISTS permissions (
+  id bigint not null PRIMARY KEY,
+  userid bigint not null,
+  graphuri varchar(256),
+  resourceuri varchar(256),
+  permissiontype bigint not null
+);
        
 select create_constraint_if_not_exists(
         'graphs',
         'fk_m1eg457wh2xxe878rx5y5graph',
         'alter table graphs add constraint fk_m1eg457wh2xxe878rx5y5graph foreign key (userid) references users;');
+        
+select create_constraint_if_not_exists(
+        'permissions',
+        'fk_m1eg457wh2xxe878rx5y5permission',
+        'alter table permissions add constraint fk_m1eg457wh2xxe878rx5y5permission foreign key (userid) references users;');
  
 select create_constraint_if_not_exists(
         'verification_token',

@@ -16,7 +16,7 @@ public class User {
     private String email;
     private String affiliation;
     private String affiliationWebsite;
-    private Boolean publicFlag;
+    private Boolean publicFlag = false;
     private String userType;
     
 	/**

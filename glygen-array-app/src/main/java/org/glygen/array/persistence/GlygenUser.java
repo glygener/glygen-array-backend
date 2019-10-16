@@ -31,8 +31,6 @@ public class GlygenUser extends User {
             this.email = email;
             this.affiliation = affiliation;
             this.affiliationWebsite = affiliationWebsite;
-            if (publicFlag == null)
-            	publicFlag = false;
             this.publicFlag = publicFlag;
     }
 
