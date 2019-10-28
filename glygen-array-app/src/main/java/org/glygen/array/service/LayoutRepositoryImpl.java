@@ -29,7 +29,11 @@ import org.glygen.array.persistence.rdf.Spot;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
+@Transactional(value="sesameTransactionManager") 
 public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements LayoutRepository {
 	
 	@Autowired
@@ -237,7 +241,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 						String featureURI = generateUniqueURI(uriPrefix + "F", graph);
 						IRI feature = f.createIRI(featureURI);
 						String glycanURI = null;
-						if (feat.getGlycan() != null) {
+						//TODO
+					/*	if (feat.getGlycan() != null) {
 							glycanURI = feat.getGlycan().getUri();
 							if (glycanURI == null) {
 								if (feat.getGlycan().getSequence() != null) {
@@ -279,7 +284,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 						}
 						if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
 						processed.add(feat);   // processed
-						sparqlDAO.addStatements(statements, graphIRI);
+						sparqlDAO.addStatements(statements, graphIRI);*/
 					} else {
 						statements = new ArrayList<Statement>();
 						Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
@@ -532,11 +537,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 							if (st3.getPredicate().equals(hasGlycan)) {
 								v = st3.getObject();
 								String glycanURI = v.stringValue();
-								feat.setGlycan(getGlycanFromURI(glycanURI, graph));
+								//TODO fix it
+								//feat.setGlycan(glycanRepository.getGlycanFromURI(glycanURI, graph));
 							} else if (st3.getPredicate().equals(hasLinker)) {
 								v = st3.getObject();
 								String linkerURI = v.stringValue();
-								feat.setLinker(getLinkerFromURI(linkerURI, graph));
+								feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
 							} else if (st3.getPredicate().equals(hasRatio)) {
 								v = st3.getObject();
 								feat.setRatio(Double.parseDouble(v.stringValue()));
@@ -782,7 +788,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 								if (st3.getPredicate().equals(hasGlycan)) {
 									v = st3.getObject();
 									String glycanURI = v.stringValue();
-									feat.setGlycan(glycanRepository.getGlycanFromURI(glycanURI, graph));
+									//TODO fix it
+									//feat.setGlycan(glycanRepository.getGlycanFromURI(glycanURI, graph));
 								} else if (st3.getPredicate().equals(hasLinker)) {
 									v = st3.getObject();
 									String linkerURI = v.stringValue();

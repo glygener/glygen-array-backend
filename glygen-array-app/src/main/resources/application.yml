@@ -38,6 +38,9 @@ google:
         client-secret: ENC(yNs24f9XTY6hx0bXEpIyVdN+bYwg11ZfOUf7CXIrpGZac3s30+7FdA==)
         access-token: ya29.GlvVBggZaTU2C8sC_IWuj7k5yglAH09uTbq5nj5TVPb3lT0pTZ0lk3TuVXZLYY_Mccpr_DRTStmFGPOwPUX3Fo46kql4TpvY20_pkakhLAl7g2AmQQpiSVNj3yvt
         refresh-token: 1/aTU4_Z7jEE-gF-gsvV5z87R3pZqVUwoa5KkcTn29eAY
+glytoucan:
+  api-key: ENC(tUWINSrwOY6I3JwLCm8gpmz/et0deib2Ya9lK0WrzmLaYWhlsZgysWAWZIsfxSrPHrqjJPd273tmdA7Nswww3CsjzddWV27IxYYXrWaZ+A0=)
+  user-id: ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d
         
 glygen:
   token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)

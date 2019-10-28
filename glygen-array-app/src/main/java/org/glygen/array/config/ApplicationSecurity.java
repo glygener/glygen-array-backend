@@ -28,6 +28,7 @@ import org.glygen.array.security.TokenAuthenticationFilter;
 import org.glygen.array.security.validation.AccessTokenValidator;
 import org.glygen.array.security.validation.GoogleAccessTokenValidator;
 import org.glygen.array.service.GlygenUserDetailsService;
+import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -109,6 +110,12 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	@Value("${glygen.basePath}")
 	private String basePath;
+	
+	@Value("${glytoucan.api-key}")
+	String apiKey;
+	
+	@Value("${glytoucan.user-id}")
+	String userId;
 	
 	@Autowired
 	SettingsRepository settingsRepository;
@@ -324,6 +331,11 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+		
+		// settings for GlytoucanUtil
+		GlytoucanUtil.getInstance().setApiKey(apiKey);
+		GlytoucanUtil.getInstance().setUserId(userId);
+		
 		List<RequestMatcher> matcherList = new ArrayList<>();
 		for(int i=0; i < AUTH_WHITELIST.length; i++) {
 			RequestMatcher newMatcher = new AntPathRequestMatcher(AUTH_WHITELIST[i]);
@@ -341,6 +353,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
 				//new AntPathRequestMatcher("/array/upload"),
 				new AntPathRequestMatcher("/glycan/parseSequence"),
+				new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
 				new AntPathRequestMatcher("/array/getimage/**"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		

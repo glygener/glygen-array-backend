@@ -2,7 +2,6 @@ package org.glygen.array.client.model;
 
 import java.util.List;
 
-
 public class Block {
 	String uri;
 	String id;

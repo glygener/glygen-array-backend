@@ -3,6 +3,7 @@ package org.glygen.array.util;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -19,6 +20,8 @@ import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
 import org.grits.toolbox.util.structure.glycan.database.GlycanStructure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,20 +31,45 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class GlytoucanUtil {
 	
-	//TODO do not store it here, store encrypted in application.yml
-	static String apiKey = "180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7";
-	static String URL = "https://api.glytoucan.org/glycan/register";
-	static String userId = "ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d";
+	String apiKey;
+	String userId;
+	
+	static String glycanURL = "https://sparqlist.glycosmos.org/sparqlist/api/gtc_wurcs_by_accession?accNum=";
+	static String retrieveURL ="https://api.glycosmos.org/glytoucan/sparql/wurcs2gtcids?wurcs=";
+	static String registerURL = "https://api.glytoucan.org/glycan/register";
 	
 	private static RestTemplate restTemplate = new RestTemplate();
+	
+	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
 	
+	static GlytoucanUtil instance;
 	
-	public static String registerGlycan (String glycoCTSequence) {
+	private GlytoucanUtil() {
+	}
+	
+	public static GlytoucanUtil getInstance () {
+		if (instance == null)
+			instance = new GlytoucanUtil();
+		return instance;
+	}
+	
+	
+	public void setApiKey(String apiKey) {
+		this.apiKey = apiKey;
+	}
+	
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	
+	public String registerGlycan (String glycoCTSequence) {
 	    
 	    Sequence input = new Sequence();
 	    input.setSequence(glycoCTSequence);
@@ -49,15 +77,62 @@ public class GlytoucanUtil {
 	    HttpEntity<Sequence> requestEntity = new HttpEntity<Sequence>(input, createHeaders(userId, apiKey));
 		
 		try {
-			ResponseEntity<Response> response = restTemplate.exchange(URL, HttpMethod.POST, requestEntity, Response.class);
+			ResponseEntity<Response> response = restTemplate.exchange(registerURL, HttpMethod.POST, requestEntity, Response.class);
 			return response.getBody().getMessage();
 		} catch (HttpClientErrorException e) {
-			System.out.println("Exception adding glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+			logger.error("Exception adding glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
 		} catch (HttpServerErrorException e) {
-			System.out.println("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+			logger.error("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
 		}
 		
 		return null;
+	}
+	
+	public String getAccessionNumber (String wurcsSequence) {
+		String accessionNumber = null;
+		
+		String url;
+		//try {
+			url = retrieveURL + wurcsSequence;
+			HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
+			try {
+				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
+				return response.getBody()[0].id;
+			} catch (HttpClientErrorException e) {
+				logger.info("Exception retrieving glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+			} catch (HttpServerErrorException e) {
+				logger.info("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+			}
+		//} catch (UnsupportedEncodingException e1) {
+		//	logger.error("Could not encode wurcs sequence", e1);
+		//}
+		
+		
+		return accessionNumber;
+	}
+	
+	/**
+	 * calls Glytoucan API to retrieve the glycan with the given accession number
+	 * 
+	 * @param accessionNumber the glytoucan id to search
+	 * @return WURCS sequence if the glycan is found, null otherwise
+	 */
+	public String retrieveGlycan (String accessionNumber) {
+		String sequence = null;
+		
+		String url = glycanURL + accessionNumber;
+		HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
+		try {
+			ResponseEntity<RetrieveResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, RetrieveResponse[].class);
+			return response.getBody()[0].getWurcsLabel();
+			
+		} catch (HttpClientErrorException e) {
+			logger.info("Exception retrieving glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+		} catch (HttpServerErrorException e) {
+			logger.info("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+		}
+		
+		return sequence;
 	}
 	
 	static HttpHeaders createHeaders(String username, String password){
@@ -73,6 +148,15 @@ public class GlytoucanUtil {
 	
 	
 	public static void main(String[] args) {
+		
+		String sequence = GlytoucanUtil.getInstance().retrieveGlycan("G89311TM");
+		String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/35_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5]/1-1-2-3-3/a4-b1_b4-c1_c3-d1_c6-e1");
+		
+		System.out.println(sequence);
+		System.out.println(accessionNumber);
+
+		GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
+		GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
 		// add glytoucan ids for GRITS database
 		String databaseFolder = "/Users/sena/Desktop/GRITS-databases";
@@ -98,7 +182,7 @@ public class GlytoucanUtil {
 				            	WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 				            	exporter.start(glycoCT);
 				            	String wurcs = exporter.getWURCS();	
-				            	String glyTouCanId = registerGlycan(wurcs);
+				            	String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
 				            	if (glyTouCanId != null && glyTouCanId.length() == 8) { // glytoucanId 
 				            		str.setGlytoucanid(glyTouCanId);
 				            	} else {
@@ -141,6 +225,7 @@ public class GlytoucanUtil {
 		//glycoCTSequence = "WURCS=2.0/4,5,5/[a2112h-1b_1-5_2*NCC/3=O][a2122A-1b_1-5][a2112h-1a_1-5][a2122h-1b_1-5]/1-2-1-3-4/a3-b1_b4-c1_c4-d1_d3-e1_a1-e4~n";
 		glycoCTSequence = "WURCS=2.0/3,12,11/[a2122h-1x_1-5_2*NCC/3=O][a1122h-1x_1-5][a2112h-1x_1-5]/1-1-2-2-2-2-2-2-2-2-2-3/a4-b1_b4-c1_c?-d1_c?-i1_d?-e1_d?-g1_e?-f1_g?-h1_i?-j1_j?-k1_j?-l1";
 		//System.out.println (GlytoucanUtil.registerGlycan(glycoCTSequence));
+		 
 	}
 		
 	
@@ -224,6 +309,72 @@ class Response {
 	public void setPath(String path) {
 		this.path = path;
 	}
+}
+
+class RetrieveResponse {
+	String accessionNumber;
+	String hashKey;
+	String wurcsLabel;
 	
+	/**
+	 * @return the accessionNumber
+	 */
+	@JsonProperty("AccessionNumber")
+	public String getAccessionNumber() {
+		return accessionNumber;
+	}
+	/**
+	 * @param accessionNumber the accessionNumber to set
+	 */
+	public void setAccessionNumber(String accessionNumber) {
+		this.accessionNumber = accessionNumber;
+	}
+	/**
+	 * @return the hashKey
+	 */
+	@JsonProperty("HashKey")
+	public String getHashKey() {
+		return hashKey;
+	}
+	/**
+	 * @param hashKey the hashKey to set
+	 */
+	public void setHashKey(String hashKey) {
+		this.hashKey = hashKey;
+	}
+	/**
+	 * @return the wurcsLabel
+	 */
+	@JsonProperty("WURCSLabel")
+	public String getWurcsLabel() {
+		return wurcsLabel;
+	}
+	/**
+	 * @param wurcsLabel the wurcsLabel to set
+	 */
+	public void setWurcsLabel(String wurcsLabel) {
+		this.wurcsLabel = wurcsLabel;
+	}	  
+}
+
+class GlytoucanResponse {
+	String id;
+	String wurcs;
 	
+	public String getId() {
+		return id;
+	}
+	
+	@JsonProperty("WURCS")
+	public String getWurcs() {
+		return wurcs;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public void setWurcs(String wurcs) {
+		this.wurcs = wurcs;
+	}
 }

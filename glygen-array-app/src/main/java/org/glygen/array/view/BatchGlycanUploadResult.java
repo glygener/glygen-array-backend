@@ -3,19 +3,21 @@ package org.glygen.array.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.glygen.array.persistence.rdf.Glycan;
+
 public class BatchGlycanUploadResult {
 	
 	List<String> wrongSequences = new ArrayList<>();
-	List<GlycanView> duplicateSequences = new ArrayList<GlycanView>();
+	List<Glycan> duplicateSequences = new ArrayList<Glycan>();
 	String successMessage;
-	List<GlycanView> addedGlycans = new ArrayList<GlycanView>();
+	List<Glycan> addedGlycans = new ArrayList<Glycan>();
 	
 	public void addWrongSequence (String seq) {
 		if (!wrongSequences.contains(seq))
 			wrongSequences.add(seq);
 	}
 	
-	public void addDuplicateSequence (GlycanView seq) {
+	public void addDuplicateSequence (Glycan seq) {
 		if (!duplicateSequences.contains(seq))
 			duplicateSequences.add(seq);
 	}
@@ -36,19 +38,19 @@ public class BatchGlycanUploadResult {
 		this.wrongSequences = wrongSequences;
 	}
 	
-	public List<GlycanView> getDuplicateSequences() {
+	public List<Glycan> getDuplicateSequences() {
 		return duplicateSequences;
 	}
 	
-	public void setDuplicateSequences(List<GlycanView> duplicateSequences) {
+	public void setDuplicateSequences(List<Glycan> duplicateSequences) {
 		this.duplicateSequences = duplicateSequences;
 	}
 	
-	public void setAddedGlycans(List<GlycanView> addedGlycans) {
+	public void setAddedGlycans(List<Glycan> addedGlycans) {
 		this.addedGlycans = addedGlycans;
 	}
 	
-	public List<GlycanView> getAddedGlycans() {
+	public List<Glycan> getAddedGlycans() {
 		return addedGlycans;
 	}
 

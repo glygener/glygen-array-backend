@@ -3,6 +3,7 @@ package org.glygen.array.client.model;
 import java.util.Date;
 import java.util.List;
 
+
 public class SlideLayout {
 	String id;
 	String uri;

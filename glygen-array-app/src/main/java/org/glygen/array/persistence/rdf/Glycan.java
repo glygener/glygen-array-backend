@@ -4,18 +4,54 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+
+@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME, 
+		include = JsonTypeInfo.As.PROPERTY, 
+		property = "type")
+	@JsonSubTypes({ 
+		@Type(value = SequenceDefinedGlycan.class, name = "SEQUENCE_DEFINED"), 
+		@Type(value = MassOnlyGlycan.class, name = "MASS_ONLY"),
+		@Type(value = UnknownGlycan.class, name = "UNKNOWN"),
+		@Type(value = Glycan.class, name = "COMPOSITION_BASED"),
+		@Type(value = Glycan.class, name = "CLASSIFICATION_BASED"),
+		@Type(value = Glycan.class, name = "FRAGMENT_ONLY")
+	})
 public class Glycan {
-	
+	String id;
 	String uri;
 	String internalId;
 	String name;
 	String comment;
-	Double mass;
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
 	List<String> aliases = new ArrayList<String>();
 	GlycanType type;
+	
+	byte[] cartoon;
+	
+	public byte[] getCartoon() {
+		return cartoon;
+	}
+	
+	public void setCartoon(byte[] cartoon) {
+		this.cartoon = cartoon;
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
 	
 	/**
 	 * @return the uri
@@ -33,6 +69,7 @@ public class Glycan {
 	/**
 	 * @return the internalId
 	 */
+	@Size(max=30, message="Id cannot exceed 30 characters")
 	public String getInternalId() {
 		return internalId;
 	}
@@ -45,6 +82,7 @@ public class Glycan {
 	/**
 	 * @return the name
 	 */
+	@Size(max=50, message="Name cannot exceed 50 characters")
 	public String getName() {
 		return name;
 	}
@@ -57,6 +95,7 @@ public class Glycan {
 	/**
 	 * @return the comment
 	 */
+	@Size(max=250, message="Comment cannot exceed 250 characters")
 	public String getComment() {
 		return comment;
 	}
@@ -67,18 +106,6 @@ public class Glycan {
 		this.comment = comment;
 	}
 	
-	/**
-	 * @return the mass
-	 */
-	public Double getMass() {
-		return mass;
-	}
-	/**
-	 * @param mass the mass to set
-	 */
-	public void setMass(Double mass) {
-		this.mass = mass;
-	}
 	/**
 	 * @return the dateModified
 	 */
@@ -156,5 +183,4 @@ public class Glycan {
 		
 		return super.hashCode();
 	}
-
 }

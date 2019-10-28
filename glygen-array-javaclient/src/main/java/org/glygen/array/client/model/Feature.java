@@ -1,22 +1,36 @@
 package org.glygen.array.client.model;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Feature {
 	String uri;
-	Glycan glycan;
+	List<Glycan> glycans;
 	Linker linker;
-	Double ratio = 1.0;
+	Double ratio = null;   // in percentages like 100.0%, 50.0% etc.
 	
+	Map<Glycan, Integer> positionMap = new HashMap<>();
+	
+	
+	public Map<Glycan, Integer> getPositionMap() {
+		return positionMap;
+	}
+	
+	public Integer getPosition (Glycan g) {
+		return positionMap.get(g);
+	}
 	/**
 	 * @return the glycan
 	 */
-	public Glycan getGlycan() {
-		return glycan;
+	public List<Glycan> getGlycans() {
+		return glycans;
 	}
 	/**
 	 * @param glycan the glycan to set
 	 */
-	public void setGlycan(Glycan glycan) {
-		this.glycan = glycan;
+	public void setGlycans(List<Glycan>glycan) {
+		this.glycans = glycan;
 	}
 	/**
 	 * @return the linker
@@ -61,9 +75,6 @@ public class Feature {
 			return false;
 		if (uri != null && ((Feature)obj).getUri() != null)
 			return  uri.equals(((Feature)obj).getUri());
-		else { // check if Glycan, Linker and the ratio are the same
-			return linker.equals(((Feature)obj).getLinker()) && glycan.equals(((Feature)obj).getGlycan()) 
-					&& ratio.equals(((Feature)obj).getRatio());
-		}
+		return super.equals(obj);
 	}
 }

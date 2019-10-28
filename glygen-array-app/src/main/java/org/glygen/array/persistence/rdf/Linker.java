@@ -3,6 +3,8 @@ package org.glygen.array.persistence.rdf;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 public abstract class Linker {
 	
 	String uri;
@@ -20,6 +22,7 @@ public abstract class Linker {
 	/**
 	 * @return the name
 	 */
+	@Size(max=100, message="Name cannot exceed 100 characters")
 	public String getName() {
 		return name;
 	}
@@ -32,6 +35,7 @@ public abstract class Linker {
 	/**
 	 * @return the comment
 	 */
+	@Size(max=250, message="Comment cannot exceed 250 characters")
 	public String getComment() {
 		return comment;
 	}
@@ -127,6 +131,7 @@ public abstract class Linker {
 	/**
 	 * @return the description
 	 */
+	@Size(max=250, message="Comment cannot exceed 250 characters")
 	public String getDescription() {
 		return description;
 	}

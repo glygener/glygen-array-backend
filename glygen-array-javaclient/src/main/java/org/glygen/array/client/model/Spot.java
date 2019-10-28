@@ -10,6 +10,17 @@ public class Spot {
 	Integer column;
 	LevelUnit concentration;
 	Integer group;
+	String uri;
+	SpotFlag flag;
+	
+	public void setFlag(SpotFlag flag) {
+		this.flag = flag;
+	}
+	
+	public SpotFlag getFlag() {
+		return flag;
+	}
+	
 	/**
 	 * @return the feature
 	 */
@@ -69,5 +80,13 @@ public class Spot {
 	 */
 	public void setGroup(Integer group) {
 		this.group = group;
+	}
+	
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+	
+	public String getUri() {
+		return uri;
 	}
 }

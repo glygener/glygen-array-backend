@@ -10,6 +10,8 @@ import org.glygen.array.persistence.rdf.Glycan;
 public interface GlycanRepository {
 	
 	String addGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException;
+	String addGlycan(Glycan g, UserEntity user, boolean noGlytoucanRegistration) throws SparqlException, SQLException;
+	
 	void addAliasForGlycan (String glycanId, String alias, UserEntity user) throws SparqlException, SQLException;
 	Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException;
 	
@@ -53,6 +55,8 @@ public interface GlycanRepository {
 	 * @throws SQLException
 	 */
 	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+	
+	List<Glycan> getSharedGlycansByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;

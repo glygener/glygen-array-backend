@@ -2,9 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import org.glygen.array.persistence.rdf.Glycan;
+
 public class GlycanListResultView {
 	int total;
-	List<GlycanView> rows;
+	List<Glycan> rows;
 	
 	public int getTotal() {
 		return total;
@@ -14,11 +16,11 @@ public class GlycanListResultView {
 		this.total = total;
 	}
 	
-	public List<GlycanView> getRows() {
+	public List<Glycan> getRows() {
 		return rows;
 	}
 	
-	public void setRows(List<GlycanView> rows) {
+	public void setRows(List<Glycan> rows) {
 		this.rows = rows;
 	}
 }

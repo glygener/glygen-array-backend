@@ -1,4 +1,4 @@
-package org.glygen.array.persistence.rdf;
+package org.glygen.array.client.model;
 
 public class MassOnlyGlycan extends Glycan {
 	

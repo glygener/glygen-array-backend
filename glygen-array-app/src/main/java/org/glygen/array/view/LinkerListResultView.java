@@ -2,9 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import org.glygen.array.persistence.rdf.Linker;
+
 public class LinkerListResultView {
 	int total;
-	List<LinkerView> rows;
+	List<Linker> rows;
 	
 	public int getTotal() {
 		return total;
@@ -14,11 +16,11 @@ public class LinkerListResultView {
 		this.total = total;
 	}
 	
-	public List<LinkerView> getRows() {
+	public List<Linker> getRows() {
 		return rows;
 	}
 	
-	public void setRows(List<LinkerView> rows) {
+	public void setRows(List<Linker> rows) {
 		this.rows = rows;
 	}
 }

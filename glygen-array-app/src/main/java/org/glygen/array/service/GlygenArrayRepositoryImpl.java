@@ -1,24 +1,9 @@
 package org.glygen.array.service;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.eclipse.rdf4j.common.iteration.Iterations;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.PrivateGraphEntity;
 import org.glygen.array.persistence.SparqlEntity;
@@ -27,21 +12,6 @@ import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.PrivateGraphRepository;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
-import org.glygen.array.persistence.rdf.Block;
-import org.glygen.array.persistence.rdf.BlockLayout;
-import org.glygen.array.persistence.rdf.Feature;
-import org.glygen.array.persistence.rdf.Glycan;
-import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerType;
-import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.PeptideLinker;
-import org.glygen.array.persistence.rdf.ProteinLinker;
-import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
-import org.glygen.array.persistence.rdf.SlideLayout;
-import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
-import org.glygen.array.persistence.rdf.Spot;
-import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
-import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

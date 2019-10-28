@@ -1,13 +1,9 @@
 package org.glygen.array.client.model;
 
-import java.util.Date;
-
-
-public class LinkerView {
+public class SmallMoleculeLinker extends Linker {
 	
-	String id;
-	String name;
-	String comment;
+	public final static String PUBCHEM_CID = "https://pubchem.ncbi.nlm.nih.gov/compound/";
+	
 	Long pubChemId;
 	String imageURL;
 	String inChiKey;
@@ -15,33 +11,12 @@ public class LinkerView {
 	String iupacName;
 	Double mass;
 	String molecularFormula;
-	Date dateModified;
+	LinkerClassification classification;
 	
+	public SmallMoleculeLinker() {
+		this.type = LinkerType.SMALLMOLECULE_LINKER;
+	}
 	
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-	/**
-	 * @return the comment
-	 */
-	public String getComment() {
-		return comment;
-	}
-	/**
-	 * @param comment the comment to set
-	 */
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
 	/**
 	 * @return the pubChemId
 	 */
@@ -53,18 +28,6 @@ public class LinkerView {
 	 */
 	public void setPubChemId(Long pubChemId) {
 		this.pubChemId = pubChemId;
-	}
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
 	}
 	/**
 	 * @return the imageURL
@@ -138,19 +101,33 @@ public class LinkerView {
 	public void setMolecularFormula(String molecularFormula) {
 		this.molecularFormula = molecularFormula;
 	}
-	/**
-	 * @return the dateModified
-	 */
-	public Date getDateModified() {
-		return dateModified;
-	}
-	/**
-	 * @param dateModified the dateModified to set
-	 */
-	public void setDateModified(Date dateModified) {
-		this.dateModified = dateModified;
+	
+	public String getPubChemUrl () {
+		return PUBCHEM_CID + pubChemId; 
 	}
 	
+	public LinkerClassification getClassification() {
+		return classification;
+	}
 	
-
+	public void setClassification(LinkerClassification classification) {
+		this.classification = classification;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof SmallMoleculeLinker))
+			return super.equals(obj);
+		if (pubChemId  != null){ // check if pubchemids are the same
+			return pubChemId.equals(((SmallMoleculeLinker)obj).getPubChemId());
+		}
+		return super.equals(obj);
+	}
+	
+	@Override
+	public int hashCode() {
+		if (pubChemId != null)
+			return pubChemId.hashCode();
+		return super.hashCode();
+	}
 }

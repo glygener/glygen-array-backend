@@ -5,6 +5,7 @@ import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.User;
 
 public interface UserRestClient {
+	void setURL (String url);
 	void login(String username, String password) throws CustomClientException;
 	Confirmation changePassword(String newPassword) throws CustomClientException;
 	Confirmation addUser (User user) throws CustomClientException;

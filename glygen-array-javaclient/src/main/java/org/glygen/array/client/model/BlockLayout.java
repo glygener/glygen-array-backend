@@ -1,6 +1,11 @@
 package org.glygen.array.client.model;
 
+import java.util.Date;
 import java.util.List;
+
+import org.glygen.array.client.GlycanRestClient;
+
+
 
 public class BlockLayout {
 	String id;
@@ -10,6 +15,8 @@ public class BlockLayout {
 	Integer width;
 	Integer height;
 	List<Spot> spots;
+	Date dateCreated;
+	Date dateModified;
 	/**
 	 * @return the name
 	 */
@@ -93,4 +100,39 @@ public class BlockLayout {
 	public String getId () {
 		return id;
 	}
+	
+	public void setURIfromId (String id) {
+		this.uri = GlycanRestClient.uriPrefix + id;
+	}
+	/**
+	 * @return the dateCreated
+	 */
+	public Date getDateCreated() {
+		return dateCreated;
+	}
+	/**
+	 * @param dateCreated the dateCreated to set
+	 */
+	public void setDateCreated(Date dateCreated) {
+		this.dateCreated = dateCreated;
+	}
+	/**
+	 * @return the dateModified
+	 */
+	public Date getDateModified() {
+		return dateModified;
+	}
+	/**
+	 * @param dateModified the dateModified to set
+	 */
+	public void setDateModified(Date dateModified) {
+		this.dateModified = dateModified;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
 }

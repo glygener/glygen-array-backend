@@ -1,22 +1,22 @@
 package org.glygen.array.client.model;
 
 import java.util.Date;
+import java.util.List;
 
-public class Linker {
+
+public abstract class Linker {
 	
 	String uri;
 	String name;
 	String comment;
-	Long pubChemId;
-	String imageURL;
-	String inChiKey;
-	String inChiSequence;
-	String iupacName;
-	Double mass;
-	String molecularFormula;
+	String description;
+	Integer opensRing;    /* 0 does not open ring, 1 opens ring, 2 unknown */
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
+	List<Publication> publications;
+	List<String> urls;
+	LinkerType type;
 	
 	/**
 	 * @return the name
@@ -42,90 +42,7 @@ public class Linker {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	/**
-	 * @return the pubChemId
-	 */
-	public Long getPubChemId() {
-		return pubChemId;
-	}
-	/**
-	 * @param pubChemId the pubChemId to set
-	 */
-	public void setPubChemId(Long pubChemId) {
-		this.pubChemId = pubChemId;
-	}
-	/**
-	 * @return the imageURL
-	 */
-	public String getImageURL() {
-		return imageURL;
-	}
-	/**
-	 * @param imageURL the imageURL to set
-	 */
-	public void setImageURL(String imageURL) {
-		this.imageURL = imageURL;
-	}
-	/**
-	 * @return the inChiKey
-	 */
-	public String getInChiKey() {
-		return inChiKey;
-	}
-	/**
-	 * @param inChiKey the inChiKey to set
-	 */
-	public void setInChiKey(String inChiKey) {
-		this.inChiKey = inChiKey;
-	}
-	/**
-	 * @return the inChiSequence
-	 */
-	public String getInChiSequence() {
-		return inChiSequence;
-	}
-	/**
-	 * @param inChiSequence the inChiSequence to set
-	 */
-	public void setInChiSequence(String inChiSequence) {
-		this.inChiSequence = inChiSequence;
-	}
-	/**
-	 * @return the iupacName
-	 */
-	public String getIupacName() {
-		return iupacName;
-	}
-	/**
-	 * @param iupacName the iupacName to set
-	 */
-	public void setIupacName(String iupacName) {
-		this.iupacName = iupacName;
-	}
-	/**
-	 * @return the mass
-	 */
-	public Double getMass() {
-		return mass;
-	}
-	/**
-	 * @param mass the mass to set
-	 */
-	public void setMass(Double mass) {
-		this.mass = mass;
-	}
-	/**
-	 * @return the molecularFormula
-	 */
-	public String getMolecularFormula() {
-		return molecularFormula;
-	}
-	/**
-	 * @param molecularFormula the molecularFormula to set
-	 */
-	public void setMolecularFormula(String molecularFormula) {
-		this.molecularFormula = molecularFormula;
-	}
+	
 	/**
 	 * @return the uri
 	 */
@@ -175,16 +92,74 @@ public class Linker {
 		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
 	
+	public void setOpensRing(Integer opensRing) {
+		this.opensRing = opensRing;
+	}
+	
+	public Integer getOpensRing() {
+		return opensRing;
+	}
+	
+	public LinkerType getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public void setType(LinkerType type) {
+		this.type = type;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Linker))
 			return false;
 		if (uri != null && ((Linker)obj).getUri() != null)
 			return  uri.equals(((Linker)obj).getUri());
-		else if (pubChemId  != null){ // check if pubchemids are the same
-			return pubChemId.equals(((Linker)obj).getPubChemId());
-		}
+		
 		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		if (uri != null)
+			return uri.hashCode();
+		return super.hashCode();
+	}
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	/**
+	 * @return the publications
+	 */
+	public List<Publication> getPublications() {
+		return publications;
+	}
+	/**
+	 * @param publications the publications to set
+	 */
+	public void setPublications(List<Publication> publications) {
+		this.publications = publications;
+	}
+	/**
+	 * @return the urls
+	 */
+	public List<String> getUrls() {
+		return urls;
+	}
+	/**
+	 * @param urls the urls to set
+	 */
+	public void setUrls(List<String> urls) {
+		this.urls = urls;
 	}
 
 }

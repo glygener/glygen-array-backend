@@ -33,6 +33,7 @@ import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -43,21 +44,25 @@ import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
-import org.glygen.array.util.PubChemAPI;
+import org.glygen.array.service.LayoutRepository;
+import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.GlycanListResultView;
-import org.glygen.array.view.GlycanSequenceFormat;
-import org.glygen.array.view.GlycanView;
-import org.glygen.array.view.ImportGRITSLibraryResult;
 import org.glygen.array.view.LinkerListResultView;
-import org.glygen.array.view.LinkerView;
 import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
 import org.glygen.array.view.SlideLayoutResultView;
@@ -73,6 +78,7 @@ import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
@@ -104,7 +110,17 @@ public class GlygenArrayController {
 	SesameSparqlDAO sparqlDAO;
 	
 	@Autowired
+	@Qualifier("glygenArrayRepositoryImpl")
 	GlygenArrayRepository repository;
+	
+	@Autowired
+	GlycanRepository glycanRepository;
+	
+	@Autowired
+	LinkerRepository linkerRepository;
+	
+	@Autowired
+	LayoutRepository layoutRepository;
 	
 	@Autowired
 	UserRepository userRepository;
@@ -134,8 +150,8 @@ public class GlygenArrayController {
 			// Set flag to show reducing end
 			glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
 
-//			glycanWorkspase.setDisplay(GraphicOptions.DISPLAY_NORMAL);
-//			glycanWorkspase.setNotation(GraphicOptions.NOTATION_CFG);
+			glycanWorkspace.setDisplay(GraphicOptions.DISPLAY_NORMAL);
+			glycanWorkspace.setNotation(GraphicOptions.NOTATION_CFG);
 
 	}
 
@@ -199,7 +215,7 @@ public class GlygenArrayController {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
-			SlideLayout existing = repository.getSlideLayoutByName(layout.getName(), user);
+			SlideLayout existing = layoutRepository.getSlideLayoutByName(layout.getName(), user);
 			if (existing != null) {
 				// duplicate
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
@@ -212,7 +228,7 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
 		
 		try {
-			repository.addSlideLayout(layout, user);
+			layoutRepository.addSlideLayout(layout, user);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Slide layout cannot be added for user " + p.getName(), e);
 		}
@@ -230,7 +246,7 @@ public class GlygenArrayController {
 
 		UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 		
-		SlideLayout existing = repository.getSlideLayoutByName(slidelayoutname, user);
+		SlideLayout existing = layoutRepository.getSlideLayoutByName(slidelayoutname, user);
 
 		if (existing != null) {
 			// duplicate
@@ -252,7 +268,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p) {
+	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p, Boolean noGlytoucanRegistration) {
 		BatchGlycanUploadResult result = new BatchGlycanUploadResult();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
@@ -284,18 +300,18 @@ public class GlygenArrayController {
 						if (glycoCT == null || glycoCT.isEmpty()) {
 							result.addWrongSequence(count + ":" + sequence);
 						} else {
-							Glycan g = new Glycan();
+							SequenceDefinedGlycan g = new SequenceDefinedGlycan();
 							g.setSequence(glycoCT);
-							g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+							g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 							g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
-							String existing = repository.getGlycanBySequence(glycoCT, user);
+							String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
 							if (existing != null) {
 								// duplicate, ignore
 								String id = existing.substring(existing.lastIndexOf("/")+1);
-								Glycan glycan = repository.getGlycanById(id, user);
-								result.addDuplicateSequence(getGlycanView(glycan));
+								Glycan glycan = glycanRepository.getGlycanById(id, user);
+								result.addDuplicateSequence(glycan);
 							} else {
-								String added = repository.addGlycan(g, user);
+								String added = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
 								String id = added.substring(added.lastIndexOf("/")+1);
 								BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
 										.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
@@ -305,8 +321,8 @@ public class GlygenArrayController {
 									File imageFile = new File(imageLocation + File.separator + id + ".png");
 									ImageIO.write(t_image, "png", imageFile);
 								}
-								Glycan addedGlycan = repository.getGlycanById(id, user);
-								result.getAddedGlycans().add(getGlycanView(addedGlycan));
+								Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+								result.getAddedGlycans().add(addedGlycan);
 								countSuccess ++;
 							}
 						}
@@ -334,14 +350,165 @@ public class GlygenArrayController {
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan added successfully"), 
+	@ApiResponses (value ={@ApiResponse(code=200, message="id of the added glycan"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addGlycan (@RequestBody GlycanView glycan, Principal p) {
+	public String addGlycan (@RequestBody Glycan glycan, Principal p, Boolean noGlytoucanRegistration) {
+		if (glycan.getType() == null) {
+			// assume sequenceDefinedGlycan
+			glycan.setType(GlycanType.SEQUENCE_DEFINED);
+		}
+		if (noGlytoucanRegistration == null)
+			noGlytoucanRegistration = false;
+		switch (glycan.getType()) {
+		case SEQUENCE_DEFINED: 
+			return addSequenceDefinedGlycan((SequenceDefinedGlycan)glycan, p, noGlytoucanRegistration);
+		case MASS_ONLY:
+			return addMassOnlyGlycan ((MassOnlyGlycan) glycan, p);
+		case UNKNOWN:
+		default:
+			return addGenericGlycan(glycan, p);
+		}
+	}
+	
+	private String addMassOnlyGlycan(MassOnlyGlycan glycan, Principal p) {
+		if (glycan.getMass() == null) {
+			ErrorMessage errorMessage = new ErrorMessage("Mass cannot be empty");
+			errorMessage.addError(new ObjectError("mass", "NoEmpty"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		}
+		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		// validate first
+		if (validator != null) {
+			if  (glycan.getName() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "name", glycan.getName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (glycan.getComment() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+				}		
+			}
+			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "internalId", glycan.getInternalId());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
+				}		
+			}
+			
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
+		UserEntity user = null;
+		try {
+			user = userRepository.findByUsernameIgnoreCase(p.getName());
+			Glycan local = null;
+			// check if internalid and label are unique
+			if (glycan.getInternalId() != null) {
+				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+				}
+			}
+			if (glycan.getName() != null) {
+				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				}
+			} 
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+				
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		try {	
+			// no errors add the glycan
+			String glycanURI = glycanRepository.addGlycan(glycan, user);
+			return glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+	}
+
+	private String addGenericGlycan(Glycan glycan, Principal p) {
+		if (glycan.getName() == null || glycan.getName().trim().isEmpty()) {
+			ErrorMessage errorMessage = new ErrorMessage("Name cannot be empty");
+			errorMessage.addError(new ObjectError("name", "NoEmpty"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		}
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		// validate first
+		if (validator != null) {
+			if  (glycan.getName() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "name", glycan.getName());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (glycan.getComment() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+				}		
+			}
+			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "internalId", glycan.getInternalId());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
+				}		
+			}
+			
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
+		UserEntity user = null;
+		try {
+			user = userRepository.findByUsernameIgnoreCase(p.getName());
+			Glycan local = null;
+			// check if internalid and label are unique
+			if (glycan.getInternalId() != null) {
+				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+				}
+			}
+			if (glycan.getName() != null) {
+				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
+				if (local != null) {
+					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				}
+			} 
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+				
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		try {	
+			// no errors add the glycan
+			String glycanURI = glycanRepository.addGlycan(glycan, user);
+			return glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		}
+	}
+
+	private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, Principal p, Boolean noGlytoucanRegistration) {
 		if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
 			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
 			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
@@ -354,25 +521,25 @@ public class GlygenArrayController {
 		// validate first
 		if (validator != null) {
 			if  (glycan.getName() != null) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycan.getName());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "name", glycan.getName());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getComment() != null) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycan.getComment());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycan.getInternalId());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "internalId", glycan.getInternalId());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "glytoucanId", glycan.getGlytoucanId());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "glytoucanId", glycan.getGlytoucanId());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("glytoucanId", "LengthExceeded"));
 				}		
@@ -383,7 +550,7 @@ public class GlygenArrayController {
 		}
 		
 		org.eurocarbdb.application.glycanbuilder.Glycan glycanObject= null;
-		Glycan g = new Glycan();
+		SequenceDefinedGlycan g = new SequenceDefinedGlycan();
 		g.setName(glycan.getName() != null ? glycan.getName().trim() : glycan.getName());
 		g.setGlytoucanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
 		g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
@@ -401,7 +568,7 @@ public class GlygenArrayController {
 				
 				boolean parseError = false;
 				try {
-					switch (glycan.getSequenceFormat()) {
+					switch (glycan.getSequenceType()) {
 						case GLYCOCT:
 							glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
 							break;
@@ -418,7 +585,7 @@ public class GlygenArrayController {
 				if (glycanObject == null) {
 					parseError = true;
 				} else {
-					String existingURI = repository.getGlycanBySequence(glycoCT, user);
+					String existingURI = glycanRepository.getGlycanBySequence(glycoCT, user);
 					if (existingURI != null) {
 						errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 					}
@@ -431,13 +598,13 @@ public class GlygenArrayController {
 			Glycan local = null;
 			// check if internalid and label are unique
 			if (glycan.getInternalId() != null) {
-				local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null) {
-				local = repository.getGlycanByLabel(glycan.getName().trim(), user);
+				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
@@ -447,27 +614,24 @@ public class GlygenArrayController {
 		}
 				
 		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		
 		try {	
 			// no errors add the glycan
 			if (glycanObject != null) {
 				g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
 				g.setSequence(glycoCT);
-				g.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
-				String existingURI = repository.getGlycanBySequence(g.getSequence());
+				g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+				String existingURI = glycanRepository.getGlycanBySequence(g.getSequence(), user);
 				if (existingURI == null) {
 					BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
 							.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
 					if (t_image != null) {
-						String glycanURI = repository.addGlycan(g, user);
+						String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
 						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-						Glycan added = repository.getGlycanById(id, user);
+						Glycan added = glycanRepository.getGlycanById(id, user);
 						if (added != null) {
-							String filename = null;
-							if (added.getGlytoucanId() == null || added.getGlytoucanId().isEmpty()) 
-								filename = id + ".png";
-							else
-								filename = added.getGlytoucanId() + ".png";
+							String filename = id + ".png";
 							//save the image into a file
 							logger.debug("Adding image to " + imageLocation);
 							File imageFile = new File(imageLocation + File.separator + filename);
@@ -476,6 +640,7 @@ public class GlygenArrayController {
 							logger.error("Added glycan cannot be retrieved back");
 							throw new GlycanRepositoryException("Glycan image cannot be generated");
 						}
+						return id;
 					} else {
 						logger.error("Glycan image is null");
 						throw new GlycanRepositoryException("Glycan image cannot be generated");
@@ -484,7 +649,8 @@ public class GlygenArrayController {
 				else {
 					// still add to the user's local repo
 					// no need to generate the image again
-					repository.addGlycan(g, user);
+					String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
+					return glycanURI.substring(glycanURI.lastIndexOf("/")+1);
 				}
 			}
 		} catch (SparqlException | SQLException e) {
@@ -495,8 +661,7 @@ public class GlygenArrayController {
 		} catch (Exception e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
 		}
-		
-		return new Confirmation("Glycan added successfully", HttpStatus.CREATED.value());
+		return null;
 	}
 	
 	@ApiOperation(value = "Retrieve image for given glycan")
@@ -532,7 +697,7 @@ public class GlygenArrayController {
 			@PathVariable("glycanId") String glycanId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			repository.deleteGlycan(glycanId, user);
+			glycanRepository.deleteGlycan(glycanId, user);
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
@@ -552,7 +717,7 @@ public class GlygenArrayController {
 			@PathVariable("linkerId") String linkerId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			repository.deleteLinker(linkerId, user);
+			linkerRepository.deleteLinker(linkerId, user);
 			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete linker " + linkerId);
@@ -572,7 +737,7 @@ public class GlygenArrayController {
 			@PathVariable("layoutId") String blockLayoutId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			repository.deleteBlockLayout(blockLayoutId, user);
+			layoutRepository.deleteBlockLayout(blockLayoutId, user);
 			return new Confirmation("Block Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete block layout " + blockLayoutId);
@@ -592,7 +757,7 @@ public class GlygenArrayController {
 			@PathVariable("layoutId") String layoutId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			repository.deleteSlideLayout(layoutId, user);
+			layoutRepository.deleteSlideLayout(layoutId, user);
 			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId);
@@ -611,26 +776,26 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateGlycan(
 			@ApiParam(required=true, value="Glycan with updated fields") 
-			@RequestBody GlycanView glycanView, Principal principal) throws SQLException {
+			@RequestBody Glycan glycanView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		// validate first
 		if (validator != null) {
 			if  (glycanView.getName() != null) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "name", glycanView.getName().trim());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "name", glycanView.getName().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (glycanView.getComment() != null) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "comment", glycanView.getComment().trim());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycanView.getComment().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
 			if (glycanView.getInternalId() != null && !glycanView.getInternalId().isEmpty()) {
-				Set<ConstraintViolation<GlycanView>> violations = validator.validateValue(GlycanView.class, "internalId", glycanView.getInternalId().trim());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "internalId", glycanView.getInternalId().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
 				}		
@@ -650,13 +815,13 @@ public class GlygenArrayController {
 			Glycan local = null;
 			// check if internalid and label are unique
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
-				local = repository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same internal id
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null && !glycan.getName().isEmpty()) {
-				local = repository.getGlycanByLabel(glycan.getName().trim(), user);
+				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
@@ -665,7 +830,7 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
 			
-			repository.updateGlycan(glycan, user);
+			glycanRepository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating glycan with id: " + glycanView.getId());
@@ -696,7 +861,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Invalid Input: Not a valid alias", errorMessage);
 			}
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			repository.addAliasForGlycan(glycanId, alias, user);
+			glycanRepository.addAliasForGlycan(glycanId, alias, user);
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating glycan with glycanId: " +glycanId);
 		}
@@ -718,7 +883,7 @@ public class GlygenArrayController {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			String seq = URLDecoder.decode(sequence, StandardCharsets.UTF_8.name());
-			String glycanURI = repository.getGlycanBySequence(seq.trim(), user);
+			String glycanURI = glycanRepository.getGlycanBySequence(seq.trim(), user);
 			if (glycanURI != null)
 				return glycanURI.substring(glycanURI.lastIndexOf("/") + 1);
 		} catch (SparqlException | SQLException e) {
@@ -727,6 +892,35 @@ public class GlygenArrayController {
 			logger.info(e.getMessage());  // ignore, should not happen
 		}
 		return null;
+	}
+	
+	@ApiOperation(value = "Retrieve sequence (in GlycoCT) from GlyToucan for the glycan with the given glytoucan id (accession number)")
+	@RequestMapping(value="/getGlycanFromGlytoucan", method = RequestMethod.GET)
+	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully", response = String.class), 
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public String getGlycanFromGlytoucan (
+			@ApiParam(required=true, value="Accession number of the glycan to retrieve (from GlyToucan)") 
+			@RequestParam String glytoucanId) {
+		if (glytoucanId == null || glytoucanId.isEmpty())
+			return null;
+		try {
+			String wurcsSequence = GlytoucanUtil.getInstance().retrieveGlycan(glytoucanId);
+			if (wurcsSequence == null) {
+				// cannot be found in Glytoucan
+				throw new EntityNotFoundException("Glycan with accession number " + glytoucanId + " cannot be retrieved");
+			} else {
+				// convert sequence into GlycoCT and return
+				WURCSToGlycoCT exporter = new WURCSToGlycoCT();
+				exporter.start(wurcsSequence);
+				if ( !exporter.getErrorMessages().isEmpty() )
+					throw new GlycanRepositoryException(exporter.getErrorMessages());
+				return exporter.getGlycoCT();
+			}
+			
+		} catch (Exception e) {
+			throw new GlycanRepositoryException("error getting glycan from Glytoucan. Reason: " + e.getMessage(), e);
+		} 
 	}
 	
 	@ApiOperation(value = "List all glycans for the user")
@@ -748,7 +942,6 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
 			@RequestParam(value="order", required=false) Integer order, Principal p) {
 		GlycanListResultView result = new GlycanListResultView();
-		List<GlycanView> glycanList = new ArrayList<GlycanView>();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
@@ -768,14 +961,14 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = repository.getGlycanCountByUser (user);
+			int total = glycanRepository.getGlycanCountByUser (user);
 			
-			List<Glycan> glycans = repository.getGlycanByUser(user, offset, limit, field, order);
+			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order);
 			for (Glycan glycan : glycans) {
-				glycanList.add(getGlycanView(glycan));
+				glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
 			}
 			
-			result.setRows(glycanList);
+			result.setRows(glycans);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
@@ -803,7 +996,6 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
 			@RequestParam(value="order", required=false) Integer order, Principal p) {
 		LinkerListResultView result = new LinkerListResultView();
-		List<LinkerView> linkerList = new ArrayList<LinkerView>();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			if (offset == null)
@@ -823,14 +1015,10 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = repository.getLinkerCountByUser (user);
+			int total = linkerRepository.getLinkerCountByUser (user);
 			
-			List<Linker> linkers = repository.getLinkerByUser(user, offset, limit, field, order);
-			for (Linker linker : linkers) {
-				linkerList.add(getLinkerView(linker));
-			}
-			
-			result.setRows(linkerList);
+			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order);
+			result.setRows(linkers);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
@@ -880,8 +1068,8 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = repository.getBlockLayoutCountByUser (user);
-			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order);
+			int total = layoutRepository.getBlockLayoutCountByUser (user);
+			List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order);
 			result.setRows(layouts);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
@@ -932,8 +1120,8 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = repository.getSlideLayoutCountByUser (user);
-			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
+			int total = layoutRepository.getSlideLayoutCountByUser (user);
+			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
 			result.setRows(layouts);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
@@ -960,7 +1148,7 @@ public class GlygenArrayController {
 			Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			BlockLayout layout = repository.getBlockLayoutById(layoutId, user, loadAll);
+			BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId, user, loadAll);
 			if (layout == null) {
 				throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
 			}
@@ -988,7 +1176,7 @@ public class GlygenArrayController {
 			Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			SlideLayout layout = repository.getSlideLayoutById(layoutId, user, loadAll);
+			SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, user, loadAll);
 			if (layout == null) {
 				throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
 			}
@@ -1019,17 +1207,17 @@ public class GlygenArrayController {
 			@ApiResponse(code=404, message="Gycan with given id does not exist"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public GlycanView getGlycan (
+	public Glycan getGlycan (
 			@ApiParam(required=true, value="id of the glycan to retrieve") 
 			@PathVariable("glycanId") String glycanId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			Glycan glycan = repository.getGlycanById(glycanId, user);
+			Glycan glycan = glycanRepository.getGlycanById(glycanId, user);
 			if (glycan == null) {
 				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			}
 			
-			return getGlycanView(glycan);
+			return glycan;
 			
 			
 		} catch (SparqlException | SQLException e) {
@@ -1047,17 +1235,17 @@ public class GlygenArrayController {
 			@ApiResponse(code=404, message="Linker with given id does not exist"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public LinkerView getLinker (
+	public Linker getLinker (
 			@ApiParam(required=true, value="id of the linker to retrieve") 
 			@PathVariable("linkerId") String linkerId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			Linker linker = repository.getLinkerById(linkerId, user);
+			Linker linker = linkerRepository.getLinkerById(linkerId, user);
 			if (linker == null) {
 				throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
 			}
 			
-			return getLinkerView(linker);
+			return linker;
 			
 			
 		} catch (SparqlException | SQLException e) {
@@ -1066,6 +1254,7 @@ public class GlygenArrayController {
 		
 	}
 	
+	/*
 	@ApiOperation(value = "Add given linker for the user")
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
@@ -1078,7 +1267,7 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation addLinker (
 			@ApiParam(required=true, value="Linker to be added, only pubChemId is required, other fields are optional") 
-			@RequestBody LinkerView linker, Principal p) {
+			@RequestBody Linker linker, Principal p) {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
@@ -1120,7 +1309,7 @@ public class GlygenArrayController {
 			Linker l = null;
 			String linkerURI = null;
 			if (linker.getPubChemId() != null) 
-				linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId());
+				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long");
 			if (linkerURI == null) {
 				// get the linker details from pubChem
 				try {
@@ -1139,14 +1328,14 @@ public class GlygenArrayController {
 				
 				// check if it already exists in local repo as well (by pubChemId, by label)
 				if (linker.getPubChemId() != null) {
-					linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+					linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
 					if (linkerURI != null) {
 						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
 					}
 				}
 				
 				if (linker.getName() != null) {
-					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
@@ -1154,22 +1343,22 @@ public class GlygenArrayController {
 			} else {
 				// check if it already exists in local repo as well (by pubChemId, by label)
 				if (linker.getPubChemId() != null) {
-					linkerURI = repository.getLinkerByPubChemId(linker.getPubChemId(), user);
+					linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
 					if (linkerURI != null) {
 						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
 					}
 				}
 				
 				if (linker.getName() != null) {
-					Linker local = repository.getLinkerByLabel(linker.getName().trim(), user);
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
 				}
 				// only add name and comment to the user's local repo
 				// pubChemId is required for insertion
-				l = new Linker();
-				l.setPubChemId(linker.getPubChemId());
+				l = new SmallMoleculeLinker();
+				((SmallMoleculeLinker) l).setPubChemId(linker.getPubChemId());
 				if (linker.getName() != null) l.setName(linker.getName().trim());
 				if (linker.getComment() != null) l.setComment(linker.getComment().trim());
 			}
@@ -1178,7 +1367,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
 			if (l != null)
-				repository.addLinker(l, user);
+				linkerRepository.addLinker(l, user);
 			
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
@@ -1199,7 +1388,7 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateLinker(
 			@ApiParam(required=true, value="Linker to be updated, id is required, name and comment can be updated only") 
-			@RequestBody LinkerView linkerView, Principal principal) throws SQLException {
+			@RequestBody Linker linkerView, Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1223,7 +1412,7 @@ public class GlygenArrayController {
 		}
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			Linker linker= new Linker();
+			Linker linker= new SmallMoleculeLinker();
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
 			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
 			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);		
@@ -1231,7 +1420,7 @@ public class GlygenArrayController {
 			Linker local = null;
 			// check if name is unique
 			if (linker.getName() != null && !linker.getName().isEmpty()) {
-				local = repository.getLinkerByLabel(linker.getName().trim(), user);
+				local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 				if (local != null && !local.getUri().equals(linker.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
@@ -1240,7 +1429,7 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
-			repository.updateLinker(linker, user);
+			linkerRepository.updateLinker(linker, user);
 			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating linker with id: " + linkerView.getId());
@@ -1293,7 +1482,7 @@ public class GlygenArrayController {
 			BlockLayout local = null;
 			// check if name is unique
 			if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
-				local = repository.getBlockLayoutByName(blockLayout.getName().trim(), user);
+				local = layoutRepository.getBlockLayoutByName(blockLayout.getName().trim(), user);
 				if (local != null && !local.getUri().equals(blockLayout.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
@@ -1302,7 +1491,7 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 			
-			repository.updateBlockLayout(blockLayout, user);
+			layoutRepository.updateBlockLayout(blockLayout, user);
 			return new Confirmation("Block Layout updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating block layout with id: " + layout.getId());
@@ -1355,7 +1544,7 @@ public class GlygenArrayController {
 			SlideLayout local = null;
 			// check if name is unique
 			if (slideLayout.getName() != null && !slideLayout.getName().isEmpty()) {
-				local = repository.getSlideLayoutByName(slideLayout.getName().trim(), user);
+				local = layoutRepository.getSlideLayoutByName(slideLayout.getName().trim(), user);
 				if (local != null && !local.getUri().equals(slideLayout.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
@@ -1364,7 +1553,7 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
 			
-			repository.updateSlideLayout(slideLayout, user);
+			layoutRepository.updateSlideLayout(slideLayout, user);
 			return new Confirmation("Slide Layout updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating slide layout with id: " + layout.getId());
@@ -1429,7 +1618,7 @@ public class GlygenArrayController {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
-			BlockLayout existing = repository.getBlockLayoutByName(layout.getName(), user);
+			BlockLayout existing = layoutRepository.getBlockLayoutByName(layout.getName(), user);
 			if (existing != null) {
 				// duplicate
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
@@ -1443,13 +1632,14 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 		
 		try {
-			repository.addBlockLayout(layout, user);
+			layoutRepository.addBlockLayout(layout, user);
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
 		
 		return new Confirmation("Block layout added successfully", HttpStatus.CREATED.value());
 	}
+	*/
 	
 	@ApiOperation(value = "Upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
@@ -1650,19 +1840,19 @@ public class GlygenArrayController {
         					org.glygen.array.persistence.rdf.Feature myFeature = new org.glygen.array.persistence.rdf.Feature();
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
-		        				Glycan myGlycan = new Glycan();
+		        				SequenceDefinedGlycan myGlycan = new SequenceDefinedGlycan();
 		        				myGlycan.setSequence(glycan.getSequence());  
 		        				myGlycan.setName(glycan.getName());
 		        				myGlycan.setComment(glycan.getComment());
 		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
-		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT.getLabel());
+		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
-		        				myFeature.setGlycan(myGlycan);
+		        				myFeature.getGlycans().add(myGlycan);
         					}
 		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
 		        			if (linker != null) {
-		        				Linker myLinker = new Linker();
-		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());
+		        				Linker myLinker = new SmallMoleculeLinker();
+		        				if (linker.getPubChemId() != null) ((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
 		        				myLinker.setName(linker.getName());
 		        				myLinker.setComment(linker.getComment());
 		        				myFeature.setLinker(myLinker);
@@ -1761,7 +1951,7 @@ public class GlygenArrayController {
 		}
 		return null;
 	}
-	
+	/*
 	@ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
@@ -1810,7 +2000,7 @@ public class GlygenArrayController {
 							if (newName != null && newName.length() > 0) {
 								searchName = newName;
 							}
-							SlideLayout existing = repository.getSlideLayoutByName(searchName, user);
+							SlideLayout existing = layoutRepository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
 								result.getDuplicates().add(slideLayout);
 								continue;
@@ -1827,7 +2017,7 @@ public class GlygenArrayController {
 							if (block.getBlockLayout() != null) { 
 								try {
 									UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-									BlockLayout existing = repository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
+									BlockLayout existing = layoutRepository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
 									if (existing != null) { // already added no need to go through glycans/linkers
 										continue;
 									}
@@ -1864,7 +2054,7 @@ public class GlygenArrayController {
 													if (!linkerCache.contains(feature.getLinker())) {
 														linkerCache.add(feature.getLinker());
 														try {
-															addLinker(getLinkerView(feature.getLinker()), p);
+															addLinker(feature.getLinker(), p);
 														} catch (Exception e) {
 															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 																ErrorMessage error = (ErrorMessage) e.getCause();
@@ -1940,52 +2130,5 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("File cannot be found", errorMessage);
 		}	
 	}
-	 
-	private GlycanView getGlycanView (Glycan glycan) {
-		GlycanView g = new GlycanView();
-		g.setName(glycan.getName());
-		g.setComment(glycan.getComment());
-		g.setMass(glycan.getMass());
-		g.setSequence(glycan.getSequence());
-		if (glycan.getSequenceType() == null || glycan.getSequenceType().equals(GlycanSequenceFormat.GLYCOCT.getLabel()))
-			g.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);
-		else if (glycan.getSequenceType().equals(GlycanSequenceFormat.GWS.getLabel()))
-			g.setSequenceFormat(GlycanSequenceFormat.GWS);
-		g.setInternalId(glycan.getInternalId());
-		if (glycan.getUri() != null)
-			g.setId(glycan.getUri().substring(glycan.getUri().lastIndexOf("/")+1));
-		g.setGlytoucanId(glycan.getGlytoucanId());
-		g.setDateModified(glycan.getDateModified());
-		g.setAliases(glycan.getAliases());
-		try {
-			byte[] image = null;
-			if (g.getGlytoucanId() != null) {
-				image = getCartoonForGlycan(g.getGlytoucanId());
-			} else if (g.getId() != null){
-				image = getCartoonForGlycan(g.getId());
-			}
-			g.setCartoon(image);
-		} catch (Exception e) {
-			logger.warn("Image cannot be retrieved", e);
-		}
-		return g;
-	}
-	
-	private LinkerView getLinkerView(Linker linker) {
-		LinkerView l = new LinkerView();
-		l.setName(linker.getName());
-		l.setComment(linker.getComment());
-		l.setDateModified(linker.getDateModified());
-		l.setPubChemId(linker.getPubChemId());
-		if (linker.getUri() != null) 
-			l.setId(linker.getUri().substring(linker.getUri().lastIndexOf("/")+1));
-		l.setImageURL(linker.getImageURL());
-		l.setInChiKey(linker.getInChiKey());
-		l.setInChiSequence(linker.getInChiSequence());
-		l.setIupacName(linker.getIupacName());
-		l.setMolecularFormula(linker.getMolecularFormula());
-		l.setMass(linker.getMass());
-		l.setPubChemUrl(linker.getPubChemUrl());
-		return l;
-	}
+	*/
 }

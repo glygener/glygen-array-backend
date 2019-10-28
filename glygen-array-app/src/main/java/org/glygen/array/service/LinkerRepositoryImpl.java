@@ -24,7 +24,11 @@ import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
+@Transactional(value="sesameTransactionManager") 
 public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements LinkerRepository {
 	
 	@Override

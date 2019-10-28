@@ -1,6 +1,5 @@
-package org.glygen.array.persistence.rdf;
+package org.glygen.array.client.model;
 
-import javax.validation.constraints.Size;
 
 public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	String glytoucanId;
@@ -14,7 +13,6 @@ public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	/**
 	 * @return the glyTouCanId
 	 */
-	@Size(min=8, max=11, message="GlytoucanId should be 8 characters long")
 	public String getGlytoucanId() {
 		return glytoucanId;
 	}

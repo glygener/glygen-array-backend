@@ -7,7 +7,6 @@ import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.LoginRequest;
 import org.glygen.array.client.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,18 +19,6 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class UserRestClientImpl implements UserRestClient {
 	
-	@Value("${glygen.scheme}")
-	//String scheme="https://";
-	String scheme="http://";
-	
-	@Value("${glygen.host}")
-	//String host="glygen.ccrc.uga.edu";
-	String host="localhost:8080";
-	
-	@Value("${glygen.basePath}")
-	//String basePath="/ggarray/api/";
-	String basePath="/";
-	
 	@Autowired
 	RestTemplateBuilder builder;
 	
@@ -40,6 +27,7 @@ public class UserRestClientImpl implements UserRestClient {
 	String token=null;
 	String username;
 	String password;
+	String url = "http://localhost:8080/";
 
 	public UserRestClientImpl() {
 		this.restTemplate = new RestTemplate();
@@ -76,7 +64,7 @@ public class UserRestClientImpl implements UserRestClient {
 	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 	    headers.add("Authorization", token);
 	    HttpEntity<Void> requestEntity = new HttpEntity<Void>(null, headers);
-		String url = scheme + host + basePath + "users/get/" + username;
+		String url = this.url + "users/get/" + username;
 		ResponseEntity<User> response = this.restTemplate.exchange(url, HttpMethod.GET, requestEntity, User.class);
 		return response.getBody();
 	}
@@ -86,7 +74,7 @@ public class UserRestClientImpl implements UserRestClient {
 		// login to the system and set the token
 		this.username = username;
 		this.password = password;
-		String url = scheme + host + basePath + "login";
+		String url = this.url + "login";
 		LoginRequest loginRequest = new LoginRequest();
 		loginRequest.setUsername(username);
 		loginRequest.setPassword(password);
@@ -94,6 +82,11 @@ public class UserRestClientImpl implements UserRestClient {
 		HttpEntity<Void> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Void.class);
 		HttpHeaders header = response.getHeaders();
 		this.token = header.getFirst("Authorization");
+	}
+	@Override
+	public void setURL(String url) {
+		this.url = url;
+		
 	}
 
 }

@@ -11,8 +11,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.glygen.array.client.model.GlycanSequenceFormat;
-import org.glygen.array.client.model.GlycanView;
-import org.glygen.array.client.model.LinkerView;
+import org.glygen.array.client.model.SequenceDefinedGlycan;
+import org.glygen.array.client.model.SmallMoleculeLinker;
 import org.glygen.array.client.model.User;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
 import org.grits.toolbox.glycanarray.library.om.LibraryInterface;
@@ -73,6 +73,8 @@ public class Application implements CommandLineRunner {
 		GlycanRestClient glycanClient = new GlycanRestClientImpl();
 		glycanClient.setUsername(args[0]);
 		glycanClient.setPassword(args[1]);
+		GlygenSettings settings = glygen();
+		glycanClient.setURL(settings.scheme + settings.host + settings.basePath);
 		
 		// read Library and create glycans in the repository
 		File libraryFile = new File (args[2]);
@@ -87,13 +89,13 @@ public class Application implements CommandLineRunner {
 	        if (importType.equals("Glycan")) {
 		        List<Glycan> glycanList = library.getFeatureLibrary().getGlycan();
 		        for (Glycan glycan : glycanList) {
-					GlycanView view = new GlycanView();
+					SequenceDefinedGlycan view = new SequenceDefinedGlycan();
 					view.setInternalId(glycan.getId()+ "");
 					view.setName(glycan.getName());
 					view.setComment(glycan.getComment());
 					view.setGlytoucanId(glycan.getGlyTouCanId());
 					view.setSequence(glycan.getSequence());
-					view.setSequenceFormat(GlycanSequenceFormat.GLYCOCT);
+					view.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 					try {
 						glycanClient.addGlycan(view, user);
 					} catch (HttpClientErrorException e) {
@@ -113,7 +115,7 @@ public class Application implements CommandLineRunner {
 	        } else if (importType.equals("Linker")) {
 		        List<Linker> linkerList = library.getFeatureLibrary().getLinker();
 		        for (Linker linker : linkerList) {
-					LinkerView view = new LinkerView();
+					SmallMoleculeLinker view = new SmallMoleculeLinker();
 					if (linker.getPubChemId() != null) view.setPubChemId(linker.getPubChemId().longValue());
 					view.setName(linker.getName());
 					view.setComment(linker.getComment());
@@ -207,13 +209,14 @@ public class Application implements CommandLineRunner {
         					org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
         					Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
-		        				org.glygen.array.client.model.Glycan myGlycan = new org.glygen.array.client.model.Glycan();
+		        				org.glygen.array.client.model.SequenceDefinedGlycan myGlycan = new org.glygen.array.client.model.SequenceDefinedGlycan();
 		        				myGlycan.setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
-		        				myFeature.setGlycan(myGlycan);
+		        				//TODO implement addGlycan
+		        				//myFeature.addGlycan(myGlycan);
         					}
 		        			Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
 		        			if (linker != null) {
-		        				org.glygen.array.client.model.Linker myLinker = new org.glygen.array.client.model.Linker();
+		        				org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
 		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
 		        				myFeature.setLinker(myLinker);
 		        			}
