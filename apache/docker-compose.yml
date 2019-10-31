@@ -6,7 +6,6 @@ services:
       - 9980:80
     volumes:
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ${HOME}/workspace/glygen-array-frontend/src/:/usr/local/apache2/htdocs/
       - ${HOME}/workspace/glygen-array-backend/ontology/:/usr/local/apache2/htdocs/ontology/
 
 networks:
