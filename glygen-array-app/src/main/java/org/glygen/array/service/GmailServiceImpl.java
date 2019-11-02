@@ -199,7 +199,7 @@ public final class GmailServiceImpl implements EmailManager {
 		String verificationURL = frontEndScheme + frontEndHost + frontEndbasePath + emailVerificationPage;
         final String recipientAddress = user.getEmail();
         final String subject = "Registration Confirmation";
-        final String confirmationUrl = verificationURL+ "?token=" + token;
+        final String confirmationUrl = verificationURL+ "/" + token;
         final String message = "Click on the link below to verify your email";
 	    
         try {

@@ -49,10 +49,10 @@ glygen:
   basePath: /
   frontend:
       scheme: http://
-      host: localhost:8000
+      host: localhost:8080
       basePath: /
       loginPage: login.html
-      emailVerificationPage: emailConfirmation1.html
+      emailVerificationPage: emailConfirmation
 
 
    
