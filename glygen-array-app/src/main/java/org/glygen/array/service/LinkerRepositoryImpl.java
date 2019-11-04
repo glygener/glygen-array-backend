@@ -19,10 +19,14 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,7 +119,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					statements.add(f.createStatement(linker, hasUniProtId, uniProt, graphIRI));
 				}
 				if (((ProteinLinker)l).getPdbId() != null) {
-					IRI hasPDBId = f.createIRI(ontPrefix + "has_uniProtId");
+					IRI hasPDBId = f.createIRI(ontPrefix + "has_pdbId");
 					Literal pdb = f.createLiteral(((ProteinLinker)l).getPdbId());
 					statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
 				}
@@ -305,23 +309,30 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI graphIRI = f.createIRI(graph);
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+		//TODO what to do with linkerClassifications
 	}
 	
 	private String findLinkerInGraphByField (String field, String predicate, String type, String graph) throws SparqlException {
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
-		String where = "WHERE { " + 
+		String whereClause = "WHERE {";
+		String where = " { " + 
 				"				    ?s gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n";
 		if (!graph.equals(DEFAULT_GRAPH)) {
 			// check if the user's private graph has this glycan
 			fromString += "FROM <" + graph + ">\n";
-			where += "              ?s gadr:has_date_addedtolibrary ?d .\n";
+			where += "              ?s gadr:has_date_addedtolibrary ?d .\n }";
+			where += "  UNION { ?s gadr:has_date_addedtolibrary ?d .\n"
+					+ " ?s gadr:has_public_uri ?p . \n" 
+					+ "?p gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n}";
 			
+		} else {
+			where += "}";
 		}
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?s \n");
 		queryBuf.append (fromString);
-		queryBuf.append (where + 
+		queryBuf.append (whereClause + where + 
 				"				}\n" + 
 				"				LIMIT 10");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
@@ -459,6 +470,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return "gadr:has_date_modified";
 		else if (field.equalsIgnoreCase("id"))
 			return null;	
+		else if (field.equalsIgnoreCase("uniProtId")) 
+			return "gadr:has_uniProtId";
+		else if (field.equalsIgnoreCase("pdbId"))
+			return "gadr:has_pdbId";
+		else if (field.equalsIgnoreCase("sequence"))
+			return "gadr:has_sequence";
+		
 		return null;
 	}
 	
@@ -496,6 +514,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI linker = f.createIRI(linkerURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
+		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+		IRI hasPdbId = f.createIRI(ontPrefix + "has_pdbId");
+		IRI hasUniprotId = f.createIRI(ontPrefix + "has_uniProtId");
 		IRI hasInchiSequence = f.createIRI(ontPrefix + "has_inChI_sequence");
 		IRI hasInchiKey = f.createIRI(ontPrefix + "has_inChI_key");
 		IRI hasIupacName = f.createIRI(ontPrefix + "has_iupac_name");
@@ -503,11 +525,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasImageUrl = f.createIRI(ontPrefix + "has_image_url");
 		IRI hasPubChemId = f.createIRI(ontPrefix + "has_pubchem_compound_id");
 		IRI hasMolecularFormula = f.createIRI(ontPrefix + "has_molecular_formula");
+		IRI hasClassification = f.createIRI(ontPrefix + "has_classification");
+		IRI hasChebiId = f.createIRI(ontPrefix+ "has_chEBI");
+		IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classificaition_value");
+		IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
+		IRI hasDescription = f.createIRI(ontPrefix + "has_description");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, defaultGraphIRI);
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		if (statements.hasNext()) {
 			switch (type) {
 			case PEPTIDE_LINKER:
@@ -522,36 +549,60 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 			
 			linkerObject.setUri(linkerURI);
+			linkerObject.setId(linkerURI.substring(linkerURI.lastIndexOf("/")+1));
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(hasInchiSequence)) {
 				Value seq = st.getObject();
-				((SmallMoleculeLinker)linkerObject).setInChiSequence(seq.stringValue()); 
+				if (linkerObject instanceof SmallMoleculeLinker)
+					((SmallMoleculeLinker)linkerObject).setInChiSequence(seq.stringValue()); 
 			} else if (st.getPredicate().equals(hasInchiKey)) {
 				Value val = st.getObject();
-				((SmallMoleculeLinker)linkerObject).setInChiKey(val.stringValue()); 
+				if (linkerObject instanceof SmallMoleculeLinker)
+					((SmallMoleculeLinker)linkerObject).setInChiKey(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasIupacName)) {
 				Value val = st.getObject();
-				((SmallMoleculeLinker)linkerObject).setIupacName(val.stringValue()); 
+				if (linkerObject instanceof SmallMoleculeLinker)
+					((SmallMoleculeLinker)linkerObject).setIupacName(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasImageUrl)) {
 				Value val = st.getObject();
-				((SmallMoleculeLinker)linkerObject).setImageURL(val.stringValue()); 
+				if (linkerObject instanceof SmallMoleculeLinker)
+					((SmallMoleculeLinker)linkerObject).setImageURL(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasPubChemId)) {
 				Value val = st.getObject();
-				if (val != null)
-					((SmallMoleculeLinker)linkerObject).setPubChemId(Long.parseLong(val.stringValue())); 
+				if (val != null) {
+					if (linkerObject instanceof SmallMoleculeLinker)
+						((SmallMoleculeLinker)linkerObject).setPubChemId(Long.parseLong(val.stringValue())); 
+				}
 			} else if (st.getPredicate().equals(hasMolecularFormula)) {
 				Value val = st.getObject();
-				((SmallMoleculeLinker)linkerObject).setMolecularFormula(val.stringValue()); 
+				if (linkerObject instanceof SmallMoleculeLinker)
+					((SmallMoleculeLinker)linkerObject).setMolecularFormula(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasMass)) {
 				Value mass = st.getObject();
 				try {
-					if (mass != null && mass.stringValue() != null && !mass.stringValue().isEmpty())
-						((SmallMoleculeLinker)linkerObject).setMass(Double.parseDouble(mass.stringValue())); 
+					if (mass != null && mass.stringValue() != null && !mass.stringValue().isEmpty()) {
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setMass(Double.parseDouble(mass.stringValue())); 
+					}
 				} catch (NumberFormatException e) {
 					logger.warn ("Glycan mass is invalid", e);
 				}
+			} else if (st.getPredicate().equals(hasPdbId)) {
+				Value val = st.getObject();
+				if (linkerObject instanceof ProteinLinker)
+					((ProteinLinker)linkerObject).setPdbId(val.stringValue()); 
+			} else if (st.getPredicate().equals(hasUniprotId)) {
+				Value val = st.getObject();
+				if (linkerObject instanceof ProteinLinker)
+					((ProteinLinker)linkerObject).setUniProtId(val.stringValue()); 
+			} else if (st.getPredicate().equals(hasSequence)) {
+				Value val = st.getObject();
+				if (linkerObject instanceof ProteinLinker)
+					((ProteinLinker)linkerObject).setSequence(val.stringValue()); 
+				else if (linkerObject instanceof PeptideLinker) 
+					((PeptideLinker)linkerObject).setSequence(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasCreatedDate)) {
 				Value value = st.getObject();
 			    if (value instanceof Literal) {
@@ -560,38 +611,151 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			    	Date date = calendar.toGregorianCalendar().getTime();
 			    	linkerObject.setDateCreated(date);
 			    }
+			} else if (st.getPredicate().equals(RDFS.LABEL)) {
+				Value label = st.getObject();
+				linkerObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+				Value comment = st.getObject();
+				linkerObject.setComment(comment.stringValue());
+			} else if (st.getPredicate().equals(hasDescription)) {
+				Value comment = st.getObject();
+				linkerObject.setDescription(comment.stringValue());
+			} else if (st.getPredicate().equals(opensRing)) {
+				Value val = st.getObject();
+				if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+					linkerObject.setOpensRing(Integer.parseInt(val.stringValue()));
+				}
+			} else if (st.getPredicate().equals(hasModifiedDate)) {
+				Value value = st.getObject();
+			    if (value instanceof Literal) {
+			    	Literal literal = (Literal)value;
+			    	XMLGregorianCalendar calendar = literal.calendarValue();
+			    	Date date = calendar.toGregorianCalendar().getTime();
+			    	linkerObject.setDateModified(date);
+			    }
+			} else if (st.getPredicate().equals(hasAddedToLibrary)) {
+				Value value = st.getObject();
+			    if (value instanceof Literal) {
+			    	Literal literal = (Literal)value;
+			    	XMLGregorianCalendar calendar = literal.calendarValue();
+			    	Date date = calendar.toGregorianCalendar().getTime();
+			    	linkerObject.setDateAddedToLibrary(date);
+			    }
+			} else if (st.getPredicate().equals(hasClassification)) {
+				if (linkerObject instanceof SmallMoleculeLinker) {
+					Value classification = st.getObject();
+					String classificationURI = classification.stringValue();
+					IRI cls = f.createIRI(classificationURI);
+					LinkerClassification linkerCls = new LinkerClassification();
+					linkerCls.setUri(classificationURI);
+					((SmallMoleculeLinker) linkerObject).setClassification(linkerCls);
+					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(cls, null, null, graphIRI);
+					while (statements2.hasNext()) {
+						Statement st2 = statements2.next();
+						if (st2.getPredicate().equals(hasClassificationValue)) {
+							Value valueString = st2.getObject();
+							linkerCls.setClassification(valueString.stringValue());
+						} else if (st2.getPredicate().equals(hasChebiId)) {
+							Value val = st2.getObject();
+							if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+								linkerCls.setChebiId(Integer.parseInt(val.stringValue()));
+							}
+						}  
+					}
+				}
+			} else if (st.getPredicate().equals(hasPublicURI)) {
+				// need to retrieve additional information from DEFAULT graph
+				Value uriValue = st.getObject();
+				String publicLinkerURI = uriValue.stringValue();
+				IRI publicLinker = f.createIRI(publicLinkerURI);
+				RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicLinker, null, null, defaultGraphIRI);
+				while (statementsPublic.hasNext()) {
+					Statement stPublic = statementsPublic.next();
+					
+					if (stPublic.getPredicate().equals(hasInchiSequence)) {
+						Value seq = stPublic.getObject();
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setInChiSequence(seq.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasInchiKey)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setInChiKey(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasIupacName)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setIupacName(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasImageUrl)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setImageURL(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasPubChemId)) {
+						Value val = stPublic.getObject();
+						if (val != null) {
+							if (linkerObject instanceof SmallMoleculeLinker)
+								((SmallMoleculeLinker)linkerObject).setPubChemId(Long.parseLong(val.stringValue())); 
+						}
+					} else if (stPublic.getPredicate().equals(hasMolecularFormula)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof SmallMoleculeLinker)
+							((SmallMoleculeLinker)linkerObject).setMolecularFormula(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasMass)) {
+						Value mass = stPublic.getObject();
+						try {
+							if (mass != null && mass.stringValue() != null && !mass.stringValue().isEmpty()) {
+								if (linkerObject instanceof SmallMoleculeLinker)
+									((SmallMoleculeLinker)linkerObject).setMass(Double.parseDouble(mass.stringValue())); 
+							}
+						} catch (NumberFormatException e) {
+							logger.warn ("Glycan mass is invalid", e);
+						}
+					} else if (stPublic.getPredicate().equals(hasPdbId)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof ProteinLinker)
+							((ProteinLinker)linkerObject).setPdbId(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasUniprotId)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof ProteinLinker)
+							((ProteinLinker)linkerObject).setUniProtId(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasSequence)) {
+						Value val = stPublic.getObject();
+						if (linkerObject instanceof ProteinLinker)
+							((ProteinLinker)linkerObject).setSequence(val.stringValue()); 
+						else if (linkerObject instanceof PeptideLinker) 
+							((PeptideLinker)linkerObject).setSequence(val.stringValue()); 
+					} else if (stPublic.getPredicate().equals(hasDescription)) {
+						Value comment = stPublic.getObject();
+						linkerObject.setDescription(comment.stringValue());
+					} else if (stPublic.getPredicate().equals(opensRing)) {
+						Value val = stPublic.getObject();
+						if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+							linkerObject.setOpensRing(Integer.parseInt(val.stringValue()));
+						}
+					} else if (stPublic.getPredicate().equals(hasClassification)) {
+						if (linkerObject instanceof SmallMoleculeLinker) {
+							Value classification = stPublic.getObject();
+							String classificationURI = classification.stringValue();
+							IRI cls = f.createIRI(classificationURI);
+							LinkerClassification linkerCls = new LinkerClassification();
+							((SmallMoleculeLinker) linkerObject).setClassification(linkerCls);
+							RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(cls, null, null, defaultGraphIRI);
+							while (statements2.hasNext()) {
+								Statement st2 = statements2.next();
+								if (st2.getPredicate().equals(hasClassificationValue)) {
+									Value valueString = st2.getObject();
+									linkerCls.setClassification(valueString.stringValue());
+								} else if (st2.getPredicate().equals(hasChebiId)) {
+									Value val = st2.getObject();
+									if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+										linkerCls.setChebiId(Integer.parseInt(val.stringValue()));
+									}
+								}  
+							}
+						}
+					}
+				}
 			}
 		}
 		
-		if (linkerObject != null) {
-			statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
-			while (statements.hasNext()) {
-				Statement st = statements.next();
-				if (st.getPredicate().equals(RDFS.LABEL)) {
-					Value label = st.getObject();
-					linkerObject.setName(label.stringValue());
-				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
-					Value comment = st.getObject();
-					linkerObject.setComment(comment.stringValue());
-				} else if (st.getPredicate().equals(hasModifiedDate)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	linkerObject.setDateModified(date);
-				    }
-				} else if (st.getPredicate().equals(hasAddedToLibrary)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	linkerObject.setDateAddedToLibrary(date);
-				    }
-				} 
-			}
-		}
 		
 		return linkerObject;
 	}

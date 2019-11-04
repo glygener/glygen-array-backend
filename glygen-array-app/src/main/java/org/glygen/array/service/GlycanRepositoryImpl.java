@@ -307,6 +307,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI graphIRI = f.createIRI(graph);
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+		//TODO what to do with sequence value and format
 	}
 
 	/**

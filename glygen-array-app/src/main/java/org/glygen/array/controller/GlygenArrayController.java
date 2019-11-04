@@ -47,7 +47,10 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
@@ -56,6 +59,7 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.GlytoucanUtil;
+import org.glygen.array.util.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;
@@ -622,36 +626,28 @@ public class GlygenArrayController {
 				g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
 				g.setSequence(glycoCT);
 				g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-				String existingURI = glycanRepository.getGlycanBySequence(g.getSequence(), user);
-				if (existingURI == null) {
-					BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-							.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-					if (t_image != null) {
-						String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
-						String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-						Glycan added = glycanRepository.getGlycanById(id, user);
-						if (added != null) {
-							String filename = id + ".png";
-							//save the image into a file
-							logger.debug("Adding image to " + imageLocation);
-							File imageFile = new File(imageLocation + File.separator + filename);
-							ImageIO.write(t_image, "png", imageFile);
-						} else {
-							logger.error("Added glycan cannot be retrieved back");
-							throw new GlycanRepositoryException("Glycan image cannot be generated");
-						}
-						return id;
+				BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+						.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+				if (t_image != null) {
+					String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
+					String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+					Glycan added = glycanRepository.getGlycanById(id, user);
+					if (added != null) {
+						String filename = id + ".png";
+						//save the image into a file
+						logger.debug("Adding image to " + imageLocation);
+						File imageFile = new File(imageLocation + File.separator + filename);
+						ImageIO.write(t_image, "png", imageFile);
 					} else {
-						logger.error("Glycan image is null");
+						logger.error("Added glycan cannot be retrieved back");
 						throw new GlycanRepositoryException("Glycan image cannot be generated");
 					}
+					return id;
+				} else {
+					logger.error("Glycan image is null");
+					throw new GlycanRepositoryException("Glycan image cannot be generated");
 				}
-				else {
-					// still add to the user's local repo
-					// no need to generate the image again
-					String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
-					return glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-				}
+				
 			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
@@ -1254,48 +1250,69 @@ public class GlygenArrayController {
 		
 	}
 	
-	/*
+	
 	@ApiOperation(value = "Add given linker for the user")
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
-	@ApiResponses (value ={@ApiResponse(code=200, message="Linker added successfully"), 
+	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added linker"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register linkers"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation addLinker (
+	public String addLinker (
 			@ApiParam(required=true, value="Linker to be added, only pubChemId is required, other fields are optional") 
 			@RequestBody Linker linker, Principal p) {
 		
+		if (linker.getType() == null) {
+			// assume sequenceDefinedGlycan
+			linker.setType(LinkerType.SMALLMOLECULE_LINKER);
+		}
+		
+		switch (linker.getType()) {
+		case SMALLMOLECULE_LINKER: 
+			return addSmallMoleculeLinker((SmallMoleculeLinker)linker, p);
+		case PEPTIDE_LINKER:
+			return addPeptideLinker ((PeptideLinker) linker, p);
+		case PROTEIN_LINKER:
+			return addProteinLinker((ProteinLinker) linker, p);
+		}
+		throw new GlycanRepositoryException("Incorrect linker type");
+	}
+	
+	private String addProteinLinker(ProteinLinker linker, Principal p) {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
-		if (linker.getPubChemId() == null) {
-			errorMessage.addError(new ObjectError("pubChemId", "NoEmpty"));
+		if (linker.getSequence() == null)  {
+			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+		} 
+		
+		if (linker.getUniProtId() == null)  {
+			errorMessage.addError(new ObjectError("uniProtId", "NoEmpty"));
 		} 
 	
 		// validate first
 		if (validator != null) {
-			if (linker.getPubChemId() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "pubChemId", linker.getPubChemId());
+			if (linker.getDescription() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linker.getDescription().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			
 			if  (linker.getName() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linker.getName().trim());
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "name", linker.getName().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (linker.getComment() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linker.getComment().trim());
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -1308,72 +1325,208 @@ public class GlygenArrayController {
 		try {
 			Linker l = null;
 			String linkerURI = null;
-			if (linker.getPubChemId() != null) 
-				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long");
-			if (linkerURI == null) {
-				// get the linker details from pubChem
-				try {
-					l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
-					if (l == null) {
-						// could not get details from PubChem
-						errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
-					} else {
-						if (linker.getName() != null) l.setName(linker.getName().trim());
-						if (linker.getComment() != null) l.setComment(linker.getComment().trim());
-					}
-				} catch (Exception e) {
-					// could not get details from PubChem
-					errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
-				}
-				
-				// check if it already exists in local repo as well (by pubChemId, by label)
-				if (linker.getPubChemId() != null) {
-					linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
-					if (linkerURI != null) {
-						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
-					}
-				}
-				
-				if (linker.getName() != null) {
-					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-					if (local != null) {
-						errorMessage.addError(new ObjectError("name", "Duplicate"));	
-					}
-				}
-			} else {
-				// check if it already exists in local repo as well (by pubChemId, by label)
-				if (linker.getPubChemId() != null) {
-					linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
-					if (linkerURI != null) {
-						errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
-					}
-				}
-				
-				if (linker.getName() != null) {
-					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-					if (local != null) {
-						errorMessage.addError(new ObjectError("name", "Duplicate"));	
-					}
-				}
-				// only add name and comment to the user's local repo
-				// pubChemId is required for insertion
-				l = new SmallMoleculeLinker();
-				((SmallMoleculeLinker) l).setPubChemId(linker.getPubChemId());
-				if (linker.getName() != null) l.setName(linker.getName().trim());
-				if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+			if (linker.getSequence() != null) {
+				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
+				errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
 			}
+			else if (linker.getUniProtId() != null) {
+				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", user);
+				errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
+			}
+			if (linkerURI == null) {
+				l = linker;
+				
+				if (linker.getName() != null) {
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) {
+						errorMessage.addError(new ObjectError("name", "Duplicate"));	
+					}
+				}
+			} 
 			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
-			if (l != null)
-				linkerRepository.addLinker(l, user);
+			if (l != null) {
+				String addedURI = linkerRepository.addLinker(l, user);
+				return addedURI.substring(addedURI.lastIndexOf("/")+1);
+			}
 			
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
 		} 
 		
-		return new Confirmation("Linker added successfully", HttpStatus.CREATED.value());
+		return null;
+	}
+
+	private String addPeptideLinker(PeptideLinker linker, Principal p) {
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
+		if (linker.getSequence() == null)  {
+			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+		} 
+		
+		// validate first
+		if (validator != null) {
+			if (linker.getDescription() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linker.getDescription().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+				}		
+			}
+			
+			if  (linker.getName() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "name", linker.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (linker.getComment() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+				}		
+			}
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
+		try {
+			Linker l = null;
+			String linkerURI = null;
+			if (linker.getSequence() != null) {
+				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
+				errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+			}
+			
+			if (linkerURI == null) {
+				l = linker;
+				
+				if (linker.getName() != null) {
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) {
+						errorMessage.addError(new ObjectError("name", "Duplicate"));	
+					}
+				}
+			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+			
+			if (l != null) {
+				String addedURI = linkerRepository.addLinker(l, user);
+				return addedURI.substring(addedURI.lastIndexOf("/")+1);
+			}
+			
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
+		} 
+		
+		return null;
+	}
+
+	private String addSmallMoleculeLinker(SmallMoleculeLinker linker, Principal p) {
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		
+		ErrorMessage errorMessage = new ErrorMessage();
+		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
+		if (linker.getClassification() == null)  {
+			errorMessage.addError(new ObjectError("classification", "NoEmpty"));
+		} 
+	
+		// validate first
+		if (validator != null) {
+			if (linker.getDescription() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linker.getDescription().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+				}		
+			}
+			
+			if  (linker.getName() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "name", linker.getName().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+				}		
+			}
+			if (linker.getComment() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
+				if (!violations.isEmpty()) {
+					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+				}		
+			}
+		
+		} else {
+			throw new RuntimeException("Validator cannot be found!");
+		}
+		
+		try {
+			Linker l = null;
+			String linkerURI = null;
+			if (linker.getPubChemId() != null) {
+				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
+				if (linkerURI != null)
+					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+			}
+			else if (linker.getInChiKey() != null) {
+				linkerURI = linkerRepository.getLinkerByField(linker.getInChiKey(), "has_inChI_key", "string", user);
+				if (linkerURI != null)
+					errorMessage.addError(new ObjectError("inChiKey", "Duplicate"));
+			}
+			if (linkerURI == null) {
+				// get the linker details from pubChem
+				if (linker.getPubChemId() != null) {
+					try {
+						
+						l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+						if (l == null) {
+							// could not get details from PubChem
+							errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+						} else {
+							if (linker.getName() != null) l.setName(linker.getName().trim());
+							if (linker.getComment() != null) l.setComment(linker.getComment().trim());
+							if (linker.getDescription() != null) l.setDescription(linker.getDescription().trim());
+							if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
+							if (((SmallMoleculeLinker)l).getClassification() == null)
+								((SmallMoleculeLinker)l).setClassification (linker.getClassification());
+						}
+					} catch (Exception e) {
+						// could not get details from PubChem
+						errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+					}
+				}
+				else {
+					l = linker;
+				}
+				
+				if (linker.getName() != null) {
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+					if (local != null) {
+						errorMessage.addError(new ObjectError("name", "Duplicate"));	
+					}
+				}
+			} 
+			
+			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+			
+			if (l != null) {
+				String addedURI = linkerRepository.addLinker(l, user);
+				return addedURI.substring(addedURI.lastIndexOf("/")+1);
+			}
+			
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
+		} 
+		
+		return null;
 	}
 	
 	@ApiOperation(value = "Update given linker for the user")
@@ -1395,13 +1548,13 @@ public class GlygenArrayController {
 		// validate first
 		if (validator != null) {
 			if  (linkerView.getName() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "name", linkerView.getName().trim());
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "name", linkerView.getName().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (linkerView.getComment() != null) {
-				Set<ConstraintViolation<LinkerView>> violations = validator.validateValue(LinkerView.class, "comment", linkerView.getComment().trim());
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linkerView.getComment().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -1415,7 +1568,7 @@ public class GlygenArrayController {
 			Linker linker= new SmallMoleculeLinker();
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
 			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
-			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);		
+			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);	
 			
 			Linker local = null;
 			// check if name is unique
@@ -1435,7 +1588,7 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Error updating linker with id: " + linkerView.getId());
 		}
 	}
-	
+	/*
 	@ApiOperation(value = "Update given block layout for the user")
 	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},

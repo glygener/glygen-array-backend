@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
 import org.glygen.array.client.model.GlycanSequenceFormat;
+import org.glygen.array.client.model.LinkerClassification;
 import org.glygen.array.client.model.SequenceDefinedGlycan;
 import org.glygen.array.client.model.SmallMoleculeLinker;
 import org.glygen.array.client.model.User;
@@ -114,11 +115,13 @@ public class Application implements CommandLineRunner {
 				}
 	        } else if (importType.equals("Linker")) {
 		        List<Linker> linkerList = library.getFeatureLibrary().getLinker();
+		        LinkerClassification classification = new LinkerClassification();
 		        for (Linker linker : linkerList) {
 					SmallMoleculeLinker view = new SmallMoleculeLinker();
 					if (linker.getPubChemId() != null) view.setPubChemId(linker.getPubChemId().longValue());
 					view.setName(linker.getName());
 					view.setComment(linker.getComment());
+					view.setClassification(classification);
 					try {
 						glycanClient.addLinker(view, user);
 					} catch (HttpClientErrorException e) {

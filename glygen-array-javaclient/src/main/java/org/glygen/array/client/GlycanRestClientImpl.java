@@ -128,7 +128,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	}
 
 	@Override
-	public Confirmation addLinker(Linker linker, User user) {
+	public String addLinker(Linker linker, User user) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -138,7 +138,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		String url = this.url + "array/addlinker";
 		System.out.println("URL: " + url);
 		try {
-			ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+			ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 			return response.getBody();
 		} catch (HttpClientErrorException e) {
 			String errorMessage = e.getResponseBodyAsString();
@@ -146,7 +146,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 					&& errorMessage.contains("name")) {
 				linker.setName(linker.getName()+"B");
 				requestEntity = new HttpEntity<Linker>(linker, headers);
-				ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+				ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 				return response.getBody();
 			}
 		}

@@ -5,8 +5,21 @@ import java.util.List;
 
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
+@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME, 
+		include = JsonTypeInfo.As.PROPERTY, 
+		property = "type")
+	@JsonSubTypes({ 
+		@Type(value = SmallMoleculeLinker.class, name = "SMALLMOLECULE_LINKER"), 
+		@Type(value = PeptideLinker.class, name = "PEPTIDE_LINKER"),
+		@Type(value = ProteinLinker.class, name = "PROTEIN_LINKER")
+	})
 public abstract class Linker {
-	
+	String id;
 	String uri;
 	String name;
 	String comment;
@@ -18,6 +31,15 @@ public abstract class Linker {
 	List<Publication> publications;
 	List<String> urls;
 	LinkerType type;
+	
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
 	
 	/**
 	 * @return the name
@@ -104,8 +126,7 @@ public abstract class Linker {
 	}
 	
 	public LinkerType getType() {
-		// TODO Auto-generated method stub
-		return null;
+		return type;
 	}
 	
 	public void setType(LinkerType type) {
@@ -131,7 +152,7 @@ public abstract class Linker {
 	/**
 	 * @return the description
 	 */
-	@Size(max=250, message="Comment cannot exceed 250 characters")
+	@Size(max=250, message="descriptions cannot exceed 250 characters")
 	public String getDescription() {
 		return description;
 	}

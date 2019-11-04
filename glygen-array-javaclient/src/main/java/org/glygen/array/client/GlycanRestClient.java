@@ -14,7 +14,7 @@ public interface GlycanRestClient {
 	public static final String uriPrefix = "http://glygen.org/glygenarray/";
 	
 	String addGlycan (Glycan glycan, User user);
-	Confirmation addLinker (Linker linker, User user);
+	String addLinker (Linker linker, User user);
 	Confirmation addBlockLayout (BlockLayout layout, User user);
 	Confirmation addSlideLayout (SlideLayout layout, User user);
 	public void setUsername(String username);

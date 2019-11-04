@@ -101,8 +101,7 @@ public abstract class Linker {
 	}
 	
 	public LinkerType getType() {
-		// TODO Auto-generated method stub
-		return null;
+		return type;
 	}
 	
 	public void setType(LinkerType type) {
