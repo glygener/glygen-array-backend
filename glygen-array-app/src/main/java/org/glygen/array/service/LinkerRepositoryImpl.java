@@ -95,7 +95,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-			Literal opensRingValue = f.createLiteral(l.getOpensRing());
+			Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
 			Literal sequenceL= f.createLiteral(sequence);
@@ -222,7 +222,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (l.getIupacName() != null) 
 				iupacName = f.createLiteral(l.getIupacName());
 		
-			Literal opensRingValue = f.createLiteral(l.getOpensRing());
+			Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
 			List<Statement> statements = new ArrayList<Statement>();
