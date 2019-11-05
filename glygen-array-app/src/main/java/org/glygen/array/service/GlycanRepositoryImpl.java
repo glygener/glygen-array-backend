@@ -269,7 +269,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 			Literal glycanLabel = g.getName() == null ? f.createLiteral("") : f.createLiteral(g.getName());
 			Literal glycanComment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+			IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
+			Literal type = f.createLiteral(g.getType().name());
+			IRI glycanType = f.createIRI(ontPrefix + "Glycan");
 			
+			statements.add(f.createStatement(glycan, RDF.TYPE, glycanType, graphIRI));
+			statements.add(f.createStatement(glycan, hasGlycanType, type, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasPublicURI, glycan, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasModifiedDate, date, graphIRI));

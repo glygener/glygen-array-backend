@@ -19,14 +19,11 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
-import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
-import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,6 +142,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			
+			IRI linkerType = f.createIRI(ontPrefix + "Linker");
+			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			Literal type = f.createLiteral(l.getType().name());
+			
+			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
+			statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
 			statements.add(f.createStatement(localLinker, hasPublicURI, linker, graphIRI));
 			statements.add(f.createStatement(localLinker, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(localLinker, hasModifiedDate, date, graphIRI));
@@ -191,6 +194,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasDescription = f.createIRI(ontPrefix + "has_description");
 			
 			IRI linkerType = f.createIRI(ontPrefix + "Linker");
+			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			Literal type = f.createLiteral(l.getType().name());
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
 			Literal description = null;
@@ -227,6 +232,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
+			statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
 			statements.add(f.createStatement(linker, RDFS.LABEL, label, graphIRI));
 			statements.add(f.createStatement(linker, RDFS.COMMENT, comment, graphIRI));
 			statements.add(f.createStatement(linker, hasAddedToLibrary, date, graphIRI));
@@ -274,7 +280,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+			IRI linkerType = f.createIRI(ontPrefix + "Linker");
+			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			Literal type = f.createLiteral(l.getType().name());
 			
+			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
+			statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
 			statements.add(f.createStatement(localLinker, hasPublicURI, linker, graphIRI));
 			statements.add(f.createStatement(localLinker, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(localLinker, hasModifiedDate, date, graphIRI));
