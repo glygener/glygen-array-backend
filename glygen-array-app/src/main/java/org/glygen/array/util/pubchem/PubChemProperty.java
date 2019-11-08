@@ -1,5 +1,5 @@
 
-package org.glygen.array.util;
+package org.glygen.array.util.pubchem;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -59,7 +59,7 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.GlytoucanUtil;
-import org.glygen.array.util.PubChemAPI;
+import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;

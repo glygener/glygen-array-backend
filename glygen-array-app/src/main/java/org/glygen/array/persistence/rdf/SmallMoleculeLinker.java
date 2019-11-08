@@ -1,7 +1,7 @@
 package org.glygen.array.persistence.rdf;
 
 
-import org.glygen.array.util.PubChemAPI;
+import org.glygen.array.util.pubchem.PubChemAPI;
 
 public class SmallMoleculeLinker extends Linker {
 	Long pubChemId;

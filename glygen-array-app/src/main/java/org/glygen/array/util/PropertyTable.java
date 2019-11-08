@@ -2,6 +2,8 @@ package org.glygen.array.util;
 
 import java.util.List;
 
+import org.glygen.array.util.pubchem.PubChemProperty;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

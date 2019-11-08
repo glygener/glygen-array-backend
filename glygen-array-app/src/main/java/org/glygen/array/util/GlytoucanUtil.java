@@ -150,6 +150,8 @@ public class GlytoucanUtil {
 	public static void main(String[] args) {
 		
 		String sequence = GlytoucanUtil.getInstance().retrieveGlycan("G89311TM");
+		sequence = GlytoucanUtil.getInstance().retrieveGlycan("G69046CR");
+		
 		String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/35_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5]/1-1-2-3-3/a4-b1_b4-c1_c3-d1_c6-e1");
 		
 		System.out.println(sequence);
@@ -345,7 +347,7 @@ class RetrieveResponse {
 	/**
 	 * @return the wurcsLabel
 	 */
-	@JsonProperty("WURCSLabel")
+	@JsonProperty("NormalizedWurcs")
 	public String getWurcsLabel() {
 		return wurcsLabel;
 	}

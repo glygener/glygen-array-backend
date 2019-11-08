@@ -189,7 +189,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 			IRI hasClassification = f.createIRI(ontPrefix + "has_classification");
 			IRI hasChebiId = f.createIRI(ontPrefix+ "has_chEBI");
-			IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classificaition_value");
+			IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classification_value");
 			IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
 			IRI hasDescription = f.createIRI(ontPrefix + "has_description");
 			
@@ -249,15 +249,21 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (molecularFormula != null) statements.add(f.createStatement(linker, hasMolecularFormula, molecularFormula, graphIRI));
 			
 			if (l.getClassification() != null) {
-				//TODO search for existing classification first
-				String classificationIRI = generateUniqueURI(uriPrefix + "LC");
+				String classificationIRI = null;
+				if (l.getClassification().getUri() != null) {
+					classificationIRI = l.getClassification().getUri();
+				}
+				else {
+					//TODO search for existing classification first
+					classificationIRI = generateUniqueURI(uriPrefix + "LC");
+				}
 				IRI classification = f.createIRI(classificationIRI);
 				statements.add(f.createStatement(linker, hasClassification, classification, graphIRI));
 				if (l.getClassification().getChebiId() != null) {
 					Literal chebiId = f.createLiteral(l.getClassification().getChebiId());
 					Literal value = f.createLiteral(l.getClassification().getClassification());
 					statements.add(f.createStatement(classification, hasChebiId, chebiId, graphIRI));
-					statements.add(f.createStatement(linker, hasClassificationValue, value, graphIRI));
+					statements.add(f.createStatement(classification, hasClassificationValue, value, graphIRI));
 				}
 			}
 			
@@ -538,7 +544,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasMolecularFormula = f.createIRI(ontPrefix + "has_molecular_formula");
 		IRI hasClassification = f.createIRI(ontPrefix + "has_classification");
 		IRI hasChebiId = f.createIRI(ontPrefix+ "has_chEBI");
-		IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classificaition_value");
+		IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classification_value");
 		IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
 		IRI hasDescription = f.createIRI(ontPrefix + "has_description");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
