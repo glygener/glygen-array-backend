@@ -32,6 +32,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(value="sesameTransactionManager") 
 public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements LinkerRepository {
 	
+	final static String hasPubChemIdProperty = "has_pubchem_compound_id";
+	final static String hasInchiKeyProperty = "has_inChI_key";
+	final static String hasPublicURIPredicate = ontPrefix + "has_public_uri";
+	final static String hasSequencePredicate = ontPrefix + "has_sequence";
+	final static String hasPdbIdPredicate = ontPrefix + "has_pdbId";
+	final static String hasUniprotIdPredicate = ontPrefix + "has_uniProtId";
+	final static String hasInchiSequencePredicate = ontPrefix + "has_inChI_sequence";
+	final static String hasInchiKeyPredicate = ontPrefix + hasInchiKeyProperty;
+	final static String hasIupacNamePredicate = ontPrefix + "has_iupac_name";
+	final static String hasMassPredicate = ontPrefix + "has_mass";
+	final static String hasImageUrlPredicate = ontPrefix + "has_image_url";
+	final static String hasPubChemIdPredicate = ontPrefix + hasPubChemIdProperty;
+	final static String hasMolecularFormulaPredicate = ontPrefix + "has_molecular_formula";
+	final static String hasClassificationPredicate = ontPrefix + "has_classification";
+	final static String hasChebiIdPredicate = ontPrefix+ "has_chEBI";
+	final static String hasClassificationValuePredicate = ontPrefix+ "has_classification_value";
+	final static String opensRingPredicate = ontPrefix + "opens_ring";
+	final static String hasDescriptionPredicate = ontPrefix + "has_description";
+	final static String hasCreatedDatePredicate = ontPrefix + "has_date_created";
+	final static String hasAddedToLibraryPredicate = ontPrefix + "has_date_addedtolibrary";
+	final static String hasModifiedDatePredicate = ontPrefix + "has_date_modified";
+	final static String linkerTypePredicate = ontPrefix + "Linker";
+	final static String hasTypePredicate = ontPrefix + "has_type";
+	final static String hasURLPredicate = ontPrefix + "has_url";
+	
 	@Override
 	public String addLinker(Linker l, UserEntity user) throws SparqlException, SQLException {
 		
@@ -77,21 +102,22 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
-			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-			IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
-			IRI hasDescription = f.createIRI(ontPrefix + "has_description");
-			IRI linkerType = f.createIRI(ontPrefix + "Linker");
-			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+			IRI opensRing = f.createIRI(opensRingPredicate);
+			IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+			IRI linkerType = f.createIRI(linkerTypePredicate);
+			IRI hasLinkerType = f.createIRI(hasTypePredicate);
+			IRI hasUrl = f.createIRI(hasURLPredicate);
 			Literal type = f.createLiteral(l.getType().name());
-			IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+			IRI hasSequence = f.createIRI(hasSequencePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
 			Literal description = null;
 			if (l.getDescription() != null)
 				description = f.createLiteral(l.getDescription());
 			
-			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
@@ -111,14 +137,21 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			if (l.getType() == LinkerType.PROTEIN_LINKER) {
 				if (((ProteinLinker)l).getUniProtId() != null) {
-					IRI hasUniProtId = f.createIRI(ontPrefix + "has_uniProtId");
+					IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
 					Literal uniProt = f.createLiteral(((ProteinLinker)l).getUniProtId());
 					statements.add(f.createStatement(linker, hasUniProtId, uniProt, graphIRI));
 				}
 				if (((ProteinLinker)l).getPdbId() != null) {
-					IRI hasPDBId = f.createIRI(ontPrefix + "has_pdbId");
+					IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
 					Literal pdb = f.createLiteral(((ProteinLinker)l).getPdbId());
 					statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
+				}
+			}
+			
+			if (l.getUrls() != null) {
+				for (String url: l.getUrls()) {
+					Literal urlLit = f.createLiteral(url);
+					statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
 				}
 			}
 			
@@ -133,17 +166,17 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			linkerURI = generateUniqueURI(uriPrefix) + "L";
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
-			IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
 			Literal date = f.createLiteral(new Date());
-			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			
-			IRI linkerType = f.createIRI(ontPrefix + "Linker");
-			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			IRI linkerType = f.createIRI(linkerTypePredicate);
+			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			
 			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
@@ -169,9 +202,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		// check if the linker already exists in "default-graph"
 		String existing = null;
 		if (l.getPubChemId() != null) {
-			existing = getLinkerByField(l.getPubChemId().toString(), "has_pubchem_compound_id", "long");
+			existing = getLinkerByField(l.getPubChemId().toString(), hasPubChemIdProperty, "long");
 		} else if (l.getInChiKey() != null) {
-			existing = getLinkerByField(l.getInChiKey(), "has_inChI_key", "string");
+			existing = getLinkerByField(l.getInChiKey(), hasInchiKeyProperty, "string");
 		}
 	
 		if (existing == null) {
@@ -179,22 +212,23 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
-			IRI hasInchiSequence = f.createIRI(ontPrefix + "has_inChI_sequence");
-			IRI hasInchiKey = f.createIRI(ontPrefix + "has_inChI_key");
-			IRI hasIupacName = f.createIRI(ontPrefix + "has_iupac_name");
-			IRI hasMass = f.createIRI(ontPrefix + "has_mass");
-			IRI hasImageUrl = f.createIRI(ontPrefix + "has_image_url");
-			IRI hasPubChemId = f.createIRI(ontPrefix + "has_pubchem_compound_id");
-			IRI hasMolecularFormula = f.createIRI(ontPrefix + "has_molecular_formula");
-			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-			IRI hasClassification = f.createIRI(ontPrefix + "has_classification");
-			IRI hasChebiId = f.createIRI(ontPrefix+ "has_chEBI");
-			IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classification_value");
-			IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
-			IRI hasDescription = f.createIRI(ontPrefix + "has_description");
+			IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+			IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+			IRI hasIupacName = f.createIRI(hasIupacNamePredicate);
+			IRI hasMass = f.createIRI(hasMassPredicate);
+			IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
+			IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
+			IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
+			IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+			IRI hasClassification = f.createIRI(hasClassificationPredicate);
+			IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
+			IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
+			IRI opensRing = f.createIRI(opensRingPredicate);
+			IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+			IRI hasUrl = f.createIRI(hasURLPredicate);
 			
-			IRI linkerType = f.createIRI(ontPrefix + "Linker");
-			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			IRI linkerType = f.createIRI(linkerTypePredicate);
+			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
@@ -202,8 +236,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (l.getDescription() != null)
 				description = f.createLiteral(l.getDescription());
 			
-			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			
 			Literal pubChemId = null;
 			if (l.getPubChemId() != null)
@@ -267,6 +301,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				}
 			}
 			
+			if (l.getUrls() != null) {
+				for (String url: l.getUrls()) {
+					Literal urlLit = f.createLiteral(url);
+					statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+				}
+			}
+			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
 		} else {
@@ -279,15 +320,15 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			linkerURI = generateUniqueURI(uriPrefix) + "L";
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
-			IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
 			Literal date = f.createLiteral(new Date());
 			List<Statement> statements = new ArrayList<Statement>();
-			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
 			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
-			IRI linkerType = f.createIRI(ontPrefix + "Linker");
-			IRI hasLinkerType = f.createIRI(ontPrefix + "has_type");
+			IRI linkerType = f.createIRI(linkerTypePredicate);
+			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			
 			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
@@ -531,25 +572,26 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI linker = f.createIRI(linkerURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
-		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
-		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
-		IRI hasPdbId = f.createIRI(ontPrefix + "has_pdbId");
-		IRI hasUniprotId = f.createIRI(ontPrefix + "has_uniProtId");
-		IRI hasInchiSequence = f.createIRI(ontPrefix + "has_inChI_sequence");
-		IRI hasInchiKey = f.createIRI(ontPrefix + "has_inChI_key");
-		IRI hasIupacName = f.createIRI(ontPrefix + "has_iupac_name");
-		IRI hasMass = f.createIRI(ontPrefix + "has_mass");
-		IRI hasImageUrl = f.createIRI(ontPrefix + "has_image_url");
-		IRI hasPubChemId = f.createIRI(ontPrefix + "has_pubchem_compound_id");
-		IRI hasMolecularFormula = f.createIRI(ontPrefix + "has_molecular_formula");
-		IRI hasClassification = f.createIRI(ontPrefix + "has_classification");
-		IRI hasChebiId = f.createIRI(ontPrefix+ "has_chEBI");
-		IRI hasClassificationValue = f.createIRI(ontPrefix+ "has_classification_value");
-		IRI opensRing = f.createIRI(ontPrefix + "opens_ring");
-		IRI hasDescription = f.createIRI(ontPrefix + "has_description");
-		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
+		IRI hasSequence = f.createIRI(hasSequencePredicate);
+		IRI hasPdbId = f.createIRI(hasPdbIdPredicate);
+		IRI hasUniprotId = f.createIRI(hasUniprotIdPredicate);
+		IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+		IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+		IRI hasIupacName = f.createIRI(hasIupacNamePredicate);
+		IRI hasMass = f.createIRI(hasMassPredicate);
+		IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
+		IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
+		IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
+		IRI hasClassification = f.createIRI(hasClassificationPredicate);
+		IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
+		IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
+		IRI opensRing = f.createIRI(opensRingPredicate);
+		IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+		IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+		IRI hasUrl = f.createIRI(hasURLPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -568,6 +610,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			linkerObject.setUri(linkerURI);
 			linkerObject.setId(linkerURI.substring(linkerURI.lastIndexOf("/")+1));
 		}
+		List<String> urls = new ArrayList<String>();
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(hasInchiSequence)) {
@@ -641,6 +684,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				Value val = st.getObject();
 				if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
 					linkerObject.setOpensRing(Integer.parseInt(val.stringValue()));
+				}
+			} else if (st.getPredicate().equals(hasUrl)) {
+				Value val = st.getObject();
+				if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+					urls.add(val.stringValue());
 				}
 			} else if (st.getPredicate().equals(hasModifiedDate)) {
 				Value value = st.getObject();
@@ -773,6 +821,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 		}
 		
+		if (!urls.isEmpty())
+			linkerObject.setUrls(urls);
 		
 		return linkerObject;
 	}
@@ -793,7 +843,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI linker = f.createIRI(linkerURI);
 		Literal label = f.createLiteral(g.getName());
 		Literal comment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
-		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		Literal date = f.createLiteral(new Date());
 		
 		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(linker, RDFS.LABEL, null, graphIRI)), graphIRI);

@@ -355,6 +355,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/glycan/parseSequence"),
 				new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
 				new AntPathRequestMatcher("/array/getimage/**"),
+				new AntPathRequestMatcher("/array/getLinkerClassifications"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		
 		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);

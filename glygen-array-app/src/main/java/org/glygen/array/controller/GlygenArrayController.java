@@ -1,6 +1,7 @@
 package org.glygen.array.controller;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,6 +48,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
@@ -85,7 +87,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -260,6 +264,41 @@ public class GlygenArrayController {
 		}
 
 		return true;
+	}
+	
+	
+	@ApiOperation(value = "retrieves list of possible linker classifications", response = List.class)
+	@RequestMapping(value = "/getLinkerClassifications", method = RequestMethod.GET)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "list returned successfully"),
+			@ApiResponse(code = 415, message = "Media type is not supported"),
+			@ApiResponse(code = 500, message = "Internal Server Error") })
+	public List<LinkerClassification> getLinkerClassifications () throws SparqlException, SQLException {
+		List<LinkerClassification> classificationList = new ArrayList<LinkerClassification>();
+		
+		try {
+			Resource classificationNamespace = new ClassPathResource("linkerclassifications.csv");
+			final InputStream inputStream = classificationNamespace.getInputStream();
+			final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+	
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+			    String[] tokens = line.split(",");
+			    if (tokens.length == 2) {
+			    	Integer chebiID = Integer.parseInt(tokens[0]);
+			    	String classicationValue = tokens[1];
+			    	LinkerClassification classification = new LinkerClassification();
+			    	classification.setChebiId(chebiID);
+			    	classification.setClassification(classicationValue);
+			    	classification.setUri(PubChemAPI.CHEBI_URI + chebiID);
+			    	classificationList.add(classification);
+			    }
+			}
+		} catch (Exception e) {
+			logger.error("Cannot load linker classification", e);
+		}
+		
+		return classificationList;
+		
 	}
 	
 	
@@ -1437,7 +1476,7 @@ public class GlygenArrayController {
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
-		if (linker.getClassification() == null)  {
+		if (linker.getClassification() == null && linker.getPubChemId() == null) {   // at least one of them should be provided
 			errorMessage.addError(new ObjectError("classification", "NoEmpty"));
 		} 
 	
