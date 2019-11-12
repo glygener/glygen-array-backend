@@ -53,6 +53,7 @@ import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
@@ -175,13 +176,56 @@ public class GlygenArrayController {
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
-			@ApiResponse(code=403, message="Not enough privileges to register linkers"),
+			@ApiResponse(code=403, message="Not enough privileges to register features"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addFeature (
 			@ApiParam(required=true, value="Feature to be added, a linker and an at least one glycan are mandatory") 
 			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+		if (feature.getLinker() == null || feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			if (feature.getLinker() == null)
+				errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+			else 
+				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+		}
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		try {
+			return featureRepository.addFeature(feature, user);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
+		}		
+	}
+	
+	@ApiOperation(value = "Add given feature, provided only with sequence based linker for the user")
+	@RequestMapping(value="/addfeatureFromSequence", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register features"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public String addFeatureFromLinkerSequence (
+			@ApiParam(required=true, value="Feature to be added, "
+					+ "a linker is mandatory and should be one of PeptideLinker or a ProteinLinker with a valid sequence") 
+			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		if (feature.getLinker() == null || !(feature.getLinker() instanceof SequenceBasedLinker)) {
+			ErrorMessage errorMessage = new ErrorMessage();
+			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+			if (feature.getLinker() == null)
+				errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+			else 
+				errorMessage.addError(new ObjectError("linker", "InvalidSequence"));
+			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+		}
+			
 		try {
 			return featureRepository.addFeature(feature, user);
 		} catch (SparqlException | SQLException e) {
