@@ -13,6 +13,5 @@ public interface FeatureRepository {
 	List<Feature> getFeatureByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteFeature (String featureId, UserEntity user) throws SparqlException, SQLException;
-	Feature getFeatureFromURI(String featureURI, String graph) throws SparqlException;
-	void updateFeature(Feature g, UserEntity user) throws SparqlException, SQLException;
+	Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException;
 }

@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -17,6 +18,7 @@ import org.glygen.array.client.model.SmallMoleculeLinker;
 import org.glygen.array.client.model.User;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
 import org.grits.toolbox.glycanarray.library.om.LibraryInterface;
+import org.grits.toolbox.glycanarray.library.om.feature.Classification;
 import org.grits.toolbox.glycanarray.library.om.feature.Feature;
 import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
@@ -115,13 +117,17 @@ public class Application implements CommandLineRunner {
 				}
 	        } else if (importType.equals("Linker")) {
 		        List<Linker> linkerList = library.getFeatureLibrary().getLinker();
-		        LinkerClassification classification = new LinkerClassification();
+		        List<LinkerClassification> classificationList = glycanClient.getLinkerClassifications();
 		        for (Linker linker : linkerList) {
 					SmallMoleculeLinker view = new SmallMoleculeLinker();
 					if (linker.getPubChemId() != null) view.setPubChemId(linker.getPubChemId().longValue());
 					view.setName(linker.getName());
 					view.setComment(linker.getComment());
-					view.setClassification(classification);
+					if (linker.getPubChemId() == null) {
+						// assign a random classification
+						Collections.shuffle(classificationList);
+						view.setClassification((LinkerClassification) classificationList.get(0));
+					}
 					try {
 						glycanClient.addLinker(view, user);
 					} catch (HttpClientErrorException e) {

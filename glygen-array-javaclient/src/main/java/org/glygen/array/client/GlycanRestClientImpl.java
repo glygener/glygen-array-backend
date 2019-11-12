@@ -14,6 +14,7 @@ import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.Glycan;
 import org.glygen.array.client.model.GlycanType;
 import org.glygen.array.client.model.Linker;
+import org.glygen.array.client.model.LinkerClassification;
 import org.glygen.array.client.model.LoginRequest;
 import org.glygen.array.client.model.SequenceDefinedGlycan;
 import org.glygen.array.client.model.SlideLayout;
@@ -27,6 +28,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Component
@@ -152,6 +156,23 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		}
 		return null;	
 	}
+	
+	@Override
+	public List<LinkerClassification> getLinkerClassifications() {
+		String url = this.url + "array/getLinkerClassifications";
+		System.out.println("URL: " + url);
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			ResponseEntity<List> response = this.restTemplate.exchange(url, HttpMethod.GET, null, List.class);
+			List list = response.getBody();
+			List<LinkerClassification> classifications = mapper.convertValue(list, new TypeReference<List<LinkerClassification>>() { });
+			return classifications;
+		} catch (HttpClientErrorException e) {
+			System.out.println ("Error gettting classification list: " + e.getMessage());
+		}
+		return null;	
+	}
+	
 
 	@Override
 	public Confirmation addSlideLayout(SlideLayout layout, User user) {

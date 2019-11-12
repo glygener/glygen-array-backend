@@ -60,7 +60,7 @@ public interface GlycanRepository {
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
-	Glycan getGlycanFromURI(String glycanURI, String graph) throws SparqlException;
+	Glycan getGlycanFromURI(String glycanURI, UserEntity user) throws SparqlException, SQLException;
 	void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException;
 
 }

@@ -4,6 +4,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Random;
 
+import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.PrivateGraphEntity;
 import org.glygen.array.persistence.SparqlEntity;
@@ -43,6 +48,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			+ "\nPREFIX gadr: <http://purl.org/gadr/data#>"
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
 	
+	final static String hasDescriptionPredicate = ontPrefix + "has_description";
+	final static String hasCreatedDatePredicate = ontPrefix + "has_date_created";
+	final static String hasAddedToLibraryPredicate = ontPrefix + "has_date_addedtolibrary";
+	final static String hasModifiedDatePredicate = ontPrefix + "has_date_modified";
+	final static String hasPublicURIPredicate = ontPrefix + "has_public_uri";
+	final static String hasTypePredicate = ontPrefix + "has_type";
 	
 	
 	@Override
@@ -142,9 +153,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return null;
 	}
 
-	
-	
-	
-
-	
+	protected void deleteByURI(String uri, String graph) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI object = f.createIRI(uri);
+		IRI graphIRI = f.createIRI(graph);
+		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, null, null, graphIRI);
+		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+	}	
 }

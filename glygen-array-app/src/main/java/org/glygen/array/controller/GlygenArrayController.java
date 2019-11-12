@@ -56,6 +56,7 @@ import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
@@ -67,6 +68,7 @@ import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.ResumableFileInfo;
@@ -131,6 +133,9 @@ public class GlygenArrayController {
 	LayoutRepository layoutRepository;
 	
 	@Autowired
+	FeatureRepository featureRepository;
+	
+	@Autowired
 	UserRepository userRepository;
 	
 	@Value("${spring.file.imagedirectory}")
@@ -162,6 +167,29 @@ public class GlygenArrayController {
 			glycanWorkspace.setNotation(GraphicOptions.NOTATION_CFG);
 
 	}
+	
+	@ApiOperation(value = "Add given feature for the user")
+	@RequestMapping(value="/addfeature", method = RequestMethod.POST, 
+			consumes={"application/json", "application/xml"},
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
+			@ApiResponse(code=400, message="Invalid request, validation error"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to register linkers"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public String addFeature (
+			@ApiParam(required=true, value="Feature to be added, a linker and an at least one glycan are mandatory") 
+			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		try {
+			return featureRepository.addFeature(feature, user);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
+		}		
+	}
+	
+	
 
 	@ApiOperation(value = "Add given slide layout for the user")
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
@@ -735,12 +763,12 @@ public class GlygenArrayController {
 			glycanRepository.deleteGlycan(glycanId, user);
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
-			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId);
+			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId, e);
 		} 
 	}
 	
 	@ApiOperation(value = "Delete given linker from the user's list")
-	@RequestMapping(value="/deleteLinker/{linkerId}", method = RequestMethod.DELETE, 
+	@RequestMapping(value="/deletelinker/{linkerId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linker deleted successfully"), 
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -755,7 +783,27 @@ public class GlygenArrayController {
 			linkerRepository.deleteLinker(linkerId, user);
 			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
-			throw new GlycanRepositoryException("Cannot delete linker " + linkerId);
+			throw new GlycanRepositoryException("Cannot delete linker " + linkerId, e);
+		} 
+	}
+	
+	@ApiOperation(value = "Delete given feature from the user's list")
+	@RequestMapping(value="/deletefeature/{featureId}", method = RequestMethod.DELETE, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Feature deleted successfully"), 
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to delete linkers"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation deleteFeature (
+			@ApiParam(required=true, value="id of the feature to delete") 
+			@PathVariable("featureId") String featureId, Principal principal) {
+		try {
+			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			featureRepository.deleteFeature(featureId, user);
+			return new Confirmation("Feature deleted successfully", HttpStatus.OK.value());
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot delete feature " + featureId, e);
 		} 
 	}
 	
@@ -1054,6 +1102,56 @@ public class GlygenArrayController {
 			
 			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order);
 			result.setRows(linkers);
+			result.setTotal(total);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+		}
+		
+		return result;
+	}
+	
+	@ApiOperation(value = "List all features for the user")
+	@RequestMapping(value="/listFeatures", method = RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="Features retrieved successfully"), 
+			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+			@ApiResponse(code=401, message="Unauthorized"),
+			@ApiResponse(code=403, message="Not enough privileges to list features"),
+    		@ApiResponse(code=415, message="Media type is not supported"),
+    		@ApiResponse(code=500, message="Internal Server Error")})
+	public FeatureListResultView listFeature (
+			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@RequestParam("offset") Integer offset,
+			@ApiParam(required=false, value="limit of the number of features to be retrieved") 
+			@RequestParam(value="limit", required=false) Integer limit, 
+			@ApiParam(required=false, value="name of the sort field, defaults to id") 
+			@RequestParam(value="sortBy", required=false) String field, 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@RequestParam(value="order", required=false) Integer order, Principal p) {
+		FeatureListResultView result = new FeatureListResultView();
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		try {
+			if (offset == null)
+				offset = 0;
+			if (limit == null)
+				limit = -1;
+			if (field == null)
+				field = "id";
+			if (order == null)
+				order = 0; // DESC
+			
+			if (order != 0 && order != 1) {
+				ErrorMessage errorMessage = new ErrorMessage();
+				errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+				errorMessage.addError(new ObjectError("order", "NotValid"));
+				errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+			}
+			
+			int total = featureRepository.getFeatureCountByUser (user);
+			
+			List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(user, offset, limit, field, order);
+			result.setRows(features);
 			result.setTotal(total);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());

@@ -34,8 +34,25 @@ public class Glycan {
 	Date dateAddedToLibrary;
 	List<String> aliases = new ArrayList<String>();
 	GlycanType type;
-	
+	Owner owner;
+	Boolean isPublic = false;
 	byte[] cartoon;
+	
+	public Boolean getIsPublic() {
+		return isPublic;
+	}
+	
+	public void setIsPublic(Boolean isPublic) {
+		this.isPublic = isPublic;
+	}
+	
+	public Owner getOwner() {
+		return owner;
+	}
+	
+	public void setOwner(Owner owner) {
+		this.owner = owner;
+	}
 	
 	public byte[] getCartoon() {
 		return cartoon;

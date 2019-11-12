@@ -6,6 +6,7 @@ import org.glygen.array.client.model.BlockLayout;
 import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.Glycan;
 import org.glygen.array.client.model.Linker;
+import org.glygen.array.client.model.LinkerClassification;
 import org.glygen.array.client.model.SlideLayout;
 import org.glygen.array.client.model.User;
 
@@ -22,4 +23,5 @@ public interface GlycanRestClient {
 	public void setURL (String url);
 	public List<String> getDuplicates();
 	public List<String> getEmpty();
+	List<LinkerClassification> getLinkerClassifications();
 }

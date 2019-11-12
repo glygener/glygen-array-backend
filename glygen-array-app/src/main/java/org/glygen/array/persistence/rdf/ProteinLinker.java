@@ -1,27 +1,12 @@
 package org.glygen.array.persistence.rdf;
 
-public class ProteinLinker extends Linker {
+public class ProteinLinker extends SequenceBasedLinker {
 	
-	String sequence;
 	String uniProtId;
 	String pdbId;
 	
 	public ProteinLinker() {
 		this.type = LinkerType.PROTEIN_LINKER;
-	}
-
-	/**
-	 * @return the sequence
-	 */
-	public String getSequence() {
-		return sequence;
-	}
-
-	/**
-	 * @param sequence the sequence to set
-	 */
-	public void setSequence(String sequence) {
-		this.sequence = sequence;
 	}
 
 	/**

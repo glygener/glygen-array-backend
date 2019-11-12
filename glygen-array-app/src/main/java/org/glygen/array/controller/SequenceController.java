@@ -1,24 +1,11 @@
 package org.glygen.array.controller;
 
-import java.util.HashMap;
-
 import javax.validation.Validator;
 
-import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
-import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
-import org.eurocarbdb.MolecularFramework.io.namespace.GlycoVisitorToGlycoCT;
-import org.eurocarbdb.MolecularFramework.sugar.Sugar;
-import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
-import org.eurocarbdb.resourcesdb.Config;
-import org.eurocarbdb.resourcesdb.GlycanNamescheme;
-import org.eurocarbdb.resourcesdb.io.MonosaccharideConverter;
-import org.grits.toolbox.glycanarray.library.om.translation.GlycoVisitorNamespaceCfgArrayToCarbbank;
-import org.grits.toolbox.glycanarray.library.om.translation.SugarImporterNCFG;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
-import org.grits.toolbox.glycanarray.om.parser.cfg.CarbIdGlycoCTParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

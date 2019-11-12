@@ -24,6 +24,7 @@ import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	final static String hasPubChemIdProperty = "has_pubchem_compound_id";
 	final static String hasInchiKeyProperty = "has_inChI_key";
-	final static String hasPublicURIPredicate = ontPrefix + "has_public_uri";
+	
 	final static String hasSequencePredicate = ontPrefix + "has_sequence";
 	final static String hasPdbIdPredicate = ontPrefix + "has_pdbId";
 	final static String hasUniprotIdPredicate = ontPrefix + "has_uniProtId";
@@ -49,12 +50,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String hasChebiIdPredicate = ontPrefix+ "has_chEBI";
 	final static String hasClassificationValuePredicate = ontPrefix+ "has_classification_value";
 	final static String opensRingPredicate = ontPrefix + "opens_ring";
-	final static String hasDescriptionPredicate = ontPrefix + "has_description";
-	final static String hasCreatedDatePredicate = ontPrefix + "has_date_created";
-	final static String hasAddedToLibraryPredicate = ontPrefix + "has_date_addedtolibrary";
-	final static String hasModifiedDatePredicate = ontPrefix + "has_date_modified";
 	final static String linkerTypePredicate = ontPrefix + "Linker";
-	final static String hasTypePredicate = ontPrefix + "has_type";
 	final static String hasURLPredicate = ontPrefix + "has_url";
 	
 	@Override
@@ -89,12 +85,15 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		// check if the linker already exists in "default-graph"
 		String existing = null;
 		String sequence = null;
-		if (l.getType() == LinkerType.PROTEIN_LINKER) {
-			sequence = ((ProteinLinker)l).getSequence();
+		if (l.getType() == LinkerType.PROTEIN_LINKER || l.getType() == LinkerType.PEPTIDE_LINKER) {
+			sequence = ((SequenceBasedLinker)l).getSequence();
 		}
-		else if (l.getType() == LinkerType.PEPTIDE_LINKER) {
-			sequence = ((PeptideLinker)l).getSequence();
+		
+		if (sequence == null) {
+			// cannot add 
+			throw new SparqlException ("Not enough information is provided to register a linker");
 		}
+		
 		existing = getLinkerByField(sequence, "has_sequence", "string");
 		
 		if (existing == null) {
@@ -191,7 +190,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			// TODO add this linker's name as an alias to the global one???
 		}
 		
-		return null;
+		return linkerURI;
 	}
 
 	String addSmallMoleculeLinker (SmallMoleculeLinker l, String graph) throws SparqlException {
@@ -355,19 +354,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			// check to see if the given linkerId is in this graph
 			Linker existing = getLinkerFromURI (uriPrefix + linkerId, graph);
 			if (existing != null) {
-				deleteLinkerByURI (uriPrefix + linkerId, graph);
+				//TODO what to do with linkerClassifications
+				deleteByURI (uriPrefix + linkerId, graph);
 				return;
 			}
 		}
-	}
-
-	private void deleteLinkerByURI(String uri, String graph) throws SparqlException {
-		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI linker = f.createIRI(uri);
-		IRI graphIRI = f.createIRI(graph);
-		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
-		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-		//TODO what to do with linkerClassifications
 	}
 	
 	private String findLinkerInGraphByField (String field, String predicate, String type, String graph) throws SparqlException {
@@ -821,7 +812,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 		}
 		
-		if (!urls.isEmpty())
+		if (!urls.isEmpty() && linkerObject != null)
 			linkerObject.setUrls(urls);
 		
 		return linkerObject;

@@ -24,6 +24,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.Owner;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.util.GlytoucanUtil;
@@ -41,20 +42,15 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		String graph;
 		graph = getGraphForUser(user);
-		addAliasForGlycan (glycanId, alias, graph);
-		
-	}
-	
-	public void addAliasForGlycan(String glycanId, String alias, String graph) throws SparqlException, SQLException {
 		if (graph != null) {
 			// check to see if the given glycanId is in this graph
 			String glycanURI = uriPrefix + glycanId;
-			Glycan existing = getGlycanFromURI (glycanURI, graph);
+			Glycan existing = getGlycanFromURI (glycanURI, user);
 			if (existing != null) {
 				// check if the alias is unique
 				if (existing.getAliases().contains(alias))
 					return;
-				Glycan byAlias = getGlycanByLabel (alias, graph);  // checks the alias as well
+				Glycan byAlias = getGlycanByLabel (alias, user);  // checks the alias as well
 				if (byAlias != null)
 					return; // cannot add
 				
@@ -74,7 +70,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	@Override
 	public String addGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException {
-		return addGlycan(g, user, false);
+		return addGlycan(g, user, true);
 	}
 	
 	@Override
@@ -110,7 +106,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		// check if there is a glycan with the same name
 		// if so, do not add
 		if (g.getName() != null && !g.getName().isEmpty()) { 
-			Glycan existing = getGlycanByLabel(g.getName(), graph);
+			Glycan existing = getGlycanByLabel(g.getName(), user);
 			if (existing != null)
 				// cannot add 
 				throw new SparqlException ("There is already a glycan with the same name in your repository");
@@ -175,7 +171,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		// check if there is a glycan with the same name
 		// if so, do not add
 		if (g.getName() != null && !g.getName().isEmpty()) { 
-			Glycan existing = getGlycanByLabel(g.getName(), graph);
+			Glycan existing = getGlycanByLabel(g.getName(), user);
 			if (existing != null)
 				// cannot add 
 				throw new SparqlException ("There is already a glycan with the same name in your repository");
@@ -284,7 +280,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
-			addAliasForGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), g.getName(), graph);
+			addAliasForGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), g.getName(), user);
 		}
 		
 		return glycanURI;
@@ -298,7 +294,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		graph = getGraphForUser(user);
 		if (graph != null) {
 			// check to see if the given glycanId is in this graph
-			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, graph);
+			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, user);
 			if (existing != null) {
 				deleteGlycanByURI (uriPrefix + glycanId, graph);
 				return;
@@ -376,7 +372,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (results.isEmpty())
 			return null;
 		else {
-			return getGlycanFromURI(uriPrefix + glycanId, graph);
+			return getGlycanFromURI(uriPrefix + glycanId, user);
 		}
 	}
 	
@@ -398,17 +394,13 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			return null;
 		else {
 			String glycanURI = results.get(0).getValue("s");
-			return getGlycanFromURI(glycanURI, graph);
+			return getGlycanFromURI(glycanURI, user);
 		}
 	}
 
 	@Override
 	public Glycan getGlycanByLabel(String label, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		return getGlycanByLabel(label, graph);
-	}
-	
-	public Glycan getGlycanByLabel(String label, String graph) throws SparqlException, SQLException {
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -425,7 +417,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			return null;
 		else {
 			String glycanURI = results.get(0).getValue("s");
-			return getGlycanFromURI(glycanURI, graph);
+			return getGlycanFromURI(glycanURI, user);
 		}
 	}
 	
@@ -488,7 +480,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String glycanURI = sparqlEntity.getValue("s");
-				Glycan glycan = getGlycanFromURI(glycanURI, graph);
+				Glycan glycan = getGlycanFromURI(glycanURI, user);
 				glycans.add(glycan);	
 			}
 		}
@@ -527,8 +519,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 
 
 	@Override
-	public Glycan getGlycanFromURI (String glycanURI, String graph) throws SparqlException {
+	public Glycan getGlycanFromURI (String glycanURI, UserEntity user) throws SparqlException, SQLException {
 		Glycan glycanObject = null;
+		String graph = getGraphForUser(user);
+		if (graph == null) return null;
 		
 		GlycanType type = getGlycanTypeForGlycan(glycanURI, graph);
 		
@@ -571,6 +565,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			}
 			glycanObject.setUri(glycanURI);
 			glycanObject.setId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+			Owner owner = new Owner ();
+			owner.setUserId(user.getUserId());
+			owner.setName(user.getUsername());
+			glycanObject.setOwner(owner);
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
@@ -643,6 +641,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			    }
 			}  else if (st.getPredicate().equals(hasPublicURI)) {
 				// need to retrieve additional information from DEFAULT graph
+				// that means the glycan is already make public
+				glycanObject.setIsPublic(true);  
 				Value uriValue = st.getObject();
 				String publicGlycanURI = uriValue.stringValue();
 				IRI publicGlycan = f.createIRI(publicGlycanURI);
@@ -691,7 +691,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	@Override
 	public void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		Glycan existing = getGlycanFromURI(g.getUri(), graph);
+		Glycan existing = getGlycanFromURI(g.getUri(), user);
 		if (graph != null && existing !=null) {
 			updateGlycanInGraph(g, graph);
 		}

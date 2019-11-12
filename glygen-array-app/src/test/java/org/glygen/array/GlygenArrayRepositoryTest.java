@@ -1,8 +1,8 @@
-/*package org.glygen.array;
+package org.glygen.array;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,16 +15,24 @@ import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.service.FeatureRepository;
+import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
-import org.glygen.array.util.PubChemAPI;
+import org.glygen.array.service.LayoutRepository;
+import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.util.pubchem.PubChemAPI;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -35,7 +43,20 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GlygenArrayRepositoryTest {
 	
 	@Autowired
+	@Qualifier("glygenArrayRepositoryImpl")
 	GlygenArrayRepository repository;
+	
+	@Autowired
+	GlycanRepository glycanRepository;
+	
+	@Autowired
+	LinkerRepository linkerRepository;
+	
+	@Autowired
+	LayoutRepository layoutRepository;
+	
+	@Autowired
+	FeatureRepository featureRepository;
 
 	@Autowired
 	UserRepository userRepository;
@@ -55,14 +76,14 @@ public class GlygenArrayRepositoryTest {
 			
 			String glycanId = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
 		
-			repository.updateGlycan(g, user);
-			Glycan updated = repository.getGlycanById(glycanId, user);
+			glycanRepository.updateGlycan(g, user);
+			Glycan updated = glycanRepository.getGlycanById(glycanId, user);
 			assertTrue(updated.getName().equals("updatedGlycan"));
 			assertTrue(updated.getInternalId().equals("TestSource2"));
 			assertTrue(updated.getComment() == null || updated.getComment().equals(""));
 			
-			repository.deleteGlycan(glycanId, user);
-			Glycan deleted = repository.getGlycanById(glycanId, user);
+			glycanRepository.deleteGlycan(glycanId, user);
+			Glycan deleted = glycanRepository.getGlycanById(glycanId, user);
 			assertTrue("Deleted test glycan", deleted == null);    // since name is stored in private graph, it should be cleared after delete
 		} catch (SparqlException e) {
 			e.printStackTrace();
@@ -79,10 +100,10 @@ public class GlygenArrayRepositoryTest {
 		try {
 			//add a test glycan first
 			Glycan g = addTestGlycan(user);
-			int total = repository.getGlycanCountByUser(user);
+			int total = glycanRepository.getGlycanCountByUser(user);
 			assertTrue ("total > 0", total > 0);
 			
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 		} catch (SparqlException | SQLException e) {
 			e.printStackTrace();
 			assertFalse("Failed to get count", true);
@@ -95,10 +116,10 @@ public class GlygenArrayRepositoryTest {
 		try {
 			//add a test linker first
 			Linker g = addTestLinker(user);
-			int total = repository.getLinkerCountByUser(user);
+			int total = linkerRepository.getLinkerCountByUser(user);
 			assertTrue ("total > 0", total > 0);
 			
-			repository.deleteLinker(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			linkerRepository.deleteLinker(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 		} catch (SparqlException | SQLException e) {
 			e.printStackTrace();
 			assertFalse("Failed to get count", true);
@@ -113,7 +134,7 @@ public class GlygenArrayRepositoryTest {
 			//add a test glycan first
 			Glycan g = addTestGlycan(user);
 			
-			List<Glycan> glycans = repository.getGlycanByUser(user);
+			List<Glycan> glycans = glycanRepository.getGlycanByUser(user);
 			assertTrue("List is not empty", !glycans.isEmpty());
 			boolean found = false;
 			for (Glycan g1: glycans) {
@@ -127,7 +148,7 @@ public class GlygenArrayRepositoryTest {
 			assertTrue ("Added glycan is in the list", found);
 			
 			// clean up
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 		} catch (SparqlException e) {
 			e.printStackTrace();
 			assertFalse("Failed to get glycans", true);
@@ -146,7 +167,7 @@ public class GlygenArrayRepositoryTest {
 			//add a test linker first
 			Linker g = addTestLinker(user);
 			
-			List<Linker> linkers = repository.getLinkerByUser(user);
+			List<Linker> linkers = linkerRepository.getLinkerByUser(user);
 			assertTrue("List is not empty", !linkers.isEmpty());
 			boolean found = false;
 			for (Linker g1: linkers) {
@@ -157,10 +178,10 @@ public class GlygenArrayRepositoryTest {
 				}
 				
 			}
-			assertTrue ("Added glycan is in the list", found);
+			assertTrue ("Added linker is in the list", found);
 			
 			// clean up
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			linkerRepository.deleteLinker(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 		} catch (SparqlException e) {
 			e.printStackTrace();
 			assertFalse("Failed to get glycans", true);
@@ -171,9 +192,9 @@ public class GlygenArrayRepositoryTest {
 			
 	}
 	
-	private Glycan addTestGlycan (UserEntity user) throws SparqlException {
+	private Glycan addTestGlycan (UserEntity user) throws SparqlException, SQLException {
 		//add a test glycan first
-		Glycan g = new Glycan();
+		SequenceDefinedGlycan g = new SequenceDefinedGlycan();
 		g.setName("Ttest Glycan");
 		g.setSequence("RES\n" + 
 				"\n" + 
@@ -188,12 +209,12 @@ public class GlygenArrayRepositoryTest {
 				"1:1o(4+1)2d\n" + 
 				"\n" + 
 				"2:2o(4+1)3d");
-		g.setSequenceType("GlycoCT");
+		g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		g.setInternalId("TestSource");
 		g.setComment("My Comment");
 		g.setMass(100.0);
 		
-		String glycanId = repository.addGlycan(g, user);
+		String glycanId = glycanRepository.addGlycan(g, user);
 		g.setUri(glycanId);
 		return g;
 	}
@@ -213,13 +234,13 @@ public class GlygenArrayRepositoryTest {
 			
 			String linkerId = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 		
-			repository.updateLinker(l, user);
-			Linker updated = repository.getLinkerById(linkerId, user);
+			linkerRepository.updateLinker(l, user);
+			Linker updated = linkerRepository.getLinkerById(linkerId, user);
 			assertTrue(updated.getName().equals("updatedLinker"));
 			assertTrue(updated.getComment() == null || updated.getComment().equals(""));
 			
-			repository.deleteLinker(linkerId, user);
-			Glycan deleted = repository.getGlycanById(linkerId, user);
+			linkerRepository.deleteLinker(linkerId, user);
+			Linker deleted = linkerRepository.getLinkerById(linkerId, user);
 			assertTrue("Deleted test linker", deleted == null);    // since name is stored in private graph, it should be cleared after delete
 		} catch (SparqlException e) {
 			e.printStackTrace();
@@ -238,7 +259,7 @@ public class GlygenArrayRepositoryTest {
 			
 			// add another test glycan
 			//add a test glycan first
-			Glycan g = new Glycan();
+			SequenceDefinedGlycan g = new SequenceDefinedGlycan();
 			g.setName("Test Glycan2");
 			g.setSequence("RES\n" + 
 					"\n" + 
@@ -261,12 +282,12 @@ public class GlygenArrayRepositoryTest {
 					"3:3o(3+2)4d\n" + 
 					"\n" + 
 					"4:4d(5+1)5n");
-			g.setSequenceType("GlycoCT");
+			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 			g.setInternalId("TestSource2");
 			g.setComment("My Comment2");
 			g.setMass(210.0);
 			
-			String glycanId = repository.addGlycan(g, user);
+			String glycanId = glycanRepository.addGlycan(g, user);
 			g.setUri(glycanId);
 			
 			Linker linker1 = addTestLinker(user);
@@ -274,28 +295,28 @@ public class GlygenArrayRepositoryTest {
 			
 			Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2341L);
 			l.setName("TestLinker2");
-			String linkerURI = repository.addLinker(l, user);
+			String linkerURI = linkerRepository.addLinker(l, user);
 			l.setUri(linkerURI);
 			String linkerId2 = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 			
 			BlockLayout blockLayout= addTestBlockLayout(user, g1, g, linker1, l);
-			String blockLayoutURI = repository.addBlockLayout(blockLayout, user);
+			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
-			BlockLayout existing = repository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			BlockLayout existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			assertTrue ("Can retrieve added block layout", existing != null);
 			assertTrue ("Spots size is 4", existing.getSpots() != null && existing.getSpots().size() == 4);
 			
-			List<BlockLayout> layouts = repository.getBlockLayoutByUser(user);
+			List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(user);
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
 			
 			// delete the glycans and linker and the block layout
-			repository.deleteLinker(linkerId1, user);
-			repository.deleteLinker(linkerId2, user);
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			repository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
-			repository.deleteBlockLayout (blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			linkerRepository.deleteLinker(linkerId1, user);
+			linkerRepository.deleteLinker(linkerId2, user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			layoutRepository.deleteBlockLayout (blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			
-			existing = repository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			assertTrue("Should be deleted", existing == null);
 			
 		} catch (SparqlException e) {
@@ -315,7 +336,7 @@ public class GlygenArrayRepositoryTest {
 			
 			// add another test glycan
 			//add a test glycan first
-			Glycan g = new Glycan();
+			SequenceDefinedGlycan g = new SequenceDefinedGlycan();
 			g.setName("Test Glycan2");
 			g.setSequence("RES\n" + 
 					"\n" + 
@@ -338,12 +359,12 @@ public class GlygenArrayRepositoryTest {
 					"3:3o(3+2)4d\n" + 
 					"\n" + 
 					"4:4d(5+1)5n");
-			g.setSequenceType("GlycoCT");
+			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 			g.setInternalId("TestSource2");
 			g.setComment("My Comment2");
 			g.setMass(210.0);
 			
-			String glycanId = repository.addGlycan(g, user);
+			String glycanId = glycanRepository.addGlycan(g, user);
 			g.setUri(glycanId);
 			
 			Linker linker1 = addTestLinker(user);
@@ -351,35 +372,35 @@ public class GlygenArrayRepositoryTest {
 			
 			Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2341L);
 			l.setName("TestLinker2");
-			String linkerURI = repository.addLinker(l, user);
+			String linkerURI = linkerRepository.addLinker(l, user);
 			l.setUri(linkerURI);
 			String linkerId2 = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 			
 			BlockLayout blockLayout= addTestBlockLayout(user, g1, g, linker1, l);
-			String blockLayoutURI = repository.addBlockLayout(blockLayout, user);
+			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
 			SlideLayout slideLayout = addTestSlideLayout(user, blockLayout);
 			
-			String slideLayoutURI = repository.addSlideLayout(slideLayout, user);
-			SlideLayout existing = repository.getSlideLayoutById(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
+			String slideLayoutURI = layoutRepository.addSlideLayout(slideLayout, user);
+			SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
 			assertTrue ("Can retrieve added slide layout", existing != null);
 			assertTrue ("Blocks size is 2", existing.getBlocks() != null && existing.getBlocks().size() == 2);
 			assertTrue ("Spots size is 4", existing.getBlocks().get(0).getSpots() != null 
 					&& existing.getBlocks().get(0).getSpots().size() == 4);
 			
-			List<SlideLayout> layouts = repository.getSlideLayoutByUser(user);
+			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user);
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
 			
-			int count = repository.getSlideLayoutCountByUser(user);
+			int count = layoutRepository.getSlideLayoutCountByUser(user);
 			assertTrue(count >= 1);
 			
 			// delete the glycans and linker and the block layout and slide layout
-			repository.deleteLinker(linkerId1, user);
-			repository.deleteLinker(linkerId2, user);
-			repository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			repository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
-			repository.deleteBlockLayout(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
-			repository.deleteSlideLayout(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
+			linkerRepository.deleteLinker(linkerId1, user);
+			linkerRepository.deleteLinker(linkerId2, user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			layoutRepository.deleteBlockLayout(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
+			layoutRepository.deleteSlideLayout(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
 			
 		} catch (SparqlException e) {
 			e.printStackTrace();
@@ -390,14 +411,143 @@ public class GlygenArrayRepositoryTest {
 		}
 	}
 	
-	public Linker addTestLinker (UserEntity user) throws SparqlException { 
+	public Linker addTestLinker (UserEntity user) throws SparqlException, SQLException { 
 		
 		Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2444L);
 		l.setName("TestLinker");
-		String linkerURI = repository.addLinker(l, user);
+		String linkerURI = linkerRepository.addLinker(l, user);
 		l.setUri(linkerURI);
 		
 		return l;
+	}
+	
+	public Feature addTestFeature (UserEntity user, Glycan g1, Glycan g, Linker linker1) throws SparqlException, SQLException {
+		Feature feature = new Feature();
+		if (g != null) feature.addGlycan(g);
+		if (g1 != null)feature.addGlycan(g1);
+		feature.setLinker(linker1);
+		feature.setRatio(100.0);
+		
+		String uri = featureRepository.addFeature(feature, user);
+		feature.setUri(uri);
+		return feature;
+		
+	}
+	
+	@Test
+	public void testAddFeature() {
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
+		try {
+			Glycan g1 = addTestGlycan(user);
+			
+			// add another test glycan
+			//add a test glycan first
+			SequenceDefinedGlycan g = new SequenceDefinedGlycan();
+			g.setName("Test Glycan2");
+			g.setSequence("RES\n" + 
+					"\n" + 
+					"1b:x-dglc-HEX-1:5\n" + 
+					"\n" + 
+					"2s:n-acetyl\n" + 
+					"\n" + 
+					"3b:b-dgal-HEX-1:5\n" + 
+					"\n" + 
+					"4b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n" + 
+					"\n" + 
+					"5s:n-acetyl\n" + 
+					"\n" + 
+					"LIN\n" + 
+					"\n" + 
+					"1:1d(2+1)2n\n" + 
+					"\n" + 
+					"2:1o(4+1)3d\n" + 
+					"\n" + 
+					"3:3o(3+2)4d\n" + 
+					"\n" + 
+					"4:4d(5+1)5n");
+			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+			g.setInternalId("TestSource2");
+			g.setComment("My Comment2");
+			g.setMass(210.0);
+			
+			String glycanId = glycanRepository.addGlycan(g, user);
+			g.setUri(glycanId);
+			
+			Linker linker1 = addTestLinker(user);
+			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
+			Feature added = addTestFeature(user, g1, g, linker1);
+			String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
+			
+			List<Feature> features = featureRepository.getFeatureByUser(user);
+			assertTrue ("Can retrieve features", features != null);
+			boolean found = false;
+			for (Feature f: features) {
+				if (f.getUri().equals(added.getUri())) {
+					found = true;
+					assertTrue("feature has 2 glycans", f.getGlycans().size() == 2);
+					assertTrue("feature has the added linker", f.getLinker().getUri().equals(linker1.getUri()));
+				}
+			}
+			assertTrue ("added feature is in the list", found);
+				
+			// delete created linkers and glycans and the feature
+			linkerRepository.deleteLinker(linkerId1, user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			featureRepository.deleteFeature(featureId, user);
+		} catch (SparqlException | SQLException e) {
+			e.printStackTrace();
+			assertFalse("Failed to create feature", true);
+		}
+	}
+	
+	
+	@Test
+	public void testAddPeptideFeature() {
+		UserEntity user = userRepository.findByUsernameIgnoreCase("user");
+		try {
+			SequenceDefinedGlycan g = new SequenceDefinedGlycan();
+			g.setSequence("RES\n" +
+			"1b:b-dglc-HEX-1:5\n" +
+			"2s:n-acetyl\n" +
+			"LIN\n" + 
+			"1:1d(2+1)2n");
+			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+			
+			String glycanId = glycanRepository.addGlycan(g, user);
+			g.setUri(glycanId);
+			
+			PeptideLinker linker1 = new PeptideLinker();
+			linker1.setSequence("AcNH-KTTKIP{GlcNAcb1-S}DSPQSA-COOH");
+			String linkerURI = linkerRepository.addLinker(linker1, user);
+			linker1.setUri(linkerURI);
+			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
+			Feature added = addTestFeature(user, null, null, linker1);
+			
+			String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
+			
+			List<Feature> features = featureRepository.getFeatureByUser(user);
+			assertTrue ("Can retrieve features", features != null);
+			boolean found = false;
+			for (Feature f: features) {
+				if (f.getUri().equals(added.getUri())) {
+					found = true;
+					assertTrue("feature has 1 glycan", f.getGlycans().size() == 1);
+					assertTrue("feature has the added linker", f.getLinker().getUri().equals(linker1.getUri()));
+					assertTrue("feature has position map", f.getPositionMap().size() >= 0);
+					break;
+				}
+			}
+			assertTrue ("added feature is in the list", found);
+				
+			// delete created linkers and glycans and the feature
+			linkerRepository.deleteLinker(linkerId1, user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			featureRepository.deleteFeature(featureId, user);
+		} catch (SparqlException | SQLException e) {
+			e.printStackTrace();
+			assertFalse("Failed to create feature", true);
+		}
 	}
 	
 	public BlockLayout addTestBlockLayout (UserEntity user, Glycan g1, Glycan g, Linker linker1, Linker l) throws SparqlException {
@@ -416,11 +566,11 @@ public class GlygenArrayRepositoryTest {
 			Feature feature = new Feature();
 			feature.setRatio(1.0);
 			if (i==0) {
-				feature.setGlycan(g1);
+				feature.addGlycan(g1);
 				feature.setLinker(linker1);
 			}
 			if (i==1) {
-				feature.setGlycan(g);
+				feature.addGlycan(g);
 				feature.setLinker(l);
 			}
 			for (int j=0; j < blockLayout.getHeight(); j++) {
@@ -462,4 +612,4 @@ public class GlygenArrayRepositoryTest {
 		
 		return slideLayout;
 	}
-}*/
+}
