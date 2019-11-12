@@ -171,8 +171,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given feature for the user")
 	@RequestMapping(value="/addfeature", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -202,8 +201,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given feature, provided only with sequence based linker for the user")
 	@RequestMapping(value="/addfeatureFromSequence", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -214,7 +212,6 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="Feature to be added, "
 					+ "a linker is mandatory and should be one of PeptideLinker or a ProteinLinker with a valid sequence") 
 			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
-		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		if (feature.getLinker() == null || !(feature.getLinker() instanceof SequenceBasedLinker)) {
 			ErrorMessage errorMessage = new ErrorMessage();
 			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -225,7 +222,8 @@ public class GlygenArrayController {
 				errorMessage.addError(new ObjectError("linker", "InvalidSequence"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
 		}
-			
+		
+		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
 			return featureRepository.addFeature(feature, user);
 		} catch (SparqlException | SQLException e) {
@@ -463,8 +461,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given glycan for the user")
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="id of the added glycan"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -1434,8 +1431,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given linker for the user")
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added linker"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -1582,7 +1578,9 @@ public class GlygenArrayController {
 			String linkerURI = null;
 			if (linker.getSequence() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
-				errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				if (linkerURI != null) {
+					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
+				}
 			}
 			
 			if (linkerURI == null) {
