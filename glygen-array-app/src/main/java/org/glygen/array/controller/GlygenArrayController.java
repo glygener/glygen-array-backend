@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -62,6 +63,7 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.service.LinkerRepositoryImpl;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.view.BatchGlycanUploadResult;
@@ -193,6 +195,23 @@ public class GlygenArrayController {
 		}
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
+		    try {
+    		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+        		    feature.getLinker().setId(addLinker(feature.getLinker(), p));
+    		    }
+		    } catch (Exception e) {
+                logger.debug("Ignoring error: " + e.getMessage());
+            }
+		    // check its glycans
+		    for (Glycan g: feature.getGlycans()) {
+		        if (g.getUri() == null && g.getId() == null) {
+		            try {
+		                g.setId(addGlycan(g, p, true));
+		            } catch (Exception e) {
+		                logger.debug("Ignoring error: " + e.getMessage());
+		            }
+		        }
+		    } 
 			return featureRepository.addFeature(feature, user);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
@@ -225,6 +244,28 @@ public class GlygenArrayController {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
+    		if (feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
+                // check if the linker is a sequence-based linker and if so, try to extract the glycans
+                // from the linker sequence and populate positionMap
+                if (feature.getLinker().getType() == LinkerType.PEPTIDE_LINKER || feature.getLinker().getType() == LinkerType.PROTEIN_LINKER) {
+                    Map<Glycan, Integer>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
+                    feature.setPositionMap(positionMap);
+                    for (Glycan g: positionMap.keySet()) {
+                        String seq = ((SequenceDefinedGlycan)g).getSequence();
+                        if (seq != null) {
+                            String existing = glycanRepository.getGlycanBySequence(((SequenceDefinedGlycan)g).getSequence(), user);
+                            if (existing == null) {
+                                // add the glycan
+                                existing = addGlycan(g, p, true);
+                            }
+                            g.setUri(existing);
+                            feature.addGlycan(g);
+                        } else {
+                            logger.error("Glycan in the feature with the following sequence cannot be located: " + seq);
+                        }
+                    }
+                }
+            }
 			return featureRepository.addFeature(feature, user);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
@@ -530,12 +571,14 @@ public class GlygenArrayController {
 			if (glycan.getInternalId() != null) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
 			} 
@@ -596,12 +639,14 @@ public class GlygenArrayController {
 			if (glycan.getInternalId() != null) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
 			} 
@@ -699,6 +744,7 @@ public class GlygenArrayController {
 				} else {
 					String existingURI = glycanRepository.getGlycanBySequence(glycoCT, user);
 					if (existingURI != null) {
+					    glycan.setId(existingURI.substring(existingURI.lastIndexOf("/")+1));
 						errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 					}
 				}
@@ -712,12 +758,14 @@ public class GlygenArrayController {
 			if (glycan.getInternalId() != null) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
+				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
 			} 
@@ -1504,11 +1552,13 @@ public class GlygenArrayController {
 			String linkerURI = null;
 			if (linker.getSequence() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
-				errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				if (linkerURI != null)
+				    errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
 			}
 			else if (linker.getUniProtId() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", user);
-				errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
+				if (linkerURI != null)
+				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
 			}
 			if (linkerURI == null) {
 				l = linker;

@@ -58,28 +58,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			// cannot add 
 			throw new SparqlException ("Not enough information is provided to register a feature");
 		
-		if (feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
-			// check if the linker is a sequence-based linker and if so, try to extract the glycans
-			// from the linker sequence and populate positionMap
-			if (feature.getLinker().getType() == LinkerType.PEPTIDE_LINKER || feature.getLinker().getType() == LinkerType.PROTEIN_LINKER) {
-				Map<Glycan, Integer>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
-				feature.setPositionMap(positionMap);
-				for (Glycan g: positionMap.keySet()) {
-					String seq = ((SequenceDefinedGlycan)g).getSequence();
-					if (seq != null) {
-						String existing = glycanRepository.getGlycanBySequence(((SequenceDefinedGlycan)g).getSequence(), user);
-						if (existing == null) {
-							// add the glycan
-							existing = glycanRepository.addGlycan(g, user);
-						}
-						g.setUri(existing);
-						feature.addGlycan(g);
-					} else {
-						logger.error("Glycan in the feature with the following sequence cannot be located: " + seq);
-					}
-				}
-			}
-		}
+		
 		// check if there is already a private graph for user
 		graph = getGraphForUser(user);
 		
@@ -120,8 +99,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		        }
 		        linker.setUri(existing);
 		        if (existing == null) {
-		            String uri = linkerRepository.addLinker(linker, user);
-	                linker.setUri(uri);
+		            throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!");
 		        } 
 	        } else if (linker.getType() == LinkerType.PEPTIDE_LINKER || linker.getType() == LinkerType.PROTEIN_LINKER) {
 	            String sequence = ((SequenceBasedLinker)linker).getSequence();
@@ -129,8 +107,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	                String existing = linkerRepository.getLinkerByField(sequence, "has_sequence", "string", user);
 	                linker.setUri(existing);
 	                if (existing == null) {
-	                    String uri = linkerRepository.addLinker(linker, user);
-	                    linker.setUri(uri);
+	                    throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!");
 	                }
 	            }
 	        }
@@ -144,13 +121,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				if (g.getId() != null) {
 					g.setUri(uriPrefix + g.getId());
 				} else {
-					String uri = glycanRepository.addGlycan(g, user, true);
-					g.setUri(uri);
+				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
 				}
 			}
 			else {
-			    String uri = glycanRepository.addGlycan(g, user, true);
-                g.setUri(uri); 
+			    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
 			}
 			
 			IRI glycanIRI = f.createIRI(g.getUri());
