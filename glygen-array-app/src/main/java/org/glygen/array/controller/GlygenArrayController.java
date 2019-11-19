@@ -1368,7 +1368,7 @@ public class GlygenArrayController {
 			return IOUtils.toByteArray(resource.getInputStream());
 		} catch (IOException e) {
 			logger.error("Image cannot be retrieved", e);
-			throw new EntityNotFoundException("Image for glycan " + glycanId + " is not available");
+			return null;
 		}
 	}
 	
