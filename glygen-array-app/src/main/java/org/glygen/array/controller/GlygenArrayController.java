@@ -1552,38 +1552,37 @@ public class GlygenArrayController {
 			String linkerURI = null;
 			if (linker.getSequence() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
-				if (linkerURI != null)
+				if (linkerURI != null) {
+				    linker.setUri(linkerURI);
 				    errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				}
 			}
 			else if (linker.getUniProtId() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", user);
-				if (linkerURI != null)
+				if (linkerURI != null) {
+				    linker.setUri(linkerURI);
 				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
-			}
-			if (linkerURI == null) {
-				l = linker;
-				
-				if (linker.getName() != null) {
-					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-					if (local != null) {
-						errorMessage.addError(new ObjectError("name", "Duplicate"));	
-					}
 				}
-			} 
+			}
+			
+			l = linker;
+			l.setUri(linkerURI);
+			if (linker.getName() != null) {
+				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+				if (local != null) {
+				    linker.setId(local.getId());
+					errorMessage.addError(new ObjectError("name", "Duplicate"));	
+				}
+			}
 			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
-			if (l != null) {
-				String addedURI = linkerRepository.addLinker(l, user);
-				return addedURI.substring(addedURI.lastIndexOf("/")+1);
-			}
-			
+			String addedURI = linkerRepository.addLinker(l, user);
+			return addedURI.substring(addedURI.lastIndexOf("/")+1);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
 		} 
-		
-		return null;
 	}
 
 	private String addPeptideLinker(PeptideLinker linker, Principal p) {
@@ -1629,34 +1628,30 @@ public class GlygenArrayController {
 			if (linker.getSequence() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
 				if (linkerURI != null) {
+				    linker.setUri(linkerURI);
 					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 				}
 			}
 			
-			if (linkerURI == null) {
-				l = linker;
-				
-				if (linker.getName() != null) {
-					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-					if (local != null) {
-						errorMessage.addError(new ObjectError("name", "Duplicate"));	
-					}
-				}
-			} 
 			
+			l = linker;
+			l.setUri(linkerURI);
+			if (linker.getName() != null) {
+				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+				if (local != null) {
+				    linker.setId(local.getId());
+					errorMessage.addError(new ObjectError("name", "Duplicate"));	
+				}
+			}
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
-			if (l != null) {
-				String addedURI = linkerRepository.addLinker(l, user);
-				return addedURI.substring(addedURI.lastIndexOf("/")+1);
-			}
 			
+			String addedURI = linkerRepository.addLinker(l, user);
+			return addedURI.substring(addedURI.lastIndexOf("/")+1);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
 		} 
-		
-		return null;
 	}
 
 	private String addSmallMoleculeLinker(SmallMoleculeLinker linker, Principal p) {
@@ -1701,13 +1696,17 @@ public class GlygenArrayController {
 			String linkerURI = null;
 			if (linker.getPubChemId() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
-				if (linkerURI != null)
+				if (linkerURI != null) {
+				    linker.setUri(linkerURI);
 					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				}
 			}
 			else if (linker.getInChiKey() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getInChiKey(), "has_inChI_key", "string", user);
-				if (linkerURI != null)
-					errorMessage.addError(new ObjectError("inChiKey", "Duplicate"));
+				if (linkerURI != null) {
+				    linker.setUri(linkerURI);
+					errorMessage.addError(new ObjectError("inChiKey", "Duplicate"));	
+				}
 			}
 			if (linkerURI == null) {
 				// get the linker details from pubChem
@@ -1733,11 +1732,13 @@ public class GlygenArrayController {
 				}
 				else {
 					l = linker;
+					l.setUri(linkerURI);
 				}
 				
 				if (linker.getName() != null) {
 					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
+					    linker.setId(local.getId());
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
 				}

@@ -91,9 +91,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		    else {
 		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
 		    }
-		} else {
-            throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
-        }
+		}
+		
 		
 		IRI linkerIRI = f.createIRI(linker.getUri());
 		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
@@ -105,9 +104,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				} else {
 				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
 				}
-			}
-			else {
-			    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
 			}
 			
 			IRI glycanIRI = f.createIRI(g.getUri());
