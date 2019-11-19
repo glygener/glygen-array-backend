@@ -107,6 +107,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		Linker linker = feature.getLinker();
 		if (linker.getUri() == null) {
+		    //TODO check if the linker is already in the repository, if not add it
 			linker.setUri(uriPrefix + linker.getId());	
 		}
 		IRI linkerIRI = f.createIRI(linker.getUri());
@@ -116,12 +117,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			if (g.getUri() == null) {
 				if (g.getId() != null) {
 					g.setUri(uriPrefix + g.getId());
-					
 				} else {
 					logger.warn("The glycan in the feature cannot be located");
 					continue;
 				}
 			}
+			//TODO check if the glycans are already in the repository, if not add them
 			
 			IRI glycanIRI = f.createIRI(g.getUri());
 			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));

@@ -470,8 +470,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
-				sortLine = "?s " + sortPredicate + " ?sortBy .\n";	
-			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
+				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
+			String orderByLine = " ORDER BY (!bound" + (sortPredicate == null ? "(?s)": "(?sortBy)") + ")"
+			        + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?s \n");

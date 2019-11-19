@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Feature {
 	String id;
 	String uri;
@@ -27,6 +29,7 @@ public class Feature {
 		this.id = id;
 	}
 	
+	@JsonIgnore
 	public Map<Glycan, Integer> getPositionMap() {
 		return positionMap;
 	}

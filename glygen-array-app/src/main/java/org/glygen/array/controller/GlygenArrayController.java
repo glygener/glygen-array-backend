@@ -179,8 +179,8 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addFeature (
-			@ApiParam(required=true, value="Feature to be added, a linker and an at least one glycan are mandatory") 
-			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+			@ApiParam(required=false, value="Feature to be added, a linker and an at least one glycan are mandatory") 
+			@RequestBody(required=false) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
 		if (feature.getLinker() == null || feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
 			ErrorMessage errorMessage = new ErrorMessage();
 			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -209,9 +209,9 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addFeatureFromLinkerSequence (
-			@ApiParam(required=true, value="Feature to be added, "
+			@ApiParam(required=false, value="Feature to be added, "
 					+ "a linker is mandatory and should be one of PeptideLinker or a ProteinLinker with a valid sequence") 
-			@RequestBody org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+			@RequestBody(required=false) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
 		if (feature.getLinker() == null || !(feature.getLinker() instanceof SequenceBasedLinker)) {
 			ErrorMessage errorMessage = new ErrorMessage();
 			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
