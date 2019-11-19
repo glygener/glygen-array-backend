@@ -107,9 +107,35 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		Linker linker = feature.getLinker();
 		if (linker.getUri() == null) {
-		    //TODO check if the linker is already in the repository, if not add it
-			linker.setUri(uriPrefix + linker.getId());	
+		    if (linker.getId() != null)
+		        linker.setUri(uriPrefix + linker.getId());	
 		}
+	    if (linker.getUri() == null) {
+	        if (linker.getType() == LinkerType.SMALLMOLECULE_LINKER) {
+		        String existing = null;
+		        if (((SmallMoleculeLinker) linker).getPubChemId() != null) {
+		            existing = linkerRepository.getLinkerByField(((SmallMoleculeLinker) linker).getPubChemId().toString(), LinkerRepositoryImpl.hasPubChemIdProperty, "long", user);
+		        } else if (((SmallMoleculeLinker) linker).getInChiKey() != null) {
+		            existing = linkerRepository.getLinkerByField(((SmallMoleculeLinker) linker).getInChiKey(), LinkerRepositoryImpl.hasInchiKeyProperty, "string", user);
+		        }
+		        linker.setUri(existing);
+		        if (existing == null) {
+		            String uri = linkerRepository.addLinker(linker, user);
+	                linker.setUri(uri);
+		        } 
+	        } else if (linker.getType() == LinkerType.PEPTIDE_LINKER || linker.getType() == LinkerType.PROTEIN_LINKER) {
+	            String sequence = ((SequenceBasedLinker)linker).getSequence();
+	            if (sequence != null) {
+	                String existing = linkerRepository.getLinkerByField(sequence, "has_sequence", "string", user);
+	                linker.setUri(existing);
+	                if (existing == null) {
+	                    String uri = linkerRepository.addLinker(linker, user);
+	                    linker.setUri(uri);
+	                }
+	            }
+	        }
+	    }
+		
 		IRI linkerIRI = f.createIRI(linker.getUri());
 		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
 		
@@ -118,11 +144,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				if (g.getId() != null) {
 					g.setUri(uriPrefix + g.getId());
 				} else {
-					logger.warn("The glycan in the feature cannot be located");
-					continue;
+					String uri = glycanRepository.addGlycan(g, user, true);
+					g.setUri(uri);
 				}
 			}
-			//TODO check if the glycans are already in the repository, if not add them
+			else {
+			    String uri = glycanRepository.addGlycan(g, user, true);
+                g.setUri(uri); 
+			}
 			
 			IRI glycanIRI = f.createIRI(g.getUri());
 			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));

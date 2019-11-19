@@ -33,8 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(value="sesameTransactionManager") 
 public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements LinkerRepository {
 	
-	final static String hasPubChemIdProperty = "has_pubchem_compound_id";
-	final static String hasInchiKeyProperty = "has_inChI_key";
+	public final static String hasPubChemIdProperty = "has_pubchem_compound_id";
+	public final static String hasInchiKeyProperty = "has_inChI_key";
 	
 	final static String hasSequencePredicate = ontPrefix + "has_sequence";
 	final static String hasPdbIdPredicate = ontPrefix + "has_pdbId";
@@ -471,7 +471,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			String sortLine = "";
 			if (sortPredicate != null)
 				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY " + (sortPredicate == null ? "(?s)": "(!bound(?sortBy))")
+			String orderByLine = " ORDER BY " 
 			        + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");

@@ -108,8 +108,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (g.getName() != null && !g.getName().isEmpty()) { 
 			Glycan existing = getGlycanByLabel(g.getName(), user);
 			if (existing != null)
-				// cannot add 
-				throw new SparqlException ("There is already a glycan with the same name in your repository");
+				return existing.getUri();
 		}
 		
 		String glycanURI = addBasicInfoForGlycan(g, graph);
@@ -173,8 +172,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (g.getName() != null && !g.getName().isEmpty()) { 
 			Glycan existing = getGlycanByLabel(g.getName(), user);
 			if (existing != null)
-				// cannot add 
-				throw new SparqlException ("There is already a glycan with the same name in your repository");
+				return existing.getUri();
 		}
 		
 		return addBasicInfoForGlycan(g, graph);
