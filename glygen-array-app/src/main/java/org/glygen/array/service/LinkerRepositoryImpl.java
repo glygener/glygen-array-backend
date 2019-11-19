@@ -471,7 +471,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			String sortLine = "";
 			if (sortPredicate != null)
 				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY (!bound" + (sortPredicate == null ? "(?s)": "(?sortBy)") + ")"
+			String orderByLine = " ORDER BY " + (sortPredicate == null ? "(?s)": "(!bound(?sortBy))")
 			        + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
