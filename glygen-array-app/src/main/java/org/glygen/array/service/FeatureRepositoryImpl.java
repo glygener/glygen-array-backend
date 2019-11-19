@@ -87,31 +87,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		Linker linker = feature.getLinker();
 		if (linker.getUri() == null) {
 		    if (linker.getId() != null)
-		        linker.setUri(uriPrefix + linker.getId());	
-		}
-	    if (linker.getUri() == null) {
-	        if (linker.getType() == LinkerType.SMALLMOLECULE_LINKER) {
-		        String existing = null;
-		        if (((SmallMoleculeLinker) linker).getPubChemId() != null) {
-		            existing = linkerRepository.getLinkerByField(((SmallMoleculeLinker) linker).getPubChemId().toString(), LinkerRepositoryImpl.hasPubChemIdProperty, "long", user);
-		        } else if (((SmallMoleculeLinker) linker).getInChiKey() != null) {
-		            existing = linkerRepository.getLinkerByField(((SmallMoleculeLinker) linker).getInChiKey(), LinkerRepositoryImpl.hasInchiKeyProperty, "string", user);
-		        }
-		        linker.setUri(existing);
-		        if (existing == null) {
-		            throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!");
-		        } 
-	        } else if (linker.getType() == LinkerType.PEPTIDE_LINKER || linker.getType() == LinkerType.PROTEIN_LINKER) {
-	            String sequence = ((SequenceBasedLinker)linker).getSequence();
-	            if (sequence != null) {
-	                String existing = linkerRepository.getLinkerByField(sequence, "has_sequence", "string", user);
-	                linker.setUri(existing);
-	                if (existing == null) {
-	                    throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!");
-	                }
-	            }
-	        }
-	    }
+		        linker.setUri(uriPrefix + linker.getId());
+		    else {
+		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
+		    }
+		} else {
+            throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
+        }
 		
 		IRI linkerIRI = f.createIRI(linker.getUri());
 		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
