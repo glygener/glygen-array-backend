@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Feature {
 	String id;
 	String uri;
+	String name;
 	List<Glycan> glycans;
 	Linker linker;
 	Double ratio = null;   // in percentages like 100.0%, 50.0% etc.
@@ -28,6 +29,14 @@ public class Feature {
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	public String getName() {
+        return name;
+    }
+	
+	public void setName(String name) {
+        this.name = name;
+    }
 	
 	@JsonIgnore
 	public Map<Glycan, Integer> getPositionMap() {

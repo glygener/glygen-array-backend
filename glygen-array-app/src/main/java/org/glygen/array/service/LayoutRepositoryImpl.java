@@ -542,7 +542,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 							} else if (st3.getPredicate().equals(hasLinker)) {
 								v = st3.getObject();
 								String linkerURI = v.stringValue();
-								feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
+								//TODO fix it
+								//feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
 							} else if (st3.getPredicate().equals(hasRatio)) {
 								v = st3.getObject();
 								feat.setRatio(Double.parseDouble(v.stringValue()));
@@ -793,7 +794,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 								} else if (st3.getPredicate().equals(hasLinker)) {
 									v = st3.getObject();
 									String linkerURI = v.stringValue();
-									feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
+									//TODO fix it
+									//feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
 								} else if (st3.getPredicate().equals(hasRatio)) {
 									v = st3.getObject();
 									feat.setRatio(Double.parseDouble(v.stringValue()));

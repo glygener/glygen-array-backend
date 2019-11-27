@@ -1,9 +1,11 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.List;
+
 public class ProteinLinker extends SequenceBasedLinker {
 	
 	String uniProtId;
-	String pdbId;
+	List<String> pdbIds;
 	
 	public ProteinLinker() {
 		this.type = LinkerType.PROTEIN_LINKER;
@@ -23,17 +25,11 @@ public class ProteinLinker extends SequenceBasedLinker {
 		this.uniProtId = uniProtId;
 	}
 
-	/**
-	 * @return the pdbId
-	 */
-	public String getPdbId() {
-		return pdbId;
-	}
-
-	/**
-	 * @param pdbId the pdbId to set
-	 */
-	public void setPdbId(String pdbId) {
-		this.pdbId = pdbId;
-	}
+	public List<String> getPdbIds() {
+        return pdbIds;
+    }
+	
+	public void setPdbIds(List<String> pdbIds) {
+        this.pdbIds = pdbIds;
+    }
 }

@@ -22,6 +22,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.Owner;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
@@ -42,6 +43,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String hasInchiSequencePredicate = ontPrefix + "has_inChI_sequence";
 	final static String hasInchiKeyPredicate = ontPrefix + hasInchiKeyProperty;
 	final static String hasIupacNamePredicate = ontPrefix + "has_iupac_name";
+	final static String hasSmilesPredicate = ontPrefix + "has_smiles";
 	final static String hasMassPredicate = ontPrefix + "has_mass";
 	final static String hasImageUrlPredicate = ontPrefix + "has_image_url";
 	final static String hasPubChemIdPredicate = ontPrefix + hasPubChemIdProperty;
@@ -140,10 +142,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					Literal uniProt = f.createLiteral(((ProteinLinker)l).getUniProtId());
 					statements.add(f.createStatement(linker, hasUniProtId, uniProt, graphIRI));
 				}
-				if (((ProteinLinker)l).getPdbId() != null) {
-					IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
-					Literal pdb = f.createLiteral(((ProteinLinker)l).getPdbId());
-					statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
+				if (((ProteinLinker)l).getPdbIds() != null) {
+				    for (String pdbId: ((ProteinLinker)l).getPdbIds()) {
+				        IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
+				        Literal pdb = f.createLiteral(pdbId);
+				        statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
+				    }
 				}
 			}
 			
@@ -218,6 +222,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
 			IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
 			IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
+			IRI hasSmiles = f.createIRI(hasSmilesPredicate);
 			IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
 			IRI hasClassification = f.createIRI(hasClassificationPredicate);
 			IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
@@ -256,6 +261,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			Literal molecularFormula = null;
 			if (l.getMolecularFormula() != null)
 				molecularFormula = f.createLiteral(l.getMolecularFormula());
+			Literal smiles = null;
+			if (l.getSmiles() != null) 
+			    smiles = f.createLiteral(l.getSmiles());
 			Literal iupacName = null;
 			if (l.getIupacName() != null) 
 				iupacName = f.createLiteral(l.getIupacName());
@@ -280,6 +288,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (imageUrl != null) statements.add(f.createStatement(linker, hasImageUrl, imageUrl, graphIRI));
 			if (pubChemId != null) statements.add(f.createStatement(linker, hasPubChemId, pubChemId, graphIRI));
 			if (molecularFormula != null) statements.add(f.createStatement(linker, hasMolecularFormula, molecularFormula, graphIRI));
+			if (smiles != null) statements.add(f.createStatement(linker, hasSmiles, smiles, graphIRI));
 			
 			if (l.getClassification() != null) {
 				String classificationIRI = null;
@@ -352,7 +361,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		graph = getGraphForUser(user);
 		if (graph != null) {
 			// check to see if the given linkerId is in this graph
-			Linker existing = getLinkerFromURI (uriPrefix + linkerId, graph);
+			Linker existing = getLinkerFromURI (uriPrefix + linkerId, user);
 			if (existing != null) {
 				//TODO what to do with linkerClassifications
 				deleteByURI (uriPrefix + linkerId, graph);
@@ -409,7 +418,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.isEmpty())
 			return null;
 		else {
-			return getLinkerFromURI(uriPrefix + linkerId, graph);
+			return getLinkerFromURI(uriPrefix + linkerId, user);
 		}
 	}
 
@@ -433,7 +442,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return null;
 		else {
 			String linkerURI = results.get(0).getValue("s");
-			return getLinkerFromURI(linkerURI, graph);
+			return getLinkerFromURI(linkerURI, user);
 		}
 	}
 
@@ -479,10 +488,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (sortLine + 
-					" ?s gadr:has_date_addedtolibrary ?d .\n" +
+			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d .\n" +
 					" ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
-				    "}\n" +
+					sortLine + "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
 					" OFFSET " + offset);
@@ -491,7 +499,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String linkerURI = sparqlEntity.getValue("s");
-				Linker linker = getLinkerFromURI(linkerURI, graph);
+				Linker linker = getLinkerFromURI(linkerURI, user);
 				linkers.add(linker);
 			}
 		}
@@ -514,6 +522,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return "gadr:has_iupac_name";
 		else if (field.equalsIgnoreCase("mass"))
 			return "gadr:has_mass";
+		else if (field.equalsIgnoreCase("smiles"))
+            return "gadr:has_smiles";
 		else if (field.equalsIgnoreCase("molecularFormula"))
 			return "gadr:has_molecular_formula";
 		else if (field.equalsIgnoreCase("dateModified"))
@@ -554,9 +564,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	@Override
-	public Linker getLinkerFromURI(String linkerURI, String graph) throws SparqlException {
+	public Linker getLinkerFromURI(String linkerURI, UserEntity user) throws SparqlException, SQLException {
 		Linker linkerObject = null;
 		
+		String graph = getGraphForUser(user);
 		LinkerType type = getLinkerTypeForLinker(linkerURI, graph);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -575,6 +586,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
 		IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
 		IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
+		IRI hasSmiles = f.createIRI(hasSmilesPredicate);
 		IRI hasClassification = f.createIRI(hasClassificationPredicate);
 		IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
 		IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
@@ -601,8 +613,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			linkerObject.setUri(linkerURI);
 			linkerObject.setId(linkerURI.substring(linkerURI.lastIndexOf("/")+1));
+			Owner owner = new Owner ();
+            owner.setUserId(user.getUserId());
+            owner.setName(user.getUsername());
+            linkerObject.setOwner(owner);
 		}
 		List<String> urls = new ArrayList<String>();
+		List<String> pdbIds = new ArrayList<String>();
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(hasInchiSequence)) {
@@ -617,7 +634,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				Value val = st.getObject();
 				if (linkerObject instanceof SmallMoleculeLinker)
 					((SmallMoleculeLinker)linkerObject).setIupacName(val.stringValue()); 
-			} else if (st.getPredicate().equals(hasImageUrl)) {
+			} else if (st.getPredicate().equals(hasSmiles)) {
+                Value val = st.getObject();
+                if (linkerObject instanceof SmallMoleculeLinker)
+                    ((SmallMoleculeLinker)linkerObject).setSmiles(val.stringValue()); 
+            } else if (st.getPredicate().equals(hasImageUrl)) {
 				Value val = st.getObject();
 				if (linkerObject instanceof SmallMoleculeLinker)
 					((SmallMoleculeLinker)linkerObject).setImageURL(val.stringValue()); 
@@ -644,7 +665,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			} else if (st.getPredicate().equals(hasPdbId)) {
 				Value val = st.getObject();
 				if (linkerObject instanceof ProteinLinker)
-					((ProteinLinker)linkerObject).setPdbId(val.stringValue()); 
+					pdbIds.add(val.stringValue()); 
 			} else if (st.getPredicate().equals(hasUniprotId)) {
 				Value val = st.getObject();
 				if (linkerObject instanceof ProteinLinker)
@@ -722,6 +743,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				}
 			} else if (st.getPredicate().equals(hasPublicURI)) {
 				// need to retrieve additional information from DEFAULT graph
+			    linkerObject.setIsPublic(true);
 				Value uriValue = st.getObject();
 				String publicLinkerURI = uriValue.stringValue();
 				IRI publicLinker = f.createIRI(publicLinkerURI);
@@ -768,7 +790,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					} else if (stPublic.getPredicate().equals(hasPdbId)) {
 						Value val = stPublic.getObject();
 						if (linkerObject instanceof ProteinLinker)
-							((ProteinLinker)linkerObject).setPdbId(val.stringValue()); 
+							pdbIds.add(val.stringValue()); 
 					} else if (stPublic.getPredicate().equals(hasUniprotId)) {
 						Value val = stPublic.getObject();
 						if (linkerObject instanceof ProteinLinker)
@@ -815,6 +837,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		if (!urls.isEmpty() && linkerObject != null)
 			linkerObject.setUrls(urls);
+		if (!pdbIds.isEmpty() && linkerObject != null && linkerObject instanceof ProteinLinker)
+            ((ProteinLinker) linkerObject).setPdbIds(pdbIds);
 		
 		return linkerObject;
 	}
@@ -822,7 +846,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		Linker existing = getLinkerFromURI(g.getUri(), graph);
+		Linker existing = getLinkerFromURI(g.getUri(), user);
 		if (graph != null && existing !=null) {
 			updateLinkerInGraph(g, graph);
 		}

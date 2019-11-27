@@ -193,7 +193,23 @@ public class GlygenArrayController {
 				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
 			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
 		}
+		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		
+		if (feature.getName() != null && !feature.getName().trim().isEmpty()) {
+		    try {
+                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);
+                if (existing != null) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                    throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing features", e);
+            }
+		}
 		try {
 		    try {
     		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
@@ -1476,6 +1492,53 @@ public class GlygenArrayController {
 		
 	}
 	
+	@ApiOperation(value = "Retrieve linker details from Pubchem with the given pubchem compound id or inchikey")
+    @RequestMapping(value="/getlinkerFromPubChem/{pubchemid}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to list glycans"),
+            @ApiResponse(code=404, message="Linker with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Linker getLinkerDetailsFromPubChem (
+            @ApiParam(required=true, value="pubchemid or the inchikey or the smiles of the linker to retrieve") 
+            @PathVariable("pubchemid") String pubchemid) {
+	    if (pubchemid == null || pubchemid.isEmpty()) {
+	        ErrorMessage errorMessage = new ErrorMessage();
+	        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+	        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+	        errorMessage.addError(new ObjectError("pubchemid", "NoEmpty"));
+	        throw new IllegalArgumentException("pubchem id should be provided", errorMessage);
+	    }
+	    try {
+	        Long pubChem = Long.parseLong(pubchemid);
+	        Linker linker = PubChemAPI.getLinkerDetailsFromPubChem(pubChem);
+	        if (linker == null) {
+	            ErrorMessage errorMessage = new ErrorMessage();
+	            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+	            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+	            errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
+	            throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
+	        }
+	        return linker; 
+	    } catch (NumberFormatException e) {
+	        Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
+	        if (linker == null) {
+	            linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
+	            if (linker == null) {
+    	            ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
+                    throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
+	            }
+	            return linker;
+            }
+            return linker; 
+	    } 
+    }
+	
 	
 	@ApiOperation(value = "Add given linker for the user")
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
@@ -1661,7 +1724,7 @@ public class GlygenArrayController {
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
-		if (linker.getClassification() == null && linker.getPubChemId() == null) {   // at least one of them should be provided
+		if (linker.getClassification() == null && linker.getPubChemId() == null && linker.getInChiKey() == null) {   // at least one of them should be provided
 			errorMessage.addError(new ObjectError("classification", "NoEmpty"));
 		} 
 	
@@ -1710,10 +1773,13 @@ public class GlygenArrayController {
 			}
 			if (linkerURI == null) {
 				// get the linker details from pubChem
-				if (linker.getPubChemId() != null) {
+				if (linker.getPubChemId() != null || linker.getInChiKey() != null) {
 					try {
-						
-						l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+						if (linker.getPubChemId() != null) {
+						    l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+						} else if (linker.getInChiKey() != null) {
+						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey());
+						}
 						if (l == null) {
 							// could not get details from PubChem
 							errorMessage.addError(new ObjectError("pubChemId", "NotValid"));

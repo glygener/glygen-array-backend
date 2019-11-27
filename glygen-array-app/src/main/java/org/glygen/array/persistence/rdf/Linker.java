@@ -31,7 +31,24 @@ public abstract class Linker {
 	List<Publication> publications;
 	List<String> urls;
 	LinkerType type;
+	Owner owner;
+    Boolean isPublic = false;
 	
+    public Boolean getIsPublic() {
+        return isPublic;
+    }
+    
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+    
+    public Owner getOwner() {
+        return owner;
+    }
+    
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+    }
 	
 	public String getId() {
 		return id;

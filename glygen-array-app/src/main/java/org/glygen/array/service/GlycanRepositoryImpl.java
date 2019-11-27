@@ -458,7 +458,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
-				sortLine = "?s " + sortPredicate + " ?sortBy .\n";	
+				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
 			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
@@ -466,9 +466,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (sortLine + 
+			queryBuf.append (
 					" ?s gadr:has_date_addedtolibrary ?d .\n" +
 					" ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+					        sortLine +
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +

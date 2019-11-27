@@ -20,7 +20,7 @@ public interface LinkerRepository {
 
 	int getLinkerCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException;
-	Linker getLinkerFromURI(String linkerURI, String graph) throws SparqlException;
+	Linker getLinkerFromURI(String linkerURI, UserEntity user) throws SparqlException, SQLException;
 	String getLinkerByField(String field, String predicate, String type) throws SparqlException;
 	String getLinkerByField(String field, String predicate, String type, UserEntity user)
 			throws SparqlException, SQLException;

@@ -351,10 +351,10 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/users/availableUsername"),
 				new AntPathRequestMatcher("/users/recover"),
 				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
-				//new AntPathRequestMatcher("/array/upload"),
 				new AntPathRequestMatcher("/glycan/parseSequence"),
 				new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
 				new AntPathRequestMatcher("/array/getimage/**"),
+				new AntPathRequestMatcher("/array/getlinkerFromPubChem/**"),
 				new AntPathRequestMatcher("/array/getLinkerClassifications"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		

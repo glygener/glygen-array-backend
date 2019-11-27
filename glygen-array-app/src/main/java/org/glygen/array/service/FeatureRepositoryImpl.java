@@ -17,6 +17,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
@@ -76,9 +77,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		Literal date = f.createLiteral(new Date());
+		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
+		    feature.setName(feature.getUri().substring(feature.getUri().lastIndexOf("/")+1));
+		}
+		Literal label = f.createLiteral(feature.getName());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		
+		statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
 		statements.add(f.createStatement(feat, RDF.TYPE, featureType, graphIRI));
 		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
@@ -129,6 +135,30 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		return featureURI;
 	}
+	
+	@Override
+    public Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        if (label == null || label.isEmpty())
+            return null;
+        String graph = getGraphForUser(user);
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
+        queryBuf.append ( " ?s rdfs:label \"" + label + "\"^^xsd:string . \n"
+                + "}\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String uri = results.get(0).getValue("s");
+            return getFeatureFromURI(uri, user);
+        }
+    }
 
 	@Override
 	public List<Feature> getFeatureByUser(UserEntity user) throws SparqlException, SQLException {
@@ -147,7 +177,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
-				sortLine = "?s " + sortPredicate + " ?sortBy .\n";	
+				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
 			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
@@ -155,9 +185,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (sortLine + 
+			queryBuf.append ( 
 					" ?s gadr:has_date_addedtolibrary ?d .\n" +
 					" ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+					sortLine + 
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -238,11 +269,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
-			if (st.getPredicate().equals(hasLinker)) {
+			if (st.getPredicate().equals(RDFS.LABEL)) {
+			    Value label = st.getObject();
+                featureObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(hasLinker)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
 					String linkerURI = value.stringValue();
-					Linker linker = linkerRepository.getLinkerFromURI(linkerURI, graph);
+					Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
 					featureObject.setLinker(linker);
 				}
 			} else if (st.getPredicate().equals(hasMolecule)) {

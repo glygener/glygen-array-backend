@@ -9,6 +9,7 @@ public class SmallMoleculeLinker extends Linker {
 	String inChiKey;
 	String inChiSequence;
 	String iupacName;
+	String smiles;
 	Double mass;
 	String molecularFormula;
 	LinkerClassification classification;
@@ -113,6 +114,14 @@ public class SmallMoleculeLinker extends Linker {
 	public void setClassification(LinkerClassification classification) {
 		this.classification = classification;
 	}
+	
+	public String getSmiles() {
+        return smiles;
+    }
+	
+	public void setSmiles(String smiles) {
+        this.smiles = smiles;
+    }
 	
 	@Override
 	public boolean equals(Object obj) {

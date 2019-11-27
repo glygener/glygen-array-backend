@@ -12,5 +12,5 @@ public interface GlygenArrayRepository {
 	public static final String ontPrefix = "http://purl.org/gadr/data#";
 
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
-	String getGraphForUser(UserEntity user) throws SQLException;	
+	String getGraphForUser(UserEntity user) throws SQLException;
 }
