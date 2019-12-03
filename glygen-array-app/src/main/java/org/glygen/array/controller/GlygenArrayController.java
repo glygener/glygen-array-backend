@@ -45,6 +45,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
@@ -54,6 +55,7 @@ import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -66,6 +68,8 @@ import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.LinkerRepositoryImpl;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
+import org.glygen.array.util.pubmed.DTOPublication;
+import org.glygen.array.util.pubmed.PubmedUtil;
 import org.glygen.array.view.BatchGlycanUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;
@@ -183,16 +187,18 @@ public class GlygenArrayController {
 	public String addFeature (
 			@ApiParam(required=false, value="Feature to be added, a linker and an at least one glycan are mandatory") 
 			@RequestBody(required=false) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
-		if (feature.getLinker() == null || feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
-			ErrorMessage errorMessage = new ErrorMessage();
-			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-			if (feature.getLinker() == null)
-				errorMessage.addError(new ObjectError("linker", "NoEmpty"));
-			else 
-				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
-			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
-		}
+	    if (feature.getType() == null || feature.getType() == FeatureType.NORMAL) {
+    		if (feature.getLinker() == null || feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
+    			ErrorMessage errorMessage = new ErrorMessage();
+    			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+    			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+    			if (feature.getLinker() == null)
+    				errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+    			else 
+    				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+    			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+    		}
+	    }
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
@@ -1496,9 +1502,7 @@ public class GlygenArrayController {
     @RequestMapping(value="/getlinkerFromPubChem/{pubchemid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to list glycans"),
-            @ApiResponse(code=404, message="Linker with given id does not exist"),
+            @ApiResponse(code=404, message="Linker details with given id does not exist"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Linker getLinkerDetailsFromPubChem (
@@ -1538,6 +1542,48 @@ public class GlygenArrayController {
             return linker; 
 	    } 
     }
+	
+	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
+    @RequestMapping(value="/getPublicationFromPubmed/{pubmedid}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Publication retrieved successfully"), 
+            @ApiResponse(code=404, message="Publication with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Publication getPublicationDetailsFromPubMed (
+            @ApiParam(required=true, value="pubmed id for the publication") 
+            @PathVariable("pubmedid") Integer pubmedid) {
+	    if (pubmedid == null) {
+	        ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
+            throw new IllegalArgumentException("Invalid Input: Not a valid publication information", errorMessage);
+	    }
+	    PubmedUtil util = new PubmedUtil();
+	    try {
+            DTOPublication pub = util.createFromPubmedId(pubmedid);
+            Publication publication = new Publication ();
+            publication.setAuthors(pub.getFormattedAuthor());
+            publication.setDoiId(pub.getDoiId());
+            publication.setEndPage(pub.getEndPage());
+            publication.setJournal(pub.getJournal());
+            publication.setNumber(pub.getNumber());
+            publication.setPubmedId(pub.getPubmedId());
+            publication.setStartPage(pub.getStartPage());
+            publication.setTitle(pub.getTitle());
+            publication.setVolume(pub.getVolume());
+            publication.setYear(pub.getYear());
+            
+            return publication;
+        } catch (Exception e) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
+            throw new IllegalArgumentException("Invalid Input: Not a valid publication information", errorMessage);
+        }
+	}
 	
 	
 	@ApiOperation(value = "Add given linker for the user")

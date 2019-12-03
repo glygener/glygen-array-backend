@@ -18,6 +18,8 @@ public class Feature {
 	
 	Map<Glycan, Integer> positionMap = new HashMap<>();
 	
+	FeatureType type = FeatureType.NORMAL;
+	
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
@@ -158,4 +160,12 @@ public class Feature {
 	public void setPositionMap(Map<Glycan, Integer> positionMap) {
 		this.positionMap = positionMap;
 	}
+	
+	public void setType(FeatureType type) {
+        this.type = type;
+    }
+	
+	public FeatureType getType() {
+        return type;
+    }
 }

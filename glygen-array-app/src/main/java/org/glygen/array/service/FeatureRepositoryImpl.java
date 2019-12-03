@@ -9,10 +9,8 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -23,14 +21,9 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerClassification;
-import org.glygen.array.persistence.rdf.LinkerType;
-import org.glygen.array.persistence.rdf.ProteinLinker;
-import org.glygen.array.persistence.rdf.SequenceBasedLinker;
-import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
-import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +70,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		Literal date = f.createLiteral(new Date());
+		IRI hasFeatureType = f.createIRI(hasTypePredicate);
+        Literal type = f.createLiteral(feature.getType().name());
+        
 		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
 		    feature.setName(feature.getUri().substring(feature.getUri().lastIndexOf("/")+1));
 		}
@@ -89,41 +85,44 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
 		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
+		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
 		
-		Linker linker = feature.getLinker();
-		if (linker.getUri() == null) {
-		    if (linker.getId() != null)
-		        linker.setUri(uriPrefix + linker.getId());
-		    else {
-		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
-		    }
-		}
-		
-		
-		IRI linkerIRI = f.createIRI(linker.getUri());
-		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
-		
-		for (Glycan g: feature.getGlycans()) {
-			if (g.getUri() == null) {
-				if (g.getId() != null) {
-					g.setUri(uriPrefix + g.getId());
-				} else {
-				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
-				}
-			}
-			
-			IRI glycanIRI = f.createIRI(g.getUri());
-			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
-			
-			Integer position = feature.getPosition(g);
-			if (position != null) {
-				Literal pos = f.createLiteral(position);
-				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
-				IRI positionContext = f.createIRI(positionContextURI);
-				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
-				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
-				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
-			}
+		if (feature.getType() == null || feature.getType() == FeatureType.NORMAL) {
+    		Linker linker = feature.getLinker();
+    		if (linker.getUri() == null) {
+    		    if (linker.getId() != null)
+    		        linker.setUri(uriPrefix + linker.getId());
+    		    else {
+    		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
+    		    }
+    		}
+    		
+    		
+    		IRI linkerIRI = f.createIRI(linker.getUri());
+    		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
+    		
+    		for (Glycan g: feature.getGlycans()) {
+    			if (g.getUri() == null) {
+    				if (g.getId() != null) {
+    					g.setUri(uriPrefix + g.getId());
+    				} else {
+    				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
+    				}
+    			}
+    			
+    			IRI glycanIRI = f.createIRI(g.getUri());
+    			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+    			
+    			Integer position = feature.getPosition(g);
+    			if (position != null) {
+    				Literal pos = f.createLiteral(position);
+    				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+    				IRI positionContext = f.createIRI(positionContextURI);
+    				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
+    				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
+    				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
+    			}
+    		}
 		}
 		
 		if (feature.getRatio() != null) {
@@ -256,6 +255,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasRatio = f.createIRI (hasRatioPredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+		IRI hasFeatureType = f.createIRI(hasTypePredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
@@ -272,6 +272,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			if (st.getPredicate().equals(RDFS.LABEL)) {
 			    Value label = st.getObject();
                 featureObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(hasFeatureType)) {
+			    Value value = st.getObject();
+			    if (value != null) {
+			        FeatureType type = FeatureType.valueOf(value.stringValue());
+			        featureObject.setType(type);
+			    }
 			} else if (st.getPredicate().equals(hasLinker)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {

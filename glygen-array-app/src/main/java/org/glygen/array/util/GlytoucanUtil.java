@@ -69,10 +69,10 @@ public class GlytoucanUtil {
 		this.userId = userId;
 	}
 	
-	public String registerGlycan (String glycoCTSequence) {
+	public String registerGlycan (String wurcsSequence) {
 	    
 	    Sequence input = new Sequence();
-	    input.setSequence(glycoCTSequence);
+	    input.setSequence(wurcsSequence);
 	    
 	    HttpEntity<Sequence> requestEntity = new HttpEntity<Sequence>(input, createHeaders(userId, apiKey));
 		
@@ -80,9 +80,11 @@ public class GlytoucanUtil {
 			ResponseEntity<Response> response = restTemplate.exchange(registerURL, HttpMethod.POST, requestEntity, Response.class);
 			return response.getBody().getMessage();
 		} catch (HttpClientErrorException e) {
-			logger.error("Exception adding glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+			logger.error("Client Error: Exception adding glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+			logger.info("Sequence: " + wurcsSequence);
 		} catch (HttpServerErrorException e) {
-			logger.error("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+			logger.error("Server Error: Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+			logger.info("Sequence: " + wurcsSequence);
 		}
 		
 		return null;
@@ -101,7 +103,7 @@ public class GlytoucanUtil {
 			} catch (HttpClientErrorException e) {
 				logger.info("Exception retrieving glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
 			} catch (HttpServerErrorException e) {
-				logger.info("Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+				logger.info("Exception retrieving glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
 			}
 		//} catch (UnsupportedEncodingException e1) {
 		//	logger.error("Could not encode wurcs sequence", e1);
