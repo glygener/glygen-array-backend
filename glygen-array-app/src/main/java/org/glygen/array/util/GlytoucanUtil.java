@@ -163,18 +163,20 @@ public class GlytoucanUtil {
 		GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
 		// add glytoucan ids for GRITS database
-		String databaseFolder = "/Users/sena/Desktop/GRITS-databases";
+		String databaseFolder = "/Users/sarpinar/Desktop/GRITS-databases";
 		//String newDbFolder = databaseFolder + "/glytoucanAdded";
 		
 		File dbFolder = new File (databaseFolder);
+		GlycanDatabase missingGlycansDatabase = new GlycanDatabase();
 		try
         {
+			JAXBContext jaxbContext = JAXBContext.newInstance(GlycanDatabase.class);
+	        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+	        Marshaller jaxBMarshaller = jaxbContext.createMarshaller();
 			for (File file: dbFolder.listFiles()) {
 				if (file.isDirectory()) continue;
 				if (file.getName().endsWith (".xml")) {
 		            // see if we can use the database file using the JAXB annotations
-		            JAXBContext jaxbContext = JAXBContext.newInstance(GlycanDatabase.class);
-		            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 		            GlycanDatabase database = (GlycanDatabase) jaxbUnmarshaller.unmarshal(file);
 		            int count = 0;
 		            for (GlycanStructure str: database.getStructures()) {
@@ -190,19 +192,20 @@ public class GlytoucanUtil {
 				            	if (glyTouCanId != null && glyTouCanId.length() == 8) { // glytoucanId 
 				            		str.setGlytoucanid(glyTouCanId);
 				            	} else {
+				            		missingGlycansDatabase.addStructure(str);
 				            		System.out.println ("Cannot find glytoucanid for " + str.getId());
 				            	}
 			            	}
 		            	}
 		            	count++;
 		            	if (count % 20 == 0) {
-		            		Marshaller jaxBMarshaller = jaxbContext.createMarshaller();
+		            		jaxBMarshaller.marshal(missingGlycansDatabase, new File (databaseFolder + File.separator + "out/missingGlytoucanId.xml"));
 				            jaxBMarshaller.marshal(database, new File (databaseFolder + File.separator + file.getName()));
 		            	}
 		            }
 		            
 				}
-			}
+			}	
         }
         catch (JAXBException e)
         {
