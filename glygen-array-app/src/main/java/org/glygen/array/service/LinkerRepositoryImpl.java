@@ -296,8 +296,17 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					classificationIRI = l.getClassification().getUri();
 				}
 				else {
-					//TODO search for existing classification first
-					classificationIRI = generateUniqueURI(uriPrefix + "LC");
+				    if (l.getClassification().getChebiId() != null) {
+				        classificationIRI = getClassificationByField(
+				                l.getClassification().getChebiId() + "", hasChebiIdPredicate, "integer", graph);
+				    } 
+				    if (classificationIRI == null && l.getClassification().getClassification() != null) {
+				        classificationIRI = getClassificationByField(
+                                l.getClassification().getClassification(), hasClassificationValuePredicate, "string", graph);
+				    }
+				    if (classificationIRI == null) {
+				        classificationIRI = generateUniqueURI(uriPrefix + "LC");
+				    } 
 				}
 				IRI classification = f.createIRI(classificationIRI);
 				statements.add(f.createStatement(linker, hasClassification, classification, graphIRI));
@@ -353,6 +362,40 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		return linkerURI;
 	}
+	
+	String getClassificationByField (String field, String predicate, String type, String graph) throws SparqlException {
+	    
+	    String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
+        String whereClause = "WHERE {";
+        String where = " { " + 
+                "                   ?s gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + " . }";
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            // check if the user's private graph has this glycan
+            fromString += "FROM <" + graph + ">\n";
+            where += "  UNION { "
+                    + " ?s gadr:has_public_uri ?p . \n" 
+                    + "?p gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n}";
+            
+        } else {
+            where += "}";
+        }
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append (fromString);
+        queryBuf.append (whereClause + where + 
+                "               }\n" + 
+                "               LIMIT 10");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.size() == 0) 
+            return null;
+        
+        SparqlEntity result = results.get(0);
+        String classificationURI = result.getValue("s");
+        
+        return classificationURI;
+	}
+	
 	
 	@Override
 	public void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException {

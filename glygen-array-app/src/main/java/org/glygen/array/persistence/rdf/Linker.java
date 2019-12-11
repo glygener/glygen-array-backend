@@ -1,5 +1,6 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -203,5 +204,11 @@ public abstract class Linker {
 	public void setUrls(List<String> urls) {
 		this.urls = urls;
 	}
+
+    public void addPublication(Publication publication) {
+        if (publications == null) 
+            publications = new ArrayList<Publication>();
+        publications.add(publication);
+    }
 
 }

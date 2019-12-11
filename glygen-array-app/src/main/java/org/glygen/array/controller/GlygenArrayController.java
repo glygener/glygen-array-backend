@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -67,6 +68,7 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.LinkerRepositoryImpl;
 import org.glygen.array.util.GlytoucanUtil;
+import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.PubmedUtil;
@@ -1498,6 +1500,38 @@ public class GlygenArrayController {
 		
 	}
 	
+	@ApiOperation(value = "Retrieve protein sequence from UniProt with the given uniprot id")
+    @RequestMapping(value="/getSequenceFromUniprot/{uniprotid}", method = RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Sequence retrieved successfully"), 
+            @ApiResponse(code=404, message="Sequence with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String getSequenceFromUniProt (
+            @ApiParam(required=true, value="uniprotid such as P12345") 
+            @PathVariable("uniprotid") String uniprotId) {
+        if (uniprotId == null || uniprotId.isEmpty()) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("uniprotId", "NoEmpty"));
+            throw new IllegalArgumentException("uniprotId should be provided", errorMessage);
+        }
+        try {
+            String sequence = UniProtUtil.getSequenceFromUniProt(uniprotId);
+            if (sequence == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("uniprotId", "NotValid"));
+                throw new IllegalArgumentException("uniprotId does not exist", errorMessage);
+            }
+            return sequence;
+        } catch (Exception e) {
+            logger.error("Could not retrieve from uniprot", e);
+            throw new GlycanRepositoryException("Failed to retieve from uniprot", e);
+        }
+	}
+	
 	@ApiOperation(value = "Retrieve linker details from Pubchem with the given pubchem compound id or inchikey")
     @RequestMapping(value="/getlinkerFromPubChem/{pubchemid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
@@ -1563,19 +1597,7 @@ public class GlygenArrayController {
 	    PubmedUtil util = new PubmedUtil();
 	    try {
             DTOPublication pub = util.createFromPubmedId(pubmedid);
-            Publication publication = new Publication ();
-            publication.setAuthors(pub.getFormattedAuthor());
-            publication.setDoiId(pub.getDoiId());
-            publication.setEndPage(pub.getEndPage());
-            publication.setJournal(pub.getJournal());
-            publication.setNumber(pub.getNumber());
-            publication.setPubmedId(pub.getPubmedId());
-            publication.setStartPage(pub.getStartPage());
-            publication.setTitle(pub.getTitle());
-            publication.setVolume(pub.getVolume());
-            publication.setYear(pub.getYear());
-            
-            return publication;
+            return getPublicationFrom(pub);
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1583,6 +1605,22 @@ public class GlygenArrayController {
             errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
             throw new IllegalArgumentException("Invalid Input: Not a valid publication information", errorMessage);
         }
+	}
+	
+	Publication getPublicationFrom (DTOPublication pub) {
+	    Publication publication = new Publication ();
+        publication.setAuthors(pub.getFormattedAuthor());
+        publication.setDoiId(pub.getDoiId());
+        publication.setEndPage(pub.getEndPage());
+        publication.setJournal(pub.getJournal());
+        publication.setNumber(pub.getNumber());
+        publication.setPubmedId(pub.getPubmedId());
+        publication.setStartPage(pub.getStartPage());
+        publication.setTitle(pub.getTitle());
+        publication.setVolume(pub.getVolume());
+        publication.setYear(pub.getYear());
+        
+        return publication;
 	}
 	
 	
@@ -1622,12 +1660,9 @@ public class GlygenArrayController {
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
-		if (linker.getSequence() == null)  {
-			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
-		} 
 		
-		if (linker.getUniProtId() == null)  {
-			errorMessage.addError(new ObjectError("uniProtId", "NoEmpty"));
+		if (linker.getUniProtId() == null && linker.getSequence() == null)  { // at least one of them should be provided
+			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 		} 
 	
 		// validate first
@@ -1659,6 +1694,7 @@ public class GlygenArrayController {
 		try {
 			Linker l = null;
 			String linkerURI = null;
+			
 			if (linker.getSequence() != null) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
 				if (linkerURI != null) {
@@ -1683,6 +1719,16 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "Duplicate"));	
 				}
 			}
+			
+			if (linker.getSequence() == null && linker.getUniProtId() != null) {
+			    // try to retrieve sequence from Uniprot
+			    String sequence = UniProtUtil.getSequenceFromUniProt(linker.getUniProtId());
+			    if (sequence == null) {
+			        errorMessage.addError(new ObjectError("uniProtId", "NotValid"));
+			    } else {
+			        ((SequenceBasedLinker)l).setSequence(sequence);
+			    }
+			} 
 			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
@@ -1853,6 +1899,22 @@ public class GlygenArrayController {
 					    linker.setId(local.getId());
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
+				}
+				
+				// retrieve publication details
+				if (l != null && linker.getPublications() != null && !linker.getPublications().isEmpty()) {
+				    PubmedUtil util = new PubmedUtil();
+				    for (Publication pub: linker.getPublications()) {
+				        if (pub.getPubmedId() != null) {
+				            try {
+                                DTOPublication publication = util.createFromPubmedId(pub.getPubmedId());
+                                l.addPublication (getPublicationFrom(publication));
+                            } catch (Exception e) {
+                                logger.error("Cannot retrieve details from PubMed", e);
+                                errorMessage.addError(new ObjectError("pubMedId", "NotValid"));
+                            }
+				        }
+				    }
 				}
 			} 
 			

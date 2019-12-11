@@ -85,6 +85,9 @@ public class GlytoucanUtil {
 		} catch (HttpServerErrorException e) {
 			logger.error("Server Error: Exception adding glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
 			logger.info("Sequence: " + wurcsSequence);
+		} catch (Exception e) {
+		    logger.error("General Error: Exception adding glycan " + e.getMessage());
+            logger.info("Sequence: " + wurcsSequence);
 		}
 		
 		return null;
@@ -163,7 +166,7 @@ public class GlytoucanUtil {
 		GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
 		// add glytoucan ids for GRITS database
-		String databaseFolder = "/Users/sarpinar/Desktop/GRITS-databases";
+		String databaseFolder = "/Users/sena/Desktop/GRITS-databases";
 		//String newDbFolder = databaseFolder + "/glytoucanAdded";
 		
 		File dbFolder = new File (databaseFolder);
@@ -199,7 +202,7 @@ public class GlytoucanUtil {
 		            	}
 		            	count++;
 		            	if (count % 20 == 0) {
-		            		jaxBMarshaller.marshal(missingGlycansDatabase, new File (databaseFolder + File.separator + "out/missingGlytoucanId.xml"));
+		            		jaxBMarshaller.marshal(missingGlycansDatabase, new File (databaseFolder + File.separator + "out/missingGlytoucanId" + file.getName()));
 				            jaxBMarshaller.marshal(database, new File (databaseFolder + File.separator + file.getName()));
 		            	}
 		            }
