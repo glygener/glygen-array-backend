@@ -37,6 +37,7 @@ import org.eurocarbdb.application.glycanbuilder.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.GlycanFormatconverter.io.WURCS.WURCSImporter;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -91,6 +92,7 @@ import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
 import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
 import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
+import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -750,13 +752,29 @@ public class GlygenArrayController {
 				boolean parseError = false;
 				try {
 					switch (glycan.getSequenceType()) {
-						case GLYCOCT:
-							glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
-							break;
-						case GWS:
-							glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
-							glycoCT = glycanObject.toGlycoCTCondensed();
-							break;
+					case GLYCOCT:
+						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+						glycoCT = glycan.getSequence().trim();
+						break;
+					case GWS:
+						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
+						glycoCT = glycanObject.toGlycoCTCondensed();
+						break;
+					case WURCS:
+					    WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
+					    wurcsConverter.start(glycan.getSequence().trim());
+					    glycoCT = wurcsConverter.getGlycoCT();
+					    if (glycoCT != null) 
+					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
+					    break;
+                    case IUPAC:
+                        CFGMasterListParser parser = new CFGMasterListParser();
+                        glycoCT = parser.translateSequence(glycan.getSequence().trim());
+                        if (glycoCT != null)
+                            glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
+                        break;
+                    default:
+                        break;
 					}
 				} catch (Exception e) {
 					// parse error
@@ -1462,7 +1480,8 @@ public class GlygenArrayController {
 			if (glycan == null) {
 				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			}
-			
+			byte[] cartoon = getCartoonForGlycan(glycanId);
+			glycan.setCartoon(cartoon);
 			return glycan;
 			
 			
