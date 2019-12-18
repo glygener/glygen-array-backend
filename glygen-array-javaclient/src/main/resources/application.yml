@@ -1,4 +1,7 @@
 glygen:
-  scheme: http://
+  scheme: https://
   host: glygen.ccrc.uga.edu
-  basePath: /ggarray/api
+  basePath: /ggarray/api/
+#  scheme: http://
+#  host: localhost:8080
+#  basePath: /
