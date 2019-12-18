@@ -16,7 +16,10 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
+import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
+import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
@@ -201,6 +204,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			IRI glycan = f.createIRI(glycanURI);
 			
 			String glyToucanId = null;
+			String glyToucanHash = null;
 			if (g.getGlytoucanId() == null && !noGlytoucanRegistration) {
 				// check and register to GlyToucan
 				try {
@@ -208,6 +212,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					exporter.start(g.getSequence());
 					String wurcs = exporter.getWURCS();
 					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+					if (glyToucanId == null || glyToucanId.length() != 8) {
+					    // this is new registration, hash returned
+					    glyToucanHash = glyToucanId;
+					    glyToucanId = null;
+					}
 				} catch (Exception e) {
 					logger.warn("Cannot register glytoucanId with the given sequence", g.getSequence());
 				}
@@ -224,11 +233,13 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			}
 			
 			Literal glytoucanLit = glyToucanId == null ? null : f.createLiteral(glyToucanId);
+			Literal glytoucanHashLit = glyToucanHash == null ? null : f.createLiteral(glyToucanHash);
 			Literal sequenceValue = f.createLiteral(g.getSequence());
 			Literal format = f.createLiteral(g.getSequenceType().getLabel());
 			
 			IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
 			IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+			IRI hasGlytoucanHash = f.createIRI(ontPrefix + "has_glytoucan_registration_hash");
 			IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
 			IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
 			IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
@@ -241,6 +252,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, graphIRI));
 			statements.add(f.createStatement(glycan, hasSequence, sequence, graphIRI));
 			if (glytoucanLit != null) statements.add(f.createStatement(glycan, hasGlytoucanId, glytoucanLit, graphIRI));
+			if (glytoucanHashLit != null) statements.add(f.createStatement(glycan, hasGlytoucanHash, glytoucanHashLit, graphIRI));
 			statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, graphIRI));
 			statements.add(f.createStatement(sequence, hasSequenceFormat, format, graphIRI));
 			if (mass != null) statements.add(f.createStatement(glycan, hasMass, mass, graphIRI));
@@ -532,6 +544,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
 		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
 		IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+		IRI hasGlytoucanHash = f.createIRI(ontPrefix + "has_glytoucan_registration_hash");
 		IRI hasMass = f.createIRI(ontPrefix + "has_mass");
 		IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
@@ -575,6 +588,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				Value glytoucanId = st.getObject();
 				if (glycanObject instanceof SequenceDefinedGlycan)
 					((SequenceDefinedGlycan)glycanObject).setGlytoucanId(glytoucanId.stringValue()); 
+			} else if (st.getPredicate().equals(hasGlytoucanHash)) {
+			    // need to check if the accession number is available and update glycan
+			    Value glytoucanHash = st.getObject();
+			    if (glycanObject instanceof SequenceDefinedGlycan) {
+                    ((SequenceDefinedGlycan)glycanObject).setGlytoucanId(glytoucanHash.stringValue()); 
+			    }
 			} else if (st.getPredicate().equals(hasMass)) {
 				Value mass = st.getObject();
 				try {
@@ -683,6 +702,32 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					
 				}
 			}
+		}
+		
+		// check if glytoucanHash exists, if so we need to check if accession number is available now
+		if (glycanObject instanceof SequenceDefinedGlycan) {
+		    if (((SequenceDefinedGlycan) glycanObject).getGlytoucanHash() != null) {
+		        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+                try {
+                    exporter.start(((SequenceDefinedGlycan) glycanObject).getSequence());
+                    String wurcs = exporter.getWURCS();
+                    String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+                    if (glyToucanId != null) {
+                        ((SequenceDefinedGlycan) glycanObject).setGlytoucanId(glyToucanId);
+                        ((SequenceDefinedGlycan) glycanObject).setGlytoucanHash(null);
+                        // need to update glycan in the repository
+                        Literal glytoucanLit = f.createLiteral(glyToucanId);
+                        // remove glytoucanhash
+                        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, hasGlytoucanHash, null, graphIRI)), graphIRI);
+                        List<Statement> statements2 = new ArrayList<Statement>();
+                        statements2.add(f.createStatement(glycan, hasGlytoucanId, glytoucanLit, graphIRI));
+                        sparqlDAO.addStatements(statements2, graphIRI);
+                    }
+                } catch (SugarImporterException | GlycoVisitorException | WURCSException e) {
+                    logger.error("Cannot convert to WURCS", e);
+                }
+                
+		    }
 		}
 		return glycanObject;
 	}

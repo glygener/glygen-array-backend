@@ -190,7 +190,8 @@ public class Application implements CommandLineRunner {
                         log.info("Feature " + f.getId() + " cannot be added", e);
                     }
                 }
-            } else if (importType.equals("BlockLayout")) {
+           
+	        } else if (importType.equals("BlockLayout")) {
 		        List<BlockLayout> blockLayouts = library.getLayoutLibrary().getBlockLayout();
 		        for (BlockLayout blockLayout : blockLayouts) {
 		        	org.glygen.array.client.model.BlockLayout myLayout = new org.glygen.array.client.model.BlockLayout();

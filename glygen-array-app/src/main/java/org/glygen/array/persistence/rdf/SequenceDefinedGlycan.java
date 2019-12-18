@@ -2,10 +2,13 @@ package org.glygen.array.persistence.rdf;
 
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	String glytoucanId;
 	String sequence;
 	GlycanSequenceFormat sequenceType;
+	String glytoucanHash;
 	
 	public SequenceDefinedGlycan() {
 		this.type = GlycanType.SEQUENCE_DEFINED;
@@ -66,4 +69,13 @@ public class SequenceDefinedGlycan extends MassOnlyGlycan {
 		
 		return super.hashCode();
 	}
+	
+	@JsonIgnore
+	public String getGlytoucanHash() {
+        return glytoucanHash;
+    }
+	
+	public void setGlytoucanHash(String glytoucanHash) {
+        this.glytoucanHash = glytoucanHash;
+    }
 }

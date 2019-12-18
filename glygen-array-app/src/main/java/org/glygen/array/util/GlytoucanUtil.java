@@ -166,7 +166,7 @@ public class GlytoucanUtil {
 		GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
 		// add glytoucan ids for GRITS database
-		String databaseFolder = "/Users/sena/Desktop/GRITS-databases";
+		String databaseFolder = "/Users/sarpinar/Desktop/GRITS-databases";
 		//String newDbFolder = databaseFolder + "/glytoucanAdded";
 		
 		File dbFolder = new File (databaseFolder);
@@ -191,12 +191,22 @@ public class GlytoucanUtil {
 				            	WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 				            	exporter.start(glycoCT);
 				            	String wurcs = exporter.getWURCS();	
-				            	String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+				            	String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 				            	if (glyTouCanId != null && glyTouCanId.length() == 8) { // glytoucanId 
 				            		str.setGlytoucanid(glyTouCanId);
 				            	} else {
-				            		missingGlycansDatabase.addStructure(str);
-				            		System.out.println ("Cannot find glytoucanid for " + str.getId());
+				            		glyTouCanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+				            		if (glyTouCanId != null && glyTouCanId.length() == 8) { // glytoucanId 
+				            			str.setGlytoucanid(glyTouCanId);
+				            		} else {
+				            			glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+						            	if (glyTouCanId != null && glyTouCanId.length() == 8) { // glytoucanId 
+						            		str.setGlytoucanid(glyTouCanId);
+						            	} else {
+					            			missingGlycansDatabase.addStructure(str);
+					            			System.out.println ("Cannot find glytoucanid for " + str.getId());
+						            	}
+				            		}
 				            	}
 			            	}
 		            	}
