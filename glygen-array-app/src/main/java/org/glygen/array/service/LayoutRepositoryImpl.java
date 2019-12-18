@@ -42,6 +42,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Autowired
 	LinkerRepository linkerRepository;
 	
+	@Autowired
+	FeatureRepository featureRepository;
+	
 	Map<String, BlockLayout> blockLayoutCache = new HashMap<String, BlockLayout>();
 	Map<Long, String> linkerCache = new HashMap<Long, String>();
 	Map<String, String> glycanCache = new HashMap<String, String>();
@@ -58,13 +61,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI blockType = f.createIRI(ontPrefix + "Block");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-//		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
-//		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-//		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-//		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
-//		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
-//		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		Literal row = f.createLiteral(b.getRow());
 		Literal column = f.createLiteral(b.getColumn());
 		
@@ -102,39 +99,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			// copy spots from layout
 			for (Spot s : layoutFromRepository.getSpots()) {
 				statements = new ArrayList<Statement>();
-				/*String spotURI = generateUniqueURI(uriPrefix + "S", graph);
-				IRI spot = f.createIRI(spotURI);
-				if (s.getConcentration() != null) {
-					// check if it has already been created before
-					String concentrationURI = concentrationCache.get(s.getConcentration());
-					if (concentrationURI == null) {
-						concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
-						concentrationCache.put(s.getConcentration(), concentrationURI);
-					}
-					IRI concentration = f.createIRI(concentrationURI);
-					Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-					Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-					if (concentrationValue != null) {
-						statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue));
-						statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit));
-					}
-					statements.add(f.createStatement(spot, hasConcentration, concentration));
-				}
-				
-				row = f.createLiteral(s.getRow());
-				column = f.createLiteral(s.getColumn());
-				Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
-				statements.add(f.createStatement(spot, RDF.TYPE, spotType));
-				statements.add(f.createStatement(block, hasSpot, spot));
-				statements.add(f.createStatement(spot, hasRow, row));
-				statements.add(f.createStatement(spot, hasColumn, column));
-				if (group != null) statements.add(f.createStatement(spot, hasGroup, group));
-				
-				List<Feature> features = s.getFeatures();
-				for (Feature feat : features) {
-					IRI featureIRI = f.createIRI(feat.getUri());
-					statements.add(f.createStatement(spot, hasFeature, featureIRI));
-				}*/
 				IRI spot = f.createIRI(s.getUri());
 				statements.add(f.createStatement(block, hasSpot, spot));
 				sparqlDAO.addStatements(statements, graphIRI);
@@ -147,7 +111,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	@Override
-	public String addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException {
+	public String addBlockLayout(BlockLayout b, UserEntity user) throws SparqlException, SQLException {
 		String graph = null;
 		try {
 			// check if there is already a private graph for user
@@ -171,10 +135,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
 		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
 		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
-		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
-		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
-		IRI featureType = f.createIRI(ontPrefix + "Feature");
 		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		
 		IRI blockLayoutType = f.createIRI(ontPrefix + "BlockLayout");
@@ -199,7 +159,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		
-		List<Feature> processed = new ArrayList<Feature>();
 		for (Spot s : b.getSpots()) {
 			if (s == null)
 				continue;
@@ -236,61 +195,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (s.getFeatures() != null) {
 				List<Feature> features = s.getFeatures();
 				for (Feature feat : features) {
-					if (!processed.contains(feat)) {
-						statements = new ArrayList<Statement>();
-						String featureURI = generateUniqueURI(uriPrefix + "F", graph);
-						IRI feature = f.createIRI(featureURI);
-						String glycanURI = null;
-						//TODO
-					/*	if (feat.getGlycan() != null) {
-							glycanURI = feat.getGlycan().getUri();
-							if (glycanURI == null) {
-								if (feat.getGlycan().getSequence() != null) {
-									String seq = feat.getGlycan().getSequence().trim();
-									glycanURI = glycanCache.get(seq);
-									if (glycanURI == null) {
-										glycanURI = getGlycanBySequence(seq);
-										glycanCache.put(seq, glycanURI);
-									}
-								}
-							}
-						}
-						String linkerURI = null;
-						if (feat.getLinker() != null) {
-							linkerURI = feat.getLinker().getUri();
-							if (linkerURI == null) {
-								if (feat.getLinker().getPubChemId() != null) {
-									linkerURI = linkerCache.get(feat.getLinker().getPubChemId());
-									if (linkerURI == null) {
-										linkerURI = getLinkerByPubChemId(feat.getLinker().getPubChemId());
-										linkerCache.put(feat.getLinker().getPubChemId(), linkerURI);
-									}
-								}
-							}
-						}
-						
-						Literal ratio = feat.getRatio() != null ? f.createLiteral(feat.getRatio()) : f.createLiteral(1.0) ;
-						feat.setUri(featureURI);
-						
-						statements.add(f.createStatement(feature, RDF.TYPE, featureType));
-						statements.add(f.createStatement(spot, hasFeature, feature));
-						if (glycanURI != null) {
-							IRI glycan = f.createIRI(glycanURI);
-							statements.add(f.createStatement(feature, hasGlycan, glycan));	
-						}
-						if (linkerURI != null) {
-							IRI linker = f.createIRI(linkerURI);
-							statements.add(f.createStatement(feature, hasLinker, linker));
-						}
-						if (ratio != null) statements.add(f.createStatement(feature, hasRatio, ratio));
-						processed.add(feat);   // processed
-						sparqlDAO.addStatements(statements, graphIRI);*/
-					} else {
-						statements = new ArrayList<Statement>();
-						Feature existing = processed.get(processed.indexOf(feat));  // existing will have the uri
+ 					Feature existing = featureRepository.getFeatureByLabel(feat.getName(), user);
+					if (existing != null) {
 						IRI feature = f.createIRI(existing.getUri());
 						statements.add(f.createStatement(spot, hasFeature, feature));
 						sparqlDAO.addStatements(statements, graphIRI);
+					} else {
+						// error
+						throw new SparqlException ("Feature with label " + feat.getName() + " cannot be found!");
 					}
 				}
 			}
@@ -360,7 +272,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		graph = getGraphForUser(user);
 		if (graph != null) {
 			// check to see if the given blockLayoutId is in this graph
-			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, graph);
+			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, user);
 			if (existing != null) {
 				deleteBlockLayoutByURI (uriPrefix + blockLayoutId, graph);
 				return;
@@ -408,7 +320,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		graph = getGraphForUser(user);
 		if (graph != null) {
 			// check to see if the given slideLayoutId is in this graph
-			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, graph);
+			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, user);
 			if (existing != null) {
 				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
 				return;
@@ -449,8 +361,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
 	}
 	
-	private Block getBlock (String blockURI, String graph) throws SparqlException {
-		
+	private Block getBlock (String blockURI, UserEntity user) throws SparqlException, SQLException {
+		String graph = getGraphForUser(user);
 		Block blockObject = new Block();
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
@@ -465,9 +377,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
 		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
-		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
-		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
-		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(block, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -480,7 +389,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (st.getPredicate().equals(hasBlockLayout)) {
 				Value v = st.getObject();
 				String blockLayoutURI = v.stringValue();
-				BlockLayout blockLayout = getBlockLayoutFromURI(blockLayoutURI, false, graph);    // no need to load all, just the name 
+				BlockLayout blockLayout = getBlockLayoutFromURI(blockLayoutURI, false, user);    // no need to load all, just the name 
 				blockObject.setBlockLayout(blockLayout);
 			} else if (st.getPredicate().equals(hasRow)) {
 				Value v = st.getObject();
@@ -526,28 +435,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 						}
 						s.setConcentration(c);
 					} else if (st2.getPredicate().equals(hasFeature)) {
-						Feature feat = new Feature();
 						v = st2.getObject();
 						String featureURI = v.stringValue();
-						IRI feature = f.createIRI(featureURI);
-						feat.setUri(featureURI);
-						RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(feature, null, null, graphIRI);
-						while (statements3.hasNext()) {
-							Statement st3 = statements3.next();
-							if (st3.getPredicate().equals(hasGlycan)) {
-								v = st3.getObject();
-								String glycanURI = v.stringValue();
-								//TODO fix it
-								//feat.setGlycan(glycanRepository.getGlycanFromURI(glycanURI, graph));
-							} else if (st3.getPredicate().equals(hasLinker)) {
-								v = st3.getObject();
-								String linkerURI = v.stringValue();
-								//TODO fix it
-								//feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
-							} else if (st3.getPredicate().equals(hasRatio)) {
-								v = st3.getObject();
-								feat.setRatio(Double.parseDouble(v.stringValue()));
-							}
+						Feature feat = featureRepository.getFeatureFromURI(featureURI, user);
+						if (feat == null) {
+							throw new SparqlException("Feature with uri " + featureURI + " cannot be found!");
 						}
 						features.add(feat);
 					}
@@ -582,7 +474,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.isEmpty())
 			return null;
 		else {
-			return getBlockLayoutFromURI(uriPrefix + blockLayoutId, loadAll, graph);
+			return getBlockLayoutFromURI(uriPrefix + blockLayoutId, loadAll, user);
 		}
 	}
 	
@@ -602,7 +494,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return null;
 		else {
 			String blockLayoutURI = results.get(0).getValue("s");
-			return getBlockLayoutFromURI(blockLayoutURI, false, graph);
+			return getBlockLayoutFromURI(blockLayoutURI, false, user);
 		}
 	}
 	
@@ -629,15 +521,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
-				sortLine = "?s " + sortPredicate + " ?sortBy .\n";	
+				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
 			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?s \n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (sortLine + 
+			queryBuf.append (
 					" ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n" +
+							sortLine + 
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -647,7 +540,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String blockLayoutURI = sparqlEntity.getValue("s");
-				BlockLayout layout = getBlockLayoutFromURI(blockLayoutURI, loadAll, graph);
+				BlockLayout layout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);
 				layouts.add(layout);
 			}
 		}
@@ -682,8 +575,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return total;
 	}
 	
-	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, String graph) throws SparqlException {
+	@Override
+	public BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 		BlockLayout blockLayoutObject = null;
+		String graph = getGraphForUser(user);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
@@ -696,9 +591,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-		IRI hasGlycan = f.createIRI(ontPrefix + "has_molecule");
-		IRI hasLinker = f.createIRI(ontPrefix + "has_linker");
-		IRI hasRatio = f.createIRI(ontPrefix + "has_ratio");
 		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
 		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
@@ -778,28 +670,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 							}
 							s.setConcentration(c);
 						} else if (st2.getPredicate().equals(hasFeature)) {
-							Feature feat = new Feature();
 							v = st2.getObject();
 							String featureURI = v.stringValue();
-							IRI feature = f.createIRI(featureURI);
-							feat.setUri(featureURI);
-							RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(feature, null, null, graphIRI);
-							while (statements3.hasNext()) {
-								Statement st3 = statements3.next();
-								if (st3.getPredicate().equals(hasGlycan)) {
-									v = st3.getObject();
-									String glycanURI = v.stringValue();
-									//TODO fix it
-									//feat.setGlycan(glycanRepository.getGlycanFromURI(glycanURI, graph));
-								} else if (st3.getPredicate().equals(hasLinker)) {
-									v = st3.getObject();
-									String linkerURI = v.stringValue();
-									//TODO fix it
-									//feat.setLinker(linkerRepository.getLinkerFromURI(linkerURI, graph));
-								} else if (st3.getPredicate().equals(hasRatio)) {
-									v = st3.getObject();
-									feat.setRatio(Double.parseDouble(v.stringValue()));
-								}
+							Feature feat = featureRepository.getFeatureFromURI(featureURI, user);
+							if (feat == null) {
+								throw new SparqlException("Feature with given uri " + featureURI + " cannot be found!");
 							}
 							features.add(feat);
 						}
@@ -814,8 +689,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return blockLayoutObject;
 	}
 
-	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, String graph) throws SparqlException {
-		return getBlockLayoutFromURI(blockLayoutURI, true, graph);
+	private BlockLayout getBlockLayoutFromURI(String blockLayoutURI, UserEntity user) throws SparqlException, SQLException {
+		return getBlockLayoutFromURI(blockLayoutURI, true, user);
 	}
 	
 	@Override
@@ -840,7 +715,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.isEmpty())
 			return null;
 		else {
-			return getSlideLayoutFromURI(uriPrefix + slideLayoutId, loadAll, graph);
+			return getSlideLayoutFromURI(uriPrefix + slideLayoutId, loadAll, user);
 		}
 	}
 
@@ -860,7 +735,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return null;
 		else {
 			String slideLayoutURI = results.get(0).getValue("s");
-			return getSlideLayoutFromURI(slideLayoutURI, false, graph);
+			return getSlideLayoutFromURI(slideLayoutURI, false, user);
 		}
 	}
 	
@@ -886,15 +761,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
-				sortLine = "?s " + sortPredicate + " ?sortBy .\n";	
+				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";		
 			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?s \n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (sortLine + 
+			queryBuf.append (
 					" ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n" +
+							sortLine + 
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -904,7 +780,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String slideLayoutURI = sparqlEntity.getValue("s");
-				SlideLayout layout = getSlideLayoutFromURI(slideLayoutURI, loadAll, graph);
+				SlideLayout layout = getSlideLayoutFromURI(slideLayoutURI, loadAll, user);
 				layouts.add(layout);
 			}
 		}
@@ -939,9 +815,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return total;
 	}
 
-	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, String graph) throws SparqlException, SQLException {
+	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 		SlideLayout slideLayoutObject = null;
-		
+		String graph = getGraphForUser(user);
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
@@ -991,7 +867,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
 					Value v = st.getObject();
 					String blockURI = v.stringValue();
-					Block block = getBlock (blockURI, graph);
+					Block block = getBlock (blockURI, user);
 					blocks.add(block);
 				}
 			}
@@ -1004,7 +880,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public void updateSlideLayout(SlideLayout layout, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		SlideLayout existing = getSlideLayoutFromURI(layout.getUri(), false, graph);
+		SlideLayout existing = getSlideLayoutFromURI(layout.getUri(), false, user);
 		if (graph != null && existing !=null) {
 			updateSlideLayoutInGraph(layout, graph);
 		}
@@ -1048,7 +924,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public void updateBlockLayout(BlockLayout layout, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		BlockLayout existing = getBlockLayoutFromURI(layout.getUri(), false, graph);
+		BlockLayout existing = getBlockLayoutFromURI(layout.getUri(), false, user);
 		if (graph != null && existing !=null) {
 			updateBlockLayoutInGraph(layout, graph);
 		}
@@ -1076,9 +952,4 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 	}
-	
-	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, String graph) throws SparqlException, SQLException {
-		return getSlideLayoutFromURI(slideLayoutURI, true, graph);
-	}
-
 }

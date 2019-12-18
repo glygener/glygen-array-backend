@@ -11,14 +11,15 @@ import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import org.glygen.array.client.model.FeatureType;
 import org.glygen.array.client.model.GlycanSequenceFormat;
 import org.glygen.array.client.model.LinkerClassification;
 import org.glygen.array.client.model.SequenceDefinedGlycan;
 import org.glygen.array.client.model.SmallMoleculeLinker;
+import org.glygen.array.client.model.UnknownGlycan;
 import org.glygen.array.client.model.User;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
 import org.grits.toolbox.glycanarray.library.om.LibraryInterface;
-import org.grits.toolbox.glycanarray.library.om.feature.Classification;
 import org.grits.toolbox.glycanarray.library.om.feature.Feature;
 import org.grits.toolbox.glycanarray.library.om.feature.Glycan;
 import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
@@ -92,13 +93,18 @@ public class Application implements CommandLineRunner {
 	        if (importType.equals("Glycan")) {
 		        List<Glycan> glycanList = library.getFeatureLibrary().getGlycan();
 		        for (Glycan glycan : glycanList) {
-					SequenceDefinedGlycan view = new SequenceDefinedGlycan();
-					view.setInternalId(glycan.getId()+ "");
+		        	org.glygen.array.client.model.Glycan view = null;
+		        	if (glycan.getSequence() == null) {
+		        		view = new UnknownGlycan();
+		        	} else {
+						view = new SequenceDefinedGlycan();
+						((SequenceDefinedGlycan) view).setGlytoucanId(glycan.getGlyTouCanId());
+						((SequenceDefinedGlycan) view).setSequence(glycan.getSequence());
+						((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+		        	}
+		        	view.setInternalId(glycan.getId()+ "");
 					view.setName(glycan.getName());
 					view.setComment(glycan.getComment());
-					view.setGlytoucanId(glycan.getGlyTouCanId());
-					view.setSequence(glycan.getSequence());
-					view.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 					try {
 						glycanClient.addGlycan(view, user);
 					} catch (HttpClientErrorException e) {
@@ -122,6 +128,8 @@ public class Application implements CommandLineRunner {
 					SmallMoleculeLinker view = new SmallMoleculeLinker();
 					if (linker.getPubChemId() != null) view.setPubChemId(linker.getPubChemId().longValue());
 					view.setName(linker.getName());
+					if (linker.getSequence() != null)
+						view.setDescription(linker.getSequence());
 					view.setComment(linker.getComment());
 					if (linker.getPubChemId() == null) {
 						// assign a random classification
@@ -134,6 +142,52 @@ public class Application implements CommandLineRunner {
 						log.info ("Linker " + linker.getId() + " cannot be added", e);
 					}
 				}
+	        } else if (importType.equals("Feature")) {
+	        	List<Feature> features = library.getFeatureLibrary().getFeature();
+	        	for (Feature f: features) {
+	        		org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
+	        		myFeature.setName(f.getName());
+	        		List<Ratio> ratios = f.getRatio();
+	        		for (Ratio ratio : ratios) {
+	        			GlycanProbe probe = null;
+	        			for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
+	        				if (p.getId().equals(ratio.getItemId())) {
+	        					probe = p;
+	        					break;
+	        				}
+	        			}
+	        			if (probe != null) {
+	        				for (Ratio r1 : probe.getRatio()) {
+	        					Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
+	        					if (glycan != null) {
+	        						org.glygen.array.client.model.Glycan myGlycan = null;
+	        						if (glycan.getSequence() == null) {
+	        							myGlycan = new UnknownGlycan();
+	        							myGlycan.setName(glycan.getName()); // name is sufficient to locate the unknown glycan
+	        						} else {
+	        							myGlycan = new org.glygen.array.client.model.SequenceDefinedGlycan();
+	        							((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
+	        						}
+	        						myFeature.addGlycan(myGlycan);
+	        					}
+			        			Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+			        			if (linker != null) {
+			        				org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
+			        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
+			        				myFeature.setLinker(myLinker);
+			        				myFeature.setType(FeatureType.NORMAL);
+			        			} else {
+			        				myFeature.setType(FeatureType.CONTROL);
+			        			}
+	        				}
+	        			}
+					}
+	        		try {
+	        			glycanClient.addFeature(myFeature, user);
+	        		} catch (HttpClientErrorException e) {
+	        			log.info("BlockLayout " + f.getId() + " cannot be added", e);
+	        		}
+	        	}
 	        } else if (importType.equals("BlockLayout")) {
 		        List<BlockLayout> blockLayouts = library.getLayoutLibrary().getBlockLayout();
 		        for (BlockLayout blockLayout : blockLayouts) {
@@ -191,7 +245,6 @@ public class Application implements CommandLineRunner {
 				}
 	        }
 		}
-		
 	}
 	
 	List<org.glygen.array.client.model.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, BlockLayout blockLayout) {
@@ -205,35 +258,10 @@ public class Application implements CommandLineRunner {
     		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
     		List<org.glygen.array.client.model.Feature> features = new ArrayList<>();
     		if (feature != null) {
-        		for (Ratio r : feature.getRatio()) {
-        			GlycanProbe probe = null;
-        			for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
-        				if (p.getId().equals(r.getItemId())) {
-        					probe = p;
-        					break;
-        				}
-        			}
-        			if (probe != null) {
-        				for (Ratio r1 : probe.getRatio()) {
-        					org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
-        					Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
-        					if (glycan != null) {
-		        				org.glygen.array.client.model.SequenceDefinedGlycan myGlycan = new org.glygen.array.client.model.SequenceDefinedGlycan();
-		        				myGlycan.setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
-		        				//TODO implement addGlycan
-		        				//myFeature.addGlycan(myGlycan);
-        					}
-		        			Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
-		        			if (linker != null) {
-		        				org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
-		        				if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
-		        				myFeature.setLinker(myLinker);
-		        			}
-		        			myFeature.setRatio(r1.getItemRatio());
-		        			features.add(myFeature);
-        				}
-        			}			
-        		}
+        		org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
+        		myFeature.setName(feature.getName());
+        		myFeature.setType(FeatureType.NORMAL);
+        		features.add(myFeature);
     		}
     		s.setFeatures(features);
     		spots.add(s);

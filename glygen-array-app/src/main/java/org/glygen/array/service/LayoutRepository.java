@@ -10,7 +10,7 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 
 public interface LayoutRepository {
 	
-	String addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException;
+	String addBlockLayout (BlockLayout b, UserEntity user) throws SparqlException, SQLException;
 	String addSlideLayout (SlideLayout s, UserEntity user) throws SparqlException, SQLException;
 	
 	void deleteBlockLayout(String blockLayoutId, UserEntity user) throws SparqlException, SQLException;
@@ -48,5 +48,7 @@ public interface LayoutRepository {
 	void updateBlockLayout(BlockLayout layout, UserEntity user) throws SparqlException, SQLException;
 
 	void updateSlideLayout(SlideLayout layout, UserEntity user) throws SparqlException, SQLException;
+	
+	BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
 
 }
