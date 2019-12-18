@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.BlockLayout;
-import org.glygen.array.client.model.Confirmation;
+import org.glygen.array.client.model.Feature;
 import org.glygen.array.client.model.Glycan;
 import org.glygen.array.client.model.GlycanType;
 import org.glygen.array.client.model.Linker;
@@ -118,7 +118,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	}
 
 	@Override
-	public Confirmation addBlockLayout(BlockLayout layout, User user) {
+	public String addBlockLayout(BlockLayout layout, User user) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -127,7 +127,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	    HttpEntity<BlockLayout> requestEntity = new HttpEntity<BlockLayout>(layout, headers);
 		String url = this.url + "array/addblocklayout";
 		System.out.println("URL: " + url);
-		ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+		ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 		return response.getBody();
 	}
 
@@ -175,7 +175,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	
 
 	@Override
-	public Confirmation addSlideLayout(SlideLayout layout, User user) {
+	public String addSlideLayout(SlideLayout layout, User user) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -185,7 +185,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		String url = this.url + "array/addslidelayout";
 		System.out.println("URL: " + url);
 		try {
-			ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, Confirmation.class);
+			ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 			return response.getBody();
 		} catch (HttpServerErrorException e) {
 			String errorMessage = e.getResponseBodyAsString();
@@ -213,5 +213,33 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	@Override
 	public void setURL(String url) {
 		this.url = url;
+	}
+
+	@Override
+	public String addFeature(Feature feature, User user) {
+		if (token == null) login(this.username, this.password);
+		//set the header with token
+		HttpHeaders headers = new HttpHeaders();
+	    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+	    headers.add("Authorization", token);
+	    HttpEntity<Feature> requestEntity = new HttpEntity<Feature>(feature, headers);
+		String url = this.url + "array/addfeature";
+		System.out.println("URL: " + url);
+		try {
+			ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+			return response.getBody();
+		} catch (HttpServerErrorException e) {
+			String errorMessage = e.getResponseBodyAsString();
+			if (errorMessage != null) {
+				System.out.println("server error: " + errorMessage);
+			}
+		} catch (HttpClientErrorException e) {
+			String errorMessage = e.getResponseBodyAsString();
+			if (errorMessage != null) {
+				System.out.println("client error: " + errorMessage);
+			}
+		}
+		
+		return null;
 	}
 }
