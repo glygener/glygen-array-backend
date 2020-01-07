@@ -488,7 +488,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public String addGlycan (@RequestBody Glycan glycan, Principal p, @RequestParam Boolean noGlytoucanRegistration) {
+	public String addGlycan (@RequestBody Glycan glycan, Principal p, @RequestParam("noGlytoucanRegistration") Boolean noGlytoucanRegistration) {
 		if (glycan.getType() == null) {
 			// assume sequenceDefinedGlycan
 			glycan.setType(GlycanType.SEQUENCE_DEFINED);
