@@ -48,7 +48,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public String addFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
 		String graph = null;
-		if (feature == null || feature.getLinker() == null)
+		if (feature == null || (feature.getType() == FeatureType.NORMAL && feature.getLinker() == null))
 			// cannot add 
 			throw new SparqlException ("Not enough information is provided to register a feature");
 		
@@ -100,29 +100,29 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     		
     		IRI linkerIRI = f.createIRI(linker.getUri());
     		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
+		}
     		
-    		for (Glycan g: feature.getGlycans()) {
-    			if (g.getUri() == null) {
-    				if (g.getId() != null) {
-    					g.setUri(uriPrefix + g.getId());
-    				} else {
-    				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
-    				}
-    			}
-    			
-    			IRI glycanIRI = f.createIRI(g.getUri());
-    			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
-    			
-    			Integer position = feature.getPosition(g);
-    			if (position != null) {
-    				Literal pos = f.createLiteral(position);
-    				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
-    				IRI positionContext = f.createIRI(positionContextURI);
-    				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
-    				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
-    				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
-    			}
-    		}
+		for (Glycan g: feature.getGlycans()) {
+			if (g.getUri() == null) {
+				if (g.getId() != null) {
+					g.setUri(uriPrefix + g.getId());
+				} else {
+				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
+				}
+			}
+			
+			IRI glycanIRI = f.createIRI(g.getUri());
+			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+			
+			Integer position = feature.getPosition(g);
+			if (position != null) {
+				Literal pos = f.createLiteral(position);
+				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+				IRI positionContext = f.createIRI(positionContextURI);
+				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
+				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
+				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
+			}
 		}
 		
 		if (feature.getRatio() != null) {

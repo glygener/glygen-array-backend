@@ -146,6 +146,7 @@ public class Application implements CommandLineRunner {
 				}
 	        } else if (importType.equals("Feature")) {
                 List<Feature> features = library.getFeatureLibrary().getFeature();
+                List<LinkerClassification> classificationList = glycanClient.getLinkerClassifications();
                 for (Feature f: features) {
                     org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
                     myFeature.setName(f.getName());
@@ -169,6 +170,7 @@ public class Application implements CommandLineRunner {
                                     } else {
                                         myGlycan = new org.glygen.array.client.model.SequenceDefinedGlycan();
                                         ((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence());  // sequence is sufficient to locate this Glycan in the repository
+                                        ((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                                     }
                                     myFeature.addGlycan(myGlycan);
                                 }
@@ -176,6 +178,11 @@ public class Application implements CommandLineRunner {
                                 if (linker != null) {
                                     org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
                                     if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
+                                    else {
+                                        // need to set random classification and name
+                                        myLinker.setName(linker.getName());
+                                        myLinker.setClassification(classificationList.get(0));
+                                    }
                                     myFeature.setLinker(myLinker);
                                     myFeature.setType(FeatureType.NORMAL);
                                 } else {
@@ -187,7 +194,7 @@ public class Application implements CommandLineRunner {
                     try {
                         glycanClient.addFeature(myFeature, user);
                     } catch (HttpClientErrorException e) {
-                        log.info("Feature " + f.getId() + " cannot be added", e);
+                        log.info("Feature " + f.getName() + " cannot be added", e);
                     }
                 }
            
@@ -261,10 +268,27 @@ public class Application implements CommandLineRunner {
     		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
     		List<org.glygen.array.client.model.Feature> features = new ArrayList<>();
     		if (feature != null) {
-                org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
-                myFeature.setName(feature.getName());
-                myFeature.setType(FeatureType.NORMAL);
-                features.add(myFeature);
+                List<Ratio> ratios = feature.getRatio();
+                for (Ratio ratio : ratios) {
+                    org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
+                    myFeature.setName(feature.getName());
+                    GlycanProbe probe = null;
+                    for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
+                        if (p.getId().equals(ratio.getItemId())) {
+                            probe = p;
+                            break;
+                        }
+                    }
+                    if (probe != null) {   
+                        Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+                        if (linker != null) {
+                            myFeature.setType(FeatureType.NORMAL);
+                        } else {
+                            myFeature.setType(FeatureType.CONTROL);
+                        }
+                    }
+                    features.add(myFeature);
+                }
             }
     		s.setFeatures(features);
     		spots.add(s);

@@ -72,6 +72,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 						HttpEntity<Map<String, String>> requestEntity1 = new HttpEntity<>(headers);
 						ResponseEntity<String> glycanId = this.restTemplate.exchange(url, HttpMethod.GET, requestEntity1, String.class);
 						if (glycanId.getBody() != null) {
+						   // headers.setAccept(Arrays.asList(MediaType.TEXT_PLAIN));
 							HttpEntity<String> requestEntity2 = new HttpEntity<String>(glycan.getName(), headers);
 							// add as alias to the existing one
 							url = this.url + "array/addAlias/" + glycanId.getBody();
@@ -232,11 +233,13 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 			String errorMessage = e.getResponseBodyAsString();
 			if (errorMessage != null) {
 				System.out.println("server error: " + errorMessage);
-			}
+				System.out.println("Cannot add feature:" + feature.getName());
+			} 
 		} catch (HttpClientErrorException e) {
 			String errorMessage = e.getResponseBodyAsString();
 			if (errorMessage != null) {
 				System.out.println("client error: " + errorMessage);
+				System.out.println("Cannot add feature:" + feature.getName());
 			}
 		}
 		

@@ -181,7 +181,6 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add an alias to given glycan for the user")
 	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Alias added to glycan successfully"), 
 			@ApiResponse(code=400, message="Invalid request, alias cannot be empty"),
@@ -2238,7 +2237,9 @@ public class GlygenArrayController {
 			
 			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order);
 			for (Glycan glycan : glycans) {
-				glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
+			    if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+			        glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
+			    }
 			}
 			
 			result.setRows(glycans);
