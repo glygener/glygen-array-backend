@@ -181,7 +181,6 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add an alias to given glycan for the user")
 	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Alias added to glycan successfully"), 
 			@ApiResponse(code=400, message="Invalid request, alias cannot be empty"),
