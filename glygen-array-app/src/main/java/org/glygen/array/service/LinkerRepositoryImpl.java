@@ -25,6 +25,7 @@ import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Owner;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,18 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String opensRingPredicate = ontPrefix + "opens_ring";
 	final static String linkerTypePredicate = ontPrefix + "Linker";
 	final static String hasURLPredicate = ontPrefix + "has_url";
+	final static String hasPublication = ontPrefix + "has_publication";
+	
+	final static String hasTitlePredicate = ontPrefix + "has_title";
+	final static String hasAuthorPredicate = ontPrefix + "has_author_list";
+	final static String hasYearPredicate = ontPrefix + "has_year";
+	final static String hasVolumePredicate = ontPrefix + "has_volume";
+	final static String hasJournalPredicate = ontPrefix + "has_journal";
+	final static String hasNumberPredicate = ontPrefix + "has_number";
+	final static String hasStartPagePredicate = ontPrefix + "has_start_page";
+	final static String hasEndPagePredicate = ontPrefix + "has_end_page";
+	final static String hasDOIPredicate = ontPrefix + "has_doi";
+	final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
 	
 	@Override
 	public String addLinker(Linker l, UserEntity user) throws SparqlException, SQLException {
@@ -80,7 +93,62 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 		
 	
-	private String addSequenceBasedLinker(Linker l, String graph) throws SparqlException {
+	private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+	    
+	    IRI linker = f.createIRI(uri);
+	    IRI graphIRI = f.createIRI(graph);
+        IRI hasTitle = f.createIRI(hasTitlePredicate);
+        IRI hasAuthor = f.createIRI(hasAuthorPredicate);
+        IRI hasYear = f.createIRI(hasYearPredicate);
+        IRI hasVolume = f.createIRI(hasVolumePredicate);
+        IRI hasJournal = f.createIRI(hasJournalPredicate);
+        IRI hasNumber = f.createIRI(hasNumberPredicate);
+        IRI hasStartPage = f.createIRI(hasStartPagePredicate);
+        IRI hasEndPage = f.createIRI(hasEndPagePredicate);
+        IRI hasDOI = f.createIRI(hasDOIPredicate);
+        IRI hasPubMed = f.createIRI(hasPubMedPredicate);
+        IRI hasPub = f.createIRI(hasPublication);
+        
+	    
+	    List<Statement> statements = new ArrayList<Statement>();
+        
+	    if (l.getPublications() != null) {
+	        for (Publication pub : l.getPublications()) {
+	            String publicationURI = generateUniqueURI(uriPrefix + "P");
+	            IRI publication = f.createIRI(publicationURI);
+	            Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
+	            Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
+	            Literal number = pub.getNumber() == null ? f.createLiteral("") : f.createLiteral(pub.getNumber());
+	            Literal volume = pub.getVolume() == null ? f.createLiteral("") : f.createLiteral(pub.getVolume());
+	            Literal year = pub.getYear() == null ? f.createLiteral("") : f.createLiteral(pub.getYear());
+	            Literal journal = pub.getJournal() == null ? f.createLiteral("") : f.createLiteral(pub.getJournal());
+	            Literal startPage = pub.getStartPage() == null ? f.createLiteral("") : f.createLiteral(pub.getStartPage());
+	            Literal endPage = pub.getEndPage() == null ? f.createLiteral("") : f.createLiteral(pub.getEndPage());
+	            Literal pubMed = pub.getPubmedId() == null ? f.createLiteral("") : f.createLiteral(pub.getPubmedId());
+	            Literal doi = pub.getDoiId() == null ? f.createLiteral("") : f.createLiteral(pub.getDoiId());
+	            
+	            if (title != null) statements.add(f.createStatement(publication, hasTitle, title, graphIRI));
+	            if (authors != null) statements.add(f.createStatement(publication, hasAuthor, authors, graphIRI));
+	            if (number != null) statements.add(f.createStatement(publication, hasNumber, number, graphIRI));
+	            if (volume != null) statements.add(f.createStatement(publication, hasVolume, volume, graphIRI));
+	            if (journal != null) statements.add(f.createStatement(publication, hasJournal, journal, graphIRI));
+	            if (startPage != null) statements.add(f.createStatement(publication, hasStartPage, startPage, graphIRI));
+	            if (endPage != null) statements.add(f.createStatement(publication, hasEndPage, endPage, graphIRI));
+	            if (year != null) statements.add(f.createStatement(publication, hasYear, year, graphIRI));
+	            if (pubMed != null) statements.add(f.createStatement(publication, hasPubMed, pubMed, graphIRI));
+	            if (doi != null) statements.add(f.createStatement(publication, hasDOI, doi, graphIRI));
+	            
+	            statements.add(f.createStatement(linker, hasPub, publication, graphIRI));
+	            
+	        }
+	    }
+	    
+	    sparqlDAO.addStatements(statements, graphIRI);
+    }
+
+
+    private String addSequenceBasedLinker(Linker l, String graph) throws SparqlException {
 		String linkerURI;
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
@@ -159,6 +227,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 			
 			sparqlDAO.addStatements(statements, graphIRI);
+			
+			if (l.getPublications() != null && !l.getPublications().isEmpty()) {
+	            addLinkerPublications(l, linkerURI, graph);
+	        }
 		} else {
 			logger.debug("The linker already exists in global repository. URI: " + existing);
 			linkerURI = existing;
@@ -326,6 +398,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 			
 			sparqlDAO.addStatements(statements, graphIRI);
+			
+			if (l.getPublications() != null && !l.getPublications().isEmpty()) {
+	            addLinkerPublications(l, linkerURI, graph);
+	        }
 			
 		} else {
 			logger.debug("The linker already exists in global repository. URI: " + existing);

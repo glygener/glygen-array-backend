@@ -18,6 +18,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -27,6 +28,8 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.pubchem.PubChemAPI;
+import org.glygen.array.util.pubmed.DTOPublication;
+import org.glygen.array.util.pubmed.PubmedUtil;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.junit.Test;
@@ -415,11 +418,33 @@ public class GlygenArrayRepositoryTest {
 		
 		Linker l = PubChemAPI.getLinkerDetailsFromPubChem(2444L);
 		l.setName("TestLinker");
+		try {
+		    DTOPublication publication = new PubmedUtil().createFromPubmedId(6726807);
+		    l.addPublication (getPublicationFrom(publication));
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
 		String linkerURI = linkerRepository.addLinker(l, user);
 		l.setUri(linkerURI);
 		
 		return l;
 	}
+	
+	Publication getPublicationFrom (DTOPublication pub) {
+        Publication publication = new Publication ();
+        publication.setAuthors(pub.getFormattedAuthor());
+        publication.setDoiId(pub.getDoiId());
+        publication.setEndPage(pub.getEndPage());
+        publication.setJournal(pub.getJournal());
+        publication.setNumber(pub.getNumber());
+        publication.setPubmedId(pub.getPubmedId());
+        publication.setStartPage(pub.getStartPage());
+        publication.setTitle(pub.getTitle());
+        publication.setVolume(pub.getVolume());
+        publication.setYear(pub.getYear());
+        
+        return publication;
+    }
 	
 	public Feature addTestFeature (UserEntity user, Glycan g1, Glycan g, Linker linker1) throws SparqlException, SQLException {
 		Feature feature = new Feature();

@@ -74,7 +74,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         Literal type = f.createLiteral(feature.getType().name());
         
 		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
-		    feature.setName(feature.getUri().substring(feature.getUri().lastIndexOf("/")+1));
+		    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
 		}
 		Literal label = f.createLiteral(feature.getName());
 		
