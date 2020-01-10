@@ -715,6 +715,18 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		IRI hasUrl = f.createIRI(hasURLPredicate);
+		IRI hasPub = f.createIRI(hasPublication);
+		
+		IRI hasTitle = f.createIRI(hasTitlePredicate);
+        IRI hasAuthor = f.createIRI(hasAuthorPredicate);
+        IRI hasYear = f.createIRI(hasYearPredicate);
+        IRI hasVolume = f.createIRI(hasVolumePredicate);
+        IRI hasJournal = f.createIRI(hasJournalPredicate);
+        IRI hasNumber = f.createIRI(hasNumberPredicate);
+        IRI hasStartPage = f.createIRI(hasStartPagePredicate);
+        IRI hasEndPage = f.createIRI(hasEndPagePredicate);
+        IRI hasDOI = f.createIRI(hasDOIPredicate);
+        IRI hasPubMed = f.createIRI(hasPubMedPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -739,6 +751,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 		List<String> urls = new ArrayList<String>();
 		List<String> pdbIds = new ArrayList<String>();
+		List<Publication> publications = new ArrayList<Publication>();
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(hasInchiSequence)) {
@@ -860,7 +873,71 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 						}  
 					}
 				}
-			} else if (st.getPredicate().equals(hasPublicURI)) {
+			} else if (st.getPredicate().equals(hasPub)) {
+                if (linkerObject instanceof SmallMoleculeLinker) {
+                    Value pub = st.getObject();
+                    String pubURI = pub.stringValue();
+                    IRI p = f.createIRI(pubURI);
+                    Publication publication = new Publication();
+                    publication.setUri(pubURI);
+                    publications.add(publication);
+                    RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
+                    while (statements2.hasNext()) {
+                        Statement st2 = statements2.next();
+                        if (st2.getPredicate().equals(hasTitle)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setTitle(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasAuthor)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setAuthors(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasYear)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setYear(Integer.parseInt(val.stringValue()));
+                            }
+                        } else if (st2.getPredicate().equals(hasDOI)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setDoiId(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasVolume)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setVolume(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasJournal)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setJournal(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasNumber)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setNumber(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasStartPage)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setStartPage(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasEndPage)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setEndPage(val.stringValue());
+                            }
+                        } else if (st2.getPredicate().equals(hasPubMed)) {
+                            Value val = st2.getObject();
+                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                publication.setPubmedId(Integer.parseInt(val.stringValue()));
+                            }
+                        } 
+                    }
+                }
+            } else if (st.getPredicate().equals(hasPublicURI)) {
 				// need to retrieve additional information from DEFAULT graph
 			    linkerObject.setIsPublic(true);
 				Value uriValue = st.getObject();
@@ -956,6 +1033,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		if (!urls.isEmpty() && linkerObject != null)
 			linkerObject.setUrls(urls);
+		if (!publications.isEmpty() && linkerObject != null)
+            linkerObject.setPublications(publications);
 		if (!pdbIds.isEmpty() && linkerObject != null && linkerObject instanceof ProteinLinker)
             ((ProteinLinker) linkerObject).setPdbIds(pdbIds);
 		
