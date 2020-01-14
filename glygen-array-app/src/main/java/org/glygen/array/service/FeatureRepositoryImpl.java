@@ -114,7 +114,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			IRI glycanIRI = f.createIRI(g.getUri());
 			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
 			
-			Integer position = feature.getPosition(g);
+			Integer position = feature.getPosition(g.getUri());
 			if (position != null) {
 				Literal pos = f.createLiteral(position);
 				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
@@ -294,7 +294,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
-		Map<Glycan, Integer> positionMap = new HashMap<Glycan, Integer>();
+		Map<String, Integer> positionMap = new HashMap<String, Integer>();
 		if (statements.hasNext()) {
 			featureObject = new Feature();
 			featureObject.setUri(featureURI);
@@ -381,7 +381,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					}  
 				}
 				if (position != null && glycanInContext != null) {
-					positionMap.put(glycanInContext, position);
+					positionMap.put(glycanInContext.getUri(), position);
 				}
 			}
 		}

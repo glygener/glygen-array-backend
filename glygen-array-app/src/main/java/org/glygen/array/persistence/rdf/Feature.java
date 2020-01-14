@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class Feature {
 	String id;
@@ -16,7 +16,7 @@ public class Feature {
 	Linker linker;
 	Double ratio = null;   // in percentages like 100.0%, 50.0% etc.
 	
-	Map<Glycan, Integer> positionMap = new HashMap<>();
+	Map<String, Integer> positionMap = new HashMap<>();
 	
 	FeatureType type = FeatureType.NORMAL;
 	
@@ -40,13 +40,17 @@ public class Feature {
         this.name = name;
     }
 	
-	@JsonIgnore
-	public Map<Glycan, Integer> getPositionMap() {
+	public Map<String, Integer> getPositionMap() {
 		return positionMap;
 	}
 	
-	public Integer getPosition (Glycan g) {
-		return positionMap.get(g);
+	@JsonAnySetter
+	public void setPosition (String key, Integer value) {
+	    positionMap.put(key, value);
+	}
+	
+	public Integer getPosition (String uri) {
+		return positionMap.get(uri);
 	}
 	/**
 	 * @return the glycan
@@ -157,7 +161,7 @@ public class Feature {
 	/**
 	 * @param positionMap the positionMap to set
 	 */
-	public void setPositionMap(Map<Glycan, Integer> positionMap) {
+	public void setPositionMap(Map<String, Integer> positionMap) {
 		this.positionMap = positionMap;
 	}
 	

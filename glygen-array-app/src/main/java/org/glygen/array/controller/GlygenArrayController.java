@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +17,7 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,6 @@ import org.eurocarbdb.application.glycanbuilder.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
-import org.glycoinfo.GlycanFormatconverter.io.WURCS.WURCSImporter;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -67,7 +66,6 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
-import org.glygen.array.service.LinkerRepositoryImpl;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
@@ -384,21 +382,25 @@ public class GlygenArrayController {
                 // from the linker sequence and populate positionMap
                 if (feature.getLinker().getType() == LinkerType.PEPTIDE_LINKER || feature.getLinker().getType() == LinkerType.PROTEIN_LINKER) {
                     Map<Glycan, Integer>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
-                    feature.setPositionMap(positionMap);
+                    Map<String, Integer> positionMapWithId = new HashMap<String, Integer>();
                     for (Glycan g: positionMap.keySet()) {
                         String seq = ((SequenceDefinedGlycan)g).getSequence();
                         if (seq != null) {
-                            String existing = glycanRepository.getGlycanBySequence(((SequenceDefinedGlycan)g).getSequence(), user);
+                            String existing = glycanRepository.getGlycanBySequence(seq.trim(), user);
                             if (existing == null) {
                                 // add the glycan
                                 existing = addGlycan(g, p, true);
                             }
                             g.setUri(existing);
                             feature.addGlycan(g);
+                            positionMapWithId.put(existing, positionMap.get(g));
                         } else {
                             logger.error("Glycan in the feature with the following sequence cannot be located: " + seq);
                         }
+                        
                     }
+                    
+                    feature.setPositionMap(positionMapWithId);
                 }
             }
 			return featureRepository.addFeature(feature, user);
