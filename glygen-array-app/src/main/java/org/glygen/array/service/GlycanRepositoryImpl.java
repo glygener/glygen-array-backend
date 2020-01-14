@@ -303,14 +303,36 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		graph = getGraphForUser(user);
 		if (graph != null) {
-			// check to see if the given glycanId is in this graph
-			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, user);
-			if (existing != null) {
-				deleteGlycanByURI (uriPrefix + glycanId, graph);
-				return;
-			}
+		    if (canDelete(uriPrefix + glycanId, graph)) {
+    			// check to see if the given glycanId is in this graph
+    			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, user);
+    			if (existing != null) {
+    				deleteGlycanByURI (uriPrefix + glycanId, graph);
+    				return;
+    			}
+		    } else {
+		        throw new IllegalArgumentException("Cannot delete glycan " + glycanId + ". It is used in a feature"); 
+		    }
 		}
 	}
+	
+	boolean canDelete (String glycanURI, String graph) throws SparqlException, SQLException { 
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_molecule  <" +  glycanURI + "> . } LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+        
+        return canDelete;
+    }
 
 	private void deleteGlycanByURI(String uri, String graph) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();

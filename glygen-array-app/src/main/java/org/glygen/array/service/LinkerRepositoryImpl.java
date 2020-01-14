@@ -479,15 +479,37 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		graph = getGraphForUser(user);
 		if (graph != null) {
-			// check to see if the given linkerId is in this graph
-			Linker existing = getLinkerFromURI (uriPrefix + linkerId, user);
-			if (existing != null) {
-				//TODO what to do with linkerClassifications
-				deleteByURI (uriPrefix + linkerId, graph);
-				return;
-			}
+		    if (canDelete(uriPrefix + linkerId, graph)) {
+    			// check to see if the given linkerId is in this graph
+    			Linker existing = getLinkerFromURI (uriPrefix + linkerId, user);
+    			if (existing != null) {
+    				//TODO what to do with linkerClassifications
+    				deleteByURI (uriPrefix + linkerId, graph);
+    				return;
+    			}
+		    } else {
+		        throw new IllegalArgumentException("Cannot delete linker " + linkerId + ". It is used in a feature");
+		    }
 		}
 	}
+	
+	boolean canDelete (String linkerURI, String graph) throws SparqlException, SQLException { 
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_linker  <" +  linkerURI + "> . } LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+        
+        return canDelete;
+    }
 	
 	private String findLinkerInGraphByField (String field, String predicate, String type, String graph) throws SparqlException {
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";

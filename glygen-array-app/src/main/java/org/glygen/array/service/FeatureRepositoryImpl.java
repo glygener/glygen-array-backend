@@ -252,26 +252,48 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		graph = getGraphForUser(user);
 		if (graph != null) {
-			// check to see if the given featureId is in this graph
-			Feature existing = getFeatureFromURI (uriPrefix + featureId, user);
-			if (existing != null) {
-				if (existing.getPositionMap() != null && !existing.getPositionMap().isEmpty()) {
-					// need to delete position context
-					ValueFactory f = sparqlDAO.getValueFactory();
-					IRI object = f.createIRI(existing.getUri());
-					IRI graphIRI = f.createIRI(graph);
-					IRI hasPositionContext = f.createIRI(hasPositionPredicate);
-					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, hasPositionContext, null, graphIRI);
-					while (statements2.hasNext()) {
-						Statement st = statements2.next();
-						Value positionContext = st.getSubject();
-						deleteByURI (positionContext.stringValue(), graph);	
-					}
-				}
-				deleteByURI (uriPrefix + featureId, graph);
-				return;
-			}
+		    if (canDelete(uriPrefix + featureId, graph)) {
+    			// check to see if the given featureId is in this graph
+    			Feature existing = getFeatureFromURI (uriPrefix + featureId, user);
+    			if (existing != null) {
+    				if (existing.getPositionMap() != null && !existing.getPositionMap().isEmpty()) {
+    					// need to delete position context
+    					ValueFactory f = sparqlDAO.getValueFactory();
+    					IRI object = f.createIRI(existing.getUri());
+    					IRI graphIRI = f.createIRI(graph);
+    					IRI hasPositionContext = f.createIRI(hasPositionPredicate);
+    					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, hasPositionContext, null, graphIRI);
+    					while (statements2.hasNext()) {
+    						Statement st = statements2.next();
+    						Value positionContext = st.getSubject();
+    						deleteByURI (positionContext.stringValue(), graph);	
+    					}
+    				}
+    				deleteByURI (uriPrefix + featureId, graph);
+    				return;
+    			}
+		    } else {
+		        throw new IllegalArgumentException("Cannot delete feature " + featureId + ". It is used in a block layout");
+		    }
 		}
+	}
+	
+	boolean canDelete (String featureURI, String graph) throws SparqlException, SQLException { 
+	    boolean canDelete = true;
+	    
+	    StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_spot ?spot . ?spot has_feature <" +  featureURI + "> . } LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+	    
+	    return canDelete;
 	}
 
 	@Override

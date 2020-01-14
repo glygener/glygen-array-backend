@@ -271,12 +271,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		graph = getGraphForUser(user);
 		if (graph != null) {
-			// check to see if the given blockLayoutId is in this graph
-			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, user);
-			if (existing != null) {
-				deleteBlockLayoutByURI (uriPrefix + blockLayoutId, graph);
-				return;
-			}
+		    if (canDeleteBlockLayout(uriPrefix + blockLayoutId, graph)) {
+    			// check to see if the given blockLayoutId is in this graph
+    			BlockLayout existing = getBlockLayoutFromURI (uriPrefix + blockLayoutId, user);
+    			if (existing != null) {
+    				deleteBlockLayoutByURI (uriPrefix + blockLayoutId, graph);
+    				return;
+    			}
+		    } else {
+		        throw new IllegalArgumentException("Cannot delete block layout " + blockLayoutId + ". It is used in a slide layout");
+		    }
 		}
 	}
 
@@ -311,7 +315,31 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	
+	boolean canDeleteBlockLayout (String blockURI, String graph) throws SparqlException, SQLException { 
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_block ?block . ?block has_block_layout <" +  blockURI + "> . } LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+        
+        return canDelete;
+    }
 	
+	boolean canDeleteSlideLayout (String slideURI, String graph) throws SparqlException, SQLException { 
+        boolean canDelete = true;
+        
+        //TODO check experiments
+        
+        return canDelete;
+    }
 	
 	@Override
 	public void deleteSlideLayout(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
@@ -319,12 +347,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		graph = getGraphForUser(user);
 		if (graph != null) {
-			// check to see if the given slideLayoutId is in this graph
-			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, user);
-			if (existing != null) {
-				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
-				return;
-			}
+		    if (canDeleteBlockLayout(uriPrefix + slideLayoutId, graph)) {
+    			// check to see if the given slideLayoutId is in this graph
+    			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, user);
+    			if (existing != null) {
+    				deleteSlideLayoutByURI (uriPrefix + slideLayoutId, graph);
+    				return;
+    			}
+		    } else {
+		        throw new IllegalArgumentException("Cannot delete slide layout " + slideLayoutId + ". It is used in an experiment");
+		    }
 		}
 	}
 	
