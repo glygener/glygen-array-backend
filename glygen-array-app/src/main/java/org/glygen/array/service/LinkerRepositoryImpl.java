@@ -609,11 +609,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         predicates += "OPTIONAL {?s gadr:has_molecular_formula ?value10} \n";
         predicates += "OPTIONAL {?s gadr:has_pubchem_compound_id ?value11} \n";
         predicates += "OPTIONAL {?s gadr:has_inChI_key ?value12} \n";
+        predicates += "OPTIONAL {?s gadr:has_classification ?c . ?c gadr:has_classification_value ?value13 . ?c gadr:has_chEBI ?value14} \n";
        
         String filterClause = "filter (";
-        for (int i=1; i < 13; i++) {
+        for (int i=1; i < 15; i++) {
             filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < 13)
+            if (i + 1 < 15)
                 filterClause += " || ";
         }
         filterClause += ")\n";
