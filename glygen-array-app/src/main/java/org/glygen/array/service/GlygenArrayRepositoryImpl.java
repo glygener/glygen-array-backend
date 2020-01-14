@@ -134,24 +134,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			return addPrivateGraphForUser(user);
 		}
 	}
-
-	protected String getSortPredicate(String field) {
-		if (field == null || field.equalsIgnoreCase("name")) 
-			return "rdfs:label";
-		else if (field.equalsIgnoreCase("comment")) 
-			return "rdfs:comment";
-		else if (field.equalsIgnoreCase("glytoucanId"))
-			return "gadr:has_glytoucan_id";
-		else if (field.equalsIgnoreCase("internalId"))
-			return "gadr:has_internal_id";
-		else if (field.equalsIgnoreCase("dateModified"))
-			return "gadr:has_date_modified";
-		else if (field.equalsIgnoreCase("mass"))
-			return "gadr:has_mass";
-		else if (field.equalsIgnoreCase("id"))
-			return null;
-		return null;
-	}
+	
 
 	protected void deleteByURI(String uri, String graph) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();

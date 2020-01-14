@@ -167,10 +167,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order)
 			throws SparqlException, SQLException {
+	    return getFeatureByUser(user, offset, limit, field, order, null);
+	}
+	
+	@Override
+    public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException {
 		List<Feature> features = new ArrayList<Feature>();
 		
 		String sortPredicate = getSortPredicate (field);
-		
+		String searchPredicate = "";
+        if (searchValue != null)
+            searchPredicate = getSearchPredicate(searchValue);
 		// get all featureURIs from user's private graph
 		String graph = getGraphForUser(user);
 		if (graph != null) {
@@ -187,7 +195,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			queryBuf.append ( 
 					" ?s gadr:has_date_addedtolibrary ?d .\n" +
 					" ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
-					sortLine + 
+					sortLine + searchPredicate +
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -205,7 +213,34 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		return features;
 	}
 
-	@Override
+	private String getSortPredicate(String field) {
+	    if (field == null || field.equalsIgnoreCase("name")) 
+            return "rdfs:label";
+        else if (field.equalsIgnoreCase("dateModified"))
+            return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("id"))
+            return null;
+        return null;
+    }
+	
+	public String getSearchPredicate (String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        
+        String filterClause = "filter (";
+        for (int i=1; i < 2; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < 2)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
+
+    @Override
 	public int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException {
 		String graph = getGraphForUser(user);
 		return getCountByUserByType(graph, "Feature");

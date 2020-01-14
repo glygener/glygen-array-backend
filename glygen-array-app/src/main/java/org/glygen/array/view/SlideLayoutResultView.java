@@ -7,6 +7,7 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 public class SlideLayoutResultView {
 	int total;
 	List<SlideLayout> rows;
+	int filteredTotal;
 	/**
 	 * @return the total
 	 */
@@ -31,5 +32,13 @@ public class SlideLayoutResultView {
 	public void setRows(List<SlideLayout> rows) {
 		this.rows = rows;
 	}
+	
+	public void setFilteredTotal(int filteredTotal) {
+        this.filteredTotal = filteredTotal;
+    }
+	
+	public int getFilteredTotal() {
+        return filteredTotal;
+    }
 
 }

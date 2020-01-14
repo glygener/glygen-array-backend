@@ -512,10 +512,19 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
 			Boolean loadAll, Integer order) throws SparqlException, SQLException {
+	    return getBlockLayoutByUser(user, offset, limit, field, loadAll, order, null);
+	}
+	    
+	@Override
+    public List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
+            Boolean loadAll, Integer order, String searchValue) throws SparqlException, SQLException {
 		
 		List<BlockLayout> layouts = new ArrayList<BlockLayout>();
 		
 		String sortPredicate = getSortPredicateForLayout (field);
+		String searchPredicate = "";
+		if (searchValue != null)
+		    searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
 		String graph = getGraphForUser(user);
 		if (graph != null) {
@@ -530,7 +539,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (
 					" ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n" +
-							sortLine + 
+							sortLine + searchPredicate +
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -753,9 +762,19 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public List<SlideLayout> getSlideLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
 			Boolean loadAll, Integer order) throws SparqlException, SQLException {
+	    return getSlideLayoutByUser(user, offset, limit, field, loadAll, order, null);
+	}
+	
+    @Override
+    public List<SlideLayout> getSlideLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
+            Boolean loadAll, Integer order, String searchValue) throws SparqlException, SQLException {
+	 
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		
 		String sortPredicate = getSortPredicateForLayout (field);
+		String searchPredicate = "";
+        if (searchValue != null)
+            searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
 		String graph = getGraphForUser(user);
 		if (graph != null) {
@@ -770,7 +789,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (
 					" ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n" +
-							sortLine + 
+							sortLine + searchPredicate + 
 				    "}\n" +
 					 orderByLine + 
 					((limit == -1) ? " " : " LIMIT " + limit) +
@@ -920,6 +939,25 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return null;	
 		return null;
 	}
+	
+    public String getSearchPredicate (String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+       
+        
+        String filterClause = "filter (";
+        for (int i=1; i < 3; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < 3)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
 	
 	@Override
 	public void updateBlockLayout(BlockLayout layout, UserEntity user) throws SparqlException, SQLException {

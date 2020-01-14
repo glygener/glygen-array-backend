@@ -14,5 +14,7 @@ public interface FeatureRepository {
 	int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteFeature (String featureId, UserEntity user) throws SparqlException, SQLException;
 	Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException;
-	Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException; 
+	Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException;
+    List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException; 
 }

@@ -24,5 +24,9 @@ public interface LinkerRepository {
 	String getLinkerByField(String field, String predicate, String type) throws SparqlException;
 	String getLinkerByField(String field, String predicate, String type, UserEntity user)
 			throws SparqlException, SQLException;
+	
+	String getSearchPredicate(String searchValue);
+	List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
 
 }

@@ -590,41 +590,83 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	 */
 	@Override
 	public List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
-		List<Linker> linkers = new ArrayList<Linker>();
-		
-		String sortPredicate = getSortPredicateForLinker (field);
-		// get all linkerURIs from user's private graph
-		String graph = getGraphForUser(user);
-		if (graph != null) {
-			String sortLine = "";
-			if (sortPredicate != null)
-				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY " 
-			        + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s \n");
-			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d .\n" +
-					" ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
-					sortLine + "}\n" +
-					 orderByLine + 
-					((limit == -1) ? " " : " LIMIT " + limit) +
-					" OFFSET " + offset);
-			
-			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			
-			for (SparqlEntity sparqlEntity : results) {
-				String linkerURI = sparqlEntity.getValue("s");
-				Linker linker = getLinkerFromURI(linkerURI, user);
-				linkers.add(linker);
-			}
-		}
-		
-		return linkers;
+		return getLinkerByUser(user, offset, limit, field, order, null);
 	}
+
+    @Override
+    public String getSearchPredicate(String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        predicates += "OPTIONAL {?s gadr:has_sequence ?value3} \n";
+        predicates += "OPTIONAL {?s gadr:has_pdbId ?value4} \n";
+        predicates += "OPTIONAL {?s gadr:has_uniProtId ?value5} \n";
+        predicates += "OPTIONAL {?s gadr:has_inChI_sequence ?value6} \n";
+        predicates += "OPTIONAL {?s gadr:has_iupac_name ?value7} \n";
+        predicates += "OPTIONAL {?s gadr:has_smiles ?value8} \n";
+        predicates += "OPTIONAL {?s gadr:has_mass ?value9} \n";
+        predicates += "OPTIONAL {?s gadr:has_molecular_formula ?value10} \n";
+        predicates += "OPTIONAL {?s gadr:has_pubchem_compound_id ?value11} \n";
+        predicates += "OPTIONAL {?s gadr:has_inChI_key ?value12} \n";
+       
+        String filterClause = "filter (";
+        for (int i=1; i < 13; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < 13)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
+
+
+    @Override
+    public List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<Linker> linkers = new ArrayList<Linker>();
+        
+        String sortPredicate = getSortPredicateForLinker (field);
+        String searchPredicate = "";
+        if (searchValue != null) {
+            searchPredicate = getSearchPredicate(searchValue);
+        }
+        
+        // get all linkerURIs from user's private graph
+        String graph = getGraphForUser(user);
+        if (graph != null) {
+            String sortLine = "";
+            if (sortPredicate != null)
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            String orderByLine = " ORDER BY " 
+                    + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s \n");
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d .\n" +
+                    " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
+                    sortLine + searchPredicate + "}\n" +
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
+            
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String linkerURI = sparqlEntity.getValue("s");
+                Linker linker = getLinkerFromURI(linkerURI, user);
+                linkers.add(linker);
+            }
+        }
+        
+        return linkers;
+    }
+
 	
 	private String getSortPredicateForLinker (String field) {
 		if (field == null || field.equalsIgnoreCase("name")) 

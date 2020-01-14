@@ -2113,6 +2113,8 @@ public class GlygenArrayController {
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam (required=false, defaultValue = "true", value="if false, do not load spot details. Default is true (to load all)")
 			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
+			@ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
 			Principal p) {
 		BlockLayoutResultView result = new BlockLayoutResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -2135,9 +2137,10 @@ public class GlygenArrayController {
 			}
 			
 			int total = layoutRepository.getBlockLayoutCountByUser (user);
-			List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order);
+			List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order, searchValue);
 			result.setRows(layouts);
 			result.setTotal(total);
+			result.setFilteredTotal(layouts.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve block layouts for user. Reason: " + e.getMessage());
 		}
@@ -2162,7 +2165,10 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, Principal p) {
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+			Principal p) {
 		FeatureListResultView result = new FeatureListResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
@@ -2185,9 +2191,10 @@ public class GlygenArrayController {
 			
 			int total = featureRepository.getFeatureCountByUser (user);
 			
-			List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(user, offset, limit, field, order);
+			List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(user, offset, limit, field, order, searchValue);
 			result.setRows(features);
 			result.setTotal(total);
+			result.setFilteredTotal(features.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
 		}
@@ -2212,7 +2219,9 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, Principal p) {
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
 		GlycanListResultView result = new GlycanListResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
@@ -2235,7 +2244,7 @@ public class GlygenArrayController {
 			
 			int total = glycanRepository.getGlycanCountByUser (user);
 			
-			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order);
+			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
 			for (Glycan glycan : glycans) {
 			    if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
 			        glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
@@ -2244,6 +2253,7 @@ public class GlygenArrayController {
 			
 			result.setRows(glycans);
 			result.setTotal(total);
+			result.setFilteredTotal(glycans.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
 		}
@@ -2268,7 +2278,9 @@ public class GlygenArrayController {
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
 			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-			@RequestParam(value="order", required=false) Integer order, Principal p) {
+			@RequestParam(value="order", required=false) Integer order, 
+			@ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
 		LinkerListResultView result = new LinkerListResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
@@ -2291,9 +2303,10 @@ public class GlygenArrayController {
 			
 			int total = linkerRepository.getLinkerCountByUser (user);
 			
-			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order);
+			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
 			result.setRows(linkers);
 			result.setTotal(total);
+			result.setFilteredTotal(linkers.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
 		}
@@ -2321,6 +2334,8 @@ public class GlygenArrayController {
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
 			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
+			@ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
 			Principal p) {
 		SlideLayoutResultView result = new SlideLayoutResultView();
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -2343,9 +2358,10 @@ public class GlygenArrayController {
 			}
 			
 			int total = layoutRepository.getSlideLayoutCountByUser (user);
-			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order);
+			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order, searchValue);
 			result.setRows(layouts);
 			result.setTotal(total);
+			result.setFilteredTotal(layouts.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
 		}

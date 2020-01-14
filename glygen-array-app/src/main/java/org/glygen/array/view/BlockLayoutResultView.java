@@ -7,6 +7,8 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 public class BlockLayoutResultView {
 	int total;
 	List<BlockLayout> rows;
+	int filteredTotal;
+	
 	/**
 	 * @return the total
 	 */
@@ -31,5 +33,13 @@ public class BlockLayoutResultView {
 	public void setRows(List<BlockLayout> rows) {
 		this.rows = rows;
 	}
+	
+	public int getFilteredTotal() {
+        return filteredTotal;
+    }
+	
+	public void setFilteredTotal(int filteredTotal) {
+        this.filteredTotal = filteredTotal;
+    }
 	
 }

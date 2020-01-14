@@ -7,6 +7,7 @@ import org.glygen.array.persistence.rdf.Feature;
 public class FeatureListResultView {
 	int total;
 	List<Feature> rows;
+	int filteredTotal;
 	
 	public int getTotal() {
 		return total;
@@ -23,4 +24,12 @@ public class FeatureListResultView {
 	public void setRows(List<Feature> rows) {
 		this.rows = rows;
 	}
+	
+	public int getFilteredTotal() {
+        return filteredTotal;
+    }
+	
+	public void setFilteredTotal(int filteredTotal) {
+        this.filteredTotal = filteredTotal;
+    }
 }

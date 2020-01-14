@@ -7,6 +7,7 @@ import org.glygen.array.persistence.rdf.Linker;
 public class LinkerListResultView {
 	int total;
 	List<Linker> rows;
+	int filteredTotal;
 	
 	public int getTotal() {
 		return total;
@@ -23,4 +24,12 @@ public class LinkerListResultView {
 	public void setRows(List<Linker> rows) {
 		this.rows = rows;
 	}
+	
+	public int getFilteredTotal() {
+        return filteredTotal;
+    }
+	
+	public void setFilteredTotal(int filteredTotal) {
+        this.filteredTotal = filteredTotal;
+    }
 }

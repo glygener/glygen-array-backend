@@ -456,48 +456,99 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return getGlycanByUser(user, 0, -1, "id", 0 );  // no limit
 	}
 	
+	protected String getSortPredicate(String field) {
+        if (field == null || field.equalsIgnoreCase("name")) 
+            return "rdfs:label";
+        else if (field.equalsIgnoreCase("comment")) 
+            return "rdfs:comment";
+        else if (field.equalsIgnoreCase("glytoucanId"))
+            return "gadr:has_glytoucan_id";
+        else if (field.equalsIgnoreCase("internalId"))
+            return "gadr:has_internal_id";
+        else if (field.equalsIgnoreCase("dateModified"))
+            return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("mass"))
+            return "gadr:has_mass";
+        else if (field.equalsIgnoreCase("id"))
+            return null;
+        return null;
+    }
+	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
-		List<Glycan> glycans = new ArrayList<Glycan>();
-		
-		String sortPredicate = getSortPredicate (field);
-		
-		// get all glycanURIs from user's private graph
-		String graph = getGraphForUser(user);
-		if (graph != null) {
-			String sortLine = "";
-			if (sortPredicate != null)
-				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s \n");
-			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append (
-					" ?s gadr:has_date_addedtolibrary ?d .\n" +
-					" ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
-					        sortLine +
-				    "}\n" +
-					 orderByLine + 
-					((limit == -1) ? " " : " LIMIT " + limit) +
-					" OFFSET " + offset);
-			
-			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			
-			for (SparqlEntity sparqlEntity : results) {
-				String glycanURI = sparqlEntity.getValue("s");
-				Glycan glycan = getGlycanFromURI(glycanURI, user);
-				glycans.add(glycan);	
-			}
-		}
-		
-		return glycans;
+		return getGlycanByUser(user, offset, limit, field, order, null);
 	}
+	
+	@Override
+    public String getSearchPredicate (String searchValue) {
+	    String predicates = "";
+	    
+	    predicates += "?s rdfs:label ?value1 .\n";
+	    predicates += "OPTIONAL {?s gadr:has_internal_id ?value2} \n";
+	    predicates += "OPTIONAL {?s rdfs:comment ?value3} \n";
+	    predicates += "OPTIONAL {?s gadr:has_alias ?value4} \n";
+	    predicates += "OPTIONAL {?s gadr:has_glytoucan_id ?value5} \n";
+	    predicates += "OPTIONAL {?s gadr:has_mass ?value6} \n";
+	    
+	    String filterClause = "filter (";
+        for (int i=1; i < 7; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < 7)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+	        
+        predicates += filterClause;
+	    return predicates;
+	}
+	
+	
+	@Override
+    public List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue) throws SparqlException, SQLException {
+        List<Glycan> glycans = new ArrayList<Glycan>();
+        
+        String sortPredicate = getSortPredicate (field);
+        
+        String searchPredicate = "";
+        if (searchValue != null)
+            searchPredicate = getSearchPredicate(searchValue);
+        
+        // get all glycanURIs from user's private graph
+        String graph = getGraphForUser(user);
+        if (graph != null) {
+            String sortLine = "";
+            if (sortPredicate != null)
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s \n");
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (
+                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                    " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                            sortLine + searchPredicate + 
+                    "}\n" +
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
+            
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String glycanURI = sparqlEntity.getValue("s");
+                Glycan glycan = getGlycanFromURI(glycanURI, user);
+                glycans.add(glycan);    
+            }
+        }
+        
+        return glycans;
+    }
 	
 	public List<Glycan> getSharedGlycansByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException {
 		List<Glycan> glycans = new ArrayList<Glycan>();
