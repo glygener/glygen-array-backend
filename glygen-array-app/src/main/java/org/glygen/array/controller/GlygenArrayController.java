@@ -1835,9 +1835,13 @@ public class GlygenArrayController {
 	        }
 	        return linker; 
 	    } catch (NumberFormatException e) {
-	        Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
-	        if (linker == null) {
-	            linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
+	        try {
+	            // try using as inchiKey 
+	            Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
+	            return linker;
+	        } catch (Exception e1) {
+	            // try using as smiles
+	            Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
 	            if (linker == null) {
     	            ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1846,9 +1850,14 @@ public class GlygenArrayController {
                     throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
 	            }
 	            return linker;
-            }
-            return linker; 
-	    } 
+            } 
+	    } catch (Exception e) {  // pubchem retrieval failed
+	        ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
+            throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
+	    }
     }
 	
 	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
