@@ -483,7 +483,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     			// check to see if the given linkerId is in this graph
     			Linker existing = getLinkerFromURI (uriPrefix + linkerId, user);
     			if (existing != null) {
-    				//TODO what to do with linkerClassifications
     				deleteByURI (uriPrefix + linkerId, graph);
     				return;
     			}
@@ -515,14 +514,14 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
 		String whereClause = "WHERE {";
 		String where = " { " + 
-				"				    ?s gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n";
+				"				    ?s gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n";
 		if (!graph.equals(DEFAULT_GRAPH)) {
 			// check if the user's private graph has this glycan
 			fromString += "FROM <" + graph + ">\n";
 			where += "              ?s gadr:has_date_addedtolibrary ?d .\n }";
 			where += "  UNION { ?s gadr:has_date_addedtolibrary ?d .\n"
 					+ " ?s gadr:has_public_uri ?p . \n" 
-					+ "?p gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n}";
+					+ "?p gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n}";
 			
 		} else {
 			where += "}";
@@ -939,68 +938,66 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					}
 				}
 			} else if (st.getPredicate().equals(hasPub)) {
-                if (linkerObject instanceof SmallMoleculeLinker) {
-                    Value pub = st.getObject();
-                    String pubURI = pub.stringValue();
-                    IRI p = f.createIRI(pubURI);
-                    Publication publication = new Publication();
-                    publication.setUri(pubURI);
-                    publications.add(publication);
-                    RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
-                    while (statements2.hasNext()) {
-                        Statement st2 = statements2.next();
-                        if (st2.getPredicate().equals(hasTitle)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setTitle(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasAuthor)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setAuthors(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasYear)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setYear(Integer.parseInt(val.stringValue()));
-                            }
-                        } else if (st2.getPredicate().equals(hasDOI)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setDoiId(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasVolume)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setVolume(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasJournal)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setJournal(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasNumber)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setNumber(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasStartPage)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setStartPage(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasEndPage)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setEndPage(val.stringValue());
-                            }
-                        } else if (st2.getPredicate().equals(hasPubMed)) {
-                            Value val = st2.getObject();
-                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                                publication.setPubmedId(Integer.parseInt(val.stringValue()));
-                            }
-                        } 
-                    }
+                Value pub = st.getObject();
+                String pubURI = pub.stringValue();
+                IRI p = f.createIRI(pubURI);
+                Publication publication = new Publication();
+                publication.setUri(pubURI);
+                publications.add(publication);
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasTitle)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setTitle(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasAuthor)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setAuthors(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasYear)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setYear(Integer.parseInt(val.stringValue()));
+                        }
+                    } else if (st2.getPredicate().equals(hasDOI)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setDoiId(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasVolume)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setVolume(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasJournal)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setJournal(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasNumber)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setNumber(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasStartPage)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setStartPage(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasEndPage)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setEndPage(val.stringValue());
+                        }
+                    } else if (st2.getPredicate().equals(hasPubMed)) {
+                        Value val = st2.getObject();
+                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                            publication.setPubmedId(Integer.parseInt(val.stringValue()));
+                        }
+                    } 
                 }
             } else if (st.getPredicate().equals(hasPublicURI)) {
 				// need to retrieve additional information from DEFAULT graph
