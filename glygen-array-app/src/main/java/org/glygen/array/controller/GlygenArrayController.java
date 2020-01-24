@@ -807,7 +807,7 @@ public class GlygenArrayController {
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
-				    errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 				}
 			}
 			else if (linker.getUniProtId() != null) {
@@ -1150,16 +1150,19 @@ public class GlygenArrayController {
 			}
 			if (linkerURI == null) {
 				// get the linker details from pubChem
-				if (linker.getPubChemId() != null || linker.getInChiKey() != null) {
+			    ObjectError err = new ObjectError("pubChemId", "NotValid");
+				if (linker.getPubChemId() != null || (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty())) {
 					try {
 						if (linker.getPubChemId() != null) {
+						    err = new ObjectError("pubChemId", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
-						} else if (linker.getInChiKey() != null) {
+						} else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
+						    err = new ObjectError("inchiKey", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey());
 						}
 						if (l == null) {
 							// could not get details from PubChem
-							errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+							errorMessage.addError(err);
 						} else {
 							if (linker.getName() != null) l.setName(linker.getName().trim());
 							if (linker.getComment() != null) l.setComment(linker.getComment().trim());
@@ -1170,7 +1173,7 @@ public class GlygenArrayController {
 						}
 					} catch (Exception e) {
 						// could not get details from PubChem
-						errorMessage.addError(new ObjectError("pubChemId", "NotValid"));
+						errorMessage.addError(err);
 					}
 				}
 				else {
