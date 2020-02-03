@@ -28,5 +28,6 @@ public interface LinkerRepository {
 	String getSearchPredicate(String searchValue);
 	List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    String makePublic(Linker linker, UserEntity user) throws SparqlException, SQLException;
 
 }

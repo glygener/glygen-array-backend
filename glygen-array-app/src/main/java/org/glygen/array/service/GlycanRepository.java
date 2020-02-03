@@ -64,5 +64,5 @@ public interface GlycanRepository {
 	void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException;
     List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
-    String getSearchPredicate(String searchValue);
+    String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException;
 }

@@ -43,7 +43,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	
 	Random random = new Random();
 	
-	String prefix="PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
+	public static String prefix="PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
 			+ "\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
 			+ "\nPREFIX gadr: <http://purl.org/gadr/data#>"
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>";
@@ -142,5 +142,5 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		IRI graphIRI = f.createIRI(graph);
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-	}	
+	}
 }

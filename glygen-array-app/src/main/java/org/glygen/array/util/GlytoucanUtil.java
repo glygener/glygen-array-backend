@@ -129,8 +129,11 @@ public class GlytoucanUtil {
 		HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
 		try {
 			ResponseEntity<RetrieveResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, RetrieveResponse[].class);
-			return response.getBody()[0].getWurcsLabel();
-			
+			RetrieveResponse[] arr = response.getBody();
+			if (arr.length > 0)
+			    return response.getBody()[0].getWurcsLabel();
+			else 
+			    return null;
 		} catch (HttpClientErrorException e) {
 			logger.info("Exception retrieving glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
 		} catch (HttpServerErrorException e) {
@@ -154,19 +157,29 @@ public class GlytoucanUtil {
 	
 	public static void main(String[] args) {
 		
-		String sequence = GlytoucanUtil.getInstance().retrieveGlycan("G89311TM");
-		sequence = GlytoucanUtil.getInstance().retrieveGlycan("G69046CR");
+		//String sequence = GlytoucanUtil.getInstance().retrieveGlycan("G89311TM");
+		//sequence = GlytoucanUtil.getInstance().retrieveGlycan("G69046CR");
 		
-		String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/35_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5]/1-1-2-3-3/a4-b1_b4-c1_c3-d1_c6-e1");
+		//String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/35_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5]/1-1-2-3-3/a4-b1_b4-c1_c3-d1_c6-e1");
 		
-		System.out.println(sequence);
+		String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		//String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/7,12,11/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O][a2112h-1b_1-5_2*NCC/3=O]/1-1-2-3-1-4-5-6-3-1-7-4/a4-b1_a6-l1_b4-c1_c3-d1_c6-i1_d2-e1_e3-f1_e4-g1_g3-h2_i2-j1_j4-k1");
+		
+		//System.out.println(sequence);
 		System.out.println(accessionNumber);
-
+		
+		//GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
+        //GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
+		
+		//String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		//System.out.println(glyTouCanId);
+		
+		/*
 		GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
 		GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
 		// add glytoucan ids for GRITS database
-		String databaseFolder = "/Users/sarpinar/Desktop/GRITS-databases";
+		String databaseFolder = "/Users/sena/Desktop/GRITS-databases";
 		//String newDbFolder = databaseFolder + "/glytoucanAdded";
 		
 		File dbFolder = new File (databaseFolder);
@@ -246,6 +259,7 @@ public class GlytoucanUtil {
 		glycoCTSequence = "WURCS=2.0/3,12,11/[a2122h-1x_1-5_2*NCC/3=O][a1122h-1x_1-5][a2112h-1x_1-5]/1-1-2-2-2-2-2-2-2-2-2-3/a4-b1_b4-c1_c?-d1_c?-i1_d?-e1_d?-g1_e?-f1_g?-h1_i?-j1_j?-k1_j?-l1";
 		//System.out.println (GlytoucanUtil.registerGlycan(glycoCTSequence));
 		 
+		*/ 
 	}
 		
 	

@@ -17,7 +17,9 @@ public class UniProtUtil {
             String fasta = response.getBody();
             if (fasta == null)
                 return null;
-            return fasta.substring(fasta.indexOf("\n")+1);
+            String sequence = fasta.substring(fasta.indexOf("\n")+1);
+            sequence = sequence.replaceAll("\n", "");
+            return sequence;
         } catch (Exception e) {
             return null;
         }

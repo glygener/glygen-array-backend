@@ -136,10 +136,39 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	}
 	
 	@Override
+    public Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException {
+        // make sure the glycan belongs to this user
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?d \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( "<" +  uriPrefix + featureId + "> gadr:has_date_addedtolibrary ?d . }\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            return getFeatureFromURI(uriPrefix + featureId, user);
+        }
+    }
+	
+	@Override
     public Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException {
         if (label == null || label.isEmpty())
             return null;
-        String graph = getGraphForUser(user);
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -180,7 +209,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         if (searchValue != null)
             searchPredicate = getSearchPredicate(searchValue);
 		// get all featureURIs from user's private graph
-		String graph = getGraphForUser(user);
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
@@ -242,7 +276,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 
     @Override
 	public int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException {
-		String graph = getGraphForUser(user);
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		return getCountByUserByType(graph, "Feature");
 	}
 
@@ -299,7 +338,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException {
 		Feature featureObject = null;
-		String graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI feature = f.createIRI(featureURI);

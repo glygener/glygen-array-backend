@@ -20,6 +20,7 @@ import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
+import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
@@ -31,12 +32,17 @@ import org.glygen.array.persistence.rdf.Owner;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.util.GlytoucanUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(value="sesameTransactionManager") 
 public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements GlycanRepository  {
+    
+    @Autowired
+    QueryHelper queryHelper;
+    
 
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
@@ -299,9 +305,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	@Override
 	public void deleteGlycan(String glycanId, UserEntity user) throws SQLException, SparqlException {
-		String graph;
-		
-		graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
 		if (graph != null) {
 		    if (canDelete(uriPrefix + glycanId, graph)) {
     			// check to see if the given glycanId is in this graph
@@ -318,16 +326,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	boolean canDelete (String glycanURI, String graph) throws SparqlException, SQLException { 
         boolean canDelete = true;
-        
-        StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_molecule  <" +  glycanURI + "> . } LIMIT 1");
-        
-        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        List<SparqlEntity> results = queryHelper.canDeleteQuery(glycanURI, graph);
         if (!results.isEmpty())
             canDelete = false;
         
@@ -338,9 +337,18 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI glycan = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
+		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, hasSequence, null, graphIRI);
+		while (statements.hasNext()) {
+		    Statement st = statements.next();
+		    Value v = st.getObject();
+            String sequenceURI = v.stringValue();
+            IRI seq = f.createIRI(sequenceURI);
+            RepositoryResult<Statement> statements1 = sparqlDAO.getStatements(seq, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements1), graphIRI); 
+		}
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-		//TODO what to do with sequence value and format
 	}
 
 	/**
@@ -355,31 +363,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	 * @throws SparqlException
 	 */
 	private String findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
-		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
-		String whereClause = "WHERE {";
-		String where = " { " + 
-				"				    ?s gadr:has_sequence ?o .\n" +
-				"                    ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string .\n";
-		if (!graph.equals(DEFAULT_GRAPH)) {
-			// check if the user's private graph has this glycan
-			fromString += "FROM <" + graph + ">\n";
-			where += "              ?s gadr:has_date_addedtolibrary ?d .\n }";
-			where += "  UNION { ?s gadr:has_date_addedtolibrary ?d .\n"
-					+ " ?s gadr:has_public_uri ?p . \n" 
-			        + " ?p gadr:has_sequence ?o . \n"
-					+ " ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string . \n}";
-			
-		} else {
-			where += "}";
-		}
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s ?o\n");
-		queryBuf.append (fromString);
-		queryBuf.append (whereClause + where + 
-				"				}\n" + 
-				"				LIMIT 10");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		List<SparqlEntity> results = queryHelper.findGlycanInGraphBySequence(sequence, graph);
 		if (results.size() == 0) 
 			return null;
 		
@@ -392,15 +376,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	@Override
 	public Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException {
 		// make sure the glycan belongs to this user
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?d \n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( "<" +  uriPrefix + glycanId + "> gadr:has_date_addedtolibrary ?d . }\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+		List<SparqlEntity> results = queryHelper.retrieveGlycanById(glycanId, graph);
 		if (results.isEmpty())
 			return null;
 		else {
@@ -410,18 +391,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	@Override
 	public Glycan getGlycanByInternalId(String internalId, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s \n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
-		queryBuf.append ( " ?s gadr:has_internal_id \"" + internalId + "\"^^xsd:string . \n"
-				+ "}\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+		List<SparqlEntity> results = queryHelper.retrieveGlycanByInternalId(internalId, graph);
 		if (results.isEmpty())
 			return null;
 		else {
@@ -432,19 +407,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 
 	@Override
 	public Glycan getGlycanByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?s \n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
-		queryBuf.append ( " {?s rdfs:label \"" + label + "\"^^xsd:string . \n }");
-		queryBuf.append ( " UNION {?s gadr:has_alias \"" + label + "\"^^xsd:string . \n }");
-		queryBuf.append ( "}\n");
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+		List<SparqlEntity> results = queryHelper.retrieveGlycansByLabel(label, graph);
 		if (results.isEmpty())
 			return null;
 		else {
@@ -452,6 +420,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			return getGlycanFromURI(glycanURI, user);
 		}
 	}
+	
+	
 	
 	/**
 	 * {@inheritDoc}
@@ -466,7 +436,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	 */
 	@Override
 	public String getGlycanBySequence(String sequence, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
 		return findGlycanInGraphBySequence(sequence, graph);
 	}
 
@@ -478,23 +452,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return getGlycanByUser(user, 0, -1, "id", 0 );  // no limit
 	}
 	
-	protected String getSortPredicate(String field) {
-        if (field == null || field.equalsIgnoreCase("name")) 
-            return "rdfs:label";
-        else if (field.equalsIgnoreCase("comment")) 
-            return "rdfs:comment";
-        else if (field.equalsIgnoreCase("glytoucanId"))
-            return "gadr:has_glytoucan_id";
-        else if (field.equalsIgnoreCase("internalId"))
-            return "gadr:has_internal_id";
-        else if (field.equalsIgnoreCase("dateModified"))
-            return "gadr:has_date_modified";
-        else if (field.equalsIgnoreCase("mass"))
-            return "gadr:has_mass";
-        else if (field.equalsIgnoreCase("id"))
-            return null;
-        return null;
-    }
+	
 	
 	/**
 	 * {@inheritDoc}
@@ -504,63 +462,22 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return getGlycanByUser(user, offset, limit, field, order, null);
 	}
 	
-	@Override
-    public String getSearchPredicate (String searchValue) {
-	    String predicates = "";
-	    
-	    predicates += "?s rdfs:label ?value1 .\n";
-	    predicates += "OPTIONAL {?s gadr:has_internal_id ?value2} \n";
-	    predicates += "OPTIONAL {?s rdfs:comment ?value3} \n";
-	    predicates += "OPTIONAL {?s gadr:has_alias ?value4} \n";
-	    predicates += "OPTIONAL {?s gadr:has_glytoucan_id ?value5} \n";
-	    predicates += "OPTIONAL {?s gadr:has_mass ?value6} \n";
-	    
-	    String filterClause = "filter (";
-        for (int i=1; i < 7; i++) {
-            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < 7)
-                filterClause += " || ";
-        }
-        filterClause += ")\n";
-	        
-        predicates += filterClause;
-	    return predicates;
-	}
+	
 	
 	
 	@Override
     public List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue) throws SparqlException, SQLException {
         List<Glycan> glycans = new ArrayList<Glycan>();
         
-        String sortPredicate = getSortPredicate (field);
-        
-        String searchPredicate = "";
-        if (searchValue != null)
-            searchPredicate = getSearchPredicate(searchValue);
-        
         // get all glycanURIs from user's private graph
-        String graph = getGraphForUser(user);
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
         if (graph != null) {
-            String sortLine = "";
-            if (sortPredicate != null)
-                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
-            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
-            StringBuffer queryBuf = new StringBuffer();
-            queryBuf.append (prefix + "\n");
-            queryBuf.append ("SELECT DISTINCT ?s \n");
-            queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-            queryBuf.append ("FROM <" + graph + ">\n");
-            queryBuf.append ("WHERE {\n");
-            queryBuf.append (
-                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                    " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
-                            sortLine + searchPredicate + 
-                    "}\n" +
-                     orderByLine + 
-                    ((limit == -1) ? " " : " LIMIT " + limit) +
-                    " OFFSET " + offset);
             
-            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            List<SparqlEntity> results = queryHelper.retrieveGlycanByUser(offset, limit, field, order, searchValue, graph);
             
             for (SparqlEntity sparqlEntity : results) {
                 String glycanURI = sparqlEntity.getValue("s");
@@ -580,19 +497,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	@Override
 	public int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException {
-		String graph = getGraphForUser(user);
+		String graph = null;
+		if (user == null)
+		    graph = DEFAULT_GRAPH;
+		else
+		    graph = getGraphForUser(user);
 		return getCountByUserByType(graph, "Glycan");
 	}
 	
 	private GlycanType getGlycanTypeForGlycan (String glycanURI, String graph) throws SparqlException {
-		StringBuffer queryBuf = new StringBuffer();
-		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?t \n");
-		queryBuf.append ("FROM <" + graph + ">\n");
-		queryBuf.append ("WHERE {\n");
-		queryBuf.append ("<" +  glycanURI + "> gadr:has_type ?t . }");
-
-		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+		List<SparqlEntity> results = queryHelper.retrieveGlycanTypeByGlycan(glycanURI, graph);
 		if (results.isEmpty())
 			return null;
 		else {
@@ -605,8 +519,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	@Override
 	public Glycan getGlycanFromURI (String glycanURI, UserEntity user) throws SparqlException, SQLException {
 		Glycan glycanObject = null;
-		String graph = getGraphForUser(user);
-		if (graph == null) return null;
+		
+		String graph = null;
+		if (user == null)
+		    graph = DEFAULT_GRAPH;
+		else {
+		    graph = getGraphForUser(user);
+		}
+		if (graph == null) {
+		   return null;
+		}
 		
 		GlycanType type = getGlycanTypeForGlycan(glycanURI, graph);
 		
@@ -650,10 +572,14 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			}
 			glycanObject.setUri(glycanURI);
 			glycanObject.setId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
-			Owner owner = new Owner ();
-			owner.setUserId(user.getUserId());
-			owner.setName(user.getUsername());
-			glycanObject.setOwner(owner);
+			if (user != null) {
+    			Owner owner = new Owner ();
+    			owner.setUserId(user.getUserId());
+    			owner.setName(user.getUsername());
+    			glycanObject.setOwner(owner);
+			} else {
+			    glycanObject.setIsPublic(true);
+			}
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
@@ -840,4 +766,169 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 	}
+
+	
+    public String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException {
+        String graph = getGraphForUser(user);
+        String existingURI = null;
+        switch (glycan.getType()) {
+        case SEQUENCE_DEFINED:
+            existingURI = getGlycanBySequence(((SequenceDefinedGlycan) glycan).getSequence());
+            if (existingURI == null) {
+                // check by label if any
+                if (glycan.getName() != null && !glycan.getName().isEmpty()) {
+                    List <SparqlEntity> results = queryHelper.retrieveGlycansByLabel(glycan.getName(), null);
+                    if (results.isEmpty()) {
+                        // make it public
+                        // need to create the glycan in the public graph, link the user's version to public one
+                        deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
+                        updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
+                        return addPublicGlycan(glycan, null, graph);
+                        
+                    } else {
+                        // same name glycan exist in public graph
+                        // throw exception
+                        new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
+                    }
+                }
+            } else {
+                deleteGlycanByURI(uriPrefix + glycan.getId(), graph); // delete existing info
+                updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
+                // need to link the user's version to the existing URI
+                return addPublicGlycan(glycan, existingURI, graph);
+            }
+            break;
+        default:
+            // check by label if any
+            if (glycan.getName() != null && !glycan.getName().isEmpty()) {
+                List <SparqlEntity> results = queryHelper.retrieveGlycansByLabel(glycan.getName(), null);
+                if (results.isEmpty()) {
+                    // make it public
+                    // need to create the glycan in the public graph, link the user's version to public one
+                    deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
+                    updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
+                    return addPublicGlycan(glycan, null, graph);
+                } else {
+                    // same name glycan exist in public graph
+                    // throw exception
+                    new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
+                }
+            }
+            break;
+        }
+        return null;
+    }
+    
+    public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph) throws SparqlException {
+       
+        if (publicURI == null) {
+            publicURI = generateUniqueURI(uriPrefix) + "GAR";  
+        } 
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI publicGlycan = f.createIRI(publicURI);
+       
+        IRI graphIRI = f.createIRI(userGraph);
+        IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
+        Literal date = f.createLiteral(new Date());
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
+        Literal type = f.createLiteral(glycan.getType().name());
+        Literal glycanLabel = glycan.getName() == null ? null : f.createLiteral(glycan.getName());
+        IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        statements.add(f.createStatement(publicGlycan, RDF.TYPE, glycanType, publicGraphIRI));
+        statements.add(f.createStatement(publicGlycan, hasGlycanType, type, publicGraphIRI));
+        statements.add(f.createStatement(publicGlycan, hasCreatedDate, date, publicGraphIRI));
+        if (glycanLabel != null) statements.add(f.createStatement(publicGlycan, RDFS.LABEL, glycanLabel, publicGraphIRI));
+        statements.add(f.createStatement(publicGlycan, hasAddedToLibrary, date, publicGraphIRI));
+        statements.add(f.createStatement(publicGlycan, hasModifiedDate, date, publicGraphIRI));
+        // add has_public_uri predicate to user's graph
+        
+        IRI localGlycan = f.createIRI(glycan.getUri());
+        
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        Literal dateAdded = f.createLiteral(glycan.getDateAddedToLibrary());
+        
+        List<Statement> statements2 = new ArrayList<Statement>();
+        statements2.add(f.createStatement(localGlycan, hasPublicURI, publicGlycan, graphIRI));
+        statements2.add(f.createStatement(localGlycan, hasModifiedDate, date, graphIRI));
+        statements2.add(f.createStatement(localGlycan, hasAddedToLibrary, dateAdded, graphIRI));
+        statements2.add(f.createStatement(localGlycan, hasGlycanType, type, graphIRI));
+        statements2.add(f.createStatement(localGlycan, RDF.TYPE, glycanType, graphIRI));
+        
+        // add additionalInfo based on the type of Glycan
+        switch (glycan.getType()) {
+        case SEQUENCE_DEFINED:
+            // if glytoucanid is null, register with glytoucan or retrieve it
+            String glyToucanId = null;
+            String glyToucanHash = null;
+            if (((SequenceDefinedGlycan) glycan).getGlytoucanId() == null) {
+                // check and register to GlyToucan
+                try {
+                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+                    exporter.start(((SequenceDefinedGlycan) glycan).getSequence().trim());
+                    String wurcs = exporter.getWURCS();
+                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
+                    if (glyToucanId == null) { // need to register
+                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+                        if (glyToucanId == null || glyToucanId.length() != 8) {
+                            // this is new registration, hash returned
+                            glyToucanHash = glyToucanId;
+                            glyToucanId = null;
+                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
+                        }
+                    } else {
+                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
+                    }
+                } catch (Exception e) {
+                    logger.warn("Cannot register glytoucanId with the given sequence", ((SequenceDefinedGlycan) glycan).getSequence());
+                }
+            } 
+            // add sequence and glytoucanid if any
+            String seqURI = generateUniqueURI(uriPrefix + "Seq");
+            IRI sequence = f.createIRI(seqURI);
+            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
+                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());
+            Literal glytoucanHashLit = ((SequenceDefinedGlycan) glycan).getGlytoucanHash() == null ? 
+                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanHash());
+            Literal sequenceValue = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequence());
+            Literal format = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequenceType().getLabel());
+            
+            IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+            IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+            IRI hasGlytoucanHash = f.createIRI(ontPrefix + "has_glytoucan_registration_hash");
+            IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+            IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+            IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+            Literal mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
+            IRI hasMass = f.createIRI(ontPrefix + "has_mass");
+            
+            statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
+            statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));
+            if (glytoucanLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanId, glytoucanLit, publicGraphIRI));
+            if (glytoucanHashLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanHash, glytoucanHashLit, publicGraphIRI));
+            statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, publicGraphIRI));
+            statements.add(f.createStatement(sequence, hasSequenceFormat, format, publicGraphIRI));
+            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
+            break;
+        case MASS_ONLY:
+            // add mass
+            mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
+            hasMass = f.createIRI(ontPrefix + "has_mass");
+            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
+            break;
+        default:
+            break;
+        }
+        
+        sparqlDAO.addStatements(statements, publicGraphIRI);
+        sparqlDAO.addStatements(statements2, graphIRI);
+        
+        return publicURI;
+    }
 }

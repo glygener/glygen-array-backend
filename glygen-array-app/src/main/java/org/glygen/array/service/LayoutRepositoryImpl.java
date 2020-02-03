@@ -267,9 +267,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public void deleteBlockLayout(String blockLayoutId, UserEntity user) throws SparqlException, SQLException {
-		String graph;
-		
-		graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
 		    if (canDeleteBlockLayout(uriPrefix + blockLayoutId, graph)) {
     			// check to see if the given blockLayoutId is in this graph
@@ -343,9 +346,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public void deleteSlideLayout(String slideLayoutId, UserEntity user) throws SparqlException, SQLException {
-		String graph;
-		
-		graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
 		    if (canDeleteBlockLayout(uriPrefix + slideLayoutId, graph)) {
     			// check to see if the given slideLayoutId is in this graph
@@ -394,7 +400,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	private Block getBlock (String blockURI, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		Block blockObject = new Block();
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
@@ -493,7 +504,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	public BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user, boolean loadAll)
 			throws SparqlException, SQLException {
 		// make sure the blocklayout belongs to this user
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?o \n");
@@ -512,7 +528,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public BlockLayout getBlockLayoutByName (String name, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -558,7 +579,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (searchValue != null)
 		    searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
-		String graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
@@ -591,7 +617,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		
 		int total = 0;
 		if (graph != null) {
@@ -619,7 +650,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 		BlockLayout blockLayoutObject = null;
-		String graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
@@ -743,7 +779,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	public SlideLayout getSlideLayoutById(String slideLayoutId, UserEntity user, boolean loadAll)
 			throws SparqlException, SQLException {
 		// make sure the slidelayout belongs to this user
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?o \n");
@@ -762,7 +803,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
 	@Override
 	public SlideLayout getSlideLayoutByName(String name, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -808,7 +854,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (searchValue != null)
             searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
-		String graph = getGraphForUser(user);
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
 			String sortLine = "";
 			if (sortPredicate != null)
@@ -841,7 +892,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
 	@Override
 	public int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
-		String graph = getGraphForUser(user);
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		
 		int total = 0;
 		if (graph != null) {
@@ -868,7 +924,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
 	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 		SlideLayout slideLayoutObject = null;
-		String graph = getGraphForUser(user);
+		String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
 		IRI graphIRI = f.createIRI(graph);

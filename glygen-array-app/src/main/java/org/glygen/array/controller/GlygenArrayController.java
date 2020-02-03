@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.imageio.ImageIO;
 import javax.persistence.EntityNotFoundException;
@@ -661,6 +662,7 @@ public class GlygenArrayController {
 		UserEntity user = null;
 		try {
 			user = userRepository.findByUsernameIgnoreCase(p.getName());
+			// TODO if name is null, check by mass to make sure there are no other glycans with the same mass and no name
 			Glycan local = null;
 			// check if internalid and label are unique
 			if (glycan.getInternalId() != null) {
@@ -733,6 +735,12 @@ public class GlygenArrayController {
 			Linker l = null;
 			String linkerURI = null;
 			if (linker.getSequence() != null) {
+			    // modify the sequence to add position markers
+			    try {
+                    linker.setSequence(addPositionToSequence(linker.getSequence().trim()));
+                } catch (Exception e) {
+                    errorMessage.addError(new ObjectError("sequence", "NotValid"));
+                }
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
@@ -760,7 +768,7 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Linker cannot be added for user " + p.getName(), e);
 		} 
 	}
-	
+
 	private String addProteinLinker(ProteinLinker linker, Principal p) {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
@@ -804,6 +812,13 @@ public class GlygenArrayController {
 			String linkerURI = null;
 			
 			if (linker.getSequence() != null) {
+			    // modify the sequence to add position markers
+                try {
+                    String sequence = addPositionToSequence(linker.getSequence().trim());
+                    linker.setSequence(sequence);
+                } catch (Exception e) {
+                    errorMessage.addError(new ObjectError("sequence", "NotValid"));
+                }
 				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
@@ -848,7 +863,33 @@ public class GlygenArrayController {
 		} 
 	}
 	
-	private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, Principal p, Boolean noGlytoucanRegistration) {
+	private String addPositionToSequence(String sequence) throws Exception {
+	    String newSequence = "";
+        Stack<Character> stack = new Stack<Character>();
+        int position = 1;
+        int i=0;
+        while (i < sequence.length()) {
+            if (sequence.charAt(i) == '{') {
+                stack.push(new Character('{'));
+                newSequence += "{" + position + "-";
+            } else if (sequence.charAt(i) == '}') {
+                if (stack.isEmpty()) 
+                    throw new Exception ("ParseError: no opening paranthesis");
+                stack.pop();
+                position ++;
+                newSequence += "}";
+            } else {
+                newSequence += sequence.charAt(i);
+            }
+            i++;
+        }
+        if (!stack.isEmpty()) {
+            throw new Exception ("ParseError: Parantheses error");
+        }  
+        return newSequence;
+    }
+
+    private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, Principal p, Boolean noGlytoucanRegistration) {
 		if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
 			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
 			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
@@ -1697,7 +1738,7 @@ public class GlygenArrayController {
 		}
 		return null;
 	}
-
+	
 	@ApiOperation(value = "Retrieve sequence (in GlycoCT) from GlyToucan for the glycan with the given glytoucan id (accession number)")
 	@RequestMapping(value="/getGlycanFromGlytoucan", method = RequestMethod.GET)
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully", response = String.class), 
@@ -1709,7 +1750,7 @@ public class GlygenArrayController {
 		if (glytoucanId == null || glytoucanId.isEmpty())
 			return null;
 		try {
-			String wurcsSequence = GlytoucanUtil.getInstance().retrieveGlycan(glytoucanId);
+			String wurcsSequence = GlytoucanUtil.getInstance().retrieveGlycan(glytoucanId.trim());
 			if (wurcsSequence == null) {
 				// cannot be found in Glytoucan
 				throw new EntityNotFoundException("Glycan with accession number " + glytoucanId + " cannot be retrieved");
@@ -1720,10 +1761,13 @@ public class GlygenArrayController {
 				if ( !exporter.getErrorMessages().isEmpty() )
 					throw new GlycanRepositoryException(exporter.getErrorMessages());
 				return exporter.getGlycoCT();
-			}
-			
+			}			
 		} catch (Exception e) {
-			throw new GlycanRepositoryException("error getting glycan from Glytoucan. Reason: " + e.getMessage(), e);
+			ErrorMessage errorMessage = new ErrorMessage();
+		    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		    errorMessage.addError(new ObjectError("glytoucanId", "NotValid"));
+		    throw new IllegalArgumentException("Invalid Input: Glytoucan is not valid" , errorMessage);
 		} 
 	}
 	
@@ -1969,6 +2013,31 @@ public class GlygenArrayController {
 		}
 	}
 	
+	@ApiOperation(value = "Retrieve feature with the given id")
+    @RequestMapping(value="/getfeature/{featureId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Feature retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve the feature"),
+            @ApiResponse(code=404, message="Feature with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public org.glygen.array.persistence.rdf.Feature getFeature (
+            @ApiParam(required=true, value="id of the feature to retrieve") 
+            @PathVariable("featureId") String featureId, 
+            Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId, user);
+            if (feature == null) {
+                throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
+            }
+            
+            return feature;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Feature cannot be retrieved for user " + p.getName(), e);
+        }
+    }
 	
 	/**
 	 * the library file should already be uploaded to "uploadDir" before calling this service.
@@ -2053,6 +2122,7 @@ public class GlygenArrayController {
 		throw new IllegalArgumentException("File is not valid", errorMessage);
 	}
 	
+	
 	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout) {
 		List<org.glygen.array.persistence.rdf.Spot> spots = new ArrayList<>();
     	for (Spot spot: blockLayout.getSpot()) {
@@ -2106,7 +2176,7 @@ public class GlygenArrayController {
     	
     	return spots;
 	}
-
+	
 	@ApiOperation(value = "List all block layouts for the user")
 	@RequestMapping(value="/listBlocklayouts", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
@@ -2215,7 +2285,7 @@ public class GlygenArrayController {
 		
 		return result;
 	}
-	
+
 	@ApiOperation(value = "List all glycans for the user")
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
@@ -2382,6 +2452,105 @@ public class GlygenArrayController {
 		
 		return result;
 	}
+	
+	@ApiOperation(value = "make given glycan public")
+    @RequestMapping(value="/makeglycanpublic/{glycanId}", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="id of the public glycan"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to modify glycans"),
+            @ApiResponse(code=409, message="A glycan with the given name already exists in public repository!"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String makeGlycanPublic (
+            @ApiParam(required=true, value="id of the glycan to retrieve") 
+            @PathVariable("glycanId") String glycanId, Principal p) {
+	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            Glycan glycan = glycanRepository.getGlycanById(glycanId, user);
+            if (glycan == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("glycanId", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no glycan with the given id in user's repository", errorMessage);
+            }
+            BufferedImage t_image = null;
+            if (glycan.getType() == GlycanType.SEQUENCE_DEFINED) {
+                try {
+                    org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                            org.eurocarbdb.application.glycanbuilder.Glycan.
+                            fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
+                    t_image = glycanWorkspace.getGlycanRenderer()
+                        .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+                } catch (Exception e) {
+                    logger.error ("Glycan image cannot be generated", e);
+                }
+            }
+            String glycanURI = glycanRepository.makePublic (glycan, user);
+            String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+            if (t_image != null) {
+                String filename = id + ".png";
+                //save the image into a file
+                logger.debug("Adding image to " + imageLocation);
+                File imageFile = new File(imageLocation + File.separator + filename);
+                ImageIO.write(t_image, "png", imageFile);
+            }
+            return id;
+        } catch (GlycanExistsException e) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("name", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot have glycans with the same name", errorMessage);
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+        } catch (SQLException e) {
+            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+        } catch (IOException e) {
+            logger.error("Glycan image cannot be generated", e);
+            throw new GlycanRepositoryException("Glycan image cannot be generated", e);
+        }
+	}
+	
+	@ApiOperation(value = "make given linker public")
+    @RequestMapping(value="/makelinkerpublic/{linkerId}", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="id of the public linker"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to modify linker"),
+            @ApiResponse(code=409, message="A linker with the given name already exists in public repository!"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String makeLinkerPublic (
+            @ApiParam(required=true, value="id of the linker to retrieve") 
+            @PathVariable("linkerId") String linkerId, Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            Linker linker = linkerRepository.getLinkerById(linkerId, user);
+            if (linker == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("linkerId", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
+            }
+            String linkerURI = linkerRepository.makePublic (linker, user);
+            return linkerURI.substring(linkerURI.lastIndexOf("/")+1);
+        } catch (GlycanExistsException e) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("name", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot have glycans with the same name", errorMessage);
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+        } catch (SQLException e) {
+            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+        }
+    }
 	
 	@ApiOperation(value = "Check status for upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
