@@ -1720,10 +1720,13 @@ public class GlygenArrayController {
 				if ( !exporter.getErrorMessages().isEmpty() )
 					throw new GlycanRepositoryException(exporter.getErrorMessages());
 				return exporter.getGlycoCT();
-			}
-			
+			}			
 		} catch (Exception e) {
-			throw new GlycanRepositoryException("error getting glycan from Glytoucan. Reason: " + e.getMessage(), e);
+			ErrorMessage errorMessage = new ErrorMessage();
+		    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+		    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		    errorMessage.addError(new ObjectError("glytoucanId", "NotValid"));
+		    throw new IllegalArgumentException("Invalid Input: Glytoucan is not valid" , errorMessage);
 		} 
 	}
 	
