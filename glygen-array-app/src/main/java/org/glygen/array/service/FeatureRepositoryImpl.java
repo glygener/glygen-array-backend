@@ -1,6 +1,5 @@
 package org.glygen.array.service;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
