@@ -28,7 +28,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.Owner;
+import org.glygen.array.persistence.rdf.User;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.util.GlytoucanUtil;
@@ -548,7 +548,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-		
+		IRI createdBy= f.createIRI(ontPrefix + "created_by");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		
@@ -573,10 +573,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			glycanObject.setUri(glycanURI);
 			glycanObject.setId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
 			if (user != null) {
-    			Owner owner = new Owner ();
+    			User owner = new User ();
     			owner.setUserId(user.getUserId());
     			owner.setName(user.getUsername());
-    			glycanObject.setOwner(owner);
+    			glycanObject.setUser(owner);
 			} else {
 			    glycanObject.setIsPublic(true);
 			}
@@ -631,6 +631,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			} else if (st.getPredicate().equals(RDFS.LABEL)) {
 				Value label = st.getObject();
 				glycanObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(createdBy)) {
+				Value label = st.getObject();
+				User creator = new User();
+				creator.setName(label.stringValue());
+				glycanObject.setUser(creator);
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
 				Value comment = st.getObject();
 				glycanObject.setComment(comment.stringValue());
@@ -783,7 +788,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         // need to create the glycan in the public graph, link the user's version to public one
                         deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
                         updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
-                        return addPublicGlycan(glycan, null, graph);
+                        return addPublicGlycan(glycan, null, graph, user.getUsername());
                         
                     } else {
                         // same name glycan exist in public graph
@@ -795,7 +800,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 deleteGlycanByURI(uriPrefix + glycan.getId(), graph); // delete existing info
                 updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
                 // need to link the user's version to the existing URI
-                return addPublicGlycan(glycan, existingURI, graph);
+                return addPublicGlycan(glycan, existingURI, graph, user.getUsername());
             }
             break;
         default:
@@ -807,7 +812,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     // need to create the glycan in the public graph, link the user's version to public one
                     deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
                     updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
-                    return addPublicGlycan(glycan, null, graph);
+                    return addPublicGlycan(glycan, null, graph, user.getUsername());
                 } else {
                     // same name glycan exist in public graph
                     // throw exception
@@ -819,8 +824,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         return null;
     }
     
-    public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph) throws SparqlException {
-       
+    public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph, String creator) throws SparqlException {
+    	boolean existing = publicURI != null;
         if (publicURI == null) {
             publicURI = generateUniqueURI(uriPrefix) + "GAR";  
         } 
@@ -831,6 +836,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         IRI graphIRI = f.createIRI(userGraph);
         IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
         Literal date = f.createLiteral(new Date());
+        IRI createdBy= f.createIRI(ontPrefix + "created_by");
         IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
         Literal type = f.createLiteral(glycan.getType().name());
@@ -838,15 +844,19 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+        Literal user = f.createLiteral(creator);
         
         List<Statement> statements = new ArrayList<Statement>();
         
-        statements.add(f.createStatement(publicGlycan, RDF.TYPE, glycanType, publicGraphIRI));
-        statements.add(f.createStatement(publicGlycan, hasGlycanType, type, publicGraphIRI));
-        statements.add(f.createStatement(publicGlycan, hasCreatedDate, date, publicGraphIRI));
-        if (glycanLabel != null) statements.add(f.createStatement(publicGlycan, RDFS.LABEL, glycanLabel, publicGraphIRI));
-        statements.add(f.createStatement(publicGlycan, hasAddedToLibrary, date, publicGraphIRI));
-        statements.add(f.createStatement(publicGlycan, hasModifiedDate, date, publicGraphIRI));
+        if (!existing) {
+	        statements.add(f.createStatement(publicGlycan, RDF.TYPE, glycanType, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, hasGlycanType, type, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, hasCreatedDate, date, publicGraphIRI));
+	        if (glycanLabel != null) statements.add(f.createStatement(publicGlycan, RDFS.LABEL, glycanLabel, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, hasAddedToLibrary, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, hasModifiedDate, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, createdBy, user, publicGraphIRI));
+        }
         // add has_public_uri predicate to user's graph
         
         IRI localGlycan = f.createIRI(glycan.getUri());
@@ -861,72 +871,74 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         statements2.add(f.createStatement(localGlycan, hasGlycanType, type, graphIRI));
         statements2.add(f.createStatement(localGlycan, RDF.TYPE, glycanType, graphIRI));
         
-        // add additionalInfo based on the type of Glycan
-        switch (glycan.getType()) {
-        case SEQUENCE_DEFINED:
-            // if glytoucanid is null, register with glytoucan or retrieve it
-            String glyToucanId = null;
-            String glyToucanHash = null;
-            if (((SequenceDefinedGlycan) glycan).getGlytoucanId() == null) {
-                // check and register to GlyToucan
-                try {
-                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-                    exporter.start(((SequenceDefinedGlycan) glycan).getSequence().trim());
-                    String wurcs = exporter.getWURCS();
-                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
-                    if (glyToucanId == null) { // need to register
-                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-                        if (glyToucanId == null || glyToucanId.length() != 8) {
-                            // this is new registration, hash returned
-                            glyToucanHash = glyToucanId;
-                            glyToucanId = null;
-                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
-                        }
-                    } else {
-                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
-                    }
-                } catch (Exception e) {
-                    logger.warn("Cannot register glytoucanId with the given sequence", ((SequenceDefinedGlycan) glycan).getSequence());
-                }
-            } 
-            // add sequence and glytoucanid if any
-            String seqURI = generateUniqueURI(uriPrefix + "Seq");
-            IRI sequence = f.createIRI(seqURI);
-            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
-                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());
-            Literal glytoucanHashLit = ((SequenceDefinedGlycan) glycan).getGlytoucanHash() == null ? 
-                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanHash());
-            Literal sequenceValue = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequence());
-            Literal format = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequenceType().getLabel());
-            
-            IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
-            IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
-            IRI hasGlytoucanHash = f.createIRI(ontPrefix + "has_glytoucan_registration_hash");
-            IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
-            IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
-            IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
-            Literal mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
-            IRI hasMass = f.createIRI(ontPrefix + "has_mass");
-            
-            statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
-            statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));
-            if (glytoucanLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanId, glytoucanLit, publicGraphIRI));
-            if (glytoucanHashLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanHash, glytoucanHashLit, publicGraphIRI));
-            statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, publicGraphIRI));
-            statements.add(f.createStatement(sequence, hasSequenceFormat, format, publicGraphIRI));
-            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
-            break;
-        case MASS_ONLY:
-            // add mass
-            mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
-            hasMass = f.createIRI(ontPrefix + "has_mass");
-            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
-            break;
-        default:
-            break;
+        if (!existing) {
+	        // add additionalInfo based on the type of Glycan
+	        switch (glycan.getType()) {
+	        case SEQUENCE_DEFINED:
+	            // if glytoucanid is null, register with glytoucan or retrieve it
+	            String glyToucanId = null;
+	            String glyToucanHash = null;
+	            if (((SequenceDefinedGlycan) glycan).getGlytoucanId() == null) {
+	                // check and register to GlyToucan
+	                try {
+	                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+	                    exporter.start(((SequenceDefinedGlycan) glycan).getSequence().trim());
+	                    String wurcs = exporter.getWURCS();
+	                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
+	                    if (glyToucanId == null) { // need to register
+	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+	                        if (glyToucanId == null || glyToucanId.length() != 8) {
+	                            // this is new registration, hash returned
+	                            glyToucanHash = glyToucanId;
+	                            glyToucanId = null;
+	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
+	                        }
+	                    } else {
+	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
+	                    }
+	                } catch (Exception e) {
+	                    logger.warn("Cannot register glytoucanId with the given sequence", ((SequenceDefinedGlycan) glycan).getSequence());
+	                }
+	            } 
+	            // add sequence and glytoucanid if any
+	            String seqURI = generateUniqueURI(uriPrefix + "Seq");
+	            IRI sequence = f.createIRI(seqURI);
+	            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
+	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());
+	            Literal glytoucanHashLit = ((SequenceDefinedGlycan) glycan).getGlytoucanHash() == null ? 
+	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanHash());
+	            Literal sequenceValue = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequence());
+	            Literal format = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequenceType().getLabel());
+	            
+	            IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+	            IRI hasGlytoucanId = f.createIRI(ontPrefix + "has_glytoucan_id");
+	            IRI hasGlytoucanHash = f.createIRI(ontPrefix + "has_glytoucan_registration_hash");
+	            IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+	            IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
+	            IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+	            Literal mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
+	            IRI hasMass = f.createIRI(ontPrefix + "has_mass");
+	            
+	            statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
+	            statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));
+	            if (glytoucanLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanId, glytoucanLit, publicGraphIRI));
+	            if (glytoucanHashLit != null) statements.add(f.createStatement(publicGlycan, hasGlytoucanHash, glytoucanHashLit, publicGraphIRI));
+	            statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, publicGraphIRI));
+	            statements.add(f.createStatement(sequence, hasSequenceFormat, format, publicGraphIRI));
+	            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
+	            break;
+	        case MASS_ONLY:
+	            // add mass
+	            mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
+	            hasMass = f.createIRI(ontPrefix + "has_mass");
+	            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
+	            break;
+	        default:
+	            break;
+	        }
+	        
+	        sparqlDAO.addStatements(statements, publicGraphIRI);
         }
-        
-        sparqlDAO.addStatements(statements, publicGraphIRI);
         sparqlDAO.addStatements(statements2, graphIRI);
         
         return publicURI;

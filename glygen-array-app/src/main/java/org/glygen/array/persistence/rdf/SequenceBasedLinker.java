@@ -15,10 +15,10 @@ public class SequenceBasedLinker extends Linker {
 	
 	String sequence;
 	
-	public Map<Glycan, Integer> extractGlycans() {
+	public Map<Integer, Glycan> extractGlycans() {
 		if (this.sequence == null || this.sequence.isEmpty())
 			return null;
-		Map<Glycan, Integer> positionMap = new HashMap<Glycan, Integer>();
+		Map<Integer, Glycan> positionMap = new HashMap<>();
 		// extract all glycan sequences enclosed in { } and keep track of their position
 		int position = 0;
 		boolean start = false;
@@ -41,7 +41,7 @@ public class SequenceBasedLinker extends Linker {
 				String glycoCT =  parser.translateSequence(glycanSequence);
 				glycan.setSequence(glycoCT);
 				glycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-				positionMap.put(glycan, new Integer(position));
+				positionMap.put(new Integer(position), glycan);
 				position ++;
 			}
 			if (start) {
@@ -59,6 +59,7 @@ public class SequenceBasedLinker extends Linker {
 	}
 	
 	public void setSequence(String sequence) {
+		if (sequence != null) sequence = sequence.replaceAll("\n", "").trim();
 		this.sequence = sequence;
 	}
 }

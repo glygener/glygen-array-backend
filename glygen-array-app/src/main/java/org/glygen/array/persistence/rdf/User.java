@@ -1,6 +1,6 @@
 package org.glygen.array.persistence.rdf;
 
-public class Owner {
+public class User {
 	
 	Long userId;
 	String name;

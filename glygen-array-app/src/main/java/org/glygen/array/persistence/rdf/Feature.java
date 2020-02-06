@@ -16,7 +16,7 @@ public class Feature {
 	Linker linker;
 	Double ratio = null;   // in percentages like 100.0%, 50.0% etc.
 	
-	Map<String, Integer> positionMap = new HashMap<>();
+	Map<Integer, String> positionMap = new HashMap<>(); // position to glycanId map
 	
 	FeatureType type = FeatureType.NORMAL;
 	
@@ -40,17 +40,17 @@ public class Feature {
         this.name = name;
     }
 	
-	public Map<String, Integer> getPositionMap() {
+	public Map<Integer, String> getPositionMap() {
 		return positionMap;
 	}
 	
 	@JsonAnySetter
-	public void setPosition (String key, Integer value) {
+	public void setGlycanId (Integer key, String value) {
 	    positionMap.put(key, value);
 	}
 	
-	public Integer getPosition (String uri) {
-		return positionMap.get(uri);
+	public String getGlycan (Integer position) {
+		return positionMap.get(position);
 	}
 	/**
 	 * @return the glycan
@@ -161,7 +161,7 @@ public class Feature {
 	/**
 	 * @param positionMap the positionMap to set
 	 */
-	public void setPositionMap(Map<String, Integer> positionMap) {
+	public void setPositionMap(Map<Integer, String> positionMap) {
 		this.positionMap = positionMap;
 	}
 	

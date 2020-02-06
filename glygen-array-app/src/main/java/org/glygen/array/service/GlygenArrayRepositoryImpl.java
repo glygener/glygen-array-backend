@@ -67,10 +67,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 	protected String generateUniqueURI (String pre) throws SparqlException {
-		return generateUniqueURI(pre, null);
+		return generateUniqueURI(pre, (String[])null);
 	}
 	
-	protected String generateUniqueURI (String pre, String graph) throws SparqlException {
+	protected String generateUniqueURI (String pre, String... graph) throws SparqlException {
 		// check the repository to see if the generated URI is unique
 		boolean unique = false;
 		String newURI = null;
@@ -80,7 +80,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?o\n");
 			queryBuf.append("FROM <" + DEFAULT_GRAPH + ">\n");
-			if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
+			if (graph != null) {
+				for (int i=0; i < graph.length; i++) {
+					queryBuf.append ("FROM <" + graph[i] + ">\n");
+				}
+			}
 			queryBuf.append ("WHERE {\n" + 
 					"<"+ newURI + "> ?p ?o .\n" + 
 					"				}\n" + 

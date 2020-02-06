@@ -3,7 +3,6 @@ package org.glygen.array.controller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.apache.commons.io.IOUtils;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;

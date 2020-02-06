@@ -382,9 +382,10 @@ public class GlygenArrayController {
                 // check if the linker is a sequence-based linker and if so, try to extract the glycans
                 // from the linker sequence and populate positionMap
                 if (feature.getLinker().getType() == LinkerType.PEPTIDE_LINKER || feature.getLinker().getType() == LinkerType.PROTEIN_LINKER) {
-                    Map<Glycan, Integer>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
-                    Map<String, Integer> positionMapWithId = new HashMap<String, Integer>();
-                    for (Glycan g: positionMap.keySet()) {
+                    Map<Integer, Glycan>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
+                    Map<Integer, String> positionMapWithId = new HashMap<>();
+                    for (Integer position: positionMap.keySet()) {
+                    	Glycan g = positionMap.get(position);
                         String seq = ((SequenceDefinedGlycan)g).getSequence();
                         if (seq != null) {
                             String existing = glycanRepository.getGlycanBySequence(seq.trim(), user);
@@ -394,7 +395,7 @@ public class GlygenArrayController {
                             }
                             g.setUri(existing);
                             feature.addGlycan(g);
-                            positionMapWithId.put(existing, positionMap.get(g));
+                            positionMapWithId.put(position, existing);
                         } else {
                             logger.error("Glycan in the feature with the following sequence cannot be located: " + seq);
                         }
@@ -868,23 +869,39 @@ public class GlygenArrayController {
         Stack<Character> stack = new Stack<Character>();
         int position = 1;
         int i=0;
+        boolean begin = false;
+        boolean end = false;
+        boolean aminoAcid = false;
         while (i < sequence.length()) {
             if (sequence.charAt(i) == '{') {
                 stack.push(new Character('{'));
                 newSequence += "{" + position + "-";
+                begin = true;
             } else if (sequence.charAt(i) == '}') {
                 if (stack.isEmpty()) 
-                    throw new Exception ("ParseError: no opening paranthesis");
+                    throw new Exception ("ParseError: no opening curly");
                 stack.pop();
                 position ++;
                 newSequence += "}";
+                end = true;
             } else {
                 newSequence += sequence.charAt(i);
+                if (begin && !end)
+                	aminoAcid = true;
             }
             i++;
+            if (begin && end && !aminoAcid) {
+            	throw new Exception ("ParseError: no aminoacid between curly braces");
+            } 
+            if (begin && end && aminoAcid) {
+            	// start over
+            	begin = false;
+            	end = false;
+            	aminoAcid = false;
+            }
         }
         if (!stack.isEmpty()) {
-            throw new Exception ("ParseError: Parantheses error");
+            throw new Exception ("ParseError: Curly braces error");
         }  
         return newSequence;
     }
@@ -936,8 +953,6 @@ public class GlygenArrayController {
 		g.setGlytoucanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
 		g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
 		g.setComment(glycan.getComment() != null ? glycan.getComment().trim() : glycan.getComment());
-		//g.setSequence(glycan.getSequence().trim());
-		//g.setSequenceType(glycan.getSequenceFormat().getLabel());
 		
 		String glycoCT = glycan.getSequence().trim();
 		UserEntity user;

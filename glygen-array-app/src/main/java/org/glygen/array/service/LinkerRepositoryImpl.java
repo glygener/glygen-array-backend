@@ -25,7 +25,7 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.Owner;
+import org.glygen.array.persistence.rdf.User;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
@@ -71,6 +71,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String hasEndPagePredicate = ontPrefix + "has_end_page";
 	final static String hasDOIPredicate = ontPrefix + "has_doi";
 	final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
+	final static String createdByPredicate = ontPrefix + "created_by";
 	
 	@Override
 	public String addLinker(Linker l, UserEntity user) throws SparqlException, SQLException {
@@ -827,6 +828,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasEndPage = f.createIRI(hasEndPagePredicate);
         IRI hasDOI = f.createIRI(hasDOIPredicate);
         IRI hasPubMed = f.createIRI(hasPubMedPredicate);
+        IRI createdBy= f.createIRI(createdByPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -845,10 +847,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			linkerObject.setUri(linkerURI);
 			linkerObject.setId(linkerURI.substring(linkerURI.lastIndexOf("/")+1));
 			if (user != null) {
-    			Owner owner = new Owner ();
+    			User owner = new User ();
                 owner.setUserId(user.getUserId());
                 owner.setName(user.getUsername());
-                linkerObject.setOwner(owner);
+                linkerObject.setUser(owner);
 			} else {
 			    linkerObject.setIsPublic(true);
 			}
@@ -923,6 +925,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			} else if (st.getPredicate().equals(RDFS.LABEL)) {
 				Value label = st.getObject();
 				linkerObject.setName(label.stringValue());
+			} else if (st.getPredicate().equals(createdBy)) {
+				Value label = st.getObject();
+				User creator = new User();
+				creator.setName(label.stringValue());
+				linkerObject.setUser(creator);
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
 				Value comment = st.getObject();
 				linkerObject.setComment(comment.stringValue());
@@ -1213,7 +1220,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     deleteByURI(uriPrefix + linker.getId(), graph);
                     updateLinkerInGraph(linker, graph);
                     // need to create the linker in the public graph, link the user's version to public one
-                    return addPublicLinker(linker, null, graph);
+                    return addPublicLinker(linker, null, graph, user.getUsername());
                 } else {
                     // same name linker exist in public graph
                     // throw exception
@@ -1224,17 +1231,18 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             deleteByURI(uriPrefix + linker.getId(), graph);
             updateLinkerInGraph(linker, graph);
             // need to link the user's version to the existing URI
-            return addPublicLinker(linker, existingURI, graph);
+            return addPublicLinker(linker, existingURI, graph, user.getUsername());
         }
         return null;
     }
     
-    public String addPublicLinker (Linker linker, String publicURI, String userGraph) throws SparqlException {
+    public String addPublicLinker (Linker linker, String publicURI, String userGraph, String creator) throws SparqlException {
         // add has_public_uri predicate to user's graph
+    	boolean existing = (publicURI != null);
         ValueFactory f = sparqlDAO.getValueFactory();
         if (publicURI == null) {
             publicURI = generateUniqueURI(uriPrefix + "L");
-        }
+        } 
         IRI local = f.createIRI(linker.getUri());
         IRI publicLinker = f.createIRI(publicURI);
         IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
@@ -1247,6 +1255,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI linkerType = f.createIRI(linkerTypePredicate);
         IRI hasLinkerType = f.createIRI(hasTypePredicate);
         IRI hasUrl = f.createIRI(hasURLPredicate);
+        IRI createdBy= f.createIRI(ontPrefix + "created_by");
+        Literal user = f.createLiteral(creator);
+        
         Literal type = f.createLiteral(linker.getType().name());
         Literal label = linker.getName() == null ? f.createLiteral("") : f.createLiteral(linker.getName());
         Literal comment =linker.getComment() == null ? f.createLiteral("") : f.createLiteral(linker.getComment());
@@ -1261,16 +1272,18 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         List<Statement> statements = new ArrayList<Statement>();
         
-        statements.add(f.createStatement(publicLinker, RDF.TYPE, linkerType, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, hasLinkerType, type, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, RDFS.LABEL, label, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, RDFS.COMMENT, comment, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, hasAddedToLibrary, date, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, hasModifiedDate, date, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, hasCreatedDate, date, publicGraphIRI));
-        statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));
-        if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
-        
+        if (!existing) { // otherwise, this information should already be in the public graph
+	        statements.add(f.createStatement(publicLinker, RDF.TYPE, linkerType, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, hasLinkerType, type, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, RDFS.LABEL, label, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, RDFS.COMMENT, comment, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, hasAddedToLibrary, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, hasModifiedDate, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, hasCreatedDate, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, createdBy, user, publicGraphIRI));
+	        if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
+        }
         
         List<Statement> statements2 = new ArrayList<Statement>();
         statements2.add(f.createStatement(local, hasPublicURI, publicLinker, graphIRI));
@@ -1279,120 +1292,122 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         statements2.add(f.createStatement(local, hasLinkerType, type, graphIRI));
         statements2.add(f.createStatement(local, RDF.TYPE, linkerType, graphIRI));
         
-        // add additionalInfo based on the type of Glycan
-        switch (linker.getType()) {
-        case SMALLMOLECULE_LINKER:
-            
-            IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
-            IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
-            IRI hasIupacName = f.createIRI(hasIupacNamePredicate);
-            IRI hasMass = f.createIRI(hasMassPredicate);
-            IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
-            IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
-            IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
-            IRI hasSmiles = f.createIRI(hasSmilesPredicate);
-            IRI hasClassification = f.createIRI(hasClassificationPredicate);
-            IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
-            IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
-            
-            Literal pubChemId = null;
-            if (((SmallMoleculeLinker) linker).getPubChemId() != null)
-                pubChemId =  f.createLiteral(((SmallMoleculeLinker) linker).getPubChemId());
-            Literal inchiSequence = null;
-            if (((SmallMoleculeLinker) linker).getInChiSequence() != null)
-                inchiSequence = f.createLiteral(((SmallMoleculeLinker) linker).getInChiSequence());
-            Literal inchiKey = null;
-            if (((SmallMoleculeLinker) linker).getInChiKey() != null)
-                inchiKey = f.createLiteral(((SmallMoleculeLinker) linker).getInChiKey());
-            Literal imageUrl = null;
-            if (((SmallMoleculeLinker) linker).getImageURL() != null) 
-                imageUrl =  f.createLiteral(((SmallMoleculeLinker) linker).getImageURL());
-            Literal mass = null;
-            if (((SmallMoleculeLinker) linker).getMass() != null) 
-                mass =  f.createLiteral(((SmallMoleculeLinker) linker).getMass());
-            Literal molecularFormula = null;
-            if (((SmallMoleculeLinker) linker).getMolecularFormula() != null)
-                molecularFormula = f.createLiteral(((SmallMoleculeLinker) linker).getMolecularFormula());
-            Literal smiles = null;
-            if (((SmallMoleculeLinker) linker).getSmiles() != null) 
-                smiles = f.createLiteral(((SmallMoleculeLinker) linker).getSmiles());
-            Literal iupacName = null;
-            if (((SmallMoleculeLinker) linker).getIupacName() != null) 
-                iupacName = f.createLiteral(((SmallMoleculeLinker) linker).getIupacName());
-            if (inchiSequence != null) statements.add(f.createStatement(publicLinker, hasInchiSequence, inchiSequence, publicGraphIRI));
-            if (inchiKey != null) statements.add(f.createStatement(publicLinker, hasInchiKey, inchiKey, publicGraphIRI));
-            if (iupacName != null) statements.add(f.createStatement(publicLinker, hasIupacName, iupacName, publicGraphIRI));
-            if (mass != null) statements.add(f.createStatement(publicLinker, hasMass, mass, publicGraphIRI));
-            if (imageUrl != null) statements.add(f.createStatement( publicLinker, hasImageUrl, imageUrl, publicGraphIRI));
-            if (pubChemId != null) statements.add(f.createStatement(publicLinker, hasPubChemId, pubChemId, publicGraphIRI));
-            if (molecularFormula != null) statements.add(f.createStatement(publicLinker, hasMolecularFormula, molecularFormula, publicGraphIRI));
-            if (smiles != null) statements.add(f.createStatement(publicLinker, hasSmiles, smiles, publicGraphIRI));
-            
-            if (((SmallMoleculeLinker) linker).getClassification() != null) {
-                String classificationIRI = null;
-                if (((SmallMoleculeLinker) linker).getClassification().getUri() != null) {
-                    classificationIRI = ((SmallMoleculeLinker) linker).getClassification().getUri();
-                }
-                else {
-                    if (((SmallMoleculeLinker) linker).getClassification().getChebiId() != null) {
-                        classificationIRI = getClassificationByField(
-                                ((SmallMoleculeLinker) linker).getClassification().getChebiId() + "", hasChebiIdPredicate, "integer", DEFAULT_GRAPH);
-                    } 
-                    if (classificationIRI == null && ((SmallMoleculeLinker) linker).getClassification().getClassification() != null) {
-                        classificationIRI = getClassificationByField(
-                                ((SmallMoleculeLinker) linker).getClassification().getClassification(), 
-                                hasClassificationValuePredicate, "string", DEFAULT_GRAPH);
-                    }
-                    if (classificationIRI == null) {
-                        classificationIRI = generateUniqueURI(uriPrefix + "LC");
-                    } 
-                }
-                IRI classification = f.createIRI(classificationIRI);
-                statements.add(f.createStatement(publicLinker, hasClassification, classification, publicGraphIRI));
-                if (((SmallMoleculeLinker) linker).getClassification().getChebiId() != null) {
-                    Literal chebiId = f.createLiteral(((SmallMoleculeLinker) linker).getClassification().getChebiId());
-                    Literal value = f.createLiteral(((SmallMoleculeLinker) linker).getClassification().getClassification());
-                    statements.add(f.createStatement(classification, hasChebiId, chebiId, publicGraphIRI));
-                    statements.add(f.createStatement(classification, hasClassificationValue, value, publicGraphIRI));
-                }
-            }
-                        
-            break;
-        case PEPTIDE_LINKER:
-        case PROTEIN_LINKER:
-            IRI hasSequence = f.createIRI(hasSequencePredicate);
-            Literal sequenceL= f.createLiteral(((SequenceBasedLinker) linker).getSequence());
-            statements.add(f.createStatement(publicLinker, hasSequence, sequenceL, publicGraphIRI));
-            if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
-            
-            if (linker.getType() == LinkerType.PROTEIN_LINKER) {
-                if (((ProteinLinker)linker).getUniProtId() != null) {
-                    IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
-                    Literal uniProt = f.createLiteral(((ProteinLinker)linker).getUniProtId());
-                    statements.add(f.createStatement(publicLinker, hasUniProtId, uniProt, publicGraphIRI));
-                }
-                if (((ProteinLinker)linker).getPdbIds() != null) {
-                    for (String pdbId: ((ProteinLinker)linker).getPdbIds()) {
-                        IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
-                        Literal pdb = f.createLiteral(pdbId);
-                        statements.add(f.createStatement(publicLinker, hasPDBId, pdb, publicGraphIRI));
-                    }
-                }
-            }
-            
-            break;
+        if (!existing) {
+	        // add additionalInfo based on the type of Glycan
+	        switch (linker.getType()) {
+	        case SMALLMOLECULE_LINKER:
+	            
+	            IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+	            IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+	            IRI hasIupacName = f.createIRI(hasIupacNamePredicate);
+	            IRI hasMass = f.createIRI(hasMassPredicate);
+	            IRI hasImageUrl = f.createIRI(hasImageUrlPredicate);
+	            IRI hasPubChemId = f.createIRI(hasPubChemIdPredicate);
+	            IRI hasMolecularFormula = f.createIRI(hasMolecularFormulaPredicate);
+	            IRI hasSmiles = f.createIRI(hasSmilesPredicate);
+	            IRI hasClassification = f.createIRI(hasClassificationPredicate);
+	            IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
+	            IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
+	            
+	            Literal pubChemId = null;
+	            if (((SmallMoleculeLinker) linker).getPubChemId() != null)
+	                pubChemId =  f.createLiteral(((SmallMoleculeLinker) linker).getPubChemId());
+	            Literal inchiSequence = null;
+	            if (((SmallMoleculeLinker) linker).getInChiSequence() != null)
+	                inchiSequence = f.createLiteral(((SmallMoleculeLinker) linker).getInChiSequence());
+	            Literal inchiKey = null;
+	            if (((SmallMoleculeLinker) linker).getInChiKey() != null)
+	                inchiKey = f.createLiteral(((SmallMoleculeLinker) linker).getInChiKey());
+	            Literal imageUrl = null;
+	            if (((SmallMoleculeLinker) linker).getImageURL() != null) 
+	                imageUrl =  f.createLiteral(((SmallMoleculeLinker) linker).getImageURL());
+	            Literal mass = null;
+	            if (((SmallMoleculeLinker) linker).getMass() != null) 
+	                mass =  f.createLiteral(((SmallMoleculeLinker) linker).getMass());
+	            Literal molecularFormula = null;
+	            if (((SmallMoleculeLinker) linker).getMolecularFormula() != null)
+	                molecularFormula = f.createLiteral(((SmallMoleculeLinker) linker).getMolecularFormula());
+	            Literal smiles = null;
+	            if (((SmallMoleculeLinker) linker).getSmiles() != null) 
+	                smiles = f.createLiteral(((SmallMoleculeLinker) linker).getSmiles());
+	            Literal iupacName = null;
+	            if (((SmallMoleculeLinker) linker).getIupacName() != null) 
+	                iupacName = f.createLiteral(((SmallMoleculeLinker) linker).getIupacName());
+	            if (inchiSequence != null) statements.add(f.createStatement(publicLinker, hasInchiSequence, inchiSequence, publicGraphIRI));
+	            if (inchiKey != null) statements.add(f.createStatement(publicLinker, hasInchiKey, inchiKey, publicGraphIRI));
+	            if (iupacName != null) statements.add(f.createStatement(publicLinker, hasIupacName, iupacName, publicGraphIRI));
+	            if (mass != null) statements.add(f.createStatement(publicLinker, hasMass, mass, publicGraphIRI));
+	            if (imageUrl != null) statements.add(f.createStatement( publicLinker, hasImageUrl, imageUrl, publicGraphIRI));
+	            if (pubChemId != null) statements.add(f.createStatement(publicLinker, hasPubChemId, pubChemId, publicGraphIRI));
+	            if (molecularFormula != null) statements.add(f.createStatement(publicLinker, hasMolecularFormula, molecularFormula, publicGraphIRI));
+	            if (smiles != null) statements.add(f.createStatement(publicLinker, hasSmiles, smiles, publicGraphIRI));
+	            
+	            if (((SmallMoleculeLinker) linker).getClassification() != null) {
+	                String classificationIRI = null;
+	                if (((SmallMoleculeLinker) linker).getClassification().getUri() != null) {
+	                    classificationIRI = ((SmallMoleculeLinker) linker).getClassification().getUri();
+	                }
+	                else {
+	                    if (((SmallMoleculeLinker) linker).getClassification().getChebiId() != null) {
+	                        classificationIRI = getClassificationByField(
+	                                ((SmallMoleculeLinker) linker).getClassification().getChebiId() + "", hasChebiIdPredicate, "integer", DEFAULT_GRAPH);
+	                    } 
+	                    if (classificationIRI == null && ((SmallMoleculeLinker) linker).getClassification().getClassification() != null) {
+	                        classificationIRI = getClassificationByField(
+	                                ((SmallMoleculeLinker) linker).getClassification().getClassification(), 
+	                                hasClassificationValuePredicate, "string", DEFAULT_GRAPH);
+	                    }
+	                    if (classificationIRI == null) {
+	                        classificationIRI = generateUniqueURI(uriPrefix + "LC");
+	                    } 
+	                }
+	                IRI classification = f.createIRI(classificationIRI);
+	                statements.add(f.createStatement(publicLinker, hasClassification, classification, publicGraphIRI));
+	                if (((SmallMoleculeLinker) linker).getClassification().getChebiId() != null) {
+	                    Literal chebiId = f.createLiteral(((SmallMoleculeLinker) linker).getClassification().getChebiId());
+	                    Literal value = f.createLiteral(((SmallMoleculeLinker) linker).getClassification().getClassification());
+	                    statements.add(f.createStatement(classification, hasChebiId, chebiId, publicGraphIRI));
+	                    statements.add(f.createStatement(classification, hasClassificationValue, value, publicGraphIRI));
+	                }
+	            }
+	                        
+	            break;
+	        case PEPTIDE_LINKER:
+	        case PROTEIN_LINKER:
+	            IRI hasSequence = f.createIRI(hasSequencePredicate);
+	            Literal sequenceL= f.createLiteral(((SequenceBasedLinker) linker).getSequence());
+	            statements.add(f.createStatement(publicLinker, hasSequence, sequenceL, publicGraphIRI));
+	            if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
+	            
+	            if (linker.getType() == LinkerType.PROTEIN_LINKER) {
+	                if (((ProteinLinker)linker).getUniProtId() != null) {
+	                    IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
+	                    Literal uniProt = f.createLiteral(((ProteinLinker)linker).getUniProtId());
+	                    statements.add(f.createStatement(publicLinker, hasUniProtId, uniProt, publicGraphIRI));
+	                }
+	                if (((ProteinLinker)linker).getPdbIds() != null) {
+	                    for (String pdbId: ((ProteinLinker)linker).getPdbIds()) {
+	                        IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
+	                        Literal pdb = f.createLiteral(pdbId);
+	                        statements.add(f.createStatement(publicLinker, hasPDBId, pdb, publicGraphIRI));
+	                    }
+	                }
+	            }
+	            
+	            break;
+	        }
+	        
+	        if (linker.getUrls() != null) {
+	            for (String url: linker.getUrls()) {
+	                Literal urlLit = f.createLiteral(url);
+	                statements.add(f.createStatement(publicLinker, hasUrl, urlLit, publicGraphIRI));
+	            }
+	        }
+	        sparqlDAO.addStatements(statements, publicGraphIRI);
         }
-        
-        if (linker.getUrls() != null) {
-            for (String url: linker.getUrls()) {
-                Literal urlLit = f.createLiteral(url);
-                statements.add(f.createStatement(publicLinker, hasUrl, urlLit, publicGraphIRI));
-            }
-        }
-        sparqlDAO.addStatements(statements, publicGraphIRI);
         sparqlDAO.addStatements(statements2, graphIRI);
         
-        if (linker.getPublications() != null && !linker.getPublications().isEmpty()) {
+        if (!existing && linker.getPublications() != null && !linker.getPublications().isEmpty()) {
             addLinkerPublications(linker, publicURI, DEFAULT_GRAPH);
         }
         

@@ -1,5 +1,7 @@
 package org.glygen.array.service;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -97,7 +99,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     		    }
     		}
     		
-    		
     		IRI linkerIRI = f.createIRI(linker.getUri());
     		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
 		}
@@ -113,9 +114,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			
 			IRI glycanIRI = f.createIRI(g.getUri());
 			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
-			
-			Integer position = feature.getPosition(g.getUri());
-			if (position != null) {
+		}
+		
+		if (feature.getPositionMap() != null) {
+			for (Integer position: feature.getPositionMap().keySet()) {
+				String glycanId = feature.getPositionMap().get(position);
+				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);
 				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
 				IRI positionContext = f.createIRI(positionContextURI);
@@ -261,11 +265,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         String predicates = "";
         
         predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value2 . ?g rdfs:label ?value3} \n";
+        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:gadr:has_pubchem_compound_id ?value4 . ?l rdfs:label ?value5} \n";
+        
+        int numberOfValues = 5; // need to match with the total values (?value1 - ?value5) specified in above predicates
         
         String filterClause = "filter (";
-        for (int i=1; i < 2; i++) {
+        for (int i=1; i <= numberOfValues; i++) {
             filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < 2)
+            if (i < numberOfValues)
                 filterClause += " || ";
         }
         filterClause += ")\n";
@@ -360,7 +368,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
-		Map<String, Integer> positionMap = new HashMap<String, Integer>();
+		Map<Integer, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
 			featureObject = new Feature();
 			featureObject.setUri(featureURI);
@@ -447,11 +455,73 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					}  
 				}
 				if (position != null && glycanInContext != null) {
-					positionMap.put(glycanInContext.getUri(), position);
+					positionMap.put (position, glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
 				}
 			}
 		}
 		
 		return featureObject;
+	}
+	
+	@Override
+	public String addPublicFeature(Feature feature) throws SparqlException {
+		ValueFactory f = sparqlDAO.getValueFactory();
+		IRI featureType = f.createIRI(featureTypePredicate);
+		String featureURI = generateUniqueURI(uriPrefix + "F");
+		IRI feat = f.createIRI(featureURI);
+		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
+		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+		IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+		IRI hasLinker = f.createIRI(hasLinkerPredicate);
+		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
+		IRI hasRatio = f.createIRI (hasRatioPredicate);
+		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
+		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+		Literal date = f.createLiteral(new Date());
+		IRI hasFeatureType = f.createIRI(hasTypePredicate);
+        Literal type = f.createLiteral(feature.getType().name());
+		Literal label = f.createLiteral(feature.getName());
+		
+		List<Statement> statements = new ArrayList<Statement>();
+		
+		statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
+		statements.add(f.createStatement(feat, RDF.TYPE, featureType, graphIRI));
+		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
+		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
+		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
+		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
+		
+		if (feature.getLinker() != null) {
+			IRI linkerIRI = f.createIRI(feature.getLinker().getUri());
+    		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
+		}
+		
+    		
+		for (Glycan g: feature.getGlycans()) {
+			IRI glycanIRI = f.createIRI(g.getUri());
+			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+		}
+		
+		if (feature.getPositionMap() != null) {
+			for (Integer position: feature.getPositionMap().keySet()) {
+				String glycanId = feature.getPositionMap().get(position);
+				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
+				Literal pos = f.createLiteral(position);
+				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+				IRI positionContext = f.createIRI(positionContextURI);
+				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
+				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
+				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
+			}
+		}
+		
+		if (feature.getRatio() != null) {
+			Literal ratio = f.createLiteral(feature.getRatio());
+			statements.add(f.createStatement(feat, hasRatio, ratio, graphIRI));
+		}
+		
+		sparqlDAO.addStatements(statements, graphIRI);
+		return featureURI;
 	}
 }
