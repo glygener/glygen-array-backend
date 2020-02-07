@@ -1277,7 +1277,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        statements.add(f.createStatement(publicLinker, hasLinkerType, type, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, RDFS.LABEL, label, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, RDFS.COMMENT, comment, publicGraphIRI));
-	        statements.add(f.createStatement(publicLinker, hasAddedToLibrary, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicLinker, hasAddedToLibrary, dateAdded, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, hasModifiedDate, date, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, hasCreatedDate, date, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));

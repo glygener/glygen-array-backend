@@ -2559,11 +2559,49 @@ public class GlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("name", "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("Cannot have glycans with the same name", errorMessage);
+            throw new IllegalArgumentException("Cannot have linkers with the same name", errorMessage);
         } catch (SparqlException e) {
-            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+            throw new GlycanRepositoryException("Linker cannot be made public for user " + p.getName(), e);
         } catch (SQLException e) {
-            throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
+            throw new GlycanRepositoryException("Linker cannot be made public for user " + p.getName(), e);
+        }
+    }
+	
+	@ApiOperation(value = "make given slide layout public")
+    @RequestMapping(value="/makeslidelayoutpublic/{layoutId}", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="id of the public slide layout"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to modify slide layout"),
+            @ApiResponse(code=409, message="A slide layout with the given name already exists in public repository!"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String makeSlideLayoutPublic (
+            @ApiParam(required=true, value="id of the slide layout to retrieve") 
+            @PathVariable("layoutId") String layoutId, Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, user);
+            if (layout == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("linkerId", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
+            }
+            String layoutURI = layoutRepository.makePublic (layout, user);
+            return layoutURI.substring(layoutURI.lastIndexOf("/")+1);
+        } catch (GlycanExistsException e) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("name", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot have slide layouts with the same name", errorMessage);
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Slide Layout cannot be made public for user " + p.getName(), e);
+        } catch (SQLException e) {
+            throw new GlycanRepositoryException("Slide Layout cannot be made public for user " + p.getName(), e);
         }
     }
 	

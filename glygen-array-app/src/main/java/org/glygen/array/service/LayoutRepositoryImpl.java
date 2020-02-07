@@ -1443,6 +1443,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (slideLayoutComment != null) statements.add(f.createStatement(slideLayout, RDFS.COMMENT, slideLayoutComment, graphIRI));
 			statements.add(f.createStatement(slideLayout, hasCreatedDate, dateCreated, graphIRI));
 			statements.add(f.createStatement(slideLayout, hasModifiedDate, dateCreated, graphIRI));
+			statements.add(f.createStatement(slideLayout, hasAddedToLibrary, dateAdded, graphIRI));
 			statements.add(f.createStatement(slideLayout, createdBy, user, graphIRI));
 			if (slideLayoutWidth != null) statements.add(f.createStatement(slideLayout, hasWidth, slideLayoutWidth, graphIRI));
 			if (slideLayoutHeight != null) statements.add(f.createStatement(slideLayout, hasHeight, slideLayoutHeight, graphIRI));

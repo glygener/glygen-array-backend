@@ -462,6 +462,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		return featureObject;
 	}
 	
+	/**
+	 * difference from addFeature is that this assumes linkers and glycans are already made public and Feature object
+	 * contains their corresponding public URIs 
+	 * 
+	 */
 	@Override
 	public String addPublicFeature(Feature feature) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();

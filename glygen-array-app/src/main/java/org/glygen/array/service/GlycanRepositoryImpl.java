@@ -482,7 +482,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             for (SparqlEntity sparqlEntity : results) {
                 String glycanURI = sparqlEntity.getValue("s");
                 Glycan glycan = getGlycanFromURI(glycanURI, user);
-                glycans.add(glycan);    
+                if (glycan != null)
+                    glycans.add(glycan);    
             }
         }
         
@@ -699,7 +700,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 							} else if (st2.getPredicate().equals(hasSequenceFormat)) {
 								Value formatString = st2.getObject();
 								if (glycanObject instanceof SequenceDefinedGlycan)
-									((SequenceDefinedGlycan)glycanObject).setSequenceType(GlycanSequenceFormat.valueOf(formatString.stringValue()));
+									((SequenceDefinedGlycan)glycanObject).setSequenceType(GlycanSequenceFormat.forValue(formatString.stringValue()));
 							}  
 						}
 					}
@@ -845,6 +846,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI glycanType = f.createIRI(ontPrefix + "Glycan");
         Literal user = f.createLiteral(creator);
+        Literal dateAdded = f.createLiteral(glycan.getDateAddedToLibrary());
         
         List<Statement> statements = new ArrayList<Statement>();
         
@@ -853,7 +855,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	        statements.add(f.createStatement(publicGlycan, hasGlycanType, type, publicGraphIRI));
 	        statements.add(f.createStatement(publicGlycan, hasCreatedDate, date, publicGraphIRI));
 	        if (glycanLabel != null) statements.add(f.createStatement(publicGlycan, RDFS.LABEL, glycanLabel, publicGraphIRI));
-	        statements.add(f.createStatement(publicGlycan, hasAddedToLibrary, date, publicGraphIRI));
+	        statements.add(f.createStatement(publicGlycan, hasAddedToLibrary, dateAdded, publicGraphIRI));
 	        statements.add(f.createStatement(publicGlycan, hasModifiedDate, date, publicGraphIRI));
 	        statements.add(f.createStatement(publicGlycan, createdBy, user, publicGraphIRI));
         }
@@ -862,7 +864,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         IRI localGlycan = f.createIRI(glycan.getUri());
         
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
-        Literal dateAdded = f.createLiteral(glycan.getDateAddedToLibrary());
+        
         
         List<Statement> statements2 = new ArrayList<Statement>();
         statements2.add(f.createStatement(localGlycan, hasPublicURI, publicGlycan, graphIRI));
