@@ -9,13 +9,13 @@ To execute glygen-array backend application.
 
 1. set necessary environment variables:
 
-         export GLYGEN_HOST='glygen.ccrc.uga.edu'
+         export GLYGEN_HOST=glygen.ccrc.uga.edu
 
-         export GLYGEN_BASEPATH='/ggarray/api/'
+         export GLYGEN_BASEPATH=/ggarray/api/
 
-         export JASYPT_SECRET='<jasypt_secret>'  (need to match with the one used for generating the database passwords)
+         export JASYPT_SECRET=<jasypt_secret>  (need to match with the one used for generating the database passwords)
 
-         export SPRING_PROFILES_ACTIVE='dev'  (or defaults to 'prod)
+         export SPRING_PROFILES_ACTIVE=dev  (or defaults to 'prod)
     
     make sure environment variable HOME is also set to your user home directory
     
@@ -40,3 +40,7 @@ To execute glygen-array backend application.
          
  3. docker-compose up -d 
 --------------------------------------------------------------------------------------------
+
+If you would like to run the backend application in Eclipse, create a Java run configuration with the following VM argument:
+
+-Djasypt.encryptor.password=<jasypt_secret>
