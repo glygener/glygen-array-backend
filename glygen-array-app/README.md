@@ -40,3 +40,7 @@ To execute glygen-array backend application.
          
  3. docker-compose up -d 
 --------------------------------------------------------------------------------------------
+
+If you would like to run the backend application in Eclipse, create a Java run configuration with the following VM argument:
+
+-Djasypt.encryptor.password=MySECret
