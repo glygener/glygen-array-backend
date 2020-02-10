@@ -34,7 +34,7 @@ public class Glycan {
 	Date dateAddedToLibrary;
 	List<String> aliases = new ArrayList<String>();
 	GlycanType type;
-	User owner;
+	Creator owner;
 	Boolean isPublic = false;
 	byte[] cartoon;
 	
@@ -46,11 +46,11 @@ public class Glycan {
 		this.isPublic = isPublic;
 	}
 	
-	public User getUser() {
+	public Creator getUser() {
 		return owner;
 	}
 	
-	public void setUser(User owner) {
+	public void setUser(Creator owner) {
 		this.owner = owner;
 	}
 	

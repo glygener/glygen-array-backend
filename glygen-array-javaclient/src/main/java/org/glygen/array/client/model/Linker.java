@@ -1,11 +1,24 @@
 package org.glygen.array.client.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
+@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME, 
+		include = JsonTypeInfo.As.PROPERTY, 
+		property = "type")
+	@JsonSubTypes({ 
+		@Type(value = SmallMoleculeLinker.class, name = "SMALLMOLECULE_LINKER"), 
+		@Type(value = PeptideLinker.class, name = "PEPTIDE_LINKER"),
+		@Type(value = ProteinLinker.class, name = "PROTEIN_LINKER")
+	})
 public abstract class Linker {
-	
+	String id;
 	String uri;
 	String name;
 	String comment;
@@ -17,6 +30,32 @@ public abstract class Linker {
 	List<Publication> publications;
 	List<String> urls;
 	LinkerType type;
+	Creator user;
+    Boolean isPublic = false;
+	
+    public Boolean getIsPublic() {
+        return isPublic;
+    }
+    
+    public void setIsPublic(Boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+    
+    public Creator getUser() {
+        return user;
+    }
+    
+    public void setUser(Creator owner) {
+        this.user = owner;
+    }
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
 	
 	/**
 	 * @return the name
@@ -160,5 +199,11 @@ public abstract class Linker {
 	public void setUrls(List<String> urls) {
 		this.urls = urls;
 	}
+
+    public void addPublication(Publication publication) {
+        if (publications == null) 
+            publications = new ArrayList<Publication>();
+        publications.add(publication);
+    }
 
 }

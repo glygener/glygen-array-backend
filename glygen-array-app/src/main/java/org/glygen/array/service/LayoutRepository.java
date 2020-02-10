@@ -58,4 +58,6 @@ public interface LayoutRepository {
     List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
             Boolean loadAll, Integer order, String searchValue) throws SparqlException, SQLException;
     String makePublic(SlideLayout layout, UserEntity user) throws SparqlException, SQLException;
+    BlockLayout getBlockLayoutByName(String name, UserEntity user, boolean loadAll)
+            throws SparqlException, SQLException;
 }

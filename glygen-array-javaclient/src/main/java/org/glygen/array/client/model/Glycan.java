@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -33,8 +32,25 @@ public class Glycan {
 	Date dateAddedToLibrary;
 	List<String> aliases = new ArrayList<String>();
 	GlycanType type;
-	
+	Creator owner;
+	Boolean isPublic = false;
 	byte[] cartoon;
+	
+	public Boolean getIsPublic() {
+		return isPublic;
+	}
+	
+	public void setIsPublic(Boolean isPublic) {
+		this.isPublic = isPublic;
+	}
+	
+	public Creator getUser() {
+		return owner;
+	}
+	
+	public void setUser(Creator owner) {
+		this.owner = owner;
+	}
 	
 	public byte[] getCartoon() {
 		return cartoon;

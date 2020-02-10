@@ -28,7 +28,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.User;
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.util.GlytoucanUtil;
@@ -533,6 +533,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		GlycanType type = getGlycanTypeForGlycan(glycanURI, graph);
 		
+		if (type == null)
+		    type = GlycanType.UNKNOWN;
+		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI glycan = f.createIRI(glycanURI);
 		IRI graphIRI = f.createIRI(graph);
@@ -574,7 +577,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			glycanObject.setUri(glycanURI);
 			glycanObject.setId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
 			if (user != null) {
-    			User owner = new User ();
+    			Creator owner = new Creator ();
     			owner.setUserId(user.getUserId());
     			owner.setName(user.getUsername());
     			glycanObject.setUser(owner);
@@ -634,7 +637,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				glycanObject.setName(label.stringValue());
 			} else if (st.getPredicate().equals(createdBy)) {
 				Value label = st.getObject();
-				User creator = new User();
+				Creator creator = new Creator();
 				creator.setName(label.stringValue());
 				glycanObject.setUser(creator);
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {

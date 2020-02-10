@@ -17,7 +17,7 @@ public class SlideLayout {
 	Date dateCreated;
 	Date dateModified;
 	Date dateAddedToLibrary;
-	User user;
+	Creator user;
 	Boolean isPublic = false;
 	/**
 	 * @return the name
@@ -139,10 +139,10 @@ public class SlideLayout {
 	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
 		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
-	public User getUser() {
+	public Creator getUser() {
 		return user;
 	}
-	public void setUser(User createdBy) {
+	public void setUser(Creator createdBy) {
 		this.user = createdBy;
 	}
 	public Boolean getIsPublic() {

@@ -14,6 +14,9 @@ public class SlideLayout {
 	Integer height;
 	Date dateCreated;
 	Date dateModified;
+	Date dateAddedToLibrary;
+	Creator user;
+	Boolean isPublic = false;
 	/**
 	 * @return the name
 	 */
@@ -123,6 +126,24 @@ public class SlideLayout {
 	 */
 	public void setDateModified(Date dateModified) {
 		this.dateModified = dateModified;
+	}
+	public Date getDateAddedToLibrary() {
+		return dateAddedToLibrary;
+	}
+	public void setDateAddedToLibrary(Date dateAddedToLibrary) {
+		this.dateAddedToLibrary = dateAddedToLibrary;
+	}
+	public Creator getUser() {
+		return user;
+	}
+	public void setUser(Creator createdBy) {
+		this.user = createdBy;
+	}
+	public Boolean getIsPublic() {
+		return isPublic;
+	}
+	public void setIsPublic(Boolean isPublic) {
+		this.isPublic = isPublic;
 	}
 
 	

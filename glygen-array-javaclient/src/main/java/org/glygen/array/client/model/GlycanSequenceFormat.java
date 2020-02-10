@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum GlycanSequenceFormat {
 	GLYCOCT("GlycoCT"),
-	GWS("GlycoWorkbench");
+	GWS("GlycoWorkbench"),
+	WURCS("Wurcs"),
+	IUPAC("IUPAC");
 	
 	String label;
 	
@@ -15,6 +17,10 @@ public enum GlycanSequenceFormat {
 			return GLYCOCT;
 		else if (value.equals("GlycoWorkbench"))
 			return GWS;
+		else if (value.equals("Wurcs"))
+            return WURCS;
+		else if (value.equals("IUPAC"))
+            return IUPAC;
 		return GLYCOCT;
 	}
 	

@@ -30,7 +30,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
-import org.glygen.array.persistence.rdf.User;
+import org.glygen.array.persistence.rdf.Creator;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,14 +100,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(block, hasRow, row, graphIRI));
 			statements.add(f.createStatement(block, hasColumn, column, graphIRI));
 			
-			sparqlDAO.addStatements(statements, graphIRI);
 			// copy spots from layout
 			for (Spot s : layoutFromRepository.getSpots()) {
-				statements = new ArrayList<Statement>();
 				IRI spot = f.createIRI(s.getUri());
 				statements.add(f.createStatement(block, hasSpot, spot, graphIRI));
-				sparqlDAO.addStatements(statements, graphIRI);
 			}
+			sparqlDAO.addStatements(statements, graphIRI);
 			
 		} else 
 			throw new SparqlException ("Block layout cannot be found in repository");
@@ -363,7 +361,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
 		if (graph != null) {
-		    if (canDeleteBlockLayout(uriPrefix + slideLayoutId, graph)) {
+		    if (canDeleteSlideLayout(uriPrefix + slideLayoutId, graph)) {
     			// check to see if the given slideLayoutId is in this graph
     			SlideLayout existing = getSlideLayoutFromURI (uriPrefix + slideLayoutId, false, user);
     			if (existing != null) {
@@ -550,20 +548,25 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public BlockLayout getBlockLayoutByName (String name, UserEntity user) throws SparqlException, SQLException {
-	    String graph = null;
+	    return getBlockLayoutByName(name, user, true);
+	}
+	
+	@Override
+    public BlockLayout getBlockLayoutByName (String name, UserEntity user, boolean loadAll) throws SparqlException, SQLException {
+        String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-		List<SparqlEntity> results = retrieveBlockLayoutByName(name, graph);
-		if (results.isEmpty())
-			return null;
-		else {
-			String blockLayoutURI = results.get(0).getValue("s");
-			return getBlockLayoutFromURI(blockLayoutURI, false, user);
-		}
-	}
+        List<SparqlEntity> results = retrieveBlockLayoutByName(name, graph);
+        if (results.isEmpty())
+            return null;
+        else {
+            String blockLayoutURI = results.get(0).getValue("s");
+            return getBlockLayoutFromURI(blockLayoutURI, loadAll, user);
+        }
+    }
 	
 	
 	@Override
@@ -728,6 +731,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					Value v = st.getObject();
 					String spotURI = v.stringValue();
 					Spot s = new Spot();
+					s.setUri(spotURI);
 					IRI spot = f.createIRI(spotURI);
 					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
 					List<Feature> features = new ArrayList<Feature>();
@@ -964,7 +968,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			slideLayoutObject = new SlideLayout();
 			slideLayoutObject.setUri(slideLayoutURI);
 			if (user != null) {
-    			User owner = new User ();
+    			Creator owner = new Creator ();
                 owner.setUserId(user.getUserId());
                 owner.setName(user.getUsername());
                 slideLayoutObject.setUser(owner);
@@ -973,61 +977,86 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 		}
 		if (slideLayoutObject != null) {
-			List<Block> blocks = new ArrayList<>();
-			while (statements.hasNext()) {
-				Statement st = statements.next();
-				if (st.getPredicate().equals(RDFS.LABEL)) {
-					Value v = st.getObject();
-					slideLayoutObject.setName(v.stringValue());
-				} else if (st.getPredicate().equals(RDFS.COMMENT)) {
-					Value v = st.getObject();
-					slideLayoutObject.setDescription(v.stringValue());
-				} else if (st.getPredicate().equals(createdBy)) {
-					Value label = st.getObject();
-					User creator = new User();
-					creator.setName(label.stringValue());
-					slideLayoutObject.setUser(creator);
-				} else if (st.getPredicate().equals(hasWidth)) {
-					Value v = st.getObject();
-					if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
-				} else if (st.getPredicate().equals(hasHeight)) {
-					Value v = st.getObject();
-					if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
-				} else if (st.getPredicate().equals(hasCreatedDate)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	slideLayoutObject.setDateCreated(date);
-				    }
-				} else if (st.getPredicate().equals(hasModifiedDate)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	slideLayoutObject.setDateModified(date);
-				    }
-				} else if (st.getPredicate().equals(hasAddedToLibrary)) {
-					Value value = st.getObject();
-				    if (value instanceof Literal) {
-				    	Literal literal = (Literal)value;
-				    	XMLGregorianCalendar calendar = literal.calendarValue();
-				    	Date date = calendar.toGregorianCalendar().getTime();
-				    	slideLayoutObject.setDateAddedToLibrary(date);
-				    }
-				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
-					Value v = st.getObject();
-					String blockURI = v.stringValue();
-					Block block = getBlock (blockURI, user);
-					blocks.add(block);
-				}
-			}
-			
-			slideLayoutObject.setBlocks(blocks);
+			extractFromStatements (statements, slideLayoutObject, loadAll, user);
 		}
 		return slideLayoutObject;
+	}
+	
+	void extractFromStatements (RepositoryResult<Statement> statements, SlideLayout slideLayoutObject, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+        
+        IRI hasBlock = f.createIRI(ontPrefix + "has_block");
+        IRI hasWidth = f.createIRI(ontPrefix + "has_width");
+        IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
+        IRI createdBy= f.createIRI(ontPrefix + "created_by");
+        IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        
+        List<Block> blocks = new ArrayList<>();
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(RDFS.LABEL)) {
+                Value v = st.getObject();
+                slideLayoutObject.setName(v.stringValue());
+            } else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                Value v = st.getObject();
+                slideLayoutObject.setDescription(v.stringValue());
+            } else if (st.getPredicate().equals(createdBy)) {
+                Value label = st.getObject();
+                Creator creator = new Creator();
+                creator.setName(label.stringValue());
+                slideLayoutObject.setUser(creator);
+            } else if (st.getPredicate().equals(hasWidth)) {
+                Value v = st.getObject();
+                if (v != null) slideLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+            } else if (st.getPredicate().equals(hasHeight)) {
+                Value v = st.getObject();
+                if (v != null) slideLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+            } else if (st.getPredicate().equals(hasCreatedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideLayoutObject.setDateCreated(date);
+                }
+            } else if (st.getPredicate().equals(hasModifiedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideLayoutObject.setDateModified(date);
+                }
+            } else if (st.getPredicate().equals(hasAddedToLibrary)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideLayoutObject.setDateAddedToLibrary(date);
+                }
+            } else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
+                Value v = st.getObject();
+                String blockURI = v.stringValue();
+                Block block = getBlock (blockURI, user);
+                blocks.add(block);
+            } else if (st.getPredicate().equals(hasPublicURI)) {
+                // need to retrieve additional information from DEFAULT graph
+                slideLayoutObject.setIsPublic(true);
+                Value uriValue = st.getObject();
+                String publicLayoutURI = uriValue.stringValue();
+                IRI publicLayout = f.createIRI(publicLayoutURI);
+                RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicLayout, null, null, defaultGraphIRI);
+                extractFromStatements (statementsPublic, slideLayoutObject, loadAll, null);
+            }
+        }
+        
+        slideLayoutObject.setBlocks(blocks);
+        
 	}
 	
 	@Override
@@ -1131,7 +1160,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         String existingURI = null;
         
         if (layout.getName() != null && !layout.getName().isEmpty()) {
-        	SlideLayout existing = getSlideLayoutByName(layout.getName(), user);
+        	SlideLayout existing = getSlideLayoutByName(layout.getName(), null);
         	if (existing != null)
         		existingURI = existing.getUri();
         }
@@ -1429,7 +1458,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		Literal user = f.createLiteral(username);
 		Date date = new Date();
 		Literal dateCreated = f.createLiteral(date);
-		Literal dateAdded = f.createLiteral(s.getDateAddedToLibrary());
+		Literal dateAdded = s.getDateAddedToLibrary() == null ? f.createLiteral(date) : f.createLiteral(s.getDateAddedToLibrary());
 		IRI local = f.createIRI(s.getUri());
 		if (!existing) {
 			Literal slideLayoutLabel = f.createLiteral(s.getName().trim());

@@ -116,7 +116,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		
 		if (feature.getPositionMap() != null) {
-			for (Integer position: feature.getPositionMap().keySet()) {
+			for (String position: feature.getPositionMap().keySet()) {
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);
@@ -367,7 +367,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
-		Map<Integer, String> positionMap = new HashMap<>();
+		Map<String, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
 			featureObject = new Feature();
 			featureObject.setUri(featureURI);
@@ -454,7 +454,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					}  
 				}
 				if (position != null && glycanInContext != null) {
-					positionMap.put (position, glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
+					positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
 				}
 			}
 		}
@@ -508,7 +508,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		
 		if (feature.getPositionMap() != null) {
-			for (Integer position: feature.getPositionMap().keySet()) {
+			for (String position: feature.getPositionMap().keySet()) {
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);

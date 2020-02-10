@@ -1,27 +1,14 @@
 package org.glygen.array.client.model;
 
-public class ProteinLinker extends Linker {
+import java.util.List;
+
+public class ProteinLinker extends SequenceBasedLinker {
 	
-	String sequence;
 	String uniProtId;
-	String pdbId;
+	List<String> pdbIds;
 	
 	public ProteinLinker() {
 		this.type = LinkerType.PROTEIN_LINKER;
-	}
-
-	/**
-	 * @return the sequence
-	 */
-	public String getSequence() {
-		return sequence;
-	}
-
-	/**
-	 * @param sequence the sequence to set
-	 */
-	public void setSequence(String sequence) {
-		this.sequence = sequence;
 	}
 
 	/**
@@ -38,17 +25,11 @@ public class ProteinLinker extends Linker {
 		this.uniProtId = uniProtId;
 	}
 
-	/**
-	 * @return the pdbId
-	 */
-	public String getPdbId() {
-		return pdbId;
-	}
-
-	/**
-	 * @param pdbId the pdbId to set
-	 */
-	public void setPdbId(String pdbId) {
-		this.pdbId = pdbId;
-	}
+	public List<String> getPdbIds() {
+        return pdbIds;
+    }
+	
+	public void setPdbIds(List<String> pdbIds) {
+        this.pdbIds = pdbIds;
+    }
 }

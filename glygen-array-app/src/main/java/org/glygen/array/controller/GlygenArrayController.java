@@ -210,8 +210,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given block layout for the user")
 	@RequestMapping(value="/addblocklayout", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block layout added successfully"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -266,7 +265,7 @@ public class GlygenArrayController {
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		try {
-			BlockLayout existing = layoutRepository.getBlockLayoutByName(layout.getName(), user);
+			BlockLayout existing = layoutRepository.getBlockLayoutByName(layout.getName(), user, false);
 			if (existing != null) {
 				// duplicate
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
@@ -383,7 +382,7 @@ public class GlygenArrayController {
                 // from the linker sequence and populate positionMap
                 if (feature.getLinker().getType() == LinkerType.PEPTIDE_LINKER || feature.getLinker().getType() == LinkerType.PROTEIN_LINKER) {
                     Map<Integer, Glycan>  positionMap = ((SequenceBasedLinker)feature.getLinker()).extractGlycans();
-                    Map<Integer, String> positionMapWithId = new HashMap<>();
+                    Map<String, String> positionMapWithId = new HashMap<>();
                     for (Integer position: positionMap.keySet()) {
                     	Glycan g = positionMap.get(position);
                         String seq = ((SequenceDefinedGlycan)g).getSequence();
@@ -395,7 +394,7 @@ public class GlygenArrayController {
                             }
                             g.setUri(existing);
                             feature.addGlycan(g);
-                            positionMapWithId.put(position, existing);
+                            positionMapWithId.put(position + "", existing);
                         } else {
                             logger.error("Glycan in the feature with the following sequence cannot be located: " + seq);
                         }
@@ -1073,8 +1072,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Add given slide layout for the user")
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
-			consumes={"application/json", "application/xml"},
-			produces={"application/json", "application/xml"})
+			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout added successfully"), 
 			@ApiResponse(code=400, message="Invalid request, validation error"),
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -2679,7 +2677,7 @@ public class GlygenArrayController {
 			BlockLayout local = null;
 			// check if name is unique
 			if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
-				local = layoutRepository.getBlockLayoutByName(blockLayout.getName().trim(), user);
+				local = layoutRepository.getBlockLayoutByName(blockLayout.getName().trim(), user, false);
 				if (local != null && !local.getUri().equals(blockLayout.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}
