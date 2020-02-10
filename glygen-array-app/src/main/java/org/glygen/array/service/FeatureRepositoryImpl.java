@@ -333,7 +333,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_spot ?spot . ?spot has_feature <" +  featureURI + "> . } LIMIT 1");
+        queryBuf.append ("?s gadr:has_spot ?spot . ?spot gadr:has_feature <" +  featureURI + "> . } LIMIT 1");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
