@@ -265,7 +265,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         
         predicates += "?s rdfs:label ?value1 .\n";
         predicates += "OPTIONAL {?s gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value2 . ?g rdfs:label ?value3} \n";
-        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:gadr:has_pubchem_compound_id ?value4 . ?l rdfs:label ?value5} \n";
+        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value4 . ?l rdfs:label ?value5} \n";
         
         int numberOfValues = 5; // need to match with the total values (?value1 - ?value5) specified in above predicates
         
