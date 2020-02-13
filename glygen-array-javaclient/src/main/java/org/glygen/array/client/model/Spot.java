@@ -1,8 +1,15 @@
 package org.glygen.array.client.model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Spot {
 	List<Feature> features;
@@ -12,6 +19,36 @@ public class Spot {
 	Integer group;
 	String uri;
 	SpotFlag flag;
+	
+	Map<String, Double> ratioMap = new HashMap<>(); // featureId to ratio in percentages
+	Map<Feature, Double> featureRatioMap = new HashMap<Feature, Double>();
+	
+	@JsonIgnore
+	public Map<Feature, Double> getFeatureRatioMap() {
+        return featureRatioMap;
+    }
+	
+	public void setFeatureRatioMap(Map<Feature, Double> featureRatioMap) {
+        this.featureRatioMap = featureRatioMap;
+    }
+	
+	@JsonAnyGetter
+	public Map<String, Double> getRatioMap() {
+        return ratioMap;
+    }
+	
+	public void setRatioMap(Map<String, Double> ratioMap) {
+        this.ratioMap = ratioMap;
+    }
+	
+	@JsonAnySetter
+	public void setRatio (String key, Double value) {
+	    this.ratioMap.put(key, value);
+	}
+	
+	public Double getRatio (String featureId) {
+	    return this.ratioMap.get(featureId);
+	}
 	
 	public void setFlag(SpotFlag flag) {
 		this.flag = flag;

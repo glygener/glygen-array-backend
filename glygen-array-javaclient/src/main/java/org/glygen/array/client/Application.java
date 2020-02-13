@@ -13,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.glygen.array.client.model.FeatureType;
 import org.glygen.array.client.model.GlycanSequenceFormat;
+import org.glygen.array.client.model.ImportGRITSLibraryResult;
 import org.glygen.array.client.model.LinkerClassification;
 import org.glygen.array.client.model.SequenceDefinedGlycan;
 import org.glygen.array.client.model.SmallMoleculeLinker;
@@ -71,7 +72,7 @@ public class Application implements CommandLineRunner {
 		User user = userClient.getUser(args[0]);
 		log.info("got user information:" + user.getEmail());
 		
-		String importType = "Glycan";
+		String importType = "All";
 		if (args.length == 4) {
 			importType = args[3];
 		}
@@ -97,21 +98,28 @@ public class Application implements CommandLineRunner {
 		        for (Glycan glycan : glycanList) {
 		        	org.glygen.array.client.model.Glycan view = null;
 		        	if (glycan.getSequence() == null) {
-		        		view = new UnknownGlycan();
+		        	    if (glycan.getOrigSequence() == null && (glycan.getClassification() == null || glycan.getClassification().isEmpty())) {
+		                    // this is not a glycan, it is either control or a flag
+		        	        // do not create a glycan
+		                } else {
+		                    view = new UnknownGlycan();
+		                }
 		        	} else {
 						view = new SequenceDefinedGlycan();
 						((SequenceDefinedGlycan) view).setGlytoucanId(glycan.getGlyTouCanId());
 						((SequenceDefinedGlycan) view).setSequence(glycan.getSequence());
 						((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        	}
-		        	view.setInternalId(glycan.getId()+ "");
-					view.setName(glycan.getName());
-					view.setComment(glycan.getComment());
-					try {
-						glycanClient.addGlycan(view, user);
-					} catch (HttpClientErrorException e) {
-						log.info("Glycan " + glycan.getId() + " cannot be added", e);
-					}
+		        	if (view != null) {
+    		        	view.setInternalId(glycan.getId()+ "");
+    					view.setName(glycan.getName());
+    					view.setComment(glycan.getComment());
+    					try {
+    						glycanClient.addGlycan(view, user);
+    					} catch (HttpClientErrorException e) {
+    						log.info("Glycan " + glycan.getId() + " cannot be added", e);
+    					}
+		        	}
 				}
 		        
 		        System.out.println("Duplicates: " + glycanClient.getDuplicates().size());
@@ -253,6 +261,17 @@ public class Application implements CommandLineRunner {
 						log.info("SlideLayout " + slideLayout.getId() + " cannot be added", e);
 					}
 				}
+	        } else if (importType.equals("All")) {
+	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, user);
+	            for (org.glygen.array.client.model.SlideLayout layout: result.getAddedLayouts()) {
+	                log.info("Added: " + layout.getName());
+	            }
+	            for (org.glygen.array.client.model.SlideLayout layout: result.getDuplicates()) {
+                    log.info("Duplicate: " + layout.getName());
+                }
+	            for (org.glygen.array.client.model.SlideLayout layout: result.getErrors()) {
+                    log.info("Error: " + layout.getName());
+                }
 	        }
 		}
 	}
