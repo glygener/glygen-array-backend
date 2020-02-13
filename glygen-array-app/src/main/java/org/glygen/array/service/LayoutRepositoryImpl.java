@@ -55,6 +55,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	Map<String, String> glycanCache = new HashMap<String, String>();
 	Map<LevelUnit, String> concentrationCache = new HashMap<LevelUnit, String>();
 	
+	final static String hasRatioPredicate = ontPrefix + "has_ratio";
+	final static String hasRatioContextPredicate = ontPrefix + "has_feature_ratio";
+	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
 
 		String blockURI = generateUniqueURI(uriPrefix + "B", graph);
@@ -71,46 +74,48 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		Literal column = f.createLiteral(b.getColumn());
 		
 		BlockLayout layoutFromRepository = null;
-		BlockLayout blockLayout = b.getBlockLayout();
-		if (blockLayout == null)
-			return null;
-		if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
-			layoutFromRepository = blockLayoutCache.get(blockLayout.getId().trim());
-		}
-		else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
-			layoutFromRepository = blockLayoutCache.get(blockLayout.getName().trim());
-			
-		if (layoutFromRepository == null) {  // first time loading
-			if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
-				layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user);
-				blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
-			}
-			else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
-				layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user);
-				blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
-			}
-		}
-		
-		if (layoutFromRepository != null) {
-			IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
-			// create Block and copy spots from Layout
-			List<Statement> statements = new ArrayList<Statement>();
-			statements.add(f.createStatement(block, RDF.TYPE, blockType, graphIRI));
-			statements.add(f.createStatement(block, hasBlockLayout, blockLayoutIRI, graphIRI));
-			statements.add(f.createStatement(block, hasRow, row, graphIRI));
-			statements.add(f.createStatement(block, hasColumn, column, graphIRI));
-			
-			// copy spots from layout
-			for (Spot s : layoutFromRepository.getSpots()) {
-				IRI spot = f.createIRI(s.getUri());
-				statements.add(f.createStatement(block, hasSpot, spot, graphIRI));
-			}
-			sparqlDAO.addStatements(statements, graphIRI);
-			
-		} else 
-			throw new SparqlException ("Block layout cannot be found in repository");
-		
-		return blockURI;
+        BlockLayout blockLayout = b.getBlockLayout();
+        if (blockLayout == null)
+            return null;
+        if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
+            layoutFromRepository = blockLayoutCache.get(blockLayout.getId().trim());
+        }
+        else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
+            layoutFromRepository = blockLayoutCache.get(blockLayout.getName().trim());
+            
+        if (layoutFromRepository == null) {  // first time loading
+            if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
+                layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user);
+                blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
+            }
+            else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
+                layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user);
+                blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
+            }
+        }
+        
+        if (layoutFromRepository != null) {
+            IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
+            // create Block and copy spots from Layout
+            List<Statement> statements = new ArrayList<Statement>();
+            statements.add(f.createStatement(block, RDF.TYPE, blockType, graphIRI));
+            statements.add(f.createStatement(block, hasBlockLayout, blockLayoutIRI, graphIRI));
+            statements.add(f.createStatement(block, hasRow, row, graphIRI));
+            statements.add(f.createStatement(block, hasColumn, column, graphIRI));
+            
+            sparqlDAO.addStatements(statements, graphIRI);
+            // copy spots from layout
+            for (Spot s : layoutFromRepository.getSpots()) {
+                statements = new ArrayList<Statement>();
+                IRI spot = f.createIRI(s.getUri());
+                statements.add(f.createStatement(block, hasSpot, spot, graphIRI));
+                sparqlDAO.addStatements(statements, graphIRI);
+            }
+            
+        } else 
+            throw new SparqlException ("Block layout cannot be found in repository");
+        
+        return blockURI;
 	}
 	
 	@Override
@@ -129,17 +134,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
-		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
-		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
-		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
-		IRI hasRow = f.createIRI(ontPrefix + "has_row");
-		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
 		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
 		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-		IRI spotType = f.createIRI(ontPrefix + "Spot");
-		
 		IRI blockLayoutType = f.createIRI(ontPrefix + "BlockLayout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
@@ -162,56 +158,92 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		
+		statements = new ArrayList<Statement>();
 		for (Spot s : b.getSpots()) {
 			if (s == null)
 				continue;
-			statements = new ArrayList<Statement>();
-			String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+			String spotURI = addSpot (s, user, graph);
 			IRI spot = f.createIRI(spotURI);
-			Literal row = f.createLiteral(s.getRow());
-			Literal column = f.createLiteral(s.getColumn());
-			Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
-			statements.add(f.createStatement(spot, RDF.TYPE, spotType, graphIRI));
 			statements.add(f.createStatement(blockLayout, hasSpot, spot, graphIRI));
-			
-			statements.add(f.createStatement(spot, hasRow, row));
-			statements.add(f.createStatement(spot, hasColumn, column));
-			if (group != null) statements.add(f.createStatement(spot, hasGroup, group, graphIRI));
-			if (s.getConcentration() != null) {
-				// check if it has already been created before
-				String concentrationURI = concentrationCache.get(s.getConcentration());
-				if (concentrationURI == null) {
-					concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
-					concentrationCache.put(s.getConcentration(), concentrationURI);
-				}
-				IRI concentration = f.createIRI(concentrationURI);
-				Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-				Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-				if (concentrationValue != null) {
-					statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue, graphIRI));
-					statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit, graphIRI));
-				}
-				statements.add(f.createStatement(spot, hasConcentration, concentration, graphIRI));
-			}
-			
-			sparqlDAO.addStatements(statements, graphIRI);
-			if (s.getFeatures() != null) {
-				List<Feature> features = s.getFeatures();
-				for (Feature feat : features) {
- 					Feature existing = featureRepository.getFeatureByLabel(feat.getName(), user);
-					if (existing != null) {
-						IRI feature = f.createIRI(existing.getUri());
-						statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));
-						sparqlDAO.addStatements(statements, graphIRI);
-					} else {
-						// error
-						throw new SparqlException ("Feature with label " + feat.getName() + " cannot be found!");
-					}
-				}
-			}
 		}
+		sparqlDAO.addStatements(statements, graphIRI);
 		
 		return blockLayoutURI;
+	}
+	
+	String addSpot (Spot s, UserEntity user, String graph) throws SparqlException, SQLException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+	    IRI graphIRI = f.createIRI(graph);
+	    IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+        IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
+        IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
+        IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
+        IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+        IRI hasRow = f.createIRI(ontPrefix + "has_row");
+        IRI hasColumn = f.createIRI(ontPrefix + "has_column");
+        IRI spotType = f.createIRI(ontPrefix + "Spot");
+	    List<Statement> statements = new ArrayList<Statement>();
+        String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+        IRI spot = f.createIRI(spotURI);
+        Literal row = f.createLiteral(s.getRow());
+        Literal column = f.createLiteral(s.getColumn());
+        Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
+        statements.add(f.createStatement(spot, RDF.TYPE, spotType, graphIRI));
+        
+        
+        statements.add(f.createStatement(spot, hasRow, row));
+        statements.add(f.createStatement(spot, hasColumn, column));
+        if (group != null) statements.add(f.createStatement(spot, hasGroup, group, graphIRI));
+        if (s.getConcentration() != null) {
+            // check if it has already been created before
+            String concentrationURI = concentrationCache.get(s.getConcentration());
+            if (concentrationURI == null) {
+                concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+                concentrationCache.put(s.getConcentration(), concentrationURI);
+            }
+            IRI concentration = f.createIRI(concentrationURI);
+            Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
+            Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
+            if (concentrationValue != null) {
+                statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue, graphIRI));
+                statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit, graphIRI));
+            }
+            statements.add(f.createStatement(spot, hasConcentration, concentration, graphIRI));
+        }
+        
+        if (s.getFeatures() != null) {
+            List<Feature> features = s.getFeatures();
+            for (Feature feat : features) {
+                Feature existing = featureRepository.getFeatureByLabel(feat.getName(), user);
+                if (existing != null) {
+                    IRI feature = f.createIRI(existing.getUri());
+                    statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));
+                    Double ratio = s.getFeatureRatioMap().get(feat);
+                    if (ratio == null) {
+                        ratio = s.getRatio(existing.getId());
+                    }
+                    if (ratio != null) {
+                        // add ratio for the feature
+                        Literal ratioL = f.createLiteral(ratio);
+                        String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+                        IRI hasRatio = f.createIRI (hasRatioPredicate);
+                        IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
+                        IRI positionContext = f.createIRI(positionContextURI);
+                        statements.add(f.createStatement(spot, hasRatioContext, positionContext, graphIRI));
+                        statements.add(f.createStatement(positionContext, hasFeature, feature, graphIRI));
+                        statements.add(f.createStatement(positionContext, hasRatio, ratioL, graphIRI));
+                    }
+                } else {
+                    // error
+                    throw new SparqlException ("Feature with label " + feat.getName() + " cannot be found!");
+                }
+            }
+        }
+        
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+        return spotURI;
 	}
 	
 	@Override
@@ -955,13 +987,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-		IRI createdBy= f.createIRI(ontPrefix + "created_by");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -1343,6 +1368,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
 		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+		IRI hasRatio = f.createIRI (hasRatioPredicate);
+        IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
 		List<Feature> features = new ArrayList<Feature>();
 		s.setFeatures(features);
@@ -1382,7 +1409,29 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					throw new SparqlException("Feature with uri " + featureURI + " cannot be found!");
 				}
 				features.add(feat);
-			}
+			} else if (st2.getPredicate().equals(hasRatioContext)) {
+                Value positionContext = st2.getObject();
+                String contextURI = positionContext.stringValue();
+                IRI ctx = f.createIRI(contextURI);
+                RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
+                Double ratio = null;
+                Feature featureInContext = null;
+                while (statements3.hasNext()) {
+                    Statement st3 = statements2.next();
+                    if (st3.getPredicate().equals(hasRatio)) {
+                        Value value = st2.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            ratio = Double.parseDouble(value.stringValue());
+                        }   
+                    } else if (st3.getPredicate().equals(hasFeature)) {
+                        Value val = st2.getObject();
+                        featureInContext = featureRepository.getFeatureFromURI(val.stringValue(), user);
+                    }  
+                }
+                if (ratio != null && featureInContext != null) {
+                    s.setRatio(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), ratio);
+                }
+            } 
 		}
 		return s;
 	}

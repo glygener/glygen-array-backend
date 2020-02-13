@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Feature {
 	String id;
@@ -16,7 +15,6 @@ public class Feature {
 	String name;
 	List<Glycan> glycans;
 	Linker linker;
-	Double ratio = null;   // in percentages like 100.0%, 50.0% etc.
 	
 	Map<String, String> positionMap = new HashMap<>(); // position to glycanId map
 	
@@ -96,18 +94,6 @@ public class Feature {
 	 */
 	public void setUri(String uri) {
 		this.uri = uri;
-	}
-	/**
-	 * @return the ratio
-	 */
-	public Double getRatio() {
-		return ratio;
-	}
-	/**
-	 * @param ratio the ratio to set
-	 */
-	public void setRatio(Double ratio) {
-		this.ratio = ratio;
 	}
 	
 	@Override

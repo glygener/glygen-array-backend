@@ -451,7 +451,6 @@ public class GlygenArrayRepositoryTest {
 		if (g != null) feature.addGlycan(g);
 		if (g1 != null)feature.addGlycan(g1);
 		feature.setLinker(linker1);
-		feature.setRatio(100.0);
 		
 		String uri = featureRepository.addFeature(feature, user);
 		feature.setUri(uri);
@@ -589,7 +588,6 @@ public class GlygenArrayRepositoryTest {
 		List<Spot> spots = new ArrayList<Spot> ();
 		for (int i=0; i < blockLayout.getWidth(); i++) {
 			Feature feature = new Feature();
-			feature.setRatio(1.0);
 			if (i==0) {
 				feature.addGlycan(g1);
 				feature.setLinker(linker1);

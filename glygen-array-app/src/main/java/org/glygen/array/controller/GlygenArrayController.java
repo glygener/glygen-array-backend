@@ -79,6 +79,7 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
+import org.glygen.array.view.ImportGRITSLibraryResult;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
@@ -1516,7 +1517,7 @@ public class GlygenArrayController {
 		}
 		return null;
 	}
-	/*
+	
 	@ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
@@ -1590,30 +1591,35 @@ public class GlygenArrayController {
 										addedLayouts.add(block.getBlockLayout());
 										for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
 											for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
-												if (feature.getGlycan() != null) {
-													if (!glycanCache.contains(feature.getGlycan())) {
-														glycanCache.add(feature.getGlycan());
-														try {	
-															addGlycan(getGlycanView(feature.getGlycan()), p);
-														} catch (Exception e) {
-															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-																ErrorMessage error = (ErrorMessage) e.getCause();
-																for (ObjectError err: error.getErrors()) {
-																	if (err.getObjectName().equalsIgnoreCase("sequence") && 
-																			err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
-																		if (feature.getGlycan().getName() != null) {
-																			// add name as an alias
-																			String existingId = getGlycanBySequence(feature.getGlycan().getSequence(), p);
-																			addAliasForGlycan(existingId, feature.getGlycan().getName(), p);
-																		}
-																		break;
-																	}
-																}
-															} else {
-																logger.info("Could not add glycan: ", e);
-															}
-														}
-													}
+												if (feature.getGlycans() != null) {
+												    for (Glycan g: feature.getGlycans()) {
+    													if (!glycanCache.contains(g)) {
+    														glycanCache.add(g);
+    														try {	
+    															addGlycan(g, p, false);
+    														} catch (Exception e) {
+    															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+    																ErrorMessage error = (ErrorMessage) e.getCause();
+    																for (ObjectError err: error.getErrors()) {
+    																	if (err.getObjectName().equalsIgnoreCase("sequence") && 
+    																			err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
+    																		if (g.getName() != null) {
+    																			// add name as an alias
+    																		    if (g instanceof SequenceDefinedGlycan) {
+        																			String existingId = getGlycanBySequence(
+        																			     ((SequenceDefinedGlycan) g).getSequence(), p);
+        																			addAliasForGlycan(existingId, g.getName(), p);
+    																		    }
+    																		}
+    																		break;
+    																	}
+    																}
+    															} else {
+    																logger.info("Could not add glycan: ", e);
+    															}
+    														}
+    													}
+												    }
 												}
 												if (feature.getLinker() != null) {
 													if (!linkerCache.contains(feature.getLinker())) {
@@ -1634,7 +1640,7 @@ public class GlygenArrayController {
 																	}
 																}
 																if (needAlias) {		
-																	LinkerView linker = getLinkerView(feature.getLinker());
+																	Linker linker = feature.getLinker();
 																	linker.setName(linker.getName()+"B");
 																	try {
 																		addLinker (linker, p);
@@ -1695,7 +1701,6 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("File cannot be found", errorMessage);
 		}	
 	}
-	*/
 	
 	@ApiOperation(value = "Retrieve glycan with the given id")
 	@RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 
@@ -2146,6 +2151,7 @@ public class GlygenArrayController {
     		s.setConcentration(spot.getConcentration());
     		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
     		List<org.glygen.array.persistence.rdf.Feature> features = new ArrayList<>();
+    		Map<org.glygen.array.persistence.rdf.Feature, Double> ratioMap = new HashMap<>();
     		if (feature != null) {
         		for (Ratio r : feature.getRatio()) {
         			GlycanProbe probe = null;
@@ -2177,12 +2183,13 @@ public class GlygenArrayController {
 		        				myLinker.setComment(linker.getComment());
 		        				myFeature.setLinker(myLinker);
 		        			}
-		        			myFeature.setRatio(r1.getItemRatio());
+		        			ratioMap.put(myFeature, r1.getItemRatio());
 		        			features.add(myFeature);
         				}
         			}			
         		}
     		}
+    		s.setFeatureRatioMap(ratioMap);
     		s.setFeatures(features);
     		spots.add(s);
     	}

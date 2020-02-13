@@ -36,7 +36,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	final static String featureTypePredicate = ontPrefix + "Feature";
 	final static String hasLinkerPredicate = ontPrefix + "has_linker";
 	final static String hasMoleculePredicate = ontPrefix + "has_molecule";
-	final static String hasRatioPredicate = ontPrefix + "has_ratio";
+	
 	final static String hasPositionPredicate = ontPrefix + "has_molecule_position";
 	final static String hasPositionValuePredicate = ontPrefix + "has_position";
 	
@@ -67,7 +67,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		IRI hasLinker = f.createIRI(hasLinkerPredicate);
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
-		IRI hasRatio = f.createIRI (hasRatioPredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		Literal date = f.createLiteral(new Date());
@@ -126,11 +125,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
-		}
-		
-		if (feature.getRatio() != null) {
-			Literal ratio = f.createLiteral(feature.getRatio());
-			statements.add(f.createStatement(feat, hasRatio, ratio, graphIRI));
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
@@ -360,7 +354,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		IRI hasLinker = f.createIRI(hasLinkerPredicate);
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
-		IRI hasRatio = f.createIRI (hasRatioPredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
@@ -399,16 +392,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					String glycanURI = value.stringValue();
 					Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
 					glycans.add(glycan);
-				}
-			} else if (st.getPredicate().equals(hasRatio)) {
-				Value value = st.getObject();
-				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
-					try {
-						double ratio = Double.parseDouble(value.stringValue());
-						featureObject.setRatio(ratio);
-					} catch (NumberFormatException e) {
-						logger.warn ("Feature ratio is invalid", e);
-					}
 				}
 			} else if (st.getPredicate().equals(hasCreatedDate)) {
 				Value value = st.getObject();
@@ -479,7 +462,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		IRI hasLinker = f.createIRI(hasLinkerPredicate);
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
-		IRI hasRatio = f.createIRI (hasRatioPredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		Literal date = f.createLiteral(new Date());
@@ -519,11 +501,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
 		}
-		
-		if (feature.getRatio() != null) {
-			Literal ratio = f.createLiteral(feature.getRatio());
-			statements.add(f.createStatement(feat, hasRatio, ratio, graphIRI));
-		}
+	
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		return featureURI;
