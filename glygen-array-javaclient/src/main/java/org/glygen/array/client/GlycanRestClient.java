@@ -28,5 +28,12 @@ public interface GlycanRestClient {
 	public List<String> getEmpty();
 	List<LinkerClassification> getLinkerClassifications();
 	
-	public ImportGRITSLibraryResult addFromLibrary (ArrayDesignLibrary library, User user);
+	/** 
+	 * 
+	 * @param library library file to get slide layout
+	 * @param layout layout name to import, if null, all slide layouts will be imported
+	 * @param user user login
+	 * @return a result object with the added slide layouts, errors and duplicates
+	 */
+	public ImportGRITSLibraryResult addFromLibrary (ArrayDesignLibrary library, String layout, User user);
 }

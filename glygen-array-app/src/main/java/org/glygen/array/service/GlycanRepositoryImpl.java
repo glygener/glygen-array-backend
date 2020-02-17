@@ -891,13 +891,14 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                    String wurcs = exporter.getWURCS();
 	                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
 	                    if (glyToucanId == null) { // need to register
-	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+	                    	//TODO do not register for now - since we are still testing and developing
+	                       /* glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
 	                        if (glyToucanId == null || glyToucanId.length() != 8) {
 	                            // this is new registration, hash returned
 	                            glyToucanHash = glyToucanId;
 	                            glyToucanId = null;
 	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
-	                        }
+	                        }*/
 	                    } else {
 	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
 	                    }

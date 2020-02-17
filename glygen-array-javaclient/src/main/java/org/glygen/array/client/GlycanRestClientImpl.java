@@ -259,10 +259,71 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	}
 
     @Override
-    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, User user) {
+    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, String layoutName, User user) {
         ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
         // add Glycans
         List<org.grits.toolbox.glycanarray.library.om.feature.Glycan> glycanList = library.getFeatureLibrary().getGlycan();
+        List<org.grits.toolbox.glycanarray.library.om.feature.Linker> linkerList = library.getFeatureLibrary().getLinker();
+        List<org.grits.toolbox.glycanarray.library.om.feature.Feature> features = library.getFeatureLibrary().getFeature();
+        List<org.grits.toolbox.glycanarray.library.om.layout.BlockLayout> blockLayouts = library.getLayoutLibrary().getBlockLayout();
+        List<org.grits.toolbox.glycanarray.library.om.layout.SlideLayout> layouts = library.getLayoutLibrary().getSlideLayout();
+        
+        if (layoutName != null) {
+        	for (org.grits.toolbox.glycanarray.library.om.layout.SlideLayout l: library.getLayoutLibrary().getSlideLayout()) {
+        		if (l.getName().equalsIgnoreCase(layoutName)) {
+        			layouts.clear();
+        			layouts.add(l);
+        			blockLayouts.clear();
+        			glycanList.clear();
+        			linkerList.clear();
+        			features.clear();
+        			for (Block b: l.getBlock()) {
+        				String blockLayoutName = b.getBlockName();
+        				for (org.grits.toolbox.glycanarray.library.om.layout.BlockLayout bl: 
+        					library.getLayoutLibrary().getBlockLayout()) {
+        					if (blockLayoutName.equals(bl.getName())) {
+        						if (!blockLayouts.contains(bl)) {
+        							blockLayouts.add(bl);
+        							for (Spot s: bl.getSpot()) {
+        								for (org.grits.toolbox.glycanarray.library.om.feature.Feature f: 
+        									library.getFeatureLibrary().getFeature()) {
+        									if (f.getId() == s.getFeatureId()) {
+        										if (!features.contains(f)) {
+        											features.add(f);
+        											for (Ratio ratio : f.getRatio()) {
+        						                        GlycanProbe probe = null;
+        						                        for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
+        						                            if (p.getId().equals(ratio.getItemId())) {
+        						                                probe = p;
+        						                                break;
+        						                            }
+        						                        }
+        						                        if (probe != null) {
+        						                            for (Ratio r1 : probe.getRatio()) {
+        						                                org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
+        						                                if (!glycanList.contains(glycan)) {
+        						                                	glycanList.add(glycan);
+        						                                }
+        						                                org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+        						                                if (!linkerList.contains(linker)) {
+        						                                	linkerList.add(linker);
+        						                                }
+        						                            }
+        						                        }
+        											}
+        										}
+        									}
+        								}
+        							}
+        						}
+        					}
+        				}
+        			}
+        		}
+        	}
+        }
+        
+        // add glycans
         for (org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan : glycanList) {
             Glycan view = null;
             if (glycan.getSequence() == null) {
@@ -289,8 +350,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
             }
         }
         
-        // add Linkers
-        List<org.grits.toolbox.glycanarray.library.om.feature.Linker> linkerList = library.getFeatureLibrary().getLinker();
+        // add Linkers 
         List<LinkerClassification> classificationList = getLinkerClassifications();
         for (org.grits.toolbox.glycanarray.library.om.feature.Linker linker : linkerList) {
             SmallMoleculeLinker view = new SmallMoleculeLinker();
@@ -311,8 +371,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
             }
         }
         
-        // add Features
-        List<org.grits.toolbox.glycanarray.library.om.feature.Feature> features = library.getFeatureLibrary().getFeature();
+        // add Features   
         for (org.grits.toolbox.glycanarray.library.om.feature.Feature f: features) {
             Feature myFeature = new Feature();
             myFeature.setName(f.getName());
@@ -363,8 +422,8 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 System.out.println("Feature " + f.getName() + " cannot be added. Reason: " + e.getMessage());
             }
         }
+        
         // add Block Layouts
-        List<org.grits.toolbox.glycanarray.library.om.layout.BlockLayout> blockLayouts = library.getLayoutLibrary().getBlockLayout();
         for (org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout : blockLayouts) {
             BlockLayout myLayout = new BlockLayout();
             myLayout.setName(blockLayout.getName());
@@ -379,8 +438,8 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 System.out.println("BlockLayout " + blockLayout.getId() + " cannot be added. Reason: " + e.getMessage());
             }
         }
+        
         // add Slide Layouts
-        List<org.grits.toolbox.glycanarray.library.om.layout.SlideLayout> layouts = library.getLayoutLibrary().getSlideLayout();
         for (org.grits.toolbox.glycanarray.library.om.layout.SlideLayout slideLayout : layouts) {
             SlideLayout mySlideLayout = new SlideLayout();
             mySlideLayout.setName(slideLayout.getName());
