@@ -817,10 +817,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			} else {
 			    linkerObject.setIsPublic(true);
 			}
+			linkerObject.setUrls(new ArrayList<String>());
+	        linkerObject.setPublications(new ArrayList<>());
+	        extractFromStatements (statements, linkerObject, graph);
 		}
-        linkerObject.setUrls(new ArrayList<String>());
-        linkerObject.setPublications(new ArrayList<>());
-		extractFromStatements (statements, linkerObject, graph);
 		
 		return linkerObject;
 	}
