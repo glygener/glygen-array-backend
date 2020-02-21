@@ -116,11 +116,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasPub = f.createIRI(hasPublication);
         
 	    
-	    List<Statement> statements = new ArrayList<Statement>();
-        
 	    if (l.getPublications() != null) {
 	        for (Publication pub : l.getPublications()) {
-	            String publicationURI = generateUniqueURI(uriPrefix + "P");
+	            List<Statement> statements = new ArrayList<Statement>();
+	            String publicationURI = generateUniqueURI(uriPrefix + "P", graph);
 	            IRI publication = f.createIRI(publicationURI);
 	            Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
 	            Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
@@ -145,11 +144,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            if (doi != null) statements.add(f.createStatement(publication, hasDOI, doi, graphIRI));
 	            
 	            statements.add(f.createStatement(linker, hasPub, publication, graphIRI));
-	            
+	            sparqlDAO.addStatements(statements, graphIRI);
 	        }
-	    }
-	    
-	    sparqlDAO.addStatements(statements, graphIRI);
+	    }  
     }
 
 
@@ -172,7 +169,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		existing = getLinkerByField(sequence, "has_sequence", "string");
 		
 		if (existing == null) {
-			linkerURI = generateUniqueURI(uriPrefix + "L");
+			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
@@ -243,7 +240,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			
-			linkerURI = generateUniqueURI(uriPrefix) + "L";
+			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
@@ -288,7 +285,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 	
 		if (existing == null) {
-			linkerURI = generateUniqueURI(uriPrefix + "L");
+			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
@@ -382,7 +379,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                                 l.getClassification().getClassification(), hasClassificationValuePredicate, "string", graph);
 				    }
 				    if (classificationIRI == null) {
-				        classificationIRI = generateUniqueURI(uriPrefix + "LC");
+				        classificationIRI = generateUniqueURI(uriPrefix + "LC", graph);
 				    } 
 				}
 				IRI classification = f.createIRI(classificationIRI);
@@ -415,7 +412,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			
-			linkerURI = generateUniqueURI(uriPrefix) + "L";
+			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
@@ -803,6 +800,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				break;
 			case PROTEIN_LINKER:
 				linkerObject = new ProteinLinker();
+				((ProteinLinker) linkerObject).setPdbIds(new ArrayList<String>());
 				break;
 			case SMALLMOLECULE_LINKER:
 				linkerObject = new SmallMoleculeLinker();
@@ -820,7 +818,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			    linkerObject.setIsPublic(true);
 			}
 		}
-		
+        linkerObject.setUrls(new ArrayList<String>());
+        linkerObject.setPublications(new ArrayList<>());
 		extractFromStatements (statements, linkerObject, graph);
 		
 		return linkerObject;
@@ -865,9 +864,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasPubMed = f.createIRI(hasPubMedPredicate);
         IRI createdBy= f.createIRI(createdByPredicate);
         
-        List<String> urls = new ArrayList<String>();
-        List<String> pdbIds = new ArrayList<String>();
-        List<Publication> publications = new ArrayList<Publication>();
 	    while (statements.hasNext()) {
             Statement st = statements.next();
             if (st.getPredicate().equals(hasInchiSequence)) {
@@ -913,7 +909,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             } else if (st.getPredicate().equals(hasPdbId)) {
                 Value val = st.getObject();
                 if (linkerObject instanceof ProteinLinker)
-                    pdbIds.add(val.stringValue()); 
+                    ((ProteinLinker) linkerObject).getPdbIds().add(val.stringValue()); 
             } else if (st.getPredicate().equals(hasUniprotId)) {
                 Value val = st.getObject();
                 if (linkerObject instanceof ProteinLinker)
@@ -954,7 +950,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             } else if (st.getPredicate().equals(hasUrl)) {
                 Value val = st.getObject();
                 if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
-                    urls.add(val.stringValue());
+                    linkerObject.getUrls().add(val.stringValue());
                 }
             } else if (st.getPredicate().equals(hasModifiedDate)) {
                 Value value = st.getObject();
@@ -1000,7 +996,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 IRI p = f.createIRI(pubURI);
                 Publication publication = new Publication();
                 publication.setUri(pubURI);
-                publications.add(publication);
+                linkerObject.getPublications().add(publication);
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
                 while (statements2.hasNext()) {
                     Statement st2 = statements2.next();
@@ -1066,12 +1062,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 extractFromStatements (statementsPublic, linkerObject, DEFAULT_GRAPH);
             }
 	    }
-	    if (!urls.isEmpty() && linkerObject != null)
-            linkerObject.setUrls(urls);
-        if (!publications.isEmpty() && linkerObject != null)
-            linkerObject.setPublications(publications);
-        if (!pdbIds.isEmpty() && linkerObject != null && linkerObject instanceof ProteinLinker)
-            ((ProteinLinker) linkerObject).setPdbIds(pdbIds);
 	}
 	
 	@Override
@@ -1148,8 +1138,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 } else {
                     // same name linker exist in public graph
                     // throw exception
-                    new GlycanExistsException("Linker with name " + linker.getName() + " already exists in public graph");
+                    logger.debug("Linker with name " + linker.getName() + " exist in the public repository");
+                    //throw new GlycanExistsException("Linker with name " + linker.getName() + " already exists in public graph");
+                    return null;
                 }
+            } else {
+                // make it public
+                deleteByURI(uriPrefix + linker.getId(), graph);
+                updateLinkerInGraph(linker, graph);
+                // need to create the linker in the public graph, link the user's version to public one
+                return addPublicLinker(linker, null, graph, user.getUsername());
             }
         } else {
             deleteByURI(uriPrefix + linker.getId(), graph);
@@ -1157,7 +1155,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             // need to link the user's version to the existing URI
             return addPublicLinker(linker, existingURI, graph, user.getUsername());
         }
-        return null;
     }
     
     public String addPublicLinker (Linker linker, String publicURI, String userGraph, String creator) throws SparqlException {
@@ -1165,7 +1162,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     	boolean existing = (publicURI != null);
         ValueFactory f = sparqlDAO.getValueFactory();
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefix + "L");
+            publicURI = generateUniqueURI(uriPrefix + "L", userGraph);
         } 
         IRI local = f.createIRI(linker.getUri());
         IRI publicLinker = f.createIRI(publicURI);
@@ -1282,7 +1279,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                                hasClassificationValuePredicate, "string", DEFAULT_GRAPH);
 	                    }
 	                    if (classificationIRI == null) {
-	                        classificationIRI = generateUniqueURI(uriPrefix + "LC");
+	                        classificationIRI = generateUniqueURI(uriPrefix + "LC", userGraph);
 	                    } 
 	                }
 	                IRI classification = f.createIRI(classificationIRI);

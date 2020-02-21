@@ -245,7 +245,7 @@ public class Application implements CommandLineRunner {
 	        			org.glygen.array.client.model.BlockLayout myLayout = new org.glygen.array.client.model.BlockLayout();
 	        			myLayout.setName(blockLayout.getName());
 	        			myBlock.setBlockLayout(myLayout);
-	        			myBlock.setSpots(getSpotsFromBlockLayout(library, blockLayout));
+	        			myLayout.setSpots(getSpotsFromBlockLayout(library, blockLayout));
 	        			blocks.add(myBlock);
 	        		}
 	        		

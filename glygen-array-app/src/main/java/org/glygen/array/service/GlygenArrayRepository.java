@@ -11,6 +11,20 @@ public interface GlygenArrayRepository {
 	public static final String uriPrefix = "http://glygen.org/glygenarray/";
 	public static final String ontPrefix = "http://purl.org/gadr/data#";
 
+	/**
+	 * adds a new graph to the repository for the given user
+	 * it also saves an entry in relational database's private graph table
+	 * @param uEntity user to create a graph for
+	 * @return the URI of the graph created for the user
+	 * @throws SQLException if graph cannot be created 
+	 */
 	String addPrivateGraphForUser(UserEntity uEntity) throws SQLException;
+	
+	/**
+	 * retrieves the graph uri for the given user. If it does not exist, it will try to create
+	 * @param user the user to retrieve the graph for 
+	 * @return the graph URI for the user
+	 * @throws SQLException
+	 */
 	String getGraphForUser(UserEntity user) throws SQLException;
 }

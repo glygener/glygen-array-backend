@@ -310,6 +310,15 @@ public class GlygenArrayController {
     				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
     			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
     		}
+	    } else {
+	        // other types
+	        if (feature.getLinker() == null) {
+	            ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+                throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+	        }
 	    }
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -1493,7 +1502,7 @@ public class GlygenArrayController {
 	        			myLayout.setDescription(comment);
 	        			myBlock.setBlockLayout(myLayout);
 	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
-	        			myBlock.setSpots(spots);
+	        			//myBlock.setSpots(spots);
 	        			myLayout.setSpots(spots);
 	        			blocks.add(myBlock);
 	        		}
@@ -1589,7 +1598,7 @@ public class GlygenArrayController {
 									}
 									if (!addedLayouts.contains(block.getBlockLayout())) {
 										addedLayouts.add(block.getBlockLayout());
-										for (org.glygen.array.persistence.rdf.Spot spot: block.getSpots()) {
+										for (org.glygen.array.persistence.rdf.Spot spot: block.getBlockLayout().getSpots()) {
 											for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
 												if (feature.getGlycans() != null) {
 												    for (Glycan g: feature.getGlycans()) {
@@ -2496,6 +2505,7 @@ public class GlygenArrayController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no glycan with the given id in user's repository", errorMessage);
             }
+            
             BufferedImage t_image = null;
             if (glycan.getType() == GlycanType.SEQUENCE_DEFINED) {
                 try {
@@ -2509,6 +2519,13 @@ public class GlygenArrayController {
                 }
             }
             String glycanURI = glycanRepository.makePublic (glycan, user);
+            if (glycanURI == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("name", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot have glycans with the same name", errorMessage);
+            }
             String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
             if (t_image != null) {
                 String filename = id + ".png";
@@ -2518,12 +2535,6 @@ public class GlygenArrayController {
                 ImageIO.write(t_image, "png", imageFile);
             }
             return id;
-        } catch (GlycanExistsException e) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("name", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("Cannot have glycans with the same name", errorMessage);
         } catch (SparqlException e) {
             throw new GlycanRepositoryException("Glycan cannot be made public for user " + p.getName(), e);
         } catch (SQLException e) {
@@ -2558,13 +2569,14 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
             }
             String linkerURI = linkerRepository.makePublic (linker, user);
+            if (linkerURI == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("name", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot have linkers with the same name", errorMessage);
+            }
             return linkerURI.substring(linkerURI.lastIndexOf("/")+1);
-        } catch (GlycanExistsException e) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("name", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("Cannot have linkers with the same name", errorMessage);
         } catch (SparqlException e) {
             throw new GlycanRepositoryException("Linker cannot be made public for user " + p.getName(), e);
         } catch (SQLException e) {
@@ -2595,7 +2607,7 @@ public class GlygenArrayController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
             }
-            String layoutURI = layoutRepository.makePublic (layout, user);
+            String layoutURI = layoutRepository.makePublic (layout, user); 
             return layoutURI.substring(layoutURI.lastIndexOf("/")+1);
         } catch (GlycanExistsException e) {
             ErrorMessage errorMessage = new ErrorMessage();

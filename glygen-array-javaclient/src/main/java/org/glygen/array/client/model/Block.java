@@ -1,14 +1,12 @@
 package org.glygen.array.client.model;
 
-import java.util.List;
-
 public class Block {
 	String uri;
 	String id;
 	Integer row;
 	Integer column;
 	BlockLayout blockLayout;
-	List<Spot> spots;
+	//List<Spot> spots;
 	/**
 	 * @return the row
 	 */
@@ -68,15 +66,15 @@ public class Block {
 	/**
 	 * @return the spots
 	 */
-	public List<Spot> getSpots() {
-		return spots;
-	}
+	//public List<Spot> getSpots() {
+	//	return spots;
+	//}
 	/**
 	 * @param spots the spots to set
 	 */
-	public void setSpots(List<Spot> spots) {
-		this.spots = spots;
-	}
+	//public void setSpots(List<Spot> spots) {
+	//	this.spots = spots;
+	//}
 	/**
 	 * @param id the id to set
 	 */

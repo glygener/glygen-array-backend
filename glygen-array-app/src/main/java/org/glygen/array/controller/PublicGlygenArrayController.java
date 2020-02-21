@@ -1,15 +1,21 @@
 package org.glygen.array.controller;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Validator;
 
 import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
+import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
+import org.eurocarbdb.application.glycanbuilder.Union;
+import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -18,6 +24,7 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
@@ -56,6 +63,24 @@ import io.swagger.annotations.ApiResponses;
 @RequestMapping("/array/public")
 public class PublicGlygenArrayController {
     final static Logger logger = LoggerFactory.getLogger("event-logger");
+    
+    // needs to be done to initialize static variables to parse glycan sequence
+    private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
+    
+    static {
+            // Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
+            glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
+            // Set flag to show information such as linkage positions and anomers
+            glycanWorkspace.getGraphicOptions().SHOW_INFO = true;
+            // Set flag to show mass
+            glycanWorkspace.getGraphicOptions().SHOW_MASSES = false;
+            // Set flag to show reducing end
+            glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
+
+            glycanWorkspace.setDisplay(GraphicOptions.DISPLAY_NORMAL);
+            glycanWorkspace.setNotation(GraphicOptions.NOTATION_CFG);
+
+    }
     
     @Autowired
     @Qualifier("glygenArrayRepositoryImpl")
@@ -125,7 +150,33 @@ public class PublicGlygenArrayController {
             List<Glycan> glycans = glycanRepository.getGlycanByUser(null, offset, limit, field, order, searchValue);
             for (Glycan glycan : glycans) {
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                    glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
+                    byte[] image = getCartoonForGlycan(glycan.getId());
+                    if (image == null) {
+                        // try to create one
+                        BufferedImage t_image = null;
+                        try {
+                            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                                    org.eurocarbdb.application.glycanbuilder.Glycan.
+                                    fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
+                            t_image = glycanWorkspace.getGlycanRenderer()
+                                .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+                        } catch (Exception e) {
+                            logger.error ("Glycan image cannot be generated", e);
+                        }
+                        if (t_image != null) {
+                            String filename = glycan.getId() + ".png";
+                            //save the image into a file
+                            logger.debug("Adding image to " + imageLocation);
+                            File imageFile = new File(imageLocation + File.separator + filename);
+                            try {
+                                ImageIO.write(t_image, "png", imageFile);
+                            } catch (IOException e) {
+                                logger.error ("Glycan image cannot be written", e);
+                            }
+                        }
+                        image = getCartoonForGlycan(glycan.getId());
+                    }
+                    glycan.setCartoon(image);
                 }
             }
             

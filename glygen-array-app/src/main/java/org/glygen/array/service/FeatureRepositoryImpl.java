@@ -49,7 +49,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public String addFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
 		String graph = null;
-		if (feature == null || (feature.getType() == FeatureType.NORMAL && feature.getLinker() == null))
+		if (feature == null || feature.getLinker() == null)
 			// cannot add 
 			throw new SparqlException ("Not enough information is provided to register a feature");
 		
@@ -59,7 +59,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI featureType = f.createIRI(featureTypePredicate);
-		String featureURI = generateUniqueURI(uriPrefix + "F");
+		String featureURI = generateUniqueURI(uriPrefix + "F", graph);
 		IRI feat = f.createIRI(featureURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
@@ -87,20 +87,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
 		
-		if (feature.getType() == null || feature.getType() == FeatureType.NORMAL) {
-    		Linker linker = feature.getLinker();
-    		if (linker.getUri() == null) {
-    		    if (linker.getId() != null)
-    		        linker.setUri(uriPrefix + linker.getId());
-    		    else {
-    		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
-    		    }
-    		}
-    		
-    		IRI linkerIRI = f.createIRI(linker.getUri());
-    		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
+		Linker linker = feature.getLinker();
+		if (linker.getUri() == null) {
+		    if (linker.getId() != null)
+		        linker.setUri(uriPrefix + linker.getId());
+		    else {
+		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
+		    }
 		}
-    		
+		
+		IRI linkerIRI = f.createIRI(linker.getUri());
+		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
+		
 		for (Glycan g: feature.getGlycans()) {
 			if (g.getUri() == null) {
 				if (g.getId() != null) {
@@ -119,7 +117,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);
-				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+				String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
 				IRI positionContext = f.createIRI(positionContextURI);
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
@@ -501,7 +499,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
 		}
-	
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		return featureURI;

@@ -1,7 +1,5 @@
 package org.glygen.array.persistence.rdf;
 
-import java.util.List;
-
 import javax.validation.constraints.Min;
 
 public class Block {
@@ -10,7 +8,7 @@ public class Block {
 	Integer row;
 	Integer column;
 	BlockLayout blockLayout;
-	List<Spot> spots;
+	//List<Spot> spots;
 	/**
 	 * @return the row
 	 */
@@ -72,15 +70,15 @@ public class Block {
 	/**
 	 * @return the spots
 	 */
-	public List<Spot> getSpots() {
-		return spots;
-	}
+	//public List<Spot> getSpots() {
+	//	return spots;
+	//}
 	/**
 	 * @param spots the spots to set
 	 */
-	public void setSpots(List<Spot> spots) {
-		this.spots = spots;
-	}
+	//public void setSpots(List<Spot> spots) {
+	//	this.spots = spots;
+	//}
 	/**
 	 * @param id the id to set
 	 */

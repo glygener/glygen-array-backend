@@ -137,7 +137,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	
 	String addBasicInfoForGlycan (Glycan g, String graph) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();
-		String glycanURI = generateUniqueURI(uriPrefix) + "GAR";
+		String glycanURI = generateUniqueURI(uriPrefix, graph) + "GAR";
 		IRI glycan = f.createIRI(glycanURI);
 		Literal date = f.createLiteral(new Date());
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
@@ -204,7 +204,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		String existing = getGlycanBySequence(g.getSequence());
 		if (existing == null) {
 			glycanURI = addBasicInfoForGlycan(g, graph);	
-			String seqURI = generateUniqueURI(uriPrefix + "Seq");
+			String seqURI = generateUniqueURI(uriPrefix + "Seq", graph);
 		
 			IRI sequence = f.createIRI(seqURI);
 			IRI glycan = f.createIRI(glycanURI);
@@ -269,7 +269,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			String publicURI = existing;
 			IRI glycan = f.createIRI(publicURI);
 			
-			glycanURI = generateUniqueURI(uriPrefix) + "GAR";
+			glycanURI = generateUniqueURI(uriPrefix, graph) + "GAR";
 			IRI localGlycan = f.createIRI(glycanURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
@@ -797,8 +797,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     } else {
                         // same name glycan exist in public graph
                         // throw exception
-                        new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
+                        logger.debug("Glycan " + glycan.getName() +" is already public");
+                        return null;
+                        //throw new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
                     }
+                } else {
+                    // make it public
+                    // need to create the glycan in the public graph, link the user's version to public one
+                    deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
+                    updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
+                    return addPublicGlycan(glycan, null, graph, user.getUsername());
                 }
             } else {
                 deleteGlycanByURI(uriPrefix + glycan.getId(), graph); // delete existing info
@@ -806,7 +814,6 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 // need to link the user's version to the existing URI
                 return addPublicGlycan(glycan, existingURI, graph, user.getUsername());
             }
-            break;
         default:
             // check by label if any
             if (glycan.getName() != null && !glycan.getName().isEmpty()) {
@@ -820,18 +827,24 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 } else {
                     // same name glycan exist in public graph
                     // throw exception
-                    new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
+                    logger.debug("Glycan " + glycan.getName() +" is already public");
+                    return null;
+                    //throw new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
                 }
-            }
-            break;
+            } else {
+                // make it public
+                // need to create the glycan in the public graph, link the user's version to public one
+                deleteGlycanByURI(uriPrefix + glycan.getId(), graph);  // delete existing info
+                updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
+                return addPublicGlycan(glycan, null, graph, user.getUsername());
+            }   
         }
-        return null;
     }
     
     public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph, String creator) throws SparqlException {
     	boolean existing = publicURI != null;
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefix) + "GAR";  
+            publicURI = generateUniqueURI(uriPrefix, userGraph) + "GAR";  
         } 
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -907,7 +920,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                }
 	            } 
 	            // add sequence and glytoucanid if any
-	            String seqURI = generateUniqueURI(uriPrefix + "Seq");
+	            String seqURI = generateUniqueURI(uriPrefix + "Seq", userGraph);
 	            IRI sequence = f.createIRI(seqURI);
 	            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
 	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());

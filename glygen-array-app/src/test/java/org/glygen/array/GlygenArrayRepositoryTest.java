@@ -388,8 +388,8 @@ public class GlygenArrayRepositoryTest {
 			SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
 			assertTrue ("Can retrieve added slide layout", existing != null);
 			assertTrue ("Blocks size is 2", existing.getBlocks() != null && existing.getBlocks().size() == 2);
-			assertTrue ("Spots size is 4", existing.getBlocks().get(0).getSpots() != null 
-					&& existing.getBlocks().get(0).getSpots().size() == 4);
+			assertTrue ("Spots size is 4", existing.getBlocks().get(0).getBlockLayout().getSpots() != null 
+					&& existing.getBlocks().get(0).getBlockLayout().getSpots().size() == 4);
 			
 			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user);
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());

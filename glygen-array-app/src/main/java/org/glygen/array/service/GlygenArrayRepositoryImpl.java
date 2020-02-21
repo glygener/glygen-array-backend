@@ -56,6 +56,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasTypePredicate = ontPrefix + "has_type";
 	
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String addPrivateGraphForUser (UserEntity uEntity) throws SQLException {
 		String URI = sparqlDAO.addGraph(PRIVATE_GRAPH, uEntity.getUsername());
@@ -66,10 +69,25 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return URI;
 	}
 	
+	/**
+	 * generate a random number and check it against existing ids in public graph (DEFAULT)
+	 * 
+	 * @param pre prefix to add to the beginning to the random number generated
+	 * @return a unique id string starting with the pre
+	 * @throws SparqlException if sparql query fails to execute
+	 */
 	protected String generateUniqueURI (String pre) throws SparqlException {
 		return generateUniqueURI(pre, (String[])null);
 	}
 	
+	/**
+	 * generate a random number and check it against existing ids in public graph (DEFAULT) and all the graphs provided if any
+	 * 
+	 * @param pre prefix to add to the beginning to the random number generated
+	 * @param graph graphs to search against, public graph is searched by default
+	 * @return a unique id string starting with the pre
+	 * @throws SparqlException if sparql query fails to execute
+	 */
 	protected String generateUniqueURI (String pre, String... graph) throws SparqlException {
 		// check the repository to see if the generated URI is unique
 		boolean unique = false;
@@ -129,6 +147,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return total;
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
 	public String getGraphForUser (UserEntity user) throws SQLException {
 		PrivateGraphEntity graph = graphRepository.findByUser(user);
@@ -140,11 +161,18 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	}
 	
 
+	/**
+	 * a generic delete method that removes all the triples for the given uri as the subject from the given graph
+	 * 
+	 * @param uri subject uri for the triples to remove
+	 * @param graph graph to delete from
+	 * @throws SparqlException 
+	 */
 	protected void deleteByURI(String uri, String graph) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();
-		IRI object = f.createIRI(uri);
+		IRI subject = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
-		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, null, null, graphIRI);
+		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(subject, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
 	}
 }
