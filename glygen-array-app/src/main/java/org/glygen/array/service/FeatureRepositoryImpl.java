@@ -99,17 +99,19 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI linkerIRI = f.createIRI(linker.getUri());
 		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
 		
-		for (Glycan g: feature.getGlycans()) {
-			if (g.getUri() == null) {
-				if (g.getId() != null) {
-					g.setUri(uriPrefix + g.getId());
-				} else {
-				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
-				}
-			}
-			
-			IRI glycanIRI = f.createIRI(g.getUri());
-			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+		if (feature.getGlycans() != null) {
+    		for (Glycan g: feature.getGlycans()) {
+    			if (g.getUri() == null) {
+    				if (g.getId() != null) {
+    					g.setUri(uriPrefix + g.getId());
+    				} else {
+    				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
+    				}
+    			}
+    			
+    			IRI glycanIRI = f.createIRI(g.getUri());
+    			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+    		}
 		}
 		
 		if (feature.getPositionMap() != null) {
@@ -172,7 +174,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
-        queryBuf.append ( " ?s rdfs:label \"" + label + "\"^^xsd:string . \n"
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
                 + "}\n");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())

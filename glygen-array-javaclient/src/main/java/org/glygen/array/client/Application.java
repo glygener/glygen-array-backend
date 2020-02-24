@@ -181,22 +181,21 @@ public class Application implements CommandLineRunner {
                                         ((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                                     }
                                     myFeature.addGlycan(myGlycan);
-                                }
-                                Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
-                                if (linker != null) {
-                                    org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
-                                    if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
-                                    else {
-                                        // need to set random classification and name
-                                        myLinker.setName(linker.getName());
-                                        myLinker.setClassification(classificationList.get(0));
-                                    }
-                                    myFeature.setLinker(myLinker);
                                     myFeature.setType(FeatureType.NORMAL);
-                                } else {
-                                    myFeature.setType(FeatureType.CONTROL);
-                                }
+                                }  
                             }
+                            Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+                            if (linker != null) {
+                                org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
+                                if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
+                                else {
+                                    // need to set random classification and name
+                                    myLinker.setName(linker.getName());
+                                    myLinker.setClassification(classificationList.get(0));
+                                }
+                                myFeature.setLinker(myLinker);
+                                myFeature.setType(FeatureType.CONTROL);
+                            } 
                         }
                     }
                     try {

@@ -29,9 +29,10 @@ public class QueryHelper {
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
-        queryBuf.append ( " {?s rdfs:label \"" + label + "\"^^xsd:string . \n }");
-        queryBuf.append ( " UNION {?s gadr:has_alias \"" + label + "\"^^xsd:string . \n }");
+        queryBuf.append ( " {?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n }");
+        queryBuf.append ( " UNION {?s gadr:has_alias ?a FILTER (lcase(str(?a)) = \"" + label.toLowerCase() + "\") \n }");
         queryBuf.append ( "}\n");
+        
         return sparqlDAO.query(queryBuf.toString());
     }
     
@@ -124,8 +125,9 @@ public class QueryHelper {
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
-        queryBuf.append ( " ?s gadr:has_internal_id \"" + internalId + "\"^^xsd:string . \n"
+        queryBuf.append ( " ?s gadr:has_internal_id ?l FILTER (lcase(str(?l)) = \"" + internalId.toLowerCase() + "\") \n"
                 + "}\n");
+        
         return sparqlDAO.query(queryBuf.toString());
     }
     

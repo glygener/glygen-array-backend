@@ -600,7 +600,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
-        queryBuf.append ( " ?s rdfs:label \"" + label + "\"^^xsd:string . \n"
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
                 + "}\n");
         return sparqlDAO.query(queryBuf.toString());
 	}

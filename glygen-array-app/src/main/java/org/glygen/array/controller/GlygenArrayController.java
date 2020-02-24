@@ -346,15 +346,18 @@ public class GlygenArrayController {
                 logger.debug("Ignoring error: " + e.getMessage());
             }
 		    // check its glycans
-		    for (Glycan g: feature.getGlycans()) {
-		        if (g.getUri() == null && g.getId() == null) {
-		            try {
-		                g.setId(addGlycan(g, p, true));
-		            } catch (Exception e) {
-		                logger.debug("Ignoring error: " + e.getMessage());
-		            }
-		        }
-		    } 
+		    if (feature.getGlycans() != null) {
+    		    
+    		    for (Glycan g: feature.getGlycans()) {
+    		        if (g.getUri() == null && g.getId() == null) {
+    		            try {
+    		                g.setId(addGlycan(g, p, true));
+    		            } catch (Exception e) {
+    		                logger.debug("Ignoring error: " + e.getMessage());
+    		            }
+    		        }
+    		    } 
+		    }
 			return featureRepository.addFeature(feature, user);
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);

@@ -577,7 +577,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
 		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
-		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+		queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + name.toLowerCase() + "\") \n"
 				+ "}\n");
 		return sparqlDAO.query(queryBuf.toString());
 	}
@@ -870,7 +870,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
 		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
-		queryBuf.append ( " ?s rdfs:label \"" + name + "\"^^xsd:string . \n"
+		queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + name.toLowerCase() + "\") \n"
 				+ "}\n");
 		return sparqlDAO.query(queryBuf.toString());
 	}
