@@ -249,6 +249,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             return "rdfs:label";
         else if (field.equalsIgnoreCase("dateModified"))
             return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("type"))
+            return "gadr:has_type";
         else if (field.equalsIgnoreCase("id"))
             return null;
         return null;

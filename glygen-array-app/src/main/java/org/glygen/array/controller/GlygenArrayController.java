@@ -276,8 +276,42 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
 		
+		// check if features exist
+		List<org.glygen.array.persistence.rdf.Feature> checked = new ArrayList<>();
+		if (layout.getSpots() != null) {
+		    for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
+		        if (s.getRatioMap() != null) {
+		            double sum = 0.0;
+		            for (Double r: s.getRatioMap().values()) {
+		                if (r != null) {
+		                    sum += r;
+		                }
+		            }
+		            if (sum > 0.0 && sum != 100.0) {
+		                // ratios do not add up to 100
+		                errorMessage.addError(new ObjectError("ratio", "NotValid"));
+		            }
+		        }
+		        if (s.getFeatures() != null) {
+		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+		                try {
+		                    if (!checked.contains(f)) {
+                                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getName(), user);
+                                checked.add(f);
+                                if (existing == null) {
+                                    errorMessage.addError(new ObjectError("feature", f.getName() + " does not exist"));
+                                }
+		                    }
+                        } catch (SparqlException | SQLException e) {
+                            throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
+                        }
+		            }
+		        }
+		    }
+		}
+		
 		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-			throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 		
 		try {
 			return layoutRepository.addBlockLayout(layout, user);
@@ -1809,7 +1843,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public @ResponseBody byte[] getImageForGlycan (
-			@ApiParam(required=true, value="GlyToucan id of the glycan to retrieve the image for") 
+			@ApiParam(required=true, value="Id of the glycan to retrieve the image for") 
 			@PathVariable("glycanId") String glycanId) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");

@@ -16,21 +16,17 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
-import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
-import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -743,6 +739,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return "gadr:has_pdbId";
 		else if (field.equalsIgnoreCase("sequence"))
 			return "gadr:has_sequence";
+		else if (field.equalsIgnoreCase("type"))
+            return "gadr:has_type";
 		
 		return null;
 	}

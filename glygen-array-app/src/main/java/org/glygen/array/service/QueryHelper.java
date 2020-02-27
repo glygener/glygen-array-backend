@@ -82,6 +82,8 @@ public class QueryHelper {
             return "gadr:has_date_modified";
         else if (field.equalsIgnoreCase("mass"))
             return "gadr:has_mass";
+        else if (field.equalsIgnoreCase("type"))
+            return "gadr:has_type";
         else if (field.equalsIgnoreCase("id"))
             return null;
         return null;
