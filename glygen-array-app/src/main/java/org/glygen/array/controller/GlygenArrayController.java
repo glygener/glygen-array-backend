@@ -92,6 +92,7 @@ import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
 import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
 import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
+import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
@@ -3006,5 +3007,20 @@ public class GlygenArrayController {
         	result.setStatusCode(HttpStatus.ACCEPTED.value());
         	return result;
         }
+	}
+	
+	@RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
+			produces={"application/json", "application/xml"})
+	public List<String> getUnitLevels(){	
+		
+			List<String> unitLevels=new ArrayList<String>();
+			unitLevels.add(UnitOfLevels.FMOL.getLabel());
+			unitLevels.add(UnitOfLevels.MMOL.getLabel());
+			unitLevels.add(UnitOfLevels.MICROMOL.getLabel());
+			unitLevels.add(UnitOfLevels.MICROML.getLabel());
+			unitLevels.add(UnitOfLevels.MILLML.getLabel());
+			
+		return unitLevels;
+		
 	}
 }
