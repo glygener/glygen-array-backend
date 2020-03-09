@@ -3008,19 +3008,27 @@ public class GlygenArrayController {
         	return result;
         }
 	}
-	
+		
+	@ApiOperation(value="Retrieving Unit of Levels")
 	@RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
-	public List<String> getUnitLevels(){	
-		
-			List<String> unitLevels=new ArrayList<String>();
+	@ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+	public List<String> getUnitLevels(){
+
+		List<String> unitLevels=new ArrayList<String>();		
+		try {	
 			unitLevels.add(UnitOfLevels.FMOL.getLabel());
 			unitLevels.add(UnitOfLevels.MMOL.getLabel());
 			unitLevels.add(UnitOfLevels.MICROMOL.getLabel());
 			unitLevels.add(UnitOfLevels.MICROML.getLabel());
 			unitLevels.add(UnitOfLevels.MILLML.getLabel());
 			
+		}catch(Exception exception) {
+			ErrorMessage errorMessage = new ErrorMessage("Error Loading Unit levels");
+			errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+			errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			throw errorMessage;
+		}
 		return unitLevels;
-		
 	}
 }
