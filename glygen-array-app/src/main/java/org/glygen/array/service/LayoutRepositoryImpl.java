@@ -370,7 +370,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_block ?block . ?block has_block_layout <" +  blockURI + "> . } LIMIT 1");
+        queryBuf.append ("?s gadr:has_block ?block . ?block gadr:has_block_layout <" +  blockURI + "> . } LIMIT 1");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
