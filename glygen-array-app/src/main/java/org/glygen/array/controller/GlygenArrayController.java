@@ -1496,6 +1496,21 @@ public class GlygenArrayController {
 				throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
 			}
 			
+			if (loadAll && layout.getSpots() != null) {        
+                for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
+                    if (s.getFeatures() == null) 
+                        continue;
+                    for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                        if (f.getGlycans()  != null) {
+                            for (Glycan g: f.getGlycans()) {
+                                if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+                                    g.setCartoon(getCartoonForGlycan(g.getId()));
+                                }
+                            }
+                        }
+                    }
+                }
+		    }
 			return layout;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Block Layout cannot be retrieved for user " + p.getName(), e);
@@ -2102,6 +2117,27 @@ public class GlygenArrayController {
 				throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
 			}
 			
+			if (loadAll && layout.getBlocks() != null) {
+                for (org.glygen.array.persistence.rdf.Block block: layout.getBlocks()) {
+                    if (block.getBlockLayout() != null) {
+                        if (block.getBlockLayout().getSpots() == null)
+                            continue;
+                        for (org.glygen.array.persistence.rdf.Spot s: block.getBlockLayout().getSpots()) {
+                            if (s.getFeatures() == null)
+                                continue;
+                            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                                if (f.getGlycans()  != null) {
+                                    for (Glycan g: f.getGlycans()) {
+                                        if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+                                            g.setCartoon(getCartoonForGlycan(g.getId()));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 			return layout;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Slide Layout cannot be retrieved for user " + p.getName(), e);
@@ -2128,6 +2164,13 @@ public class GlygenArrayController {
                 throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
             }
             
+            if (feature.getGlycans()  != null) {
+                for (Glycan g: feature.getGlycans()) {
+                    if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+                        g.setCartoon(getCartoonForGlycan(g.getId()));
+                    }
+                }
+            }
             return feature;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Feature cannot be retrieved for user " + p.getName(), e);
