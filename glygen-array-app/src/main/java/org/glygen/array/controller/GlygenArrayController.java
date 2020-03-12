@@ -2322,6 +2322,27 @@ public class GlygenArrayController {
 			result.setRows(layouts);
 			result.setTotal(total);
 			result.setFilteredTotal(layouts.size());
+			
+			if (loadAll) {
+    			// populate glycan images
+    			for (BlockLayout b: layouts) {
+    			    if (b.getSpots() == null)
+    			        continue;
+    			    for (org.glygen.array.persistence.rdf.Spot s: b.getSpots()) {
+    			        if (s.getFeatures() == null) 
+    			            continue;
+    			        for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+    			            if (f.getGlycans()  != null) {
+    		                    for (Glycan g: f.getGlycans()) {
+    		                        if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+    		                            g.setCartoon(getCartoonForGlycan(g.getId()));
+    		                        }
+    		                    }
+    		                }
+    			        }
+    			    }
+    			}
+			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve block layouts for user. Reason: " + e.getMessage());
 		}
@@ -2554,6 +2575,33 @@ public class GlygenArrayController {
 			result.setRows(layouts);
 			result.setTotal(total);
 			result.setFilteredTotal(layouts.size());
+			
+			if (loadAll) {
+    			// populate glycan images
+    			for (SlideLayout layout: layouts) {
+    			    if (layout.getBlocks() != null) {
+    			        for (org.glygen.array.persistence.rdf.Block block: layout.getBlocks()) {
+    			            if (block.getBlockLayout() != null) {
+    			                if (block.getBlockLayout().getSpots() == null)
+                                    continue;
+                                for (org.glygen.array.persistence.rdf.Spot s: block.getBlockLayout().getSpots()) {
+                                    if (s.getFeatures() == null)
+                                        continue;
+                                    for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                                        if (f.getGlycans()  != null) {
+                                            for (Glycan g: f.getGlycans()) {
+                                                if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+                                                    g.setCartoon(getCartoonForGlycan(g.getId()));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+    			            }
+    			        }
+    			    }
+                }
+			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
 		}
