@@ -376,6 +376,21 @@ public class GlygenArrayController {
 		    try {
     		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
         		    feature.getLinker().setId(addLinker(feature.getLinker(), p));
+    		    } else {
+    		        // check to make sure it is an existing linker
+    		        String linkerId = feature.getLinker().getId();
+    		        if (linkerId == null) {
+    		            // get it from uri
+    		            linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+    		        }
+    		        Linker existing = linkerRepository.getLinkerById(linkerId, user);
+    		        if (existing == null) {
+    		            ErrorMessage errorMessage = new ErrorMessage();
+    	                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+    	                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+    	                errorMessage.addError(new ObjectError("linker", "NotValid"));
+    	                throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+    		        }
     		    }
 		    } catch (Exception e) {
                 logger.debug("Ignoring error: " + e.getMessage());
@@ -390,6 +405,21 @@ public class GlygenArrayController {
     		            } catch (Exception e) {
     		                logger.debug("Ignoring error: " + e.getMessage());
     		            }
+    		        } else {
+    		            // check to make sure it is an existing glycan
+                        String glycanId = g.getId();
+                        if (glycanId == null) {
+                            // get it from uri
+                            glycanId = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
+                        }
+                        Glycan existing = glycanRepository.getGlycanById(glycanId, user);
+                        if (existing == null) {
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("glycan", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                        }
     		        }
     		    } 
 		    }
@@ -2346,8 +2376,19 @@ public class GlygenArrayController {
 			result.setRows(features);
 			result.setTotal(total);
 			result.setFilteredTotal(features.size());
+			
+			// get cartoons for the glycans
+			for (org.glygen.array.persistence.rdf.Feature f: features) {
+			    if (f.getGlycans()  != null) {
+			        for (Glycan g: f.getGlycans()) {
+			            if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+			                g.setCartoon(getCartoonForGlycan(g.getId()));
+			            }
+			        }
+			    }
+			}
 		} catch (SparqlException | SQLException e) {
-			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+			throw new GlycanRepositoryException("Cannot retrieve features for user. Reason: " + e.getMessage());
 		}
 		
 		return result;
