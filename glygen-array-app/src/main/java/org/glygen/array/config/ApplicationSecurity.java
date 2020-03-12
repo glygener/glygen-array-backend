@@ -357,6 +357,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/array/getSequenceFromUniprot/**"),
 				new AntPathRequestMatcher("/array/getPublicationFromPubmed/**"),
 				new AntPathRequestMatcher("/array/getLinkerClassifications"),
+				new AntPathRequestMatcher("/array/unitLevels"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		
 		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);

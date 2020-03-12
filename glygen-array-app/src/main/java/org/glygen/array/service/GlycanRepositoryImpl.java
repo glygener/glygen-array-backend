@@ -20,15 +20,14 @@ import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
-import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.util.GlytoucanUtil;
@@ -42,6 +41,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     
     @Autowired
     QueryHelper queryHelper;
+    
+    @org.springframework.beans.factory.annotation.Value("${glygen.glytoucanregistration}")
+    String glytoucanregistration;
     
 
 	@Override
@@ -904,14 +906,15 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                    String wurcs = exporter.getWURCS();
 	                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
 	                    if (glyToucanId == null) { // need to register
-	                    	//TODO do not register for now - since we are still testing and developing
-	                       /* glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-	                        if (glyToucanId == null || glyToucanId.length() != 8) {
-	                            // this is new registration, hash returned
-	                            glyToucanHash = glyToucanId;
-	                            glyToucanId = null;
-	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
-	                        }*/
+	                        if (glytoucanregistration != null && glytoucanregistration.equalsIgnoreCase("true")) {
+    	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+    	                        if (glyToucanId == null || glyToucanId.length() != 8) {
+    	                            // this is new registration, hash returned
+    	                            glyToucanHash = glyToucanId;
+    	                            glyToucanId = null;
+    	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
+    	                        }
+	                        }
 	                    } else {
 	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
 	                    }

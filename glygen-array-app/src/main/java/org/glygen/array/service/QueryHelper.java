@@ -56,11 +56,13 @@ public class QueryHelper {
         predicates += "OPTIONAL {?s gadr:has_alias ?value4} \n";
         predicates += "OPTIONAL {?s gadr:has_glytoucan_id ?value5} \n";
         predicates += "OPTIONAL {?s gadr:has_mass ?value6} \n";
+        predicates += "OPTIONAL {?s gadr:has_type ?value7} \n";
         
+        int numberOfValues = 8;
         String filterClause = "filter (";
-        for (int i=1; i < 7; i++) {
+        for (int i=1; i < numberOfValues; i++) {
             filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < 7)
+            if (i + 1 < numberOfValues)
                 filterClause += " || ";
         }
         filterClause += ")\n";

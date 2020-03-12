@@ -260,10 +260,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         String predicates = "";
         
         predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value2 . ?g rdfs:label ?value3} \n";
-        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value4 . ?l rdfs:label ?value5} \n";
+        predicates += "OPTIONAL {?s gadr:has_type ?value2 .}\n";
+        predicates += "OPTIONAL {?s gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value3 . ?g rdfs:label ?value4} \n";
+        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value5 . ?l rdfs:label ?value6} \n";
         
-        int numberOfValues = 5; // need to match with the total values (?value1 - ?value5) specified in above predicates
+        int numberOfValues = 6; // need to match with the total values (?value1 - ?value6) specified in above predicates
         
         String filterClause = "filter (";
         for (int i=1; i <= numberOfValues; i++) {

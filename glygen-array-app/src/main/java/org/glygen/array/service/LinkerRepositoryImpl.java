@@ -646,11 +646,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         predicates += "OPTIONAL {?s gadr:has_pubchem_compound_id ?value11} \n";
         predicates += "OPTIONAL {?s gadr:has_inChI_key ?value12} \n";
         predicates += "OPTIONAL {?s gadr:has_classification ?c . ?c gadr:has_classification_value ?value13 . ?c gadr:has_chEBI ?value14} \n";
+        predicates += "OPTIONAL {?s gadr:has_type ?value15} \n";
        
+        int numberOfValues = 16; // need to match the total values used above value1 - value15
         String filterClause = "filter (";
-        for (int i=1; i < 15; i++) {
+        for (int i=1; i < numberOfValues; i++) {
             filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < 15)
+            if (i + 1 < numberOfValues)
                 filterClause += " || ";
         }
         filterClause += ")\n";

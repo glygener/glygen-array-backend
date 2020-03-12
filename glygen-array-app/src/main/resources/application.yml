@@ -43,6 +43,7 @@ glytoucan:
   user-id: ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d
         
 glygen:
+  glytoucanregistration: false
   token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)
   scheme: http://
   host: localhost:8080
@@ -76,3 +77,5 @@ spring:
     initialization-mode: always
     schema: classpath:/schema-prod.sql
     data: classpath:/data-prod.sql
+  glygen:
+    glytoucanregistration: false

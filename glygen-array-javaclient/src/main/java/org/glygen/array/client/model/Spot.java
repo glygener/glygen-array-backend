@@ -32,7 +32,7 @@ public class Spot {
         this.featureRatioMap = featureRatioMap;
     }
 	
-	@JsonAnyGetter
+	//@JsonAnyGetter
 	public Map<String, Double> getRatioMap() {
         return ratioMap;
     }

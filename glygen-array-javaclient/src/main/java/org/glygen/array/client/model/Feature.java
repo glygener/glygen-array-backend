@@ -40,7 +40,7 @@ public class Feature {
         this.name = name;
     }
 	
-	@JsonAnyGetter
+	//@JsonAnyGetter
 	public Map<String, String> getPositionMap() {
 		return positionMap;
 	}
