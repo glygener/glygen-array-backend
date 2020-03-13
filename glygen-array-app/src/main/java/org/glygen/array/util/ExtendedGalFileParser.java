@@ -14,27 +14,39 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerClassification;
+import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.glygen.array.persistence.rdf.Spot;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
+import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExtendedGalFileParser {
     
     ParserConfiguration config;
-    
+
     final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     public void setConfig(ParserConfiguration config) {
         this.config = config;
     }
     
+    /**
+     * parses the given GAL file to create a Slide Layout with all its blocks, features and glycans. Linkers should be created
+     * before hand and passed in as a list
+     * 
+     * @param filePath file path of the GAL file to be parsed
+     * @param name name of the slide layout to be created
+     * @param linkerList should contain all the existing linkers 
+     * @return import result with slide layout and all the block layouts, feature and glycans to be created
+     * @throws IOException if the file cannot be found or invalid
+     */
     public GalFileImportResult parse (String filePath, String name, List<Linker> linkerList) throws IOException {
         File file = new File(filePath);
         if (!file.exists())
@@ -42,7 +54,6 @@ public class ExtendedGalFileParser {
         
         Scanner scan = new Scanner(file);
         boolean dataStarts = false;
-        String version="1.0";
         String type = "GenePix ArrayList V1.0";
         Integer prevBlockLocation = -1;
         Boolean first = false;
@@ -73,9 +84,6 @@ public class ExtendedGalFileParser {
         
         BlockLayout blockLayout=null;
         
-        Integer prevMetaRow = -1;
-        Integer prevMetaColumn = -1;
-        
         
         while(scan.hasNext()){
             String curLine = scan.nextLine();
@@ -83,10 +91,7 @@ public class ExtendedGalFileParser {
             if (splitted.length == 0)
                 continue;
             String firstColumn = splitted[0].trim();
-            // get the version
-            if (firstColumn.equals("ATF")) {
-                version = splitted[1].trim();
-            }
+            
             if (firstColumn.contains("Type=")) {
                 type = firstColumn.substring(firstColumn.indexOf("Type=")+5);
             }
@@ -229,11 +234,11 @@ public class ExtendedGalFileParser {
                                 featureList.add(feature);
                             }
                         } else {
-                            if (glycanMap.get(featureName) != null) {
+                            if (glycanMap.get(internalId) != null) {
                                 // already created the feature
-                                spotFeatures.add(glycanMap.get(featureName));
+                                spotFeatures.add(glycanMap.get(internalId));
                                 spot.setFeatures(spotFeatures);
-                                spot.setGroup(glycanGroupMap.get(featureName));
+                                spot.setGroup(glycanGroupMap.get(internalId));
                                 if (levelUnit != null)
                                     spot.setConcentration(levelUnit);    
                             } else {
@@ -244,6 +249,9 @@ public class ExtendedGalFileParser {
                                 
                                 spot.setGroup(groupId++);
                                 featureList.add(feature);
+                                
+                                glycanGroupMap.put(internalId, spot.getGroup());
+                                glycanMap.put(internalId, feature);
                             }
                         }
                     }
@@ -254,8 +262,7 @@ public class ExtendedGalFileParser {
                     scan.close();
                     throw new IOException("Value should have been a number: " + e.getMessage());
                 }
-            }
-                    
+            }         
         }
         
         scan.close();
@@ -263,9 +270,7 @@ public class ExtendedGalFileParser {
         // add the last blockLayout
         blockLayout.setWidth(maxColumn);
         blockLayout.setHeight(maxRow);
-        // blockLayout.setLevelUnit(levels);
-       
-        // blockLayout.setGroupNum(maxGroup);
+        
         layoutList.add(blockLayout);
         
         GalFileImportResult result = new GalFileImportResult();
@@ -273,7 +278,6 @@ public class ExtendedGalFileParser {
         result.setGlycanList(glycanList);
         result.setLayout(slideLayout);
         result.setLayoutList(layoutList);
-        result.setLinkerList(linkerList);
         return result;
     }
 
@@ -336,14 +340,75 @@ public class ExtendedGalFileParser {
             glycan.setName(name);
             if (sequenceType != null && sequenceType.equalsIgnoreCase("cfg")) {
                 // parse the sequence
-                
+                CFGMasterListParser parser = new CFGMasterListParser();
+                String glycanSequence = getSequence(sequence);
+                String glycoCT = parser.translateSequence(glycanSequence);
+                ((SequenceDefinedGlycan) glycan).setSequence(glycoCT);
+                ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+                glycanList.add(glycan);
+                List<Glycan> glycans = new ArrayList<Glycan>();
+                glycans.add(glycan);
+                Feature feature = new Feature();
+                feature.setType(FeatureType.NORMAL);
+                feature.setName(name);
+                String linkerName = getLinker(sequence);
+                if (linkerName != null) {
+                    SmallMoleculeLinker linker = new SmallMoleculeLinker();
+                    linker.setName(linkerName);
+                    Linker existing = findLinkerInList(linker, linkerList);
+                    feature.setLinker(existing);
+                }
+                return feature;
             }
             
         } else if (featureType.equalsIgnoreCase("glycopeptide")) {
-            
+            PeptideLinker linker = new PeptideLinker();
+            linker.setSequence(sequence);
+            Map<Integer, Glycan> positionMap = linker.extractGlycans();
+            List<Glycan> glycans = new ArrayList<Glycan>();
+            for (Glycan g: positionMap.values()) {
+                if (!glycans.contains(g))
+                    glycans.add(g);
+            }
+            // remove the glycan sequences from the peptide sequence
+            // only position markers should be there
+            linker.setSequence(replaceGlycans (sequence));
+            Feature feature = new Feature();
+            feature.setName(name);
+            feature.setType(FeatureType.NORMAL);
+            feature.setLinker(linker);
+            feature.setGlycans(glycans);
+            return feature;
         }
         
         return null;
+    }
+
+    private String replaceGlycans(String sequence) {
+        int position = 0;
+        String newSequence = "";
+        boolean glycan = false;
+        for (int i=0; i < sequence.length(); i++) {
+            if (sequence.charAt(i) == '{') {
+                // start removing
+                glycan = true;
+                position ++;
+                newSequence += "{";
+            } else if (sequence.charAt(i) == '}') {
+                glycan = false;
+                newSequence += sequence.charAt(i-2);
+                newSequence += sequence.charAt(i-1);
+                newSequence += "}";
+            }
+            else if (glycan) {
+                if (!newSequence.contains(position+"")) {
+                    newSequence += position;
+                }
+            } else {
+                newSequence += sequence.charAt(i);
+            }
+        }
+        return newSequence;
     }
 
     private Linker findLinkerInList(SmallMoleculeLinker linker, List<Linker> linkerList) {
@@ -408,5 +473,23 @@ public class ExtendedGalFileParser {
         
         return null;
     }
-
+    
+    private String getSequence(String a_sequence) {
+        int t_index = a_sequence.lastIndexOf("-");
+        return a_sequence.substring(0, t_index).trim();
+    }
+    
+    private String getLinker(String a_sequence) {
+        int t_index = a_sequence.lastIndexOf("-");
+        return a_sequence.substring(t_index+1).trim();
+    }
+    
+    public static void main(String[] args) {
+        ExtendedGalFileParser parser = new ExtendedGalFileParser();
+        System.out.println(parser.replaceGlycans("AcNH-{GalNAca1-T}{GalNAca1-T}{GalNAca1-T}-CONH(CH2)3NH2"));
+        System.out.println(parser.replaceGlycans("FlNH-KVAL{GlcNAcb1-2Mana1-6(GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb1-N}KTA-COOH"));
+        System.out.println(parser.replaceGlycans("FlNH-KPTPSPSA-COOMe"));
+        System.out.println(parser.replaceGlycans("FlNH-KVPS{GalNAca1-T}PP{GalNAca1-S}PSPSA-COOH"));
+        System.out.println(parser.replaceGlycans("AcNH-KTSTTATPPV{[3Ac][4Ac][6Ac]GlcNAcb1-S}QASSTTTSTWA-COOH"));
+    }
 }

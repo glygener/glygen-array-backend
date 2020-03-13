@@ -6,13 +6,11 @@ import java.util.List;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
-import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SlideLayout;
 
 public class GalFileImportResult {
     List<Glycan> glycanList = new ArrayList<>();
     List<Feature> featureList = new ArrayList<>();
-    List<Linker> linkerList = new ArrayList<>();
     List<BlockLayout> layoutList = new ArrayList<>();
     SlideLayout layout;
     /**
@@ -38,18 +36,6 @@ public class GalFileImportResult {
      */
     public void setFeatureList(List<Feature> featureList) {
         this.featureList = featureList;
-    }
-    /**
-     * @return the linkerList
-     */
-    public List<Linker> getLinkerList() {
-        return linkerList;
-    }
-    /**
-     * @param linkerList the linkerList to set
-     */
-    public void setLinkerList(List<Linker> linkerList) {
-        this.linkerList = linkerList;
     }
     /**
      * @return the layoutList
