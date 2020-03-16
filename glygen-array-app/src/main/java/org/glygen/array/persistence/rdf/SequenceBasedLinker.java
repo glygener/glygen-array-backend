@@ -20,8 +20,8 @@ public class SequenceBasedLinker extends Linker {
 			return null;
 		Map<Integer, Glycan> positionMap = new HashMap<>();
 		// extract all glycan sequences enclosed in { } and keep track of their position
-		int position = 0;
-		boolean start = false;
+		int position = 1; // start from 1
+ 		boolean start = false;
 		Stack<Character> glycanStack = new Stack<Character>();
 		for (int i=0; i < sequence.length(); i++) {
 			if (sequence.charAt(i) == '}') {

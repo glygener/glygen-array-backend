@@ -21,21 +21,19 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.view.ErrorCodes;
+import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.ObjectError;
 
-public class ExtendedGalFileParser {
-    
-    ParserConfiguration config;
+public class ExtendedGalFileParser { 
 
     final static Logger logger = LoggerFactory.getLogger("event-logger");
-    
-    public void setConfig(ParserConfiguration config) {
-        this.config = config;
-    }
     
     /**
      * parses the given GAL file to create a Slide Layout with all its blocks, features and glycans. Linkers should be created
@@ -70,12 +68,10 @@ public class ExtendedGalFileParser {
         List<Feature> featureList = new ArrayList<>();
         List<BlockLayout> layoutList = new ArrayList<>();
         
-        SlideLayout slideLayout = new SlideLayout();
-        if (filePath.lastIndexOf(File.separator) != -1)
-            slideLayout.setName(filePath.substring(filePath.lastIndexOf(File.separator)+1));
-        else 
-            slideLayout.setName(filePath);
+        List<ErrorMessage> errorList = new ArrayList<ErrorMessage>();
         
+        SlideLayout slideLayout = new SlideLayout();
+        slideLayout.setName(name);
         slideLayout.setWidth(1);   // 1 dimensional by default
         slideLayout.setDescription(type);
         slideLayout.setBlocks(new ArrayList<Block>());
@@ -84,6 +80,18 @@ public class ExtendedGalFileParser {
         
         BlockLayout blockLayout=null;
         
+        //TODO detect parser configuration
+        ParserConfiguration config = new ParserConfiguration();
+        config.setBlockColumn(0);
+        config.setCoordinateColumnY(1);
+        config.setCoordinateColumnX(2);
+        config.setIdColumn(3);
+        config.setNameColumn(4);
+        config.setSequenceTypeColumn(5);
+        config.setSequenceColumn(6);
+        config.setConcentrationColumn(7);
+        config.setTypeColumn(8);
+        config.setMixtureColumn(9);
         
         while(scan.hasNext()){
             String curLine = scan.nextLine();
@@ -215,10 +223,10 @@ public class ExtendedGalFileParser {
                         glycanName = glycanName.trim();
                         featureName = featureName.trim();
                         if (mixture) {
-                            String[] types = sequenceType.split("|");
-                            String[] seqs = sequence.split("|");
-                            String[] concentrations = concentration.split("|");
-                            String[] featureTypes = featureType.split("|");
+                            String[] types = sequenceType.split("\\|");
+                            String[] seqs = sequence.split("\\|");
+                            String[] concentrations = concentration.split("\\|");
+                            String[] featureTypes = featureType.split("\\|");
                             LevelUnit[] levelUnits = new LevelUnit[concentrations.length];
                             int i=0;
                             for (String c: concentrations) {
@@ -228,7 +236,8 @@ public class ExtendedGalFileParser {
                             for (String seq: seqs) {
                                 // create a feature for each seq
                                 // and add to the spot
-                                Feature feature = parseSequenceForFeature (featureTypes[i], featureName, internalId, seq, types[i], levelUnits[i], glycanList, linkerList);
+                                Feature feature = parseSequenceForFeature (featureTypes[i].trim(), featureName, 
+                                        internalId, seq, types[i].trim(), levelUnits[i], glycanList, linkerList, errorList);
                                 i++;
                                 spotFeatures.add(feature);
                                 featureList.add(feature);
@@ -242,7 +251,8 @@ public class ExtendedGalFileParser {
                                 if (levelUnit != null)
                                     spot.setConcentration(levelUnit);    
                             } else {
-                                Feature feature = parseSequenceForFeature (featureType, featureName, internalId, sequence, sequenceType, levelUnit, glycanList, linkerList);
+                                Feature feature = parseSequenceForFeature (featureType, featureName, 
+                                        internalId, sequence, sequenceType, levelUnit, glycanList, linkerList, errorList);
                                 spotFeatures.add(feature);
                                 if (groupId > maxGroup)
                                     maxGroup = groupId;
@@ -278,6 +288,7 @@ public class ExtendedGalFileParser {
         result.setGlycanList(glycanList);
         result.setLayout(slideLayout);
         result.setLayoutList(layoutList);
+        result.setErrors(errorList);
         return result;
     }
 
@@ -300,7 +311,8 @@ public class ExtendedGalFileParser {
             String sequenceType, 
             LevelUnit concentration, 
             List<Glycan> glycanList, 
-            List<Linker> linkerList) {
+            List<Linker> linkerList,
+            List<ErrorMessage> errors) {
         if (featureType == null)
             return null;
         if (featureType.equalsIgnoreCase("control") ||
@@ -311,7 +323,13 @@ public class ExtendedGalFileParser {
             SmallMoleculeLinker linker = new SmallMoleculeLinker();
             linker.setName(name);
             Linker existing = findLinkerInList (linker, linkerList);
-            //TODO what to do if existing is null
+            if (existing == null) {
+                ErrorMessage error = new ErrorMessage();
+                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setStatus(HttpStatus.BAD_REQUEST.value());
+                error.addError(new ObjectError("linker", "NoEmpty"));
+                errors.add(error);
+            }
             Feature feature = new Feature();
             if (featureType.equalsIgnoreCase("control"))
                 feature.setType(FeatureType.CONTROL);
@@ -328,7 +346,13 @@ public class ExtendedGalFileParser {
             if (sequenceType.equalsIgnoreCase("SMILES"))
                 linker.setSmiles(sequence);
             Linker existing = findLinkerInList (linker, linkerList);
-            //TODO what to do if existing is null
+            if (existing == null) {
+                ErrorMessage error = new ErrorMessage();
+                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setStatus(HttpStatus.BAD_REQUEST.value());
+                error.addError(new ObjectError("linker", "NoEmpty"));
+                errors.add(error);
+            }
             Feature feature = new Feature();
             feature.setType(FeatureType.COMPOUND);
             feature.setLinker(existing);
@@ -340,17 +364,26 @@ public class ExtendedGalFileParser {
             glycan.setName(name);
             if (sequenceType != null && sequenceType.equalsIgnoreCase("cfg")) {
                 // parse the sequence
-                CFGMasterListParser parser = new CFGMasterListParser();
-                String glycanSequence = getSequence(sequence);
-                String glycoCT = parser.translateSequence(glycanSequence);
-                ((SequenceDefinedGlycan) glycan).setSequence(glycoCT);
-                ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+                try {
+                    CFGMasterListParser parser = new CFGMasterListParser();
+                    String glycanSequence = getSequence(sequence);
+                    String glycoCT = parser.translateSequence(glycanSequence);
+                    ((SequenceDefinedGlycan) glycan).setSequence(glycoCT);
+                    ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+                } catch (Exception e) {
+                    ErrorMessage error = new ErrorMessage();
+                    error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    error.setStatus(HttpStatus.BAD_REQUEST.value());
+                    error.addError(new ObjectError("sequence", e.getMessage()));
+                    errors.add(error);
+                }
                 glycanList.add(glycan);
                 List<Glycan> glycans = new ArrayList<Glycan>();
                 glycans.add(glycan);
                 Feature feature = new Feature();
                 feature.setType(FeatureType.NORMAL);
                 feature.setName(name);
+                feature.setGlycans(glycans);
                 String linkerName = getLinker(sequence);
                 if (linkerName != null) {
                     SmallMoleculeLinker linker = new SmallMoleculeLinker();
@@ -450,9 +483,12 @@ public class ExtendedGalFileParser {
         }
         try {
             Double con = Double.parseDouble(concentration);
+            unit = unit.trim();
             UnitOfLevels unitLevel = UnitOfLevels.lookUp(unit);
             if (unit.equals("uM"))
                 unitLevel = UnitOfLevels.MICROMOL;
+            if (unit.equals("ug/ml"))
+                unitLevel = UnitOfLevels.MICROML;
             
             
             for (LevelUnit u: levels) {

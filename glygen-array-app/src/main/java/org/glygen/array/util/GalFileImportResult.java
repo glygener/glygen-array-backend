@@ -7,12 +7,14 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.view.ErrorMessage;
 
 public class GalFileImportResult {
     List<Glycan> glycanList = new ArrayList<>();
     List<Feature> featureList = new ArrayList<>();
     List<BlockLayout> layoutList = new ArrayList<>();
     SlideLayout layout;
+    List<ErrorMessage> errors = new ArrayList<>();
     /**
      * @return the glycanList
      */
@@ -62,5 +64,16 @@ public class GalFileImportResult {
         this.layout = layout;
     }
     
+    public List<ErrorMessage> getErrors() {
+        return errors;
+    }
+    
+    public void setErrors(List<ErrorMessage> errors) {
+        this.errors = errors;
+    }
+    
+    public void addError(ErrorMessage error) {
+        this.errors.add(error);
+    }
     
 }

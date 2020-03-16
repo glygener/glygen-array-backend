@@ -67,6 +67,8 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.GalFileImportResult;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
@@ -1608,6 +1610,87 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("File cannot be found!", errorMessage);
 		}
 		return null;
+	}
+	
+	@ApiOperation(value = "Import slide layout from uploaded GAL file")
+    @RequestMapping(value = "/addSlideLayoutFromGalFile", method=RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide layout"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register slide layouts"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+	public String addSlideLayoutFromGalFile (
+	        @ApiParam(required=true, value="uploaded gal file with the slide layout") 
+	        @RequestParam("file") String uploadedFileName, 
+	        @ApiParam(required=true, value="name of the slide layout to be created") 
+	        @RequestParam("name")
+	        String slideLayoutName, Principal p) {
+	    if (uploadedFileName != null) {
+            File galFile = new File(uploadDir, uploadedFileName);
+            if (galFile.exists()) {
+                // check if the name is available
+                try {
+                    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+                    SlideLayout existing = layoutRepository.getSlideLayoutByName(slideLayoutName, user);
+                    if (existing != null) {
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("name", "Duplicate"));
+                        throw new IllegalArgumentException("There is already a slide layout with that name", errorMessage);
+                    }
+                    // need to retrieve full list of linkers first
+                    LinkerListResultView result = listLinkers(0, null, null, null, null, p);
+                    ExtendedGalFileParser parser = new ExtendedGalFileParser();
+                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName, result.getRows());
+                    // add all new glycans and features and block layouts first
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    try {
+                        for (Glycan g: importResult.getGlycanList()) {
+                            addGlycan(g, p, false);
+                        }
+                        for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
+                            addFeature(f, p);
+                        }
+                        for (BlockLayout b: importResult.getLayoutList()) {
+                            addBlockLayout(b, p);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        // need to ignore duplicate errors
+                        if (e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
+                            // do nothing
+                        } else if (e.getCause() instanceof ErrorMessage){
+                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                                errorMessage.addError(err);
+                            }
+                        } else {
+                            throw e;
+                        }
+                    }
+                    if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                        throw new IllegalArgumentException("Errors processing the gal file", errorMessage);
+                    }
+                    return addSlideLayout(importResult.getLayout(), p);
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (IOException | SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("SlideLayout could not be added", e);
+                }
+            } else {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File cannot be found", errorMessage);
+            }
+	    } else {
+	        ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            throw new IllegalArgumentException("File cannot be found", errorMessage);
+	    }
 	}
 	
 	@ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
