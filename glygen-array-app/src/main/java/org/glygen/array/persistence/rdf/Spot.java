@@ -8,7 +8,6 @@ import javax.validation.constraints.Min;
 
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
