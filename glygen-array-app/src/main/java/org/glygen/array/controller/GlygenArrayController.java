@@ -1627,7 +1627,14 @@ public class GlygenArrayController {
 	        @RequestParam("file") String uploadedFileName, 
 	        @ApiParam(required=true, value="name of the slide layout to be created") 
 	        @RequestParam("name")
-	        String slideLayoutName, Principal p) {
+	        String slideLayoutName, 
+	        @ApiParam(required=false, value="width of the slide layout") 
+            @RequestParam("width")
+	        Integer width,
+	        @ApiParam(required=false, value="height of the slide layout") 
+            @RequestParam("height")
+	        Integer height,
+	        Principal p) {
 	    if (uploadedFileName != null) {
             File galFile = new File(uploadDir, uploadedFileName);
             if (galFile.exists()) {
@@ -1673,6 +1680,46 @@ public class GlygenArrayController {
                     if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                         throw new IllegalArgumentException("Errors processing the gal file", errorMessage);
                     }
+                    SlideLayout layout = importResult.getLayout();
+                    if (width != null && height != null) {
+                        if (layout.getHeight() == 1 && layout.getWidth() == 1) { // only one block in the GAL file
+                            if (layout.getBlocks() != null && layout.getBlocks().size() > 0) {
+                                BlockLayout blockLayout = layout.getBlocks().get(0).getBlockLayout();
+                                if (blockLayout == null) {
+                                    // error
+                                    errorMessage = new ErrorMessage();
+                                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                    errorMessage.addError(new ObjectError("blockLayout", "NoEmpty"));
+                                    throw new IllegalArgumentException("Block layout cannot be extracted from the GAL file", errorMessage);
+                                }
+                                List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
+                                // repeat the same block layout for all blocks
+                                for (int i=0; i < width; i++) {
+                                    for (int j=0; j < height; j++) {
+                                        org.glygen.array.persistence.rdf.Block block = new org.glygen.array.persistence.rdf.Block();
+                                        block.setRow(j);
+                                        block.setColumn(i);
+                                        block.setBlockLayout(blockLayout);
+                                        blocks.add(block);
+                                    }
+                                }
+                                layout.setBlocks(blocks);
+                            } else {
+                                // error
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("blockLayout", "NoEmpty"));
+                                throw new IllegalArgumentException("Block layout cannot be extracted from the GAL file", errorMessage);
+                            }
+                        } else if (layout.getWidth() != width || layout.getHeight() != height){
+                            // error
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("width", "NotValid"));
+                            throw new IllegalArgumentException("Width and height specification does not match with GAL file", errorMessage);
+                        }
+                    }
+                    
                     return addSlideLayout(importResult.getLayout(), p);
                 } catch (IllegalArgumentException e) {
                     throw e;
