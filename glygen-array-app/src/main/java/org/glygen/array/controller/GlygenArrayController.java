@@ -1629,10 +1629,10 @@ public class GlygenArrayController {
 	        @RequestParam("name")
 	        String slideLayoutName, 
 	        @ApiParam(required=false, value="width of the slide layout") 
-            @RequestParam("width")
+            @RequestParam(required=false, value="width")
 	        Integer width,
 	        @ApiParam(required=false, value="height of the slide layout") 
-            @RequestParam("height")
+            @RequestParam(required=false, value="height")
 	        Integer height,
 	        Principal p) {
 	    if (uploadedFileName != null) {
@@ -3211,7 +3211,7 @@ public class GlygenArrayController {
 	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
 			produces={"application/json", "application/xml"})
 	public UploadResult uploadFile(
-			HttpEntity<byte[]> requestEntity,
+	        @RequestParam("file") byte[] payload,
             @RequestParam("resumableFilename") String resumableFilename,
             @RequestParam ("resumableRelativePath") String resumableRelativePath,
             @RequestParam ("resumableTotalChunks") String resumableTotalChunks,
@@ -3239,7 +3239,7 @@ public class GlygenArrayController {
 
         //Seek to position
         raf.seek((resumableChunkNumber - 1) * (long)resumableChunkSize);
-        byte[] payload = requestEntity.getBody();
+        //byte[] payload = requestEntity.getBody();
         InputStream is = new ByteArrayInputStream(payload);
         long content_length = payload.length;
         long read = 0;
