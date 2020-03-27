@@ -3211,7 +3211,7 @@ public class GlygenArrayController {
 	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
 			produces={"application/json", "application/xml"})
 	public UploadResult uploadFile(
-	        @RequestParam("file") byte[] payload,
+	        @RequestParam("file") MultipartFile file,
             @RequestParam("resumableFilename") String resumableFilename,
             @RequestParam ("resumableRelativePath") String resumableRelativePath,
             @RequestParam ("resumableTotalChunks") String resumableTotalChunks,
@@ -3239,7 +3239,7 @@ public class GlygenArrayController {
 
         //Seek to position
         raf.seek((resumableChunkNumber - 1) * (long)resumableChunkSize);
-        //byte[] payload = requestEntity.getBody();
+        byte[] payload = file.getBytes();
         InputStream is = new ByteArrayInputStream(payload);
         long content_length = payload.length;
         long read = 0;
