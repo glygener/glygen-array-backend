@@ -2940,7 +2940,11 @@ public class GlygenArrayController {
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
         if (info == null || !info.valid()) {
         	if (info != null) ResumableInfoStorage.getInstance().remove(info);
-        	throw new IllegalArgumentException("Chunk identifier is not valid");
+        	if (resumableChunkNumber != 1) {
+        	    throw new IllegalArgumentException("file identifier is not valid");
+        	} else {
+        	    throw new UploadNotFinishedException("Not found");  // this will return HttpStatus no_content 204
+        	}
         }
         if (info.uploadedChunks.contains(new ResumableFileInfo.ResumableChunkNumber(resumableChunkNumber))) {
         	return new Confirmation ("Upload", HttpStatus.OK.value()); //This Chunk has been Uploaded.
