@@ -19,6 +19,7 @@ public class DTOPublication
     private String m_number = null;
     private IAuthorFormatter formattedAuthor = new AuthorFormatterPubmed();
     private List<DTOPublicationAuthor> m_authors = new ArrayList<DTOPublicationAuthor>();
+    private String type;
 
     public Integer getId()
     {
@@ -139,5 +140,13 @@ public class DTOPublication
     public void setFormattedAuthor(String author)
     {
         
+    }
+    
+    public String getType() {
+        return type;
+    }
+    
+    public void setType(String type) {
+        this.type = type;
     }
 }

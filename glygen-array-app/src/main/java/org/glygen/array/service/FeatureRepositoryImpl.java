@@ -508,4 +508,30 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		sparqlDAO.addStatements(statements, graphIRI);
 		return featureURI;
 	}
+
+    @Override
+    public Feature getFeatureByGlycanLinker(Glycan glycan, Linker linker, UserEntity user)
+            throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?f \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( "?f gadr:has_molecule <" + glycan.getUri() + "> . ?f gadr:has_linker <" + linker.getUri() + "> . }\n");
+            
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String featureURI = results.get(0).getValue("f");
+            return getFeatureFromURI(featureURI, user);
+        }
+    }
 }

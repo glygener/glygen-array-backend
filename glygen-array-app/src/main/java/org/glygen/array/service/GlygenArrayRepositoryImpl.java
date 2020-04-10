@@ -160,7 +160,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 	}
 	
-
 	/**
 	 * a generic delete method that removes all the triples for the given uri as the subject from the given graph
 	 * 
@@ -175,4 +174,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(subject, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
 	}
+
+    @Override
+    public void resetRepository() throws SQLException {
+        sparqlDAO.deleteAll();   
+    }
 }

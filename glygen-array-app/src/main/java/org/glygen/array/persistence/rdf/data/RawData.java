@@ -1,5 +1,6 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.List;
 import java.util.Map;
 
 import org.glygen.array.persistence.rdf.Spot;
@@ -9,8 +10,8 @@ public class RawData {
     
     Map<Measurement, Spot> dataMap;
     ImageAnalysisSoftware metadata;
-    Image image;
+    List<Image> images;
     
-    String filename;  // name of the file in uploaded file folder or any other designated data folder
+    List<String> files;  // name of the files in uploaded file folder or any other designated data folder
 
 }

@@ -36,4 +36,6 @@ public interface GlycanRestClient {
 	 * @return a result object with the added slide layouts, errors and duplicates
 	 */
 	public ImportGRITSLibraryResult addFromLibrary (ArrayDesignLibrary library, String layout, User user);
+	
+	public String resetRepository();
 }

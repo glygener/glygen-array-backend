@@ -102,6 +102,10 @@ public class PubmedUtil
         {
         	t_result.setDoiId( this.getPubmedSubItem("ArticleIds", "doi") );
         }
+        
+        // parse type
+        t_result.setType(this.getPubmedSubItem("PubTypeList", "PubType"));
+        
         // title etc.
         t_result.setTitle( this.getPubmedItem("Title") );
         t_result.setJournal( this.getPubmedItem("FullJournalName") );

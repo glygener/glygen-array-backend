@@ -6,6 +6,8 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Linker;
 
 public interface FeatureRepository {
 	String addFeature (Feature f, UserEntity u) throws SparqlException, SQLException;
@@ -19,4 +21,5 @@ public interface FeatureRepository {
             throws SparqlException, SQLException;
     Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException;
 	String addPublicFeature(Feature feature) throws SparqlException; 
+	Feature getFeatureByGlycanLinker (Glycan glycan, Linker linker, UserEntity user) throws SparqlException, SQLException;
 }

@@ -27,4 +27,6 @@ public interface GlygenArrayRepository {
 	 * @throws SQLException
 	 */
 	String getGraphForUser(UserEntity user) throws SQLException;
+	
+	void resetRepository () throws SQLException;
 }

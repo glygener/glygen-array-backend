@@ -172,6 +172,17 @@ public class SesameSparqlDAO {
 		}
 	}
 	
+	public void deleteAll () throws SQLException {
+	    if (sesameConnectionFactory != null  && sesameConnectionFactory.getSqlConnection()!= null) {
+            Connection connection = sesameConnectionFactory.getSqlConnection();
+            CallableStatement statement = connection.prepareCall("RDF_GLOBAL_RESET()");
+            statement.execute();           
+        }
+        else {
+            throw new SQLException ("No sql connection is active!");
+        }
+	}
+	
 	public ValueFactory getValueFactory () {
 		RepositoryConnection con = sesameConnectionFactory.getConnection();
 		return con.getValueFactory();

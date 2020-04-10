@@ -261,6 +261,7 @@ public class Application implements CommandLineRunner {
 					}
 				}
 	        } else if (importType.equals("All")) {
+	            System.out.println(glycanClient.resetRepository());
 	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, null, user);
 	            for (org.glygen.array.client.model.SlideLayout layout: result.getAddedLayouts()) {
 	                log.info("Added: " + layout.getName());

@@ -510,12 +510,12 @@ public class ExtendedGalFileParser {
         return null;
     }
     
-    private String getSequence(String a_sequence) {
+    public static String getSequence(String a_sequence) {
         int t_index = a_sequence.lastIndexOf("-");
         return a_sequence.substring(0, t_index).trim();
     }
     
-    private String getLinker(String a_sequence) {
+    public static String getLinker(String a_sequence) {
         int t_index = a_sequence.lastIndexOf("-");
         return a_sequence.substring(t_index+1).trim();
     }

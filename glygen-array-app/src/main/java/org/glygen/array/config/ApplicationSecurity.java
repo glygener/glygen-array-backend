@@ -349,15 +349,10 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				new AntPathRequestMatcher("/users/availableUsername"),
 				new AntPathRequestMatcher("/users/recover"),
 				new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
-				new AntPathRequestMatcher("/glycan/parseSequence"),
+				new AntPathRequestMatcher("/util/**"),
 				new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
 				new AntPathRequestMatcher("/array/getimage/**"),
 				new AntPathRequestMatcher("/array/public/**"),
-				new AntPathRequestMatcher("/array/getlinkerFromPubChem/**"),
-				new AntPathRequestMatcher("/array/getSequenceFromUniprot/**"),
-				new AntPathRequestMatcher("/array/getPublicationFromPubmed/**"),
-				new AntPathRequestMatcher("/array/getLinkerClassifications"),
-				new AntPathRequestMatcher("/array/unitLevels"),
 				new AntPathRequestMatcher("/users/registrationConfirm"));
 		
 		final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);

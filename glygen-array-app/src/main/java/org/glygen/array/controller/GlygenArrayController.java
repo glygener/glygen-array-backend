@@ -1330,7 +1330,7 @@ public class GlygenArrayController {
 				        if (pub.getPubmedId() != null) {
 				            try {
                                 DTOPublication publication = util.createFromPubmedId(pub.getPubmedId());
-                                l.addPublication (getPublicationFrom(publication));
+                                l.addPublication (UtilityController.getPublicationFrom(publication));
                             } catch (Exception e) {
                                 logger.error("Cannot retrieve details from PubMed", e);
                                 errorMessage.addError(new ObjectError("pubMedId", "NotValid"));
@@ -2057,172 +2057,6 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Linker cannot be retrieved for user " + p.getName(), e);
 		}
 		
-	}
-	
-	@ApiOperation(value = "retrieves list of possible linker classifications", response = List.class)
-	@RequestMapping(value = "/getLinkerClassifications", method = RequestMethod.GET)
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "list returned successfully"),
-			@ApiResponse(code = 415, message = "Media type is not supported"),
-			@ApiResponse(code = 500, message = "Internal Server Error") })
-	public List<LinkerClassification> getLinkerClassifications () throws SparqlException, SQLException {
-		List<LinkerClassification> classificationList = new ArrayList<LinkerClassification>();
-		
-		try {
-			Resource classificationNamespace = new ClassPathResource("linkerclassifications.csv");
-			final InputStream inputStream = classificationNamespace.getInputStream();
-			final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-	
-			String line;
-			while ((line = bufferedReader.readLine()) != null) {
-			    String[] tokens = line.split(",");
-			    if (tokens.length == 2) {
-			    	Integer chebiID = Integer.parseInt(tokens[0]);
-			    	String classicationValue = tokens[1];
-			    	LinkerClassification classification = new LinkerClassification();
-			    	classification.setChebiId(chebiID);
-			    	classification.setClassification(classicationValue);
-			    	classification.setUri(PubChemAPI.CHEBI_URI + chebiID);
-			    	classificationList.add(classification);
-			    }
-			}
-		} catch (Exception e) {
-			logger.error("Cannot load linker classification", e);
-		}
-		
-		return classificationList;
-		
-	}
-	
-	@ApiOperation(value = "Retrieve linker details from Pubchem with the given pubchem compound id or inchikey")
-    @RequestMapping(value="/getlinkerFromPubChem/{pubchemid}", method = RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
-            @ApiResponse(code=404, message="Linker details with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public Linker getLinkerDetailsFromPubChem (
-            @ApiParam(required=true, value="pubchemid or the inchikey or the smiles of the linker to retrieve") 
-            @PathVariable("pubchemid") String pubchemid) {
-	    if (pubchemid == null || pubchemid.isEmpty()) {
-	        ErrorMessage errorMessage = new ErrorMessage();
-	        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-	        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-	        errorMessage.addError(new ObjectError("pubchemid", "NoEmpty"));
-	        throw new IllegalArgumentException("pubchem id should be provided", errorMessage);
-	    }
-	    try {
-	        Long pubChem = Long.parseLong(pubchemid);
-	        Linker linker = PubChemAPI.getLinkerDetailsFromPubChem(pubChem);
-	        if (linker == null) {
-	            ErrorMessage errorMessage = new ErrorMessage();
-	            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-	            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-	            errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
-	            throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
-	        }
-	        return linker; 
-	    } catch (NumberFormatException e) {
-	        try {
-	            // try using as inchiKey 
-	            Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
-	            return linker;
-	        } catch (Exception e1) {
-	            // try using as smiles
-	            Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
-	            if (linker == null) {
-    	            ErrorMessage errorMessage = new ErrorMessage();
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
-                    throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
-	            }
-	            return linker;
-            } 
-	    } catch (Exception e) {  // pubchem retrieval failed
-	        ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
-            throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
-	    }
-    }
-	
-	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
-    @RequestMapping(value="/getPublicationFromPubmed/{pubmedid}", method = RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Publication retrieved successfully"), 
-            @ApiResponse(code=404, message="Publication with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public Publication getPublicationDetailsFromPubMed (
-            @ApiParam(required=true, value="pubmed id for the publication") 
-            @PathVariable("pubmedid") Integer pubmedid) {
-	    if (pubmedid == null) {
-	        ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
-            throw new IllegalArgumentException("Invalid Input: Not a valid publication information", errorMessage);
-	    }
-	    PubmedUtil util = new PubmedUtil();
-	    try {
-            DTOPublication pub = util.createFromPubmedId(pubmedid);
-            return getPublicationFrom(pub);
-        } catch (Exception e) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
-            throw new IllegalArgumentException("Invalid Input: Not a valid publication information", errorMessage);
-        }
-	}
-	
-	Publication getPublicationFrom (DTOPublication pub) {
-	    Publication publication = new Publication ();
-        publication.setAuthors(pub.getFormattedAuthor());
-        publication.setDoiId(pub.getDoiId());
-        publication.setEndPage(pub.getEndPage());
-        publication.setJournal(pub.getJournal());
-        publication.setNumber(pub.getNumber());
-        publication.setPubmedId(pub.getPubmedId());
-        publication.setStartPage(pub.getStartPage());
-        publication.setTitle(pub.getTitle());
-        publication.setVolume(pub.getVolume());
-        publication.setYear(pub.getYear());
-        
-        return publication;
-	}
-	
-	@ApiOperation(value = "Retrieve protein sequence from UniProt with the given uniprot id")
-    @RequestMapping(value="/getSequenceFromUniprot/{uniprotid}", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sequence retrieved successfully"), 
-            @ApiResponse(code=404, message="Sequence with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public String getSequenceFromUniProt (
-            @ApiParam(required=true, value="uniprotid such as P12345") 
-            @PathVariable("uniprotid") String uniprotId) {
-        if (uniprotId == null || uniprotId.isEmpty()) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("uniprotId", "NoEmpty"));
-            throw new IllegalArgumentException("uniprotId should be provided", errorMessage);
-        }
-        try {
-            String sequence = UniProtUtil.getSequenceFromUniProt(uniprotId);
-            if (sequence == null) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("uniprotId", "NotValid"));
-                throw new IllegalArgumentException("uniprotId does not exist", errorMessage);
-            }
-            return sequence;
-        } catch (Exception e) {
-            logger.error("Could not retrieve from uniprot", e);
-            throw new GlycanRepositoryException("Failed to retieve from uniprot", e);
-        }
 	}
 	
 	@ApiOperation(value = "Retrieve slide layout with the given id")
@@ -3277,27 +3111,16 @@ public class GlygenArrayController {
         	return result;
         }
 	}
-		
-	@ApiOperation(value="Retrieving Unit of Levels")
-	@RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
-			produces={"application/json", "application/xml"})
-	@ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
-	public List<String> getUnitLevels(){
-
-		List<String> unitLevels=new ArrayList<String>();		
-		try {	
-			unitLevels.add(UnitOfLevels.FMOL.getLabel());
-			unitLevels.add(UnitOfLevels.MMOL.getLabel());
-			unitLevels.add(UnitOfLevels.MICROMOL.getLabel());
-			unitLevels.add(UnitOfLevels.MICROML.getLabel());
-			unitLevels.add(UnitOfLevels.MILLML.getLabel());
-			
-		}catch(Exception exception) {
-			ErrorMessage errorMessage = new ErrorMessage("Error Loading Unit levels");
-			errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
-			errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			throw errorMessage;
-		}
-		return unitLevels;
+	
+    @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+	public Confirmation resetRepository (Principal p) {
+        try {
+            repository.resetRepository();
+            return new Confirmation("emptied the repository", HttpStatus.OK.value());
+        } catch (SQLException e) {
+            throw new GlycanRepositoryException(e);
+        }
 	}
 }

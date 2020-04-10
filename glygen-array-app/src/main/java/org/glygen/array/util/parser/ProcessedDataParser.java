@@ -1,0 +1,166 @@
+package org.glygen.array.util.parser;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.data.Intensity;
+import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.service.FeatureRepository;
+import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.view.ErrorCodes;
+import org.glygen.array.view.ErrorMessage;
+import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.ObjectError;
+
+public class ProcessedDataParser {
+    
+    FeatureRepository featureRepository;
+    GlycanRepository glycanRepository;
+    LinkerRepository linkerRepository;
+    
+    public ProcessedDataParser(FeatureRepository f, GlycanRepository g, LinkerRepository l) {
+        this.featureRepository = f;
+        this.glycanRepository = g;
+        this.linkerRepository = l;
+    }
+    
+    public ProcessedData parse (String filePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
+        ProcessedData data = new ProcessedData();
+        List<Intensity> intensities = new ArrayList<>();
+        data.setIntensity(intensities);
+        
+        if ((config.getFeatureColumnId() == null && config.getFeatureNameColumnId() == null) || 
+                (config.getFeatureColumnId() == -1 && config.getFeatureNameColumnId() == -1))
+            throw new InvalidFormatException("Feature column must be specified");
+        
+        List<ErrorMessage> errorList = new ArrayList<ErrorMessage>();
+        
+        File file = new File(filePath);
+        if (!file.exists()) 
+            throw new FileNotFoundException(filePath + " does not exist!");
+        
+        //Create Workbook instance holding reference to .xls file
+        Workbook workbook = WorkbookFactory.create(file);
+        
+        // get the sheet with the masterlist numbers and structures
+        Sheet sheet = workbook.getSheetAt(config.getSheetNumber());
+        //Iterate through each row one by one
+        Iterator<Row> rowIterator = sheet.iterator();
+        for (int i=0; i < config.getStartRow(); i++)
+            rowIterator.next();      // skip to the data row
+        
+        while (rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Cell featureCell = null;
+            if (config.getFeatureColumnId() != null && config.getFeatureColumnId() != -1) 
+                featureCell = row.getCell(config.getFeatureColumnId());
+            else if (config.getFeatureNameColumnId() != null && config.getFeatureNameColumnId() != -1) 
+                featureCell = row.getCell(config.getFeatureNameColumnId());
+            
+            Cell rfuCell = row.getCell(config.getRfuColumnId());
+            Cell stDevCell = row.getCell(config.getStDevColumnId());
+            Cell cvCell = null;
+            if (config.getCvColumnId() != null && config.getCvColumnId() != -1) 
+                cvCell = row.getCell(config.getCvColumnId());
+            Intensity intensity = new Intensity();
+            intensity.setRfu(rfuCell.getNumericCellValue());
+            intensity.setStDev(stDevCell.getNumericCellValue());
+            if (cvCell != null)
+                intensity.setPercentCV(cvCell.getNumericCellValue());
+            
+            if (config.getResultFileType().equals("CFG")) {
+                // feature column contains the CFG name for the glycans, no glycopeptides or mixtures
+                String featureString = featureCell.getStringCellValue(); 
+                // parse sequence and find the glycan with the given sequence
+                // parse linker and find the linker with the given name
+                // find the feature with given glycan and linker
+                String glycoCT = parseSequence (featureString, errorList);
+                String linkerName = ExtendedGalFileParser.getLinker(featureString);
+                String glycanURI;
+                try {
+                    glycanURI = glycanRepository.getGlycanBySequence(glycoCT, user);
+                    if (glycanURI == null) {
+                        ErrorMessage error = new ErrorMessage();
+                        error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        error.setStatus(HttpStatus.BAD_REQUEST.value());
+                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence cannot be found in the repository"));
+                        errorList.add(error);
+                    } else {
+                        Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                        Linker linker = linkerRepository.getLinkerByLabel(linkerName, user);
+                        Feature feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                        if (feature == null) {
+                            ErrorMessage error = new ErrorMessage();
+                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setStatus(HttpStatus.BAD_REQUEST.value());
+                            error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence cannot be found in the repository"));
+                            errorList.add(error); 
+                        } else {
+                            intensity.setFeature(feature);
+                        }
+                    }
+                } catch (SparqlException | SQLException e) {
+                    ErrorMessage error = new ErrorMessage();
+                    error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    error.setStatus(HttpStatus.BAD_REQUEST.value());
+                    error.addError(new ObjectError("feature", e.getMessage()));
+                    errorList.add(error); 
+                }
+            } else { // feature column contains the name of the feature
+                // GLAD? // Imperial?
+                // TODO
+            }
+            intensities.add(intensity);
+        }
+        
+        if (errorList.isEmpty())
+            return data;
+        else {
+            ErrorMessage error = new ErrorMessage();
+            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+            error.setStatus(HttpStatus.BAD_REQUEST.value());
+            for (ErrorMessage e: errorList) {
+                for (ObjectError o: e.getErrors()) 
+                    error.addError(o);
+            }
+            throw new IllegalArgumentException(error);
+        }
+    }
+    
+    String parseSequence (String sequence, List<ErrorMessage> errors) {
+        // parse the sequence
+        try {
+            CFGMasterListParser parser = new CFGMasterListParser();
+            String glycanSequence = ExtendedGalFileParser.getSequence(sequence);
+            String glycoCT = parser.translateSequence(glycanSequence);
+            return glycoCT;
+        } catch (Exception e) {
+            ErrorMessage error = new ErrorMessage();
+            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+            error.setStatus(HttpStatus.BAD_REQUEST.value());
+            error.addError(new ObjectError("sequence", e.getMessage()));
+            errors.add(error);
+        }
+        return null;
+    }
+
+}

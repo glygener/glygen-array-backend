@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.BlockLayout;
+import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.Feature;
 import org.glygen.array.client.model.FeatureType;
 import org.glygen.array.client.model.Glycan;
@@ -531,5 +532,34 @@ public class GlycanRestClientImpl implements GlycanRestClient {
         }
         
         return spots;
+    }
+
+    @Override
+    public String resetRepository() {
+        if (token == null) login(this.username, this.password);
+        //set the header with token
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        headers.add("Authorization", token);
+        HttpEntity<?> requestEntity = new HttpEntity<Object>(headers);
+        String url = this.url + "array/reset";
+        System.out.println("URL: " + url);
+        try {
+            ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Confirmation.class);
+            return response.getBody().getMessage();
+        } catch (HttpServerErrorException e) {
+            String errorMessage = e.getResponseBodyAsString();
+            if (errorMessage != null) {
+                System.out.println("server error: " + errorMessage);
+            } 
+            return errorMessage;
+        } catch (HttpClientErrorException e) {
+            String errorMessage = e.getResponseBodyAsString();
+            if (errorMessage != null) {
+                System.out.println("client error: " + errorMessage);
+            }
+            return errorMessage;
+        }
+        
     }
 }

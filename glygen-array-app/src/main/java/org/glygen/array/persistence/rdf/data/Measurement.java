@@ -18,6 +18,8 @@ public class Measurement {
     Double bMedian;
     Double bStDev;
     
+    Double totoalIntensity;
+    
     Double meanMinusB;
     Double medianMinusB;
     
