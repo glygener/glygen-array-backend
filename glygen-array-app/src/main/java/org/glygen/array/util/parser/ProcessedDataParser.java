@@ -68,6 +68,8 @@ public class ProcessedDataParser {
         for (int i=0; i < config.getStartRow(); i++)
             rowIterator.next();      // skip to the data row
         
+        boolean start = false;
+        
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell featureCell = null;
@@ -78,6 +80,18 @@ public class ProcessedDataParser {
             
             Cell rfuCell = row.getCell(config.getRfuColumnId());
             Cell stDevCell = row.getCell(config.getStDevColumnId());
+            
+            if (!start && (rfuCell == null || stDevCell == null || featureCell == null)) {
+                ErrorMessage error = new ErrorMessage();
+                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setStatus(HttpStatus.BAD_REQUEST.value());
+                error.addError(new ObjectError("config", "Error parsing the file, the configuration does not seem to work")); 
+                throw new IllegalArgumentException(error);
+            } else if (start && (rfuCell == null || stDevCell == null || featureCell == null))  {// data ends
+                break;
+            }
+            
+            start = true;
             Cell cvCell = null;
             if (config.getCvColumnId() != null && config.getCvColumnId() != -1) 
                 cvCell = row.getCell(config.getCvColumnId());
@@ -87,17 +101,20 @@ public class ProcessedDataParser {
             if (cvCell != null)
                 intensity.setPercentCV(cvCell.getNumericCellValue());
             
-            if (config.getResultFileType().equals("CFG")) {
+            if (config.getResultFileType().equalsIgnoreCase("CFG")) {
                 // feature column contains the CFG name for the glycans, no glycopeptides or mixtures
                 String featureString = featureCell.getStringCellValue(); 
                 // parse sequence and find the glycan with the given sequence
                 // parse linker and find the linker with the given name
                 // find the feature with given glycan and linker
                 String glycoCT = parseSequence (featureString, errorList);
+                if (glycoCT == null || !errorList.isEmpty()) {
+                    continue;
+                }
                 String linkerName = ExtendedGalFileParser.getLinker(featureString);
                 String glycanURI;
                 try {
-                    glycanURI = glycanRepository.getGlycanBySequence(glycoCT, user);
+                    glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
                     if (glycanURI == null) {
                         ErrorMessage error = new ErrorMessage();
                         error.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -128,6 +145,9 @@ public class ProcessedDataParser {
             } else { // feature column contains the name of the feature
                 // GLAD? // Imperial?
                 // TODO
+                
+                // Imperial extract concentration level
+                
             }
             intensities.add(intensity);
         }

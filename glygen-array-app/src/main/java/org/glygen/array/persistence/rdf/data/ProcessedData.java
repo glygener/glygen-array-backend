@@ -8,7 +8,7 @@ public class ProcessedData {
     
     List<Intensity> intensity;
     DataProcessingSoftware metadata;
-    RawData rawData;
+    
     /**
      * @return the intensity
      */
@@ -33,17 +33,4 @@ public class ProcessedData {
     public void setMetadata(DataProcessingSoftware metadata) {
         this.metadata = metadata;
     }
-    /**
-     * @return the rawData
-     */
-    public RawData getRawData() {
-        return rawData;
-    }
-    /**
-     * @param rawData the rawData to set
-     */
-    public void setRawData(RawData rawData) {
-        this.rawData = rawData;
-    }
-
 }

@@ -3,6 +3,7 @@ package org.glygen.array.persistence.rdf.data;
 import java.util.List;
 
 import org.glygen.array.persistence.rdf.Feature;
+import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 public class Intensity {
     
@@ -13,6 +14,9 @@ public class Intensity {
     Double rfu;
     Double stDev;
     Double percentCV;
+    
+    LevelUnit concentrationLevel;
+    
     /**
      * @return the measurements
      */
@@ -74,4 +78,11 @@ public class Intensity {
         this.percentCV = percentCV;
     }
     
+    public void setConcentrationLevel(LevelUnit concentrationLevel) {
+        this.concentrationLevel = concentrationLevel;
+    }
+    
+    public LevelUnit getConcentrationLevel() {
+        return concentrationLevel;
+    }
 }

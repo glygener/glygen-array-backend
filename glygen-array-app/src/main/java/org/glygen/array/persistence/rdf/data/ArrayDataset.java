@@ -11,10 +11,130 @@ public class ArrayDataset {
     String description;
     
     Sample sample;
-    RawData rawData;
+    List<RawData> rawDataList;
     ProcessedData processedData;
     Image image;
     
     List<Slide> slides;
+
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * @return the uri
+     */
+    public String getUri() {
+        return uri;
+    }
+
+    /**
+     * @param uri the uri to set
+     */
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * @return the sample
+     */
+    public Sample getSample() {
+        return sample;
+    }
+
+    /**
+     * @param sample the sample to set
+     */
+    public void setSample(Sample sample) {
+        this.sample = sample;
+    }
+
+    public List<RawData> getRawDataList() {
+        return rawDataList;
+    }
+    
+    public void setRawDataList(List<RawData> rawDataList) {
+        this.rawDataList = rawDataList;
+    }
+
+    /**
+     * @return the processedData
+     */
+    public ProcessedData getProcessedData() {
+        return processedData;
+    }
+
+    /**
+     * @param processedData the processedData to set
+     */
+    public void setProcessedData(ProcessedData processedData) {
+        this.processedData = processedData;
+    }
+
+    /**
+     * @return the image
+     */
+    public Image getImage() {
+        return image;
+    }
+
+    /**
+     * @param image the image to set
+     */
+    public void setImage(Image image) {
+        this.image = image;
+    }
+
+    /**
+     * @return the slides
+     */
+    public List<Slide> getSlides() {
+        return slides;
+    }
+
+    /**
+     * @param slides the slides to set
+     */
+    public void setSlides(List<Slide> slides) {
+        this.slides = slides;
+    }
 
 }

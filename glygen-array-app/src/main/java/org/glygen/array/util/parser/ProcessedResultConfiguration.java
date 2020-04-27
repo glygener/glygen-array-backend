@@ -9,8 +9,10 @@ public class ProcessedResultConfiguration {
     Integer cvColumnId = -1;
     Integer startRow = 1;
     Integer featureNameColumnId;
+    Integer concentrationLevelColumnId;
     
     String resultFileType = "CFG";
+    
     
     /**
      * @return the sheetNumber
@@ -107,5 +109,13 @@ public class ProcessedResultConfiguration {
      */
     public void setResultFileType(String resultFileType) {
         this.resultFileType = resultFileType;
+    }
+    
+    public void setConcentrationLevelColumnId(Integer concentrationLevelColumnId) {
+        this.concentrationLevelColumnId = concentrationLevelColumnId;
+    }
+    
+    public Integer getConcentrationLevelColumnId() {
+        return concentrationLevelColumnId;
     }
 }
