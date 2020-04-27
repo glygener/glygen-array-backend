@@ -1542,7 +1542,8 @@ public class GlygenArrayController {
 	        List<org.grits.toolbox.glycanarray.library.om.layout.SlideLayout> layoutList = 
 	        		library.getLayoutLibrary().getSlideLayout();
 	        for (org.grits.toolbox.glycanarray.library.om.layout.SlideLayout slideLayout : layoutList) {
-	        	if (slideLayout.getName().equalsIgnoreCase(layout.getName())) {
+	        	if (slideLayout.getName().equalsIgnoreCase(layout.getName()) ||
+	        	        layout.getId().equals(slideLayout.getId().toString())) {
 	        		SlideLayout mySlideLayout = new SlideLayout();
 	        		mySlideLayout.setName(slideLayout.getName());
 	        		String desc = null;
@@ -1755,17 +1756,8 @@ public class GlygenArrayController {
 			@RequestParam("file") String uploadedFileName,
 			@ApiParam(required=true, value="list of slide layouts to be imported, only name is sufficient for a slide layout")
 			@RequestBody List<SlideLayout> slideLayouts, 
-			@ApiParam(required=false, value="if new name is provided, it is assumed that the list (post data) contains a single slide layout"
-					+ " and that layout is added to the repository with the given new name")
-			@RequestParam(value="newname", required=false) String newName, Principal p) {
-		if (newName != null) {
-			try {
-				newName = URLDecoder.decode(newName, StandardCharsets.UTF_8.name());
-			} catch (UnsupportedEncodingException e) {
-				// should not happen
-				logger.debug("Cannot decode newName", e);
-			}
-		}
+			Principal p) {
+		
 		if (uploadedFileName != null) {
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
@@ -1785,9 +1777,6 @@ public class GlygenArrayController {
 						try {
 							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 							String searchName = slideLayout.getName();
-							if (newName != null && newName.length() > 0) {
-								searchName = newName;
-							}
 							SlideLayout existing = layoutRepository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
 								result.getDuplicates().add(slideLayout);
@@ -1889,9 +1878,6 @@ public class GlygenArrayController {
 						}
 						
 						try {
-							if (newName != null && newName.length() > 0) {
-								slideLayout.setName(newName);
-							}
 							addSlideLayout(slideLayout, p);
 							result.getAddedLayouts().add(slideLayout);
 						} catch (Exception e) {
@@ -2177,8 +2163,7 @@ public class GlygenArrayController {
 		        		SlideLayout mySlideLayout = new SlideLayout();
 		        		mySlideLayout.setName(slideLayout.getName());
 		        		mySlideLayout.setDescription(slideLayout.getDescription());
-		        		
-		        		List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
+		        		mySlideLayout.setId(slideLayout.getId().toString());
 		        		int width = 0;
 		        		int height = 0;
 		        		for (Block block: slideLayout.getBlock()) {
@@ -2189,18 +2174,10 @@ public class GlygenArrayController {
 		        				width = block.getColumn();
 		        			if (block.getRow() > height)
 		        				height = block.getRow();
-		        		//	Integer blockLayoutId = block.getLayoutId();
-		        		//	org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
-		        		//	org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
-		        		//	myLayout.setName(blockLayout.getName());
-		        		//	myBlock.setBlockLayout(myLayout);
-		        		//	myBlock.setSpots(getSpotsFromBlockLayout(library, blockLayout));
-		        		//	blocks.add(myBlock);
 		        		}
 		        		
 		        		mySlideLayout.setHeight(slideLayout.getHeight() == null ? height: slideLayout.getHeight());
 		        		mySlideLayout.setWidth(slideLayout.getWidth() == null ? width: slideLayout.getWidth());
-		        		//mySlideLayout.setBlocks(blocks);
 		        		layouts.add(mySlideLayout);
 					}
 			        return layouts;
