@@ -7,6 +7,9 @@ import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 public class Intensity {
     
+    String uri;
+    String id;
+    
     // integrates multiple measurements
     List<Measurement> measurements;
     Feature feature;
@@ -84,5 +87,29 @@ public class Intensity {
     
     public LevelUnit getConcentrationLevel() {
         return concentrationLevel;
+    }
+    /**
+     * @return the uri
+     */
+    public String getUri() {
+        return uri;
+    }
+    /**
+     * @param uri the uri to set
+     */
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 }

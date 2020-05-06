@@ -6,6 +6,9 @@ import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 
 public class ProcessedData {
     
+    String id;
+    String uri;
+    
     List<Intensity> intensity;
     DataProcessingSoftware metadata;
     
@@ -32,5 +35,29 @@ public class ProcessedData {
      */
     public void setMetadata(DataProcessingSoftware metadata) {
         this.metadata = metadata;
+    }
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+    /**
+     * @return the uri
+     */
+    public String getUri() {
+        return uri;
+    }
+    /**
+     * @param uri the uri to set
+     */
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 }

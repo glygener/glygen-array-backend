@@ -1,15 +1,14 @@
 package org.glygen.array.persistence.rdf.metadata;
 
-public class Sample extends MetadataCategory {
-    
+public class Descriptor {
     String id;
     String uri;
     String name;
+    String value;
     String description;
+    String namespaceURI;
+    String unitURI;
     
-    public Sample() {
-        this.name = "Sample";
-    }
     
     /**
      * @return the id
@@ -46,6 +45,42 @@ public class Sample extends MetadataCategory {
      */
     public void setName(String name) {
         this.name = name;
+    }
+    /**
+     * @return the value
+     */
+    public String getValue() {
+        return value;
+    }
+    /**
+     * @param value the value to set
+     */
+    public void setValue(String value) {
+        this.value = value;
+    }
+    /**
+     * @return the namespaceURI
+     */
+    public String getNamespaceURI() {
+        return namespaceURI;
+    }
+    /**
+     * @param namespaceURI the namespaceURI to set
+     */
+    public void setNamespaceURI(String namespaceURI) {
+        this.namespaceURI = namespaceURI;
+    }
+    /**
+     * @return the unitURI
+     */
+    public String getUnitURI() {
+        return unitURI;
+    }
+    /**
+     * @param unitURI the unitURI to set
+     */
+    public void setUnitURI(String unitURI) {
+        this.unitURI = unitURI;
     }
     /**
      * @return the description

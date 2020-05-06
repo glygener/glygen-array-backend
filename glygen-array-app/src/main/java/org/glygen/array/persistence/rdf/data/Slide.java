@@ -49,6 +49,42 @@ public class Slide {
     public void setLayout(SlideLayout layout) {
         this.layout = layout;
     }
+    /**
+     * @return the metadata
+     */
+    public SlideMetadata getMetadata() {
+        return metadata;
+    }
+    /**
+     * @param metadata the metadata to set
+     */
+    public void setMetadata(SlideMetadata metadata) {
+        this.metadata = metadata;
+    }
+    /**
+     * @return the printer
+     */
+    public Printer getPrinter() {
+        return printer;
+    }
+    /**
+     * @param printer the printer to set
+     */
+    public void setPrinter(Printer printer) {
+        this.printer = printer;
+    }
+    /**
+     * @return the image
+     */
+    public Image getImage() {
+        return image;
+    }
+    /**
+     * @param image the image to set
+     */
+    public void setImage(Image image) {
+        this.image = image;
+    }
     
 
 }

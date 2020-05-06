@@ -146,6 +146,36 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 		return total;
 	}
+	
+	/**
+	 * return the uri of the entity with the given label and type in the given graph
+	 * 
+	 * @param label the label to search
+	 * @param graph the graph to search into
+	 * @param type the type of the entity, i.e. http://purl.org/gadr/data#Glycan, http://purl.org/gadr/data#SlideLayout, http://purl.org/gadr/data#ArrayDataset 
+	 * @return the uri of the entity 
+	 * @throws SparqlException
+	 */
+	protected String getEntityByLabel (String label, String graph, String type) throws SparqlException { 
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        if (graph != null) {
+            queryBuf.append ("FROM <" + graph + ">\n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
+        queryBuf.append (" ?s rdf:type  <" + type +">. ");
+        queryBuf.append (" ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n }");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String uri = results.get(0).getValue("s");
+            return uri;
+        }
+	}
 
 	/**
      * {@inheritDoc}

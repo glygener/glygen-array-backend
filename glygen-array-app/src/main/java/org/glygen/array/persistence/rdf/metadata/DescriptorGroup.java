@@ -2,36 +2,14 @@ package org.glygen.array.persistence.rdf.metadata;
 
 import java.util.List;
 
-public class MetadataCategory {
+public class DescriptorGroup {
+    
     String id;
     String uri;
     String name;
+    String description;
     List<Descriptor> descriptors;
-    List<DescriptorGroup> descriptorGroups;
-    /**
-     * @return the descriptors
-     */
-    public List<Descriptor> getDescriptors() {
-        return descriptors;
-    }
-    /**
-     * @param descriptors the descriptors to set
-     */
-    public void setDescriptors(List<Descriptor> descriptors) {
-        this.descriptors = descriptors;
-    }
-    /**
-     * @return the descriptorGroups
-     */
-    public List<DescriptorGroup> getDescriptorGroups() {
-        return descriptorGroups;
-    }
-    /**
-     * @param descriptorGroups the descriptorGroups to set
-     */
-    public void setDescriptorGroups(List<DescriptorGroup> descriptorGroups) {
-        this.descriptorGroups = descriptorGroups;
-    }
+    
     /**
      * @return the id
      */
@@ -68,5 +46,28 @@ public class MetadataCategory {
     public void setName(String name) {
         this.name = name;
     }
-
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    /**
+     * @return the descriptors
+     */
+    public List<Descriptor> getDescriptors() {
+        return descriptors;
+    }
+    /**
+     * @param descriptors the descriptors to set
+     */
+    public void setDescriptors(List<Descriptor> descriptors) {
+        this.descriptors = descriptors;
+    }
 }

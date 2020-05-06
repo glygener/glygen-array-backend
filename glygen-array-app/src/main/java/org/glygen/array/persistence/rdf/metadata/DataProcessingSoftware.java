@@ -1,5 +1,5 @@
 package org.glygen.array.persistence.rdf.metadata;
 
-public class DataProcessingSoftware implements MetadataCategory {
+public class DataProcessingSoftware extends MetadataCategory {
 
 }
