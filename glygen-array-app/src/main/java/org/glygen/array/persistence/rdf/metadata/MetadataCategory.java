@@ -5,7 +5,7 @@ import java.util.List;
 public class MetadataCategory {
     String id;
     String uri;
-    String name;
+
     List<Descriptor> descriptors;
     List<DescriptorGroup> descriptorGroups;
     /**
@@ -56,17 +56,4 @@ public class MetadataCategory {
     public void setUri(String uri) {
         this.uri = uri;
     }
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
 }

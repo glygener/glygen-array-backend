@@ -13,7 +13,9 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -47,6 +49,18 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     final static String bindingValuePredicate = ontPrefix + "binding_value_of";
     final static String integratedByPredicate = ontPrefix + "integrated_by";
     final static String integratesPredicate = ontPrefix + "has_integrates";
+    
+    final static String derivedFromPredicate = ontPrefix + "derived_from";
+    final static String hasMeasurementPredicate = ontPrefix + "has_measurement";
+    final static String measurementOfPredicate = ontPrefix + "measurement_of";
+    final static String imageProcessingMetadataPredicate = ontPrefix + "has_image_processing_metadata";
+    final static String processingSoftwareMetadataPredicate = ontPrefix + "has_processing_software_metadata";
+    final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
+    final static String printerMetadataPredicate = ontPrefix + "printed_by";
+    final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
+    final static String hasFilePredicate = ontPrefix + "has_filename";
+    final static String scanOfPredicate = ontPrefix + "scan_of";
+    final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
     
 
     @Override
@@ -116,13 +130,82 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private String addSlide(Slide slide, String graph) {
+    private String addSlide(Slide slide, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        List<Statement> statements = new ArrayList<Statement>();
+        String slideURI = generateUniqueURI(uriPrefix + "S", graph);
+        //String imageURI = addImage(slide.getImage(), statements, graph);
+        String printerMetadataURI = generateUniqueURI(uriPrefix + "PM", graph);
+        String slideMetadataURI = generateUniqueURI(uriPrefix + "SM", graph);
+        
+        IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
+        IRI scanOf = f.createIRI(scanOfPredicate);
+        IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI hasSlideTemplate = f.createIRI(hasSlideTemplatePredicate);
+        IRI slideIRI = f.createIRI(slideURI);
+        IRI graphIRI = f.createIRI(graph);
+        
+        if (slide.getImage() != null && slide.getImage().getUri() != null) {
+            statements.add(f.createStatement(f.createIRI(slide.getImage().getUri()), scanOf, slideIRI, graphIRI));
+        }
+        
+        if (slide.getLayout() != null && slide.getLayout().getUri() != null) {
+            statements.add(f.createStatement(slideIRI, hasSlideTemplate, f.createIRI(slide.getLayout().getUri()), graphIRI));
+        }
+        
+        addMetadata(printerMetadataURI, slide.getPrinter(), statements, graph);
+        addMetadata(slideMetadataURI, slide.getMetadata(), statements, graph);
+        statements.add(f.createStatement(slideIRI, printedBy, f.createIRI(printerMetadataURI), graphIRI));
+        statements.add(f.createStatement(slideIRI, hasSlideMetadata, f.createIRI(slideMetadataURI), graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        return slideURI;
+    }
+
+
+    private String addRawData(RawData rawData, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        List<Statement> statements = new ArrayList<Statement>();
+        String rawDataURI = generateUniqueURI(uriPrefix + "R", graph);
+        String imageProcessingMetadataURI = generateUniqueURI(uriPrefix + "IPM", graph);
+        
+        IRI hasimageProcessingMetadata = f.createIRI(imageProcessingMetadataPredicate);
+        IRI derivedFrom = f.createIRI(derivedFromPredicate);
+        IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI measurementOf = f.createIRI(measurementOfPredicate);
+        IRI graphIRI = f.createIRI(graph);
+        IRI raw = f.createIRI(rawDataURI);
+        addMetadata (imageProcessingMetadataURI, rawData.getMetadata(), statements, graph);
+        statements.add(f.createStatement(raw, hasimageProcessingMetadata, f.createIRI(imageProcessingMetadataURI), graphIRI));
+        for (Image image: rawData.getImages()) {
+            String imageURI = addImage (image, statements, graph);
+            statements.add(f.createStatement(raw, derivedFrom, f.createIRI(imageURI), graphIRI));
+        }
+        for (Measurement measurement: rawData.getDataMap().keySet()) {
+            String measurementURI = addMeasurement (measurement, statements, graph);
+            Spot spot = rawData.getDataMap().get(measurement);
+            if (spot.getUri() != null)
+                statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
+            statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
+        }
+        if (rawData.getFilename() != null) {
+            Literal fileLit = f.createLiteral(rawData.getFilename());
+            statements.add(f.createStatement(raw, hasFile, fileLit, graphIRI));
+        }
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        return rawDataURI;
+    }
+
+
+    private String addMeasurement(Measurement measurement, List<Statement> statements, String graph) {
         // TODO Auto-generated method stub
         return null;
     }
 
 
-    private String addRawData(RawData rawData, String graph) {
+    private String addImage(Image image, List<Statement> statements, String graph) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -143,6 +226,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI bindingValueOf = f.createIRI(bindingValuePredicate);
         IRI integrates = f.createIRI(integratesPredicate);
         IRI integratedBy = f.createIRI(integratedByPredicate);   //TODO should we add statisticalMethod to the intensity???
+        IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
         
         for (Intensity intensity: processedData.getIntensity()) {
             String intensityURI = generateUniqueURI(uriPrefix + "I", graph);
@@ -166,8 +250,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
         }
         // add metadata
-        addMetadata(processedURI, processedData.getMetadata(), statements, graph);
+        String processingSoftwareMetadata = generateUniqueURI(uriPrefix + "PSM", graph);
+        addMetadata(processingSoftwareMetadata, processedData.getMetadata(), statements, graph);
+        statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processingSoftwareMetadata), graphIRI));
         
+        sparqlDAO.addStatements(statements, graphIRI);
         return processedURI;
     }
     
