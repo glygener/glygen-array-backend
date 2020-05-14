@@ -105,7 +105,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     				if (g.getId() != null) {
     					g.setUri(uriPrefix + g.getId());
     				} else {
-    				    throw new SparqlException ("No enough information is provided to add the feature, glycan cannot be found!");
+    				    throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
     				}
     			}
     			

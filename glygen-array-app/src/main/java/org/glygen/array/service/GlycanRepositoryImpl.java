@@ -383,7 +383,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             graph = DEFAULT_GRAPH;
         else
             graph = getGraphForUser(user);
-		List<SparqlEntity> results = queryHelper.retrieveGlycanById(glycanId, graph);
+		List<SparqlEntity> results = queryHelper.retrieveById(glycanId, graph);
 		if (results.isEmpty())
 			return null;
 		else {

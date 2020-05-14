@@ -11,8 +11,13 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -25,6 +30,7 @@ import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +69,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
     
 
+    @Autowired
+    QueryHelper queryHelper;
+    
     @Override
     public String addArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
@@ -377,20 +386,166 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public ArrayDataset getArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
+     // make sure the glycan belongs to this user
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        List<SparqlEntity> results = queryHelper.retrieveById(datasetId, graph);
+        if (results.isEmpty())
+            return null;
+        else {
+            return getDatasetFromURI(uriPrefix + datasetId, user);
+        }
+    }
+
+    private ArrayDataset getDatasetFromURI(String uri, UserEntity user) throws SQLException {
+        
+        ArrayDataset datasetObject = null;
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph == null) {
+           return null;
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI dataset = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
+        if (statements.hasNext()) {
+            datasetObject = new ArrayDataset();
+            datasetObject.setUri(uri);
+            datasetObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            if (user != null) {
+                Creator owner = new Creator ();
+                owner.setUserId(user.getUserId());
+                owner.setName(user.getUsername());
+                datasetObject.setUser(owner);
+            } else {
+                datasetObject.setIsPublic(true);
+            }
+        }
+        
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            
+        }
+        
+        
         return null;
+    }
+    
+    @Override
+    public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub  
     }
 
     @Override
     public List<ArrayDataset> getArrayDatasetByUser(UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        return null;
+        return getArrayDatasetByUser(user, 0, -1, "id", 0 );
     }
 
     @Override
-    public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
         
+        return getArrayDatasetByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
+        
+        // get all glycanURIs from user's private graph
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        if (graph != null) {
+            
+            List<SparqlEntity> results = retrieveDatasetByUser(offset, limit, field, order, searchValue, graph);
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                ArrayDataset dataset = getDatasetFromURI(uri, user);
+                if (dataset != null)
+                    datasets.add(dataset);    
+            }
+        }
+        
+        return datasets;
+    }
+    
+    public List<SparqlEntity> retrieveDatasetByUser(int offset, int limit, String field, int order, String searchValue, String graph) throws SparqlException {
+        String sortPredicate = getSortPredicate (field);
+        
+        String searchPredicate = "";
+        if (searchValue != null)
+            searchPredicate = getSearchPredicate(searchValue);
+        
+        String sortLine = "";
+        if (sortPredicate != null)
+            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+        String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (
+                " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                " ?s rdf:type <" + datasetTypePredicate + "> . \n" +
+                        sortLine + searchPredicate + 
+                "}\n" +
+                 orderByLine + 
+                ((limit == -1) ? " " : " LIMIT " + limit) +
+                " OFFSET " + offset);
+        
+        return sparqlDAO.query(queryBuf.toString());
+    }
+
+
+    private String getSearchPredicate (String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        
+        int numberOfValues = 3;
+        String filterClause = "filter (";
+        for (int i=1; i < numberOfValues; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < numberOfValues)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
+    
+    private String getSortPredicate(String field) {
+        if (field == null || field.equalsIgnoreCase("name")) 
+            return "rdfs:label";
+        else if (field.equalsIgnoreCase("comment")) 
+            return "rdfs:comment";
+        else if (field.equalsIgnoreCase("dateModified"))
+            return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("id"))
+            return null;
+        return null;
     }
 
 }

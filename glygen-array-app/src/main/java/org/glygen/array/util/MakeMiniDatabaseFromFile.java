@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -41,10 +42,10 @@ public class MakeMiniDatabaseFromFile{
         return numberList;
     }
     
-    public static void generateGRITSDatabase (List<String> glytoucanIds, File dbFile) throws JAXBException {
+    public static void generateGRITSDatabase (List<String> glytoucanIds, File dbFile, String name, String description) throws JAXBException {
         GlycanDatabase miniGlycansDatabase = new GlycanDatabase();
-        miniGlycansDatabase.setName("hsc1");
-        miniGlycansDatabase.setDescription("Human Stem Cell #1");
+        miniGlycansDatabase.setName(name);
+        miniGlycansDatabase.setDescription(description);
         miniGlycansDatabase.setVersion("1.0");
         for (String glytoucan: glytoucanIds) {
             GlycanStructure structure = new GlycanStructure();
@@ -88,6 +89,7 @@ public class MakeMiniDatabaseFromFile{
         
         JAXBContext jaxbContext = JAXBContext.newInstance(GlycanDatabase.class);
         Marshaller jaxBMarshaller = jaxbContext.createMarshaller();
+        jaxBMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         jaxBMarshaller.marshal(miniGlycansDatabase, dbFile);
     }
     
@@ -118,8 +120,16 @@ public class MakeMiniDatabaseFromFile{
 
     public static void main(String[] args) {
         try {
-            List<String> ids = readExcel ("/Users/sena/Desktop/minibase/minibase1.txt");
-            generateGRITSDatabase(ids, new File ("/Users/sena/Desktop/minibase/hsc1.xml"));
+            //List<String> ids = readExcel ("/Users/sena/Desktop/minibase/minibase1.txt");
+            //generateGRITSDatabase(ids, new File ("/Users/sena/Desktop/minibase/hsc1.xml"), "hsc1", "Human Stem Cell #1");
+            
+            List<String> ids = new ArrayList<String>();
+            Scanner scanner = new Scanner (new File ("/Users/sena/Desktop/minibase/smghbeFINmt.txt"));
+            while (scanner.hasNext()) {
+                ids.add(scanner.next());
+            }
+            scanner.close();
+            generateGRITSDatabase(ids, new File ("/Users/sena/Desktop/minibase/omucus1.xml"), "Omucus1", "O-Glycan Human Mucus" );
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

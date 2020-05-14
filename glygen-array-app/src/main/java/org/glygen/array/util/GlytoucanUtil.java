@@ -254,12 +254,59 @@ public class GlytoucanUtil {
 				"LIN\n" + 
 				"1:1d(2-1)2n\n" + 
 				"2:1o(5-1)2n";
+				
 		
 		//glycoCTSequence = "WURCS=2.0/4,5,5/[a2112h-1b_1-5_2*NCC/3=O][a2122A-1b_1-5][a2112h-1a_1-5][a2122h-1b_1-5]/1-2-1-3-4/a3-b1_b4-c1_c4-d1_d3-e1_a1-e4~n";
 		glycoCTSequence = "WURCS=2.0/3,12,11/[a2122h-1x_1-5_2*NCC/3=O][a1122h-1x_1-5][a2112h-1x_1-5]/1-1-2-2-2-2-2-2-2-2-2-3/a4-b1_b4-c1_c?-d1_c?-i1_d?-e1_d?-g1_e?-f1_g?-h1_i?-j1_j?-k1_j?-l1";
 		//System.out.println (GlytoucanUtil.registerGlycan(glycoCTSequence));
 		 
 		*/ 
+		
+		String glycoCTSeq = "RES\n" + 
+		        "1b:b-dglc-HEX-1:5\n" + 
+		        "2s:n-acetyl\n" + 
+		        "3b:b-dglc-HEX-1:5\n" + 
+		        "4s:n-acetyl\n" + 
+		        "5b:b-dman-HEX-1:5\n" + 
+		        "6b:a-dman-HEX-1:5\n" + 
+		        "7b:a-dman-HEX-1:5\n" + 
+		        "8b:a-dman-HEX-1:5\n" + 
+		        "9b:a-dman-HEX-1:5\n" + 
+		        "LIN\n" + 
+		        "1:1d(2+1)2n\n" + 
+		        "2:1o(4+1)3d\n" + 
+		        "3:3d(2+1)4n\n" + 
+		        "4:3o(4+1)5d\n" + 
+		        "5:5o(3+1)6d\n" + 
+		        "6:5o(6+1)7d\n" + 
+		        "7:7o(3+1)8d\n" + 
+		        "8:7o(6+1)9d\n" + 
+		        "UND\n" + 
+		        "UND1:100.0:100.0\n" + 
+		        "ParentIDs:8|9\n" + 
+		        "SubtreeLinkageID1:o(-1+1)d\n" + 
+		        "RES\n" + 
+		        "10b:x-dglc-HEX-1:5\n" + 
+		        "11s:n-acetyl\n" + 
+		        "LIN\n" + 
+		        "9:10d(2+1)11n";
+        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+        try {
+            exporter.start(glycoCTSeq);
+        } catch (SugarImporterException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (GlycoVisitorException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (WURCSException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        String wurcs = exporter.getWURCS(); 
+        System.out.println(wurcs);
+        String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+        System.out.println(glyTouCanId);
 	}
 		
 	

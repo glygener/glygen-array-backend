@@ -1,12 +1,17 @@
 package org.glygen.array.util.parser;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
@@ -37,13 +42,15 @@ public class ProcessedDataParser {
     GlycanRepository glycanRepository;
     LinkerRepository linkerRepository;
     
+    Map<String, String> sequenceErrorMap = new HashMap<String, String>();
+    
     public ProcessedDataParser(FeatureRepository f, GlycanRepository g, LinkerRepository l) {
         this.featureRepository = f;
         this.glycanRepository = g;
         this.linkerRepository = l;
     }
     
-    public ProcessedData parse (String filePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
+    public ProcessedData parse (String filePath, String errorMapFilePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
         ProcessedData data = new ProcessedData();
         List<Intensity> intensities = new ArrayList<>();
         data.setIntensity(intensities);
@@ -57,6 +64,12 @@ public class ProcessedDataParser {
         File file = new File(filePath);
         if (!file.exists()) 
             throw new FileNotFoundException(filePath + " does not exist!");
+        
+        File errorMapFile = new File (errorMapFilePath);
+        if (errorMapFile.exists()) {
+            readErrorMapFile (errorMapFile);
+        }
+        
         
         //Create Workbook instance holding reference to .xls file
         Workbook workbook = WorkbookFactory.create(file);
@@ -108,7 +121,14 @@ public class ProcessedDataParser {
                 // parse linker and find the linker with the given name
                 // find the feature with given glycan and linker
                 String glycoCT = parseSequence (featureString, errorList);
-                if (glycoCT == null || !errorList.isEmpty()) {
+                if (glycoCT == null) {
+                    // check errorMapFile
+                    if (sequenceErrorMap.get(featureString.trim()) != null) {
+                        glycoCT = parseSequence (sequenceErrorMap.get(featureString.trim()), errorList);
+                    } else {
+                        // add to error list
+                        appendErrorMapFile(errorMapFilePath, featureString.trim());
+                    }
                     continue;
                 }
                 String linkerName = ExtendedGalFileParser.getLinker(featureString);
@@ -116,17 +136,29 @@ public class ProcessedDataParser {
                 try {
                     glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
                     if (glycanURI == null) {
-                        ErrorMessage error = new ErrorMessage();
+                        ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
                         error.setErrorCode(ErrorCodes.INVALID_INPUT);
                         error.setStatus(HttpStatus.BAD_REQUEST.value());
-                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence cannot be found in the repository"));
+                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be found in the repository"));
                         errorList.add(error);
                     } else {
                         Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
                         Linker linker = linkerRepository.getLinkerByLabel(linkerName, user);
+                        if (glycan == null || linker == null) {
+                            // error
+                            ErrorMessage error = new ErrorMessage("Linker or glycan cannot be found in the repository for row: " + row.getRowNum());
+                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setStatus(HttpStatus.BAD_REQUEST.value());
+                            if (linker == null)
+                                error.addError(new ObjectError("linker", "Row " + row.getRowNum() + ": linker cannot be found in the repository"));
+                            else
+                                error.addError(new ObjectError("glycan", "Row " + row.getRowNum() + ": glycan cannot be found in the repository"));
+                            errorList.add(error); 
+                            continue;
+                        }
                         Feature feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
                         if (feature == null) {
-                            ErrorMessage error = new ErrorMessage();
+                            ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence cannot be found in the repository");
                             error.setErrorCode(ErrorCodes.INVALID_INPUT);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
                             error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence cannot be found in the repository"));
@@ -136,7 +168,7 @@ public class ProcessedDataParser {
                         }
                     }
                 } catch (SparqlException | SQLException e) {
-                    ErrorMessage error = new ErrorMessage();
+                    ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());
                     error.setErrorCode(ErrorCodes.INVALID_INPUT);
                     error.setStatus(HttpStatus.BAD_REQUEST.value());
                     error.addError(new ObjectError("feature", e.getMessage()));
@@ -155,17 +187,42 @@ public class ProcessedDataParser {
         if (errorList.isEmpty())
             return data;
         else {
-            ErrorMessage error = new ErrorMessage();
+            ErrorMessage error = new ErrorMessage("Errors parsing processed data excel file");
             error.setErrorCode(ErrorCodes.INVALID_INPUT);
             error.setStatus(HttpStatus.BAD_REQUEST.value());
+            System.out.println("Errors:");
             for (ErrorMessage e: errorList) {
-                for (ObjectError o: e.getErrors()) 
+                for (ObjectError o: e.getErrors()) {
+                    System.out.println(o.getDefaultMessage());
                     error.addError(o);
+                }
             }
             throw new IllegalArgumentException(error);
         }
     }
     
+    private void readErrorMapFile(File errorMapFile) throws FileNotFoundException {
+        Scanner scanner = new Scanner(errorMapFile);
+        while (scanner.hasNext()) {
+            String line = scanner.nextLine();
+            String[] sequences = line.split("\\t");
+            if (sequences.length == 2 && sequences[1].trim().length() > 0) {
+                sequenceErrorMap.put(sequences[0].trim(), sequences[1].trim());
+            }
+        }
+        scanner.close();
+    }
+    
+    void appendErrorMapFile (String errorMapFilePath, String sequence) throws IOException {
+     // Open given file in append mode. 
+        BufferedWriter out = new BufferedWriter( 
+               new FileWriter(errorMapFilePath, true)); 
+        out.write(sequence); 
+        out.write("\t");
+        out.write("\n");
+        out.close(); 
+    }
+
     String parseSequence (String sequence, List<ErrorMessage> errors) {
         // parse the sequence
         try {
@@ -174,7 +231,7 @@ public class ProcessedDataParser {
             String glycoCT = parser.translateSequence(glycanSequence);
             return glycoCT;
         } catch (Exception e) {
-            ErrorMessage error = new ErrorMessage();
+            ErrorMessage error = new ErrorMessage("Parse Error for sequence " + sequence);
             error.setErrorCode(ErrorCodes.INVALID_INPUT);
             error.setStatus(HttpStatus.BAD_REQUEST.value());
             error.addError(new ObjectError("sequence", e.getMessage()));

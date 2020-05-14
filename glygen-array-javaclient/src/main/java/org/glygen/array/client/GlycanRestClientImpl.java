@@ -173,7 +173,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	@Override
 	public List<LinkerClassification> getLinkerClassifications() {
-		String url = this.url + "array/getLinkerClassifications";
+		String url = this.url + "util/getLinkerClassifications";
 		System.out.println("URL: " + url);
 		try {
 			ObjectMapper mapper = new ObjectMapper();

@@ -1,7 +1,6 @@
 package org.glygen.array.controller;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,6 +31,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.sugar.Sugar;
+import org.eurocarbdb.MolecularFramework.util.analytical.mass.GlycoVisitorMass;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.MassOptions;
@@ -52,7 +54,6 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.PeptideLinker;
@@ -94,7 +95,6 @@ import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
 import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
 import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
-import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.Logger;
@@ -103,9 +103,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -1035,6 +1033,7 @@ public class GlygenArrayController {
 		
 		String glycoCT = glycan.getSequence().trim();
 		UserEntity user;
+		boolean gwbError = false;
 		try {
 			user = userRepository.findByUsernameIgnoreCase(p.getName());
 			
@@ -1042,10 +1041,37 @@ public class GlygenArrayController {
 				//check if the given sequence is valid
 				
 				boolean parseError = false;
+				
 				try {
 					switch (glycan.getSequenceType()) {
 					case GLYCOCT:
-						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+					    try {
+					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+					    } catch (Exception e) {
+					        gwbError = true;
+					    }
+					    if (glycanObject == null) 
+					        gwbError = true;
+					    
+					    if (gwbError) {
+					        // check to make sure GlycoCT valid without using GWB
+                            SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                            try {
+                                Sugar sugar = importer.parse(glycan.getSequence().trim());
+                                if (sugar == null) {
+                                    parseError = true;
+                                    gwbError = false;  
+                                } else {
+                                    // calculate mass
+                                    GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+                                    massVisitor.start(sugar);
+                                    g.setMass(massVisitor.getMass());
+                                }
+                            } catch (Exception pe) {
+                                parseError = true;
+                                gwbError = false;
+                            }
+					    }
 						glycoCT = glycan.getSequence().trim();
 						break;
 					case GWS:
@@ -1071,10 +1097,13 @@ public class GlygenArrayController {
 				} catch (Exception e) {
 					// parse error
 					parseError = true;
+					logger.error("Parse Error for sequence: " + glycan.getSequence());
+					
 				}
 				// check for all possible errors 
-				if (glycanObject == null) {
+				if (glycanObject == null && !gwbError) {
 					parseError = true;
+					logger.error("Parse Error for sequence: " + glycan.getSequence());
 				} else {
 					String existingURI = glycanRepository.getGlycanBySequence(glycoCT, user);
 					if (existingURI != null) {
@@ -1112,32 +1141,35 @@ public class GlygenArrayController {
 		
 		try {	
 			// no errors add the glycan
-			if (glycanObject != null) {
-				g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
+			if (glycanObject != null || gwbError) {
+				if (!gwbError) g.setMass(glycanObject.computeMass(MassOptions.ISOTOPE_MONO));
 				g.setSequence(glycoCT);
 				g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-				BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-						.getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-				if (t_image != null) {
-					String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
-					String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-					Glycan added = glycanRepository.getGlycanById(id, user);
-					if (added != null) {
-						String filename = id + ".png";
-						//save the image into a file
-						logger.debug("Adding image to " + imageLocation);
-						File imageFile = new File(imageLocation + File.separator + filename);
-						ImageIO.write(t_image, "png", imageFile);
-					} else {
+				
+				String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
+				String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+				Glycan added = glycanRepository.getGlycanById(id, user);
+				if (added != null) {
+				    if (glycanObject != null) {
+    				    BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
+    	                        .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+    	                if (t_image != null) {
+    						String filename = id + ".png";
+    						//save the image into a file
+    						logger.debug("Adding image to " + imageLocation);
+    						File imageFile = new File(imageLocation + File.separator + filename);
+    						ImageIO.write(t_image, "png", imageFile);
+    	                } else {
+    	                    logger.warn ("Glycan image cannot be generated for glycan " + g.getName());
+    	                }
+				    } else {
+				        logger.warn ("Glycan image & mass cannot be generated for glycan " + g.getName());
+				    }
+				} else {
 						logger.error("Added glycan cannot be retrieved back");
 						throw new GlycanRepositoryException("Glycan image cannot be generated");
-					}
-					return id;
-				} else {
-					logger.error("Glycan image is null");
-					throw new GlycanRepositoryException("Glycan image cannot be generated");
 				}
-				
+				return id;
 			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
@@ -1717,11 +1749,14 @@ public class GlygenArrayController {
                             errorMessage = new ErrorMessage();
                             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("width", "NotValid"));
+                            errorMessage.addError(new ObjectError("height", "NotValid"));
                             throw new IllegalArgumentException("Width and height specification does not match with GAL file", errorMessage);
                         }
                     }
                     
-                    return addSlideLayout(importResult.getLayout(), p);
+                    String slideURI = addSlideLayout(importResult.getLayout(), p);
+                    String id = slideURI.substring(slideURI.lastIndexOf("/")+1);
+                    return id;
                 } catch (IllegalArgumentException e) {
                     throw e;
                 } catch (IOException | SparqlException | SQLException e) {
@@ -2623,8 +2658,11 @@ public class GlygenArrayController {
                     org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
                             org.eurocarbdb.application.glycanbuilder.Glycan.
                             fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
-                    t_image = glycanWorkspace.getGlycanRenderer()
-                        .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+                    if (glycanObject != null)
+                        t_image = glycanWorkspace.getGlycanRenderer()
+                            .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+                    else 
+                        logger.error ("Glycan image cannot be generated");
                 } catch (Exception e) {
                     logger.error ("Glycan image cannot be generated", e);
                 }

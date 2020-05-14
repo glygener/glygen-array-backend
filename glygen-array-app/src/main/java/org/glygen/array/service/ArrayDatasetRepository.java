@@ -14,6 +14,10 @@ public interface ArrayDatasetRepository {
     
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user) throws SparqlException, SQLException;
     
+    List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+    List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
 
 }

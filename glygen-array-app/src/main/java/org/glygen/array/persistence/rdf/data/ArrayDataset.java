@@ -2,6 +2,7 @@ package org.glygen.array.persistence.rdf.data;
 
 import java.util.List;
 
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
 public class ArrayDataset {
@@ -16,6 +17,9 @@ public class ArrayDataset {
     Image image;
     
     List<Slide> slides;
+    
+    boolean isPublic = false;
+    Creator user;
 
     /**
      * @return the id
@@ -135,6 +139,34 @@ public class ArrayDataset {
      */
     public void setSlides(List<Slide> slides) {
         this.slides = slides;
+    }
+
+    /**
+     * @return the isPublic
+     */
+    public boolean getIsPublic() {
+        return isPublic;
+    }
+
+    /**
+     * @param isPublic the isPublic to set
+     */
+    public void setIsPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+
+    /**
+     * @return the user
+     */
+    public Creator getUser() {
+        return user;
+    }
+
+    /**
+     * @param user the user to set
+     */
+    public void setUser(Creator user) {
+        this.user = user;
     }
 
 }

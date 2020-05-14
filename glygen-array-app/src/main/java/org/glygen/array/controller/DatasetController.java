@@ -98,7 +98,7 @@ public class DatasetController {
                 UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
                 ProcessedDataParser parser = new ProcessedDataParser(featureRepository, glycanRepository, linkerRepository);
                 try {
-                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), config, user);
+                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), "sequenceMap.txt", config, user);
                     ArrayDataset dataset = new ArrayDataset();
                     dataset.setName(datasetName);
                     // TODO retrieve dataset from repository and update (add processed data)
