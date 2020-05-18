@@ -1048,6 +1048,7 @@ public class GlygenArrayController {
 					    try {
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
 					    } catch (Exception e) {
+					        logger.error("Glycan builder parse error", e);
 					        gwbError = true;
 					    }
 					    if (glycanObject == null) 
@@ -1059,6 +1060,7 @@ public class GlygenArrayController {
                             try {
                                 Sugar sugar = importer.parse(glycan.getSequence().trim());
                                 if (sugar == null) {
+                                    logger.error("Cannot get Sugar object for sequence:" + glycan.getSequence().trim());
                                     parseError = true;
                                     gwbError = false;  
                                 } else {
@@ -1068,6 +1070,7 @@ public class GlygenArrayController {
                                     g.setMass(massVisitor.getMass());
                                 }
                             } catch (Exception pe) {
+                                logger.error("GlycoCT parsing failed", pe);
                                 parseError = true;
                                 gwbError = false;
                             }
@@ -1556,7 +1559,7 @@ public class GlygenArrayController {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
 			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
 			return IOUtils.toByteArray(resource.getInputStream());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			logger.error("Image cannot be retrieved", e);
 			return null;
 		}
