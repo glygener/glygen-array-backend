@@ -2263,6 +2263,7 @@ public class GlygenArrayController {
         			if (probe != null) {
         				for (Ratio r1 : probe.getRatio()) {
         					org.glygen.array.persistence.rdf.Feature myFeature = new org.glygen.array.persistence.rdf.Feature();
+        					myFeature.setGlycans(new ArrayList<Glycan>());
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
 		        				SequenceDefinedGlycan myGlycan = new SequenceDefinedGlycan();
