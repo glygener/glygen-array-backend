@@ -1811,10 +1811,11 @@ public class GlygenArrayController {
 				
 				for (SlideLayout slideLayout: slideLayouts) {
 					// check if already exists before trying to import
+				    String searchName = null;
 					if (slideLayout.getName() != null) {
+					    searchName = slideLayout.getName();
 						try {
 							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-							String searchName = slideLayout.getName();
 							SlideLayout existing = layoutRepository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
 								result.getDuplicates().add(slideLayout);
@@ -1826,6 +1827,9 @@ public class GlygenArrayController {
 						}
 					}
 					slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
+					if (searchName != null) {
+					    slideLayout.setName(searchName);
+					}
 					if (slideLayout != null) {
 						// find all block layouts, glycans, linkers and add them first
 						for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
