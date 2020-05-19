@@ -16,8 +16,6 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
-import org.glygen.array.persistence.rdf.Glycan;
-import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -67,6 +65,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     final static String hasFilePredicate = ontPrefix + "has_filename";
     final static String scanOfPredicate = ontPrefix + "scan_of";
     final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
+    
+    final static String hasMeanPredicate = ontPrefix + "has_mean";
+    final static String hasBMeanPredicate = ontPrefix + "has_bMean";
+    final static String hasBMedianPredicate = ontPrefix + "has_bMedian";
+    final static String hasMeanMinusBPredicate = ontPrefix + "has_meanminusB";
+    final static String hasMedianMinusBPredicate = ontPrefix + "has_medianminusB";
+    final static String hasDiameterPredicate = ontPrefix + "has_diameter";
+    final static String hasXCoordinatePredicate = ontPrefix + "has_x_coordinate";
+    final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
+    final static String hasMedianPredicate = ontPrefix + "has_median";
     
 
     @Autowired
@@ -208,9 +216,47 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private String addMeasurement(Measurement measurement, List<Statement> statements, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    private String addMeasurement(Measurement measurement, List<Statement> statements, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+     
+        String measurementURI = generateUniqueURI(uriPrefix + "M", graph);
+        IRI measurementIRI = f.createIRI(measurementURI);
+        IRI graphIRI = f.createIRI(graph);
+        // add intensities
+        IRI hasMean = f.createIRI(hasMeanPredicate);
+        IRI hasMedian = f.createIRI(hasMedianPredicate);
+        IRI hasMeanMinusB = f.createIRI(hasMeanMinusBPredicate);
+        IRI hasMedianMinusB = f.createIRI(hasMedianMinusBPredicate);
+        IRI hasBMean = f.createIRI(hasBMeanPredicate);
+        IRI hasBMedian = f.createIRI(hasBMedianPredicate);
+        IRI hasXCoordinate = f.createIRI(hasXCoordinatePredicate);
+        IRI hasYCoordinate = f.createIRI(hasYCoordinatePredicate);
+        IRI hasStdev = f.createIRI(stdevPredicate);
+        IRI hasDiameter = f.createIRI(hasDiameterPredicate);
+        
+        Literal stdev = measurement.getStdev() == null ? null : f.createLiteral(measurement.getbStDev());
+        Literal mean = measurement.getMean() == null ? null : f.createLiteral(measurement.getMean());
+        Literal median = measurement.getMedian() == null ? null : f.createLiteral(measurement.getMedian());
+        Literal meanMinusB = measurement.getMeanMinusB() == null ? null : f.createLiteral(measurement.getMeanMinusB());
+        Literal medianMinusB = measurement.getMedianMinusB() == null ? null : f.createLiteral(measurement.getMedianMinusB());
+        Literal bMean = measurement.getbMean()== null ? null : f.createLiteral(measurement.getbMean());
+        Literal bMedian = measurement.getbMedian() == null ? null : f.createLiteral(measurement.getbMedian());
+        Literal diameter = measurement.getCoordinates().getDiameter() == null ? null : f.createLiteral(measurement.getCoordinates().getDiameter());
+        Literal xcoordinate = measurement.getCoordinates().getxCoord() == null ? null : f.createLiteral(measurement.getCoordinates().getxCoord());
+        Literal ycoordinate = measurement.getCoordinates().getyCoord() == null ? null : f.createLiteral(measurement.getCoordinates().getyCoord());
+        
+        if (stdev != null) statements.add(f.createStatement(measurementIRI, hasStdev, stdev, graphIRI));
+        if (mean != null) statements.add(f.createStatement(measurementIRI, hasMean, mean, graphIRI));
+        if (median != null) statements.add(f.createStatement(measurementIRI, hasMedian, median, graphIRI));
+        if (meanMinusB != null) statements.add(f.createStatement(measurementIRI, hasMeanMinusB, meanMinusB, graphIRI));
+        if (medianMinusB != null) statements.add(f.createStatement(measurementIRI, hasMedianMinusB, medianMinusB, graphIRI));
+        if (bMean != null) statements.add(f.createStatement(measurementIRI, hasBMean, bMean, graphIRI));
+        if (bMedian != null) statements.add(f.createStatement(measurementIRI, hasBMedian, bMedian, graphIRI));
+        if (diameter != null) statements.add(f.createStatement(measurementIRI, hasDiameter, diameter, graphIRI));
+        if (xcoordinate != null) statements.add(f.createStatement(measurementIRI, hasXCoordinate, xcoordinate, graphIRI));
+        if (ycoordinate != null) statements.add(f.createStatement(measurementIRI, hasYCoordinate, ycoordinate, graphIRI));
+        
+        return measurementURI;
     }
 
 
