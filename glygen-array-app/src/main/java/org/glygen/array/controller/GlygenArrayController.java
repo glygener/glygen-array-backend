@@ -1818,11 +1818,11 @@ public class GlygenArrayController {
 							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 							SlideLayout existing = layoutRepository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
-								result.getDuplicates().add(slideLayout);
+								result.getDuplicates().add(createSlideLayoutView(slideLayout));
 								continue;
 							}
 						} catch (Exception e) {
-							result.getErrors().add(slideLayout);
+							result.getErrors().add(createSlideLayoutView(slideLayout));
 							continue;
 						}
 					}
@@ -1921,18 +1921,18 @@ public class GlygenArrayController {
 						
 						try {
 							addSlideLayout(slideLayout, p);
-							result.getAddedLayouts().add(slideLayout);
+							result.getAddedLayouts().add(createSlideLayoutView(slideLayout));
 						} catch (Exception e) {
 							if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 								ErrorMessage error = (ErrorMessage) e.getCause();
 								for (ObjectError err: error.getErrors()) {
 									if (err.getDefaultMessage().contains("Duplicate")) {
-										result.getDuplicates().add(slideLayout);
+										result.getDuplicates().add(createSlideLayoutView(slideLayout));
 									}
 								}
 							} else {
 								logger.debug("Could not add slide layout", e);
-								result.getErrors().add(slideLayout);
+								result.getErrors().add(createSlideLayoutView(slideLayout));
 							}
 						}
 					}
@@ -1950,6 +1950,23 @@ public class GlygenArrayController {
 			errorMessage.addError(new ObjectError("file", "NotValid"));
 			throw new IllegalArgumentException("File cannot be found", errorMessage);
 		}	
+	}
+	
+	SlideLayout createSlideLayoutView (SlideLayout layout) {
+	    SlideLayout view = new SlideLayout();
+	    view.setId(layout.getId());
+	    view.setUri(layout.getUri());
+	    view.setIsPublic(layout.getIsPublic());
+	    view.setUser(layout.getUser());
+	    view.setName(layout.getName());
+	    view.setDescription(layout.getDescription());
+	    view.setWidth(layout.getWidth());
+	    view.setHeight(layout.getHeight());
+	    view.setDateCreated(layout.getDateCreated());
+	    view.setDateAddedToLibrary(layout.getDateAddedToLibrary());
+	    view.setDateModified(layout.getDateModified());
+	    
+	    return view;
 	}
 	
 	@ApiOperation(value = "Retrieve glycan with the given id")
