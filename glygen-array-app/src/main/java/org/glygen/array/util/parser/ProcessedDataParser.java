@@ -116,16 +116,27 @@ public class ProcessedDataParser {
             
             if (config.getResultFileType().equalsIgnoreCase("CFG")) {
                 // feature column contains the CFG name for the glycans, no glycopeptides or mixtures
-                String featureString = featureCell.getStringCellValue(); 
+                String featureString = featureCell.getStringCellValue().trim(); 
                 // parse sequence and find the glycan with the given sequence
                 // parse linker and find the linker with the given name
                 // find the feature with given glycan and linker
                 String glycoCT = parseSequence (featureString, errorList);
                 if (glycoCT == null) {
                     // check errorMapFile
-                    if (sequenceErrorMap.get(featureString.trim()) != null) {
-                        glycoCT = parseSequence (sequenceErrorMap.get(featureString.trim()), errorList);
-                    } else {
+                    String modified = sequenceErrorMap.get(featureString.trim());
+                    if ( modified != null && !modified.isEmpty()) {
+                        if (modified.startsWith("RES")) {
+                            // already glycoCT
+                            glycoCT = modified;
+                        }
+                        else {
+                            glycoCT = parseSequence (modified, errorList);
+                        }
+                        if (glycoCT == null) {
+                            // add to error list
+                            appendErrorMapFile(errorMapFilePath, featureString.trim());
+                        }
+                    } else if (modified == null){
                         // add to error list
                         appendErrorMapFile(errorMapFilePath, featureString.trim());
                     }
@@ -139,30 +150,37 @@ public class ProcessedDataParser {
                         ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
                         error.setErrorCode(ErrorCodes.INVALID_INPUT);
                         error.setStatus(HttpStatus.BAD_REQUEST.value());
-                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be found in the repository"));
+                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + "-glycoCT: " + glycoCT + " cannot be found in the repository"));
                         errorList.add(error);
                     } else {
-                        Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-                        Linker linker = linkerRepository.getLinkerByLabel(linkerName, user);
-                        if (glycan == null || linker == null) {
+                        //Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                        Glycan glycan = new Glycan();
+                        glycan.setUri(glycanURI);
+                        Linker linker = linkerRepository.getLinkerByLabel(linkerName.trim(), user);
+                        if (linker == null) {
                             // error
-                            ErrorMessage error = new ErrorMessage("Linker or glycan cannot be found in the repository for row: " + row.getRowNum());
+                            ErrorMessage error = new ErrorMessage("Linker cannot be found in the repository for row: " + row.getRowNum());
                             error.setErrorCode(ErrorCodes.INVALID_INPUT);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
-                            if (linker == null)
-                                error.addError(new ObjectError("linker", "Row " + row.getRowNum() + ": linker cannot be found in the repository"));
-                            else
-                                error.addError(new ObjectError("glycan", "Row " + row.getRowNum() + ": glycan cannot be found in the repository"));
+                            
+                            error.addError(new ObjectError("linker", "Row " + row.getRowNum() + ": linker " + linkerName + " cannot be found in the repository"));
                             errorList.add(error); 
                             continue;
                         }
                         Feature feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
                         if (feature == null) {
-                            ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence cannot be found in the repository");
-                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            error.setStatus(HttpStatus.BAD_REQUEST.value());
-                            error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence cannot be found in the repository"));
-                            errorList.add(error); 
+                            // try finding as SpxxB
+                            linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
+                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                            if (feature == null) {
+                                ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
+                                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                error.setStatus(HttpStatus.BAD_REQUEST.value());
+                                error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository"));
+                                errorList.add(error); 
+                            } else {
+                                intensity.setFeature(feature);
+                            }
                         } else {
                             intensity.setFeature(feature);
                         }
@@ -206,8 +224,10 @@ public class ProcessedDataParser {
         while (scanner.hasNext()) {
             String line = scanner.nextLine();
             String[] sequences = line.split("\\t");
-            if (sequences.length == 2 && sequences[1].trim().length() > 0) {
+            if (sequences.length >= 2 && sequences[1].trim().length() > 0) {
                 sequenceErrorMap.put(sequences[0].trim(), sequences[1].trim());
+            } else if (sequences.length == 1) {
+                sequenceErrorMap.put(sequences[0].trim(), "");
             }
         }
         scanner.close();

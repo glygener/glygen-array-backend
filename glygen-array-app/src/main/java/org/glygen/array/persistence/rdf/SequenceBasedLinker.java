@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.glygen.array.util.ExtendedGalFileParser;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 
 public class SequenceBasedLinker extends Linker {
@@ -38,7 +39,7 @@ public class SequenceBasedLinker extends Linker {
 				// parse the sequence and create SequenceDefinedGlycan
 				SequenceDefinedGlycan glycan = new SequenceDefinedGlycan();
 				CFGMasterListParser parser = new CFGMasterListParser();
-				String glycoCT =  parser.translateSequence(glycanSequence);
+				String glycoCT =  parser.translateSequence(ExtendedGalFileParser.cleanupSequence(glycanSequence));
 				glycan.setSequence(glycoCT);
 				glycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 				positionMap.put(new Integer(position), glycan);

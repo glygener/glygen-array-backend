@@ -15,6 +15,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -73,7 +74,9 @@ public class UtilityController {
 			@RequestParam String sequenceString) {
 		
 		CFGMasterListParser parser = new CFGMasterListParser();
-		return parser.translateSequence(sequenceString);
+		
+		
+		return parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequenceString));
 	}
 	
 	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")

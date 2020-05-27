@@ -329,6 +329,7 @@ public class ExtendedGalFileParser {
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                 error.addError(new ObjectError("linker", "NoEmpty"));
                 errors.add(error);
+                return null;
             }
             Feature feature = new Feature();
             if (featureType.equalsIgnoreCase("control"))
@@ -352,6 +353,7 @@ public class ExtendedGalFileParser {
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                 error.addError(new ObjectError("linker", "NoEmpty"));
                 errors.add(error);
+                return null;
             }
             Feature feature = new Feature();
             feature.setType(FeatureType.COMPOUND);
@@ -376,6 +378,7 @@ public class ExtendedGalFileParser {
                     error.setStatus(HttpStatus.BAD_REQUEST.value());
                     error.addError(new ObjectError("sequence", e.getMessage()));
                     errors.add(error);
+                    return null;
                 }
                 glycanList.add(glycan);
                 List<Glycan> glycans = new ArrayList<Glycan>();
@@ -512,12 +515,26 @@ public class ExtendedGalFileParser {
     
     public static String getSequence(String a_sequence) {
         int t_index = a_sequence.lastIndexOf("-");
-        return a_sequence.substring(0, t_index).trim();
+        String sequence = a_sequence.substring(0, t_index).trim();
+        return cleanupSequence(sequence);
+    }
+    
+    public static String cleanupSequence (String a_sequence) {
+        String sequence = a_sequence.trim();
+        sequence = sequence.replaceAll(" ", "");
+        sequence = sequence.replaceAll("\u00A0", "");
+        if (sequence.endsWith("1") || sequence.endsWith("2")) {
+            sequence = sequence.substring(0, sequence.length()-1);
+        }
+        return sequence;
     }
     
     public static String getLinker(String a_sequence) {
         int t_index = a_sequence.lastIndexOf("-");
-        return a_sequence.substring(t_index+1).trim();
+        String linker = a_sequence.substring(t_index+1).trim();
+                
+        linker = linker.replaceAll("\u00A0", "");
+        return linker;
     }
     
     public static void main(String[] args) {

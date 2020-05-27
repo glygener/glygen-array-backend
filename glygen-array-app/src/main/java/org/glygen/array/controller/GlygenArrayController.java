@@ -1090,7 +1090,7 @@ public class GlygenArrayController {
 					    break;
                     case IUPAC:
                         CFGMasterListParser parser = new CFGMasterListParser();
-                        glycoCT = parser.translateSequence(glycan.getSequence().trim());
+                        glycoCT = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(glycan.getSequence().trim()));
                         if (glycoCT != null)
                             glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
                         break;
@@ -1688,34 +1688,22 @@ public class GlygenArrayController {
                     LinkerListResultView result = listLinkers(0, null, null, null, null, p);
                     ExtendedGalFileParser parser = new ExtendedGalFileParser();
                     GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName, result.getRows());
-                    // add all new glycans and features and block layouts first
+                    
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    try {
-                        for (Glycan g: importResult.getGlycanList()) {
-                            addGlycan(g, p, false);
-                        }
-                        for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
-                            addFeature(f, p);
-                        }
-                        for (BlockLayout b: importResult.getLayoutList()) {
-                            addBlockLayout(b, p);
-                        }
-                    } catch (IllegalArgumentException e) {
-                        // need to ignore duplicate errors
-                        if (e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
-                            // do nothing
-                        } else if (e.getCause() instanceof ErrorMessage){
-                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                    if (!importResult.getErrors().isEmpty()) {
+                        for (ErrorMessage error: importResult.getErrors()) {
+                            for (ObjectError err: error.getErrors()) {
                                 errorMessage.addError(err);
                             }
-                        } else {
-                            throw e;
                         }
                     }
+                    
                     if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                         throw new IllegalArgumentException("Errors processing the gal file", errorMessage);
                     }
+                    
+                    
                     SlideLayout layout = importResult.getLayout();
                     if (width != null && height != null) {
                         if (layout.getHeight() == 1 && layout.getWidth() == 1) { // only one block in the GAL file
@@ -1755,6 +1743,33 @@ public class GlygenArrayController {
                             errorMessage.addError(new ObjectError("height", "NotValid"));
                             throw new IllegalArgumentException("Width and height specification does not match with GAL file", errorMessage);
                         }
+                    }
+                    
+                    // add all new glycans and features and block layouts first
+                    try {
+                        for (Glycan g: importResult.getGlycanList()) {
+                            addGlycan(g, p, false);
+                        }
+                        for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
+                            addFeature(f, p);
+                        }
+                        for (BlockLayout b: importResult.getLayoutList()) {
+                            addBlockLayout(b, p);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        // need to ignore duplicate errors
+                        if (e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
+                            // do nothing
+                        } else if (e.getCause() instanceof ErrorMessage){
+                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                                errorMessage.addError(err);
+                            }
+                        } else {
+                            throw e;
+                        }
+                    }
+                    if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                        throw new IllegalArgumentException("Errors processing the gal file", errorMessage);
                     }
                     
                     String slideURI = addSlideLayout(importResult.getLayout(), p);
