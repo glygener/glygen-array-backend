@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -69,6 +71,9 @@ public class DatasetController {
     @Value("${spring.file.uploaddirectory}")
     String uploadDir;
     
+    @Autowired
+    ResourceLoader resourceLoader;
+    
     @ApiOperation(value = "Import experiment results from uploaded excel file")
     @RequestMapping(value = "/addDatasetFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
@@ -98,7 +103,14 @@ public class DatasetController {
                 UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
                 ProcessedDataParser parser = new ProcessedDataParser(featureRepository, glycanRepository, linkerRepository);
                 try {
-                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), "sequenceMap.txt", config, user);
+                    Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
+                    if (!resource.exists()) {
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("mapFile", "NotValid"));
+                        throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
+                    }
+                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), config, user);
                     ArrayDataset dataset = new ArrayDataset();
                     dataset.setName(datasetName);
                     // TODO retrieve dataset from repository and update (add processed data)

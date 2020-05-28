@@ -327,8 +327,9 @@ public class ExtendedGalFileParser {
                 ErrorMessage error = new ErrorMessage();
                 error.setErrorCode(ErrorCodes.INVALID_INPUT);
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
-                error.addError(new ObjectError("linker", "NoEmpty"));
-                errors.add(error);
+                error.addError(new ObjectError("linker "+name, "NotFound"));
+                if (!error.getErrors().isEmpty())
+                    errors.add(error);
                 return null;
             }
             Feature feature = new Feature();
@@ -351,8 +352,9 @@ public class ExtendedGalFileParser {
                 ErrorMessage error = new ErrorMessage();
                 error.setErrorCode(ErrorCodes.INVALID_INPUT);
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
-                error.addError(new ObjectError("linker", "NoEmpty"));
-                errors.add(error);
+                error.addError(new ObjectError("linker "+name, "NotFound"));
+                if (!error.getErrors().isEmpty())
+                    errors.add(error);
                 return null;
             }
             Feature feature = new Feature();
@@ -376,8 +378,9 @@ public class ExtendedGalFileParser {
                     ErrorMessage error = new ErrorMessage();
                     error.setErrorCode(ErrorCodes.INVALID_INPUT);
                     error.setStatus(HttpStatus.BAD_REQUEST.value());
-                    error.addError(new ObjectError("sequence", e.getMessage()));
-                    errors.add(error);
+                    error.addError(new ObjectError("sequence " + name, e.getMessage()));
+                    if (!error.getErrors().isEmpty())
+                        errors.add(error);
                     return null;
                 }
                 glycanList.add(glycan);

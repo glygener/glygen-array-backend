@@ -63,7 +63,9 @@ public class ErrorMessage extends Error {
 	public void addError(ObjectError error) {
 		if (this.errors == null)
 			this.errors = new ArrayList<>();
-		this.errors.add(error);
+		
+		if (!this.errors.contains(error))
+		    this.errors.add(error);
 	}
 	
 	/**
