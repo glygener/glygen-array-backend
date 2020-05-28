@@ -1,0 +1,25 @@
+Neu5,9Ac2a2-3Galb1-3GlcNAcb-Sp0	[9Ac]Neu5Aca2-3Galb1-3GlcNAcb-Sp0
+Neu5,9Ac2a2-3Galb1-4GlcNAcb-Sp0	[9Ac]Neu5Aca2-3Galb1-4GlcNAcb-Sp0
+Neu5,9Ac2a-Sp8	[9Ac]Neu5Aca-Sp8
+Neu5,9Ac2a2-6Galb1-4GlcNAcb-Sp8	[9Ac]Neu5Aca2-6Galb1-4GlcNAcb-Sp8
+GlcNAcb1-3Galb1-4GlcNAcb1-6(GlcNAcb1-3Galb1-4GlcNAcb1-2)Mana1-6(GlcNAcb1-3Galb1-4GlcNAcb1-2Man a1-3)Manb1-4GlcNAcb1-4GlcNAc-Sp24	GlcNAcb1-3Galb1-4GlcNAcb1-6(GlcNAcb1-3Galb1-4GlcNAcb1-2)Mana1-6(GlcNAcb1-3Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4GlcNAc-Sp24
+Neu5Aca2-6Galb1-4 GlcNAcb1-6(Neu5Aca2-6Galb1-4GlcNAcb1-3)GalNAca-Sp14	Neu5Aca2-6Galb1-4GlcNAcb1-6(Neu5Aca2-6Galb1-4GlcNAcb1-3)GalNAca-Sp14
+Fcuca1-2Galb1-4 GlcNAcb1-2Mana1-6(Fua1-2Galb1-4GlcNAcb1-2(Fuca1-2Galb1-4GlcNAcb1-4)Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp12	Fuca1-2Galb1-4GlcNAcb1-2Mana1-6(Fuca1-2Galb1-4GlcNAcb1-2(Fuca1-2Galb1-4GlcNAcb1-4)Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp12
+GlcNAcb1-2 Mana1-6(GlcNAcb1-4)(GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21	GlcNAcb1-2Mana1-6(GlcNAcb1-4)(GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21
+Fuca1-4(Galb1-3)GlcNAcb1-2 Mana-Sp0	Fuca1-4(Galb1-3)GlcNAcb1-2Mana-Sp0
+Neu5Aca2-6Galb1-4GlcNAcb1-2Mana1-6(Neu5Aca2-6Galb1-4GlcNAcb1-2Man-a1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp21	Neu5Aca2-6Galb1-4GlcNAcb1-2Mana1-6(Neu5Aca2-6Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp21
+6S(3S)Galb1-4(6S)GlcNAcb-Sp0	[3S][6S]Galb1-4[6S]GlcNAcb-Sp0
+GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-Sp8	GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb-Sp8
+Galb1-4GlcNAcb1-2 Mana1-6(Galb1-4GlcNAcb1-4)(Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21	Galb1-4GlcNAcb1-2Mana1-6(Galb1-4GlcNAcb1-4)(Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21
+Galb1-4GlcNAcb1-2 Mana1-6(GlcNAcb1-4)(Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21	Galb1-4GlcNAcb1-2Mana1-6(GlcNAcb1-4)(Galb1-4GlcNAcb1-2Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21	
+GlcN(Gc)b-Sp8	GlcNGcb-Sp8
+4S(3S)Galb1-4GlcNAcb-Sp0	[3S][4S]Galb1-4GlcNAcb-Sp0
+GalNAca1-3(Fuca1-2)Galb1-4 GlcNAcb1-2Mana-Sp0	GalNAca1-3(Fuca1-2)Galb1-4GlcNAcb1-2Mana-Sp0
+GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-Sp8	GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb1-4GlcNAcb-Sp8
+Galb1-4GlcNAcb1-6(Galb1-4GlcNAcb1-2)Mana1-6(GlcNAcb1-4)Galb1-4GlcNAcb1-4(Gal b1-4GlcNAcb1-2)Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21	Galb1-4GlcNAcb1-6(Galb1-4GlcNAcb1-2)Mana1-6(GlcNAcb1-4)(Galb1-4GlcNAcb1-4(Galb1-4GlcNAcb1-2)Mana1-3)Manb1-4GlcNAcb1-4(Fuca1-6)GlcNAc-Sp21
+6S(3S)Galb1-4GlcNAcb-Sp0	[3S][6S]Galb1-4GlcNAcb-Sp0
+Fuca1-2Galb1-4 GlcNAcb1-2Mana1-6(Fuca1-2Galb1-4GlcNAcb1-2(Fuca1-2Galb1-4GlcNAcb1-4)Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp12	Fuca1-2Galb1-4GlcNAcb1-2Mana1-6(Fuca1-2Galb1-4GlcNAcb1-2(Fuca1-2Galb1-4GlcNAcb1-4)Mana1-3)Manb1-4GlcNAcb1-4GlcNAcb-Sp12
+G-ol-Sp8	RES\n1b:o-dglc-HEX-0:0|1:aldi
+MurNAcb1-4GlcNAcb-Sp10	RES\n1b:b-dglc-HEX-1:5\n2s:n-acetyl\n3b:b-dglc-HEX-1:5\n4s:n-acetyl\n5s:(r)-carboxyethyl\nLIN\n1:1d(2+1)2n\n2:1o(4+1)3d\n3:3d(2+1)4n\n4:3o(3+1)5n
+GlcNAcb1-4-MDPLys	RES\n1b:b-dglc-HEX-1:5\n2s:n-acetyl\n3s:(r)-carboxyethyl\n4b:b-dglc-HEX-1:5\n5s:n-acetyl\nLIN\n1:1d(2+1)2n\n2:1o(3+1)3n\n3:1d(4+1)4o\n4:4d(2+1)5n	
+	
