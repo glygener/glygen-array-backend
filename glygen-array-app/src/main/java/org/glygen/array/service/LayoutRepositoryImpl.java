@@ -442,7 +442,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
 	}
 	
-	private Block getBlock (String blockURI, UserEntity user) throws SparqlException, SQLException {
+	private Block getBlock (String blockURI, boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 	    String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -473,7 +473,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				if (blockLayoutCache.containsKey(blockLayoutURI)) {
 				    blockLayout = blockLayoutCache.get(blockLayoutURI);
 				} else {
-				    blockLayout = getBlockLayoutFromURI(blockLayoutURI, true, user);    // need the spots
+				    blockLayout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);    // need the spots
 				    blockLayoutCache.put(blockLayoutURI, blockLayout);
 				}
 				blockObject.setBlockLayout(blockLayout);
@@ -1080,10 +1080,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     Date date = calendar.toGregorianCalendar().getTime();
                     slideLayoutObject.setDateAddedToLibrary(date);
                 }
-            } else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasBlock)) {
+            } else if (/*(loadAll == null || loadAll) &&*/ st.getPredicate().equals(hasBlock)) {
                 Value v = st.getObject();
                 String blockURI = v.stringValue();
-                Block block = getBlock (blockURI, user);
+                Block block = getBlock (blockURI, loadAll, user);
                 slideLayoutObject.getBlocks().add(block);
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
@@ -1250,7 +1250,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 		    blockL = getBlockLayoutFromURI(uri, null);
                 		block.setBlockLayout(blockL);
                 		String blockURI = addPublicBlock (block, graph);
-                		Block newBlock = getBlock(blockURI, null);
+                		Block newBlock = getBlock(blockURI, true, null);
                 		publicBlocks.add(newBlock);
                 	}
                 	
