@@ -818,7 +818,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 							features.add(feat);
 						}
 					}
-					spots.add(s);
+					if (!features.isEmpty())
+					    spots.add(s);
 				}
 			}
 			
