@@ -41,6 +41,7 @@ import org.eurocarbdb.application.glycanbuilder.Union;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
 import org.glygen.array.config.SesameTransactionConfig;
+import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -334,44 +335,53 @@ public class GlygenArrayController {
 	public String addFeature (
 			@ApiParam(required=false, value="Feature to be added, a linker and an at least one glycan are mandatory") 
 			@RequestBody(required=false) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+	    
+	    ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (feature.getName() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "name", feature.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
 	    if (feature.getType() == null || feature.getType() == FeatureType.NORMAL) {
     		if (feature.getLinker() == null || feature.getGlycans() == null || feature.getGlycans().isEmpty()) {
-    			ErrorMessage errorMessage = new ErrorMessage();
-    			errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-    			errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
     			if (feature.getLinker() == null)
     				errorMessage.addError(new ObjectError("linker", "NoEmpty"));
     			else 
     				errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
-    			throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
     		}
 	    } else {
-	        // other types
+	        // other types 
 	        if (feature.getLinker() == null) {
-	            ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("linker", "NoEmpty"));
-                throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+                
 	        }
 	    }
-		
+	   	
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		if (feature.getName() != null && !feature.getName().trim().isEmpty()) {
 		    try {
                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);
                 if (existing != null) {
-                    ErrorMessage errorMessage = new ErrorMessage();
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                     errorMessage.addError(new ObjectError("name", "Duplicate"));
-                    throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
                 }
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Could not query existing features", e);
             }
 		}
+		
+		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+		
 		try {
 		    try {
     		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
@@ -385,9 +395,9 @@ public class GlygenArrayController {
     		        }
     		        Linker existing = linkerRepository.getLinkerById(linkerId, user);
     		        if (existing == null) {
-    		            ErrorMessage errorMessage = new ErrorMessage();
-    	                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-    	                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+    		            errorMessage = new ErrorMessage();
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
     	                errorMessage.addError(new ObjectError("linker", "NotValid"));
     	                throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
     		        }
@@ -414,7 +424,7 @@ public class GlygenArrayController {
                         }
                         Glycan existing = glycanRepository.getGlycanById(glycanId, user);
                         if (existing == null) {
-                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage = new ErrorMessage();
                             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("glycan", "NotValid"));
@@ -1576,6 +1586,8 @@ public class GlygenArrayController {
 	        ArrayDesignLibrary library = (ArrayDesignLibrary) unmarshaller2.unmarshal(reader2);
 	        List<org.grits.toolbox.glycanarray.library.om.layout.SlideLayout> layoutList = 
 	        		library.getLayoutLibrary().getSlideLayout();
+	        ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 	        for (org.grits.toolbox.glycanarray.library.om.layout.SlideLayout slideLayout : layoutList) {
 	        	if (slideLayout.getName().equalsIgnoreCase(layout.getName()) ||
 	        	        layout.getId().equals(slideLayout.getId().toString())) {
@@ -1584,8 +1596,8 @@ public class GlygenArrayController {
 	        		String desc = null;
 	        		if (slideLayout.getDescription() != null) {
 	        			desc = slideLayout.getDescription();
-	        			if (desc.length() >= 250) {
-	        				desc = desc.substring(0, 249);
+	        			if (desc.length() >= ValidationConstants.DESCRIPTION_LIMIT) {
+	        				desc = desc.substring(0, ValidationConstants.DESCRIPTION_LIMIT-1);
 	        			}
 	        		}
 	        		mySlideLayout.setDescription(desc);
@@ -1602,12 +1614,16 @@ public class GlygenArrayController {
 	        				height = block.getRow();
 	        			Integer blockLayoutId = block.getLayoutId();
 	        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
+	        			if (blockLayout == null) {
+	        			    // it should have been in the file
+	        	            errorMessage.addError(new ObjectError("blockLayout:" + blockLayoutId, "NotFound"));
+	        			}
 	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
 	        			String name = null;
 	        			if (blockLayout.getName() != null) {
 	        				name = blockLayout.getName();
-	        				if (name.length() >= 100) {
-	        					name = name.substring(0, 99);
+	        				if (name.length() >= ValidationConstants.NAME_LIMIT) {
+	        					name = name.substring(0, ValidationConstants.NAME_LIMIT-1);
 	        				}
 	        			}
 	        			myLayout.setName(name);
@@ -1616,21 +1632,35 @@ public class GlygenArrayController {
 	        			String comment = null;
 	        			if (blockLayout.getComment() != null) {
 	        				comment = blockLayout.getComment().replaceAll("\\r", " ").replaceAll("\\n", " ");
-	        				if (comment.length() >= 250) {
-	        					comment = comment.substring(0, 249);
+	        				if (comment.length() >= ValidationConstants.DESCRIPTION_LIMIT) {
+	        					comment = comment.substring(0, ValidationConstants.DESCRIPTION_LIMIT-1);
 	        				}
 	        			}
 	        			myLayout.setDescription(comment);
-	        			myBlock.setBlockLayout(myLayout);
-	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
-	        			//myBlock.setSpots(spots);
-	        			myLayout.setSpots(spots);
-	        			blocks.add(myBlock);
+	        			myBlock.setBlockLayout(myLayout); 
+	        			try {
+    	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
+    	        			//myBlock.setSpots(spots);
+    	        			myLayout.setSpots(spots);
+    	        			blocks.add(myBlock);
+	        			} catch (Exception e) {
+	        			    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+	                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+	                                errorMessage.addError(err);
+	                            }
+	                        } else {
+	                            errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+	                        }
+	        			}
 	        		}
 	        		
 	        		mySlideLayout.setHeight(slideLayout.getHeight() == null ? height: slideLayout.getHeight());
 	        		mySlideLayout.setWidth(slideLayout.getWidth() == null ? width: slideLayout.getWidth());
 	        		mySlideLayout.setBlocks(blocks);
+	        		
+	        		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+	        		    throw new IllegalArgumentException("Not a valid array library!", errorMessage);
+	        		}
 	        		return mySlideLayout;
 	        	}
 	        }
@@ -1823,6 +1853,8 @@ public class GlygenArrayController {
 				ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
 				
 				List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
+				ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 				
 				for (SlideLayout slideLayout: slideLayouts) {
 					// check if already exists before trying to import
@@ -1838,10 +1870,26 @@ public class GlygenArrayController {
 							}
 						} catch (Exception e) {
 							result.getErrors().add(createSlideLayoutView(slideLayout));
+							errorMessage.addError(new ObjectError("internalError", e.getMessage()));
 							continue;
 						}
 					}
-					slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
+					try {
+					    slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
+					} catch (Exception e) {
+					    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+					        for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+					            errorMessage.addError(err);
+					        }
+					    } else {
+					        errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+					    }
+					    slideLayout = new SlideLayout();
+					    slideLayout.setName(searchName);
+					    result.getErrors().add(slideLayout);
+					    result.setErrorMessage(errorMessage);
+					    return result;
+					}
 					if (searchName != null) {
 					    slideLayout.setName(searchName);
 					}
@@ -1880,6 +1928,8 @@ public class GlygenArrayController {
     																		    }
     																		}
     																		break;
+    																	} else {
+    																	    errorMessage.addError(err);
     																	}
     																}
     															} else {
@@ -1905,6 +1955,8 @@ public class GlygenArrayController {
 																			needAlias = false;
 																			break;
 																		}
+																	} else {
+																	    errorMessage.addError(err);
 																	}
 																}
 																if (needAlias) {		
@@ -1920,6 +1972,7 @@ public class GlygenArrayController {
 															}
 															else {
 																logger.info("Could not add linker: ", e);
+																errorMessage.addError(new ObjectError("internalError", e.getMessage()));
 															}
 														}
 													}
@@ -1929,7 +1982,15 @@ public class GlygenArrayController {
 										addBlockLayout(block.getBlockLayout(), p);
 									}
 								} catch (Exception e) {
-									logger.info("Cannot add block layout", e);
+									logger.info("Could not add block layout", e);
+									if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                        ErrorMessage error = (ErrorMessage) e.getCause();
+                                        for (ObjectError err: error.getErrors()) {
+                                            errorMessage.addError(err);
+                                        }
+									} else {
+									    errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+									}
 								}
 							}
 						}
@@ -1943,15 +2004,19 @@ public class GlygenArrayController {
 								for (ObjectError err: error.getErrors()) {
 									if (err.getDefaultMessage().contains("Duplicate")) {
 										result.getDuplicates().add(createSlideLayoutView(slideLayout));
+									} else {
+									    errorMessage.addError(err);
 									}
 								}
 							} else {
 								logger.debug("Could not add slide layout", e);
 								result.getErrors().add(createSlideLayoutView(slideLayout));
+								errorMessage.addError(new ObjectError("internalError", e.getMessage()));
 							}
 						}
 					}
 				}
+				result.setErrorMessage(errorMessage);
 				return result;
 			} else {
 				ErrorMessage errorMessage = new ErrorMessage();
@@ -2278,6 +2343,8 @@ public class GlygenArrayController {
 	
 	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout) {
 		List<org.glygen.array.persistence.rdf.Spot> spots = new ArrayList<>();
+		ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
     	for (Spot spot: blockLayout.getSpot()) {
     		org.glygen.array.persistence.rdf.Spot s = new org.glygen.array.persistence.rdf.Spot();
     		s.setRow(spot.getY());
@@ -2310,6 +2377,9 @@ public class GlygenArrayController {
 		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
 		        				myFeature.getGlycans().add(myGlycan);
+        					} else {
+        					    // should have been there
+                                errorMessage.addError(new ObjectError("glycan:" + r1.getItemId(), "NotFound"));
         					}
 		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
 		        			if (linker != null) {
@@ -2319,10 +2389,17 @@ public class GlygenArrayController {
 		        				myLinker.setComment(linker.getComment());
 		        				myFeature.setLinker(myLinker);
 		        			}
+		        			else {
+		        			    // should have been there
+                                errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
+                            }
 		        			ratioMap.put(myFeature, r1.getItemRatio());
 		        			features.add(myFeature);
         				}
-        			}			
+        			} else {
+        			    // should have been there
+        			    errorMessage.addError(new ObjectError("probe:" + r.getItemId(), "NotFound"));
+        			}
         		}
     		}
     		s.setFeatureRatioMap(ratioMap);
@@ -2330,6 +2407,8 @@ public class GlygenArrayController {
     		spots.add(s);
     	}
     	
+    	if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty())
+    	    throw new IllegalArgumentException("Not a valid array library!", errorMessage);
     	return spots;
 	}
 	

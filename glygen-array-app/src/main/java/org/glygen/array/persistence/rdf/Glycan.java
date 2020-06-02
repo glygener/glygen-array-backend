@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.constraints.Size;
 
+import org.glygen.array.config.ValidationConstants;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -112,7 +114,7 @@ public class Glycan {
 	/**
 	 * @return the comment
 	 */
-	@Size(max=250, message="Comment cannot exceed 250 characters")
+	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
 	public String getComment() {
 		return comment;
 	}

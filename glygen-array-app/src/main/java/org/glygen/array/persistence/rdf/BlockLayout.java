@@ -6,6 +6,8 @@ import java.util.List;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
+import org.glygen.array.config.SecurityConstants;
+import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.service.GlygenArrayRepository;
 
 
@@ -23,7 +25,7 @@ public class BlockLayout {
 	 * @return the name
 	 */
 	
-	@Size(max=100, message="Name cannot exceed 100 characters")
+	@Size(max=ValidationConstants.NAME_LIMIT, message="Name cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
 	public String getName() {
 		return name;
 	}
@@ -36,7 +38,7 @@ public class BlockLayout {
 	/**
 	 * @return the description
 	 */
-	@Size(max=250, message="description cannot exceed 250 characters")
+	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
 	public String getDescription() {
 		return description;
 	}

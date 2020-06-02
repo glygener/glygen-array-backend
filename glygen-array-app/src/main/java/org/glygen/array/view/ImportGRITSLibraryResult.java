@@ -11,6 +11,8 @@ public class ImportGRITSLibraryResult {
 	List<SlideLayout> duplicates = new ArrayList<SlideLayout>();
 	List<SlideLayout> errors = new ArrayList<SlideLayout>();
 	
+	ErrorMessage errorMessage;
+	
 	String successMessage;
 
 	/**
@@ -68,6 +70,20 @@ public class ImportGRITSLibraryResult {
 	public void setSuccessMessage(String successMessage) {
 		this.successMessage = successMessage;
 	}
+
+    /**
+     * @return the errorMessage
+     */
+    public ErrorMessage getErrorMessage() {
+        return errorMessage;
+    }
+
+    /**
+     * @param errorMessage the errorMessage to set
+     */
+    public void setErrorMessage(ErrorMessage errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 	
 
 }

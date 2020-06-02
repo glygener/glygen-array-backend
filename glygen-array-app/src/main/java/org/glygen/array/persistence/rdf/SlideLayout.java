@@ -6,6 +6,8 @@ import java.util.List;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
+import org.glygen.array.config.ValidationConstants;
+
 public class SlideLayout {
 	String id;
 	String uri;
@@ -22,7 +24,7 @@ public class SlideLayout {
 	/**
 	 * @return the name
 	 */
-	@Size(max=100, message="Name cannot exceed 100 characters")
+	@Size(max=ValidationConstants.NAME_LIMIT, message="Name cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
 	public String getName() {
 		return name;
 	}
@@ -35,7 +37,7 @@ public class SlideLayout {
 	/**
 	 * @return the description
 	 */
-	@Size(max=250, message="description cannot exceed 250 characters")
+	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
 	public String getDescription() {
 		return description;
 	}
