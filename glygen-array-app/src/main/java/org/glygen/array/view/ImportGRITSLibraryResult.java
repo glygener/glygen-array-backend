@@ -9,9 +9,7 @@ public class ImportGRITSLibraryResult {
 	
 	List<SlideLayout> addedLayouts = new ArrayList<SlideLayout>();
 	List<SlideLayout> duplicates = new ArrayList<SlideLayout>();
-	List<SlideLayout> errors = new ArrayList<SlideLayout>();
-	
-	ErrorMessage errorMessage;
+	List<SlideLayoutError> errors = new ArrayList<>();
 	
 	String successMessage;
 
@@ -46,14 +44,14 @@ public class ImportGRITSLibraryResult {
 	/**
 	 * @return the errors
 	 */
-	public List<SlideLayout> getErrors() {
+	public List<SlideLayoutError> getErrors() {
 		return errors;
 	}
 
 	/**
 	 * @param errors the errors to set
 	 */
-	public void setErrors(List<SlideLayout> errors) {
+	public void setErrors(List<SlideLayoutError> errors) {
 		this.errors = errors;
 	}
 
@@ -70,20 +68,4 @@ public class ImportGRITSLibraryResult {
 	public void setSuccessMessage(String successMessage) {
 		this.successMessage = successMessage;
 	}
-
-    /**
-     * @return the errorMessage
-     */
-    public ErrorMessage getErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * @param errorMessage the errorMessage to set
-     */
-    public void setErrorMessage(ErrorMessage errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-	
-
 }

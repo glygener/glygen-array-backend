@@ -87,6 +87,7 @@ import org.glygen.array.view.ImportGRITSLibraryResult;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
+import org.glygen.array.view.SlideLayoutError;
 import org.glygen.array.view.SlideLayoutResultView;
 import org.glygen.array.view.UploadResult;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
@@ -1617,6 +1618,7 @@ public class GlygenArrayController {
 	        			if (blockLayout == null) {
 	        			    // it should have been in the file
 	        	            errorMessage.addError(new ObjectError("blockLayout:" + blockLayoutId, "NotFound"));
+	        	            continue;
 	        			}
 	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
 	        			String name = null;
@@ -1853,10 +1855,10 @@ public class GlygenArrayController {
 				ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
 				
 				List<BlockLayout> addedLayouts = new ArrayList<BlockLayout>();
-				ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 				
 				for (SlideLayout slideLayout: slideLayouts) {
+				    ErrorMessage errorMessage = new ErrorMessage();
+	                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 					// check if already exists before trying to import
 				    String searchName = null;
 					if (slideLayout.getName() != null) {
@@ -1869,14 +1871,18 @@ public class GlygenArrayController {
 								continue;
 							}
 						} catch (Exception e) {
-							result.getErrors().add(createSlideLayoutView(slideLayout));
+						    SlideLayoutError errorObject = new SlideLayoutError();
+						    errorObject.setLayout(createSlideLayoutView(slideLayout));
+							result.getErrors().add(errorObject);
 							errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+							errorObject.setError(errorMessage);
 							continue;
 						}
 					}
 					try {
 					    slideLayout = getFullLayoutFromLibrary (libraryFile, slideLayout);
 					} catch (Exception e) {
+					    logger.error("Error getting slide layout from the library file", e);
 					    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 					        for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
 					            errorMessage.addError(err);
@@ -1886,8 +1892,10 @@ public class GlygenArrayController {
 					    }
 					    slideLayout = new SlideLayout();
 					    slideLayout.setName(searchName);
-					    result.getErrors().add(slideLayout);
-					    result.setErrorMessage(errorMessage);
+					    SlideLayoutError errorObject = new SlideLayoutError();
+					    errorObject.setError(errorMessage);
+					    errorObject.setLayout(slideLayout);
+					    result.getErrors().add(errorObject);
 					    return result;
 					}
 					if (searchName != null) {
@@ -2010,13 +2018,15 @@ public class GlygenArrayController {
 								}
 							} else {
 								logger.debug("Could not add slide layout", e);
-								result.getErrors().add(createSlideLayoutView(slideLayout));
+								SlideLayoutError errorObject = new SlideLayoutError();
+		                        errorObject.setError(errorMessage);
+		                        errorObject.setLayout(slideLayout);
+		                        result.getErrors().add(errorObject);
 								errorMessage.addError(new ObjectError("internalError", e.getMessage()));
 							}
 						}
 					}
 				}
-				result.setErrorMessage(errorMessage);
 				return result;
 			} else {
 				ErrorMessage errorMessage = new ErrorMessage();
