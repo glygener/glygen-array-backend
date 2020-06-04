@@ -418,6 +418,14 @@ public class ExtendedGalFileParser {
             feature.setLinker(linker);
             feature.setGlycans(glycans);
             return feature;
+        } else {
+            // error in file format, the types should have been one of the previous ones
+            ErrorMessage error = new ErrorMessage();
+            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+            error.setStatus(HttpStatus.BAD_REQUEST.value());
+            error.addError(new ObjectError("file ", "NotValid - featureType is not correct"));
+            if (!error.getErrors().isEmpty())
+                errors.add(error);
         }
         
         return null;

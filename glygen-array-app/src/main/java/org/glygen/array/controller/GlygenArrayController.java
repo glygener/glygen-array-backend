@@ -1704,6 +1704,7 @@ public class GlygenArrayController {
 	        Integer height,
 	        Principal p) {
 	    if (uploadedFileName != null) {
+	        uploadedFileName = moveToTempFile (uploadedFileName);
             File galFile = new File(uploadDir, uploadedFileName);
             if (galFile.exists()) {
                 // check if the name is available
@@ -1745,7 +1746,7 @@ public class GlygenArrayController {
                                     // error
                                     errorMessage = new ErrorMessage();
                                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                                    errorMessage.addError(new ObjectError("blockLayout", "NoEmpty"));
+                                    errorMessage.addError(new ObjectError("blockLayout", "NotFound"));
                                     throw new IllegalArgumentException("Block layout cannot be extracted from the GAL file", errorMessage);
                                 }
                                 List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
@@ -1764,7 +1765,7 @@ public class GlygenArrayController {
                                 // error
                                 errorMessage = new ErrorMessage();
                                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                                errorMessage.addError(new ObjectError("blockLayout", "NoEmpty"));
+                                errorMessage.addError(new ObjectError("blockLayout", "NotFound"));
                                 throw new IllegalArgumentException("Block layout cannot be extracted from the GAL file", errorMessage);
                             }
                         } else if (layout.getWidth() != width || layout.getHeight() != height){
@@ -1826,7 +1827,22 @@ public class GlygenArrayController {
 	    }
 	}
 	
-	@ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
+	private String moveToTempFile(String uploadedFileName) {
+        if (uploadedFileName.startsWith("tmp"))
+            return uploadedFileName;
+        File oldFile = new File (uploadDir, uploadedFileName);
+        File newFile = new File (uploadDir, "tmp" + uploadedFileName);
+        if (newFile.exists()) {
+            // already moved to tmp
+            return "tmp" + uploadedFileName;
+        }
+        boolean b = oldFile.renameTo(newFile);
+        if (b) return "tmp" + uploadedFileName;
+        
+        return uploadedFileName;
+    }
+
+    @ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -1844,6 +1860,7 @@ public class GlygenArrayController {
 			Principal p) {
 		
 		if (uploadedFileName != null) {
+		    uploadedFileName = moveToTempFile (uploadedFileName);
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
 				if (slideLayouts == null || slideLayouts.isEmpty()) {
@@ -2296,6 +2313,7 @@ public class GlygenArrayController {
 			@RequestParam("file") String uploadedFileName) {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		if (uploadedFileName != null) {
+		    uploadedFileName = moveToTempFile (uploadedFileName);
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
 				try {
