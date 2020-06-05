@@ -10,6 +10,7 @@ public class MetadataTemplate {
     String uri;
     String name;
     String description;
+    MetadataTemplateType type;
     List<Description> descriptors;
     
     /**
@@ -71,6 +72,18 @@ public class MetadataTemplate {
      */
     public void setDescriptors(List<Description> descriptors) {
         this.descriptors = descriptors;
+    }
+    /**
+     * @return the type
+     */
+    public MetadataTemplateType getType() {
+        return type;
+    }
+    /**
+     * @param type the type to set
+     */
+    public void setType(MetadataTemplateType type) {
+        this.type = type;
     }
 
 }

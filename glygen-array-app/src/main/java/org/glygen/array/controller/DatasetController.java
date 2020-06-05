@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.config.SesameTransactionConfig;
@@ -13,7 +15,13 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
+import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.persistence.rdf.template.Namespace;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
@@ -169,5 +177,81 @@ public class DatasetController {
             throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
         }
         
+    }
+    
+    @ApiOperation(value = "Retrieve list of templates for the given type")
+    @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Return a list of metadata templates"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve templates"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public List<MetadataTemplate> getAllTemplatesByType (
+            @ApiParam(required=true, value="Type of the metadatatemplate") 
+            @RequestParam("type")
+            MetadataTemplateType type, Principal p) {
+        
+        List<MetadataTemplate> templates = new ArrayList<MetadataTemplate>();
+        
+        //TODO retrieve them from the repository
+        MetadataTemplate sampleTemplate = new MetadataTemplate();
+        sampleTemplate.setId("1234567");
+        sampleTemplate.setName("Protein Sample Template");
+        sampleTemplate.setType(MetadataTemplateType.SAMPLE);
+        List<Description> descriptors = new ArrayList<>();
+        DescriptorTemplate descriptor = new DescriptorTemplate();
+        descriptor.setName ("AA Sequence");
+        descriptor.setDescription("Amino acid sequence in fasta format");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        Namespace namespace = new Namespace();
+        namespace.setName("text");
+        namespace.setUri("http://www.w3.org/2001/XMLSchema#string");
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
+        DescriptorGroupTemplate descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Database entry");
+        descriptorGroup.setMandatory(true);
+        descriptorGroup.setMaxOccurrence(Integer.MAX_VALUE);
+        descriptorGroup.setDescription("Entry of the protein in a reference database (e.g. Uniprot)");
+        List<Description> groupDescriptors = new ArrayList<Description>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Database");
+        descriptor.setDescription("Name of the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Database URL");
+        descriptor.setDescription("Web link of the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Id");
+        descriptor.setDescription("Identifier of the protein in the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("URL");
+        descriptor.setDescription("Web link of the protein in the database");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        
+        descriptors.add(descriptorGroup);
+        sampleTemplate.setDescriptors(descriptors);
+        templates.add(sampleTemplate);
+        
+        return templates;
     }
 }
