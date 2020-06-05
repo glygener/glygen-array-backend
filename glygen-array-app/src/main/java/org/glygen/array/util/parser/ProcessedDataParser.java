@@ -33,10 +33,14 @@ import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 
 public class ProcessedDataParser {
+    
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     FeatureRepository featureRepository;
     GlycanRepository glycanRepository;
@@ -111,7 +115,7 @@ public class ProcessedDataParser {
             Intensity intensity = new Intensity();
             intensity.setRfu(rfuCell.getNumericCellValue());
             intensity.setStDev(stDevCell.getNumericCellValue());
-            if (cvCell != null)
+            if (cvCell != null && cvCell.getCellType() == Cell.CELL_TYPE_NUMERIC) 
                 intensity.setPercentCV(cvCell.getNumericCellValue());
             
             if (config.getResultFileType().equalsIgnoreCase("CFG")) {
@@ -251,11 +255,7 @@ public class ProcessedDataParser {
             String glycoCT = parser.translateSequence(glycanSequence);
             return glycoCT;
         } catch (Exception e) {
-            ErrorMessage error = new ErrorMessage("Parse Error for sequence " + sequence);
-            error.setErrorCode(ErrorCodes.INVALID_INPUT);
-            error.setStatus(HttpStatus.BAD_REQUEST.value());
-            error.addError(new ObjectError("sequence", e.getMessage()));
-            errors.add(error);
+            logger.error("Sequence parse error", e);
         }
         return null;
     }

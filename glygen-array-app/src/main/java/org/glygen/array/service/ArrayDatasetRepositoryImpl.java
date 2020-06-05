@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -16,6 +19,9 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -24,6 +30,7 @@ import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
+import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
@@ -354,7 +361,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.addStatements(statements, graphIRI);
             
         } else {
-            
+            //TODO
         }
         return null;
     }
@@ -397,9 +404,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(descrGroup, RDFS.LABEL, dName, graphIRI)); 
         if (dComment != null) statements.add(f.createStatement(descrGroup, RDFS.COMMENT, dComment, graphIRI));
         
-        for (Descriptor descriptor: descriptorGroup.getDescriptors()) {
-            String descrURI = addDescriptor(descriptor, statements, graph);
-            statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+        for (Description descriptor: descriptorGroup.getDescriptors()) {
+            if (descriptor.isGroup()) {
+                String descrURI = addDescriptorGroup((DescriptorGroup)descriptor, statements, graph);
+                statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+            } else {
+                String descrURI = addDescriptor((Descriptor)descriptor, statements, graph);
+                statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+            }
         }
         
         return descrGroupURI;
@@ -464,6 +476,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI dataset = f.createIRI(uri);
         IRI graphIRI = f.createIRI(graph);
         IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        IRI createdBy= f.createIRI(ontPrefix + "created_by");
+        IRI hasSample = f.createIRI(ontPrefix + "has_sample");
+        IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
+        IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
+        IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -478,17 +499,113 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else {
                 datasetObject.setIsPublic(true);
             }
+            datasetObject.setRawDataList(new ArrayList<RawData>());
+            datasetObject.setSlides(new ArrayList<Slide>());
         }
         
         while (statements.hasNext()) {
             Statement st = statements.next();
-            
+            if (st.getPredicate().equals(RDFS.LABEL)) {
+                Value label = st.getObject();
+                datasetObject.setName(label.stringValue());
+            } else if (st.getPredicate().equals(createdBy)) {
+                Value label = st.getObject();
+                Creator creator = new Creator();
+                creator.setName(label.stringValue());
+                datasetObject.setUser(creator);
+            } else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                Value comment = st.getObject();
+                datasetObject.setDescription(comment.stringValue());
+            } else if (st.getPredicate().equals(hasCreatedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    datasetObject.setDateCreated(date);
+                }
+            } else if (st.getPredicate().equals(hasModifiedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    datasetObject.setDateModified(date);
+                }
+            } else if (st.getPredicate().equals(hasAddedToLibrary)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    datasetObject.setDateAddedToLibrary(date);
+                }
+            } else if (st.getPredicate().equals(hasSample)) {
+                Value uriValue = st.getObject();
+                datasetObject.setSample(getSample(uriValue, graph));            
+            } else if (st.getPredicate().equals(hasRawData)) {
+                Value uriValue = st.getObject();
+                datasetObject.getRawDataList().add(getRawData(uriValue, graph));        
+            } else if (st.getPredicate().equals(hasSlide)) {
+                Value uriValue = st.getObject();
+                datasetObject.getSlides().add(getSlide(uriValue, graph));            
+            } else if (st.getPredicate().equals(hasProcessedData)) {
+                Value uriValue = st.getObject();
+                datasetObject.setProcessedData(getProcessedData(uriValue, graph));            
+            } else if (st.getPredicate().equals(hasPublicURI)) {
+                // need to retrieve additional information from DEFAULT graph
+                // that means the arrray dataset is already public
+                datasetObject.setIsPublic(true);  
+                Value uriValue = st.getObject();
+                String publicURI = uriValue.stringValue();
+                IRI publicIRI = f.createIRI(publicURI);
+                RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicIRI, null, null, defaultGraphIRI);
+                while (statementsPublic.hasNext()) {
+                    Statement stPublic = statementsPublic.next();
+                    if (stPublic.getPredicate().equals(hasSample)) {
+                        uriValue = st.getObject();
+                        datasetObject.setSample(getSample(uriValue, DEFAULT_GRAPH));            
+                    } else if (stPublic.getPredicate().equals(hasRawData)) {
+                        uriValue = st.getObject();
+                        datasetObject.getRawDataList().add(getRawData(uriValue, DEFAULT_GRAPH));        
+                    } else if (stPublic.getPredicate().equals(hasSlide)) {
+                        uriValue = st.getObject();
+                        datasetObject.getSlides().add(getSlide(uriValue, DEFAULT_GRAPH));            
+                    } else if (stPublic.getPredicate().equals(hasProcessedData)) {
+                        uriValue = st.getObject();
+                        datasetObject.setProcessedData(getProcessedData(uriValue, DEFAULT_GRAPH));            
+                    }
+                }
+            }
         }
-        
         
         return null;
     }
     
+    private ProcessedData getProcessedData(Value uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    private Slide getSlide(Value uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    private RawData getRawData(Value uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    private Sample getSample(Value uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
     @Override
     public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
         // TODO Auto-generated method stub  

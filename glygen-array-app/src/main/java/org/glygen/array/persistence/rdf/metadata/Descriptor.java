@@ -1,11 +1,8 @@
 package org.glygen.array.persistence.rdf.metadata;
 
-public class Descriptor {
-    String id;
-    String uri;
-    String name;
+public class Descriptor extends Description {
+    
     String value;
-    String description;
     String namespaceURI;
     String unitURI;
     
@@ -93,6 +90,11 @@ public class Descriptor {
      */
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    @Override
+    public boolean isGroup() {
+        return false;
     }
 
 }

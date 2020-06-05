@@ -1,7 +1,11 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
+import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
@@ -20,6 +24,10 @@ public class ArrayDataset {
     
     boolean isPublic = false;
     Creator user;
+    
+    Date dateModified;
+    Date dateCreated;
+    Date dateAddedToLibrary;
 
     /**
      * @return the id
@@ -52,6 +60,7 @@ public class ArrayDataset {
     /**
      * @return the name
      */
+    @Size(max=ValidationConstants.NAME_LIMIT, message="Name cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
     public String getName() {
         return name;
     }
@@ -66,6 +75,7 @@ public class ArrayDataset {
     /**
      * @return the description
      */
+    @Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
     public String getDescription() {
         return description;
     }
@@ -167,6 +177,48 @@ public class ArrayDataset {
      */
     public void setUser(Creator user) {
         this.user = user;
+    }
+
+    /**
+     * @return the dateModified
+     */
+    public Date getDateModified() {
+        return dateModified;
+    }
+
+    /**
+     * @param dateModified the dateModified to set
+     */
+    public void setDateModified(Date dateModified) {
+        this.dateModified = dateModified;
+    }
+
+    /**
+     * @return the dateCreated
+     */
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * @param dateCreated the dateCreated to set
+     */
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * @return the dateAddedToLibrary
+     */
+    public Date getDateAddedToLibrary() {
+        return dateAddedToLibrary;
+    }
+
+    /**
+     * @param dateAddedToLibrary the dateAddedToLibrary to set
+     */
+    public void setDateAddedToLibrary(Date dateAddedToLibrary) {
+        this.dateAddedToLibrary = dateAddedToLibrary;
     }
 
 }

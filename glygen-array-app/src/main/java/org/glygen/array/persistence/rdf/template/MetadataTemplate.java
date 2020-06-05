@@ -1,9 +1,15 @@
-package org.glygen.array.persistence.rdf.metadata;
+package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
-public class DescriptorGroup extends Description {
+import org.glygen.array.persistence.rdf.metadata.Description;
+
+public class MetadataTemplate {
     
+    String id;
+    String uri;
+    String name;
+    String description;
     List<Description> descriptors;
     
     /**
@@ -66,9 +72,5 @@ public class DescriptorGroup extends Description {
     public void setDescriptors(List<Description> descriptors) {
         this.descriptors = descriptors;
     }
-    
-    @Override
-    public boolean isGroup() {
-        return true;
-    }
+
 }
