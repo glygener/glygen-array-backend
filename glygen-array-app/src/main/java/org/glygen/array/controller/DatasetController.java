@@ -181,7 +181,6 @@ public class DatasetController {
     
     @ApiOperation(value = "Retrieve list of templates for the given type")
     @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
-            consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Return a list of metadata templates"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
@@ -247,6 +246,7 @@ public class DatasetController {
         descriptor.setMaxOccurrence(1);
         descriptor.setNamespace(namespace);
         groupDescriptors.add(descriptor);
+        descriptorGroup.setDescriptors(groupDescriptors);
         
         descriptors.add(descriptorGroup);
         sampleTemplate.setDescriptors(descriptors);
