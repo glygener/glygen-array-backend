@@ -215,6 +215,22 @@ public class DatasetController {
         Namespace namespace2 = new Namespace();
         namespace2.setName("dictionary");
         
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Species");
+        descriptor.setDescription("The species of the protein");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        descriptors.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Strain");
+        descriptor.setDescription("Strain of the origin if the sample is a micro organism");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
         DescriptorGroupTemplate descriptorGroup = new DescriptorGroupTemplate();
         descriptorGroup.setName("Database entry");
         descriptorGroup.setMandatory(true);
