@@ -212,6 +212,9 @@ public class DatasetController {
         descriptor.setNamespace(namespace);
         descriptors.add(descriptor);
         
+        Namespace namespace2 = new Namespace();
+        namespace2.setName("dictionary");
+        
         DescriptorGroupTemplate descriptorGroup = new DescriptorGroupTemplate();
         descriptorGroup.setName("Database entry");
         descriptorGroup.setMandatory(true);
@@ -246,6 +249,83 @@ public class DatasetController {
         descriptor.setMaxOccurrence(1);
         descriptor.setNamespace(namespace);
         groupDescriptors.add(descriptor);
+        descriptorGroup.setDescriptors(groupDescriptors);
+        
+        descriptors.add(descriptorGroup);
+        
+        descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Label");
+        descriptorGroup.setMandatory(false);
+        descriptorGroup.setMaxOccurrence(1);
+        descriptorGroup.setDescription("Provide information if the protein is directly labelled");
+        groupDescriptors = new ArrayList<Description>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Name");
+        descriptor.setDescription("Name of the label");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Method");
+        descriptor.setDescription("Name of the labeling method");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors.add(descriptor);
+        
+        DescriptorGroupTemplate subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reagent");
+        subLabel.setMandatory(true);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        List<Description> groupDescriptors2 = new ArrayList<Description>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Name");
+        descriptor.setDescription("Names of reagents used in labelling procedure");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("URL");
+        descriptor.setDescription("URL with information of the Reagent (Pubchem, Vendor page)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
+        
+        subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reference");
+        subLabel.setDescription("A reference that describest the method");
+        subLabel.setMandatory(false);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        groupDescriptors2 = new ArrayList<Description>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Type");
+        descriptor.setDescription("Type of reference (DOI, PMID, URL)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Value");
+        descriptor.setDescription("URL, PMID or DOI");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
         descriptorGroup.setDescriptors(groupDescriptors);
         
         descriptors.add(descriptorGroup);
