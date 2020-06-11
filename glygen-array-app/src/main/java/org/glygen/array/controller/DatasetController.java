@@ -179,6 +179,37 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Add given sample metadata for the user")
+    @RequestMapping(value="/addSample", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register samples"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addSample (
+            @ApiParam(required=true, value="Sample metadata to be added") 
+            @RequestBody Sample sample, Principal p) {
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        //TODO do validation on other fields such as Sample, rawdata, processeddata
+        if (sample.getName() == null || sample.getName().isEmpty()) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+            throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
+        }
+        
+        try {
+            return datasetRepository.addSample(sample, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
+        }
+        
+    }
+    
     @ApiOperation(value = "Retrieve list of templates for the given type")
     @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})

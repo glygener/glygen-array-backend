@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.metadata.Sample;
 
 public interface ArrayDatasetRepository {
     
@@ -19,5 +20,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
+    
+    String addSample (Sample sample, UserEntity user) throws SparqlException, SQLException;
 
 }

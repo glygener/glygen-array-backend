@@ -95,7 +95,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             throw new SparqlException ("The user must be provided to put data into private repository");
         }
         
-        
         // check if there is already a private graph for user
         graph = getGraphForUser(user);
         
@@ -113,7 +112,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
             IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
             IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
-            String sampleURI = addSample(dataset.getSample(), graph);
+            String sampleURI = addSample(dataset.getSample(), user);
             if (sampleURI != null) {
                 IRI sample = f.createIRI(sampleURI);
                 statements.add(f.createStatement(arraydataset, hasSample, sample, graphIRI));
@@ -348,7 +347,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return uri;
     }
 
-    private String addSample(Sample sample, String graph) throws SparqlException {
+    @Override
+    public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            // cannot add 
+            throw new SparqlException ("The user must be provided to put data into private repository");
+        }
+        
+        // check if there is already a private graph for user
+        graph = getGraphForUser(user);
         ValueFactory f = sparqlDAO.getValueFactory();
         // check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
         String existing = getEntityByLabel(sample.getName(), graph, datasetTypePredicate);
