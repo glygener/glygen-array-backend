@@ -11,10 +11,6 @@ public class Sample extends MetadataCategory {
     String name;
     String description;
     
-    public Sample() {
-        this.name = "Sample";
-    }
-    
     /**
      * @return the id
      */
@@ -65,5 +61,4 @@ public class Sample extends MetadataCategory {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }

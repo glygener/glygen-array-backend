@@ -35,6 +35,7 @@ import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     final static String hasFilePredicate = ontPrefix + "has_filename";
     final static String scanOfPredicate = ontPrefix + "scan_of";
     final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
+    
+    final static String hasSampleTemplatePredicate = ontPrefix + "has_sample_template";
     
     final static String hasMeanPredicate = ontPrefix + "has_mean";
     final static String hasBMeanPredicate = ontPrefix + "has_bMean";
@@ -358,12 +361,19 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // check if there is already a private graph for user
         graph = getGraphForUser(user);
         ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasTemplate = f.createIRI(hasSampleTemplatePredicate);
+        
         // check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
         String existing = getEntityByLabel(sample.getName(), graph, datasetTypePredicate);
         if (existing == null) {
             // add to user's local repository
             List<Statement> statements = new ArrayList<Statement>();
             String sampleURI = addGenericInfo(sample.getName(), sample.getDescription(), statements, "SA", graph);
+            // add template
+            // find the template with given name and add the object property from sample to the metadatatemplate
+            String templateURI = getTemplateByName(sample.getTemplate(), user);
+            if (templateURI != null) 
+                statements.add(f.createStatement(f.createIRI(sampleURI), hasTemplate, f.createIRI(templateURI)));
             addMetadata (sampleURI, sample, statements, graph);
             IRI graphIRI = f.createIRI(graph);
             sparqlDAO.addStatements(statements, graphIRI);
@@ -372,6 +382,21 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             //TODO
         }
         return null;
+    }
+    
+    
+    public String getTemplateByName (String label, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            // cannot add 
+            throw new SparqlException ("The user must be provided to put data into private repository");
+        }
+        List<SparqlEntity> results = queryHelper.retrieveByLabel(label, ontPrefix + "SampleTemplate", graph);
+        if (results.isEmpty()) {
+            return null;
+        }
+        String templateURI = results.get(0).getValue("s");
+        return templateURI;
     }
     
     /**

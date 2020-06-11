@@ -22,5 +22,7 @@ public interface ArrayDatasetRepository {
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     
     String addSample (Sample sample, UserEntity user) throws SparqlException, SQLException;
+    
+    String getTemplateByName (String name, UserEntity user) throws SparqlException, SQLException;
 
 }

@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +59,8 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	List<String> duplicates = new ArrayList<String>();
 	List<String> empty = new ArrayList<String>();
+	
+	Map <String, Feature> featureCache = new HashMap<String, Feature>();
 	
 	@Override
 	public String addGlycan(Glycan glycan, User user) {
@@ -231,6 +234,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 
 	@Override
 	public String addFeature(Feature feature, User user) {
+	    System.out.println ("Trying to add " + feature.getName());
+	    if (featureCache.get(feature.getName()) != null) {
+	        System.out.println("Feature " + feature.getName() + " has already been added");
+	        return featureCache.get(feature.getName()).getId();
+	    }
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -241,6 +249,8 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		System.out.println("URL: " + url);
 		try {
 			ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+			feature.setId(response.getBody());
+			featureCache.put(feature.getName(), feature);
 			return response.getBody();
 		} catch (HttpServerErrorException e) {
 			String errorMessage = e.getResponseBodyAsString();
@@ -251,6 +261,9 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		} catch (HttpClientErrorException e) {
 			String errorMessage = e.getResponseBodyAsString();
 			if (errorMessage != null) {
+			    if (errorMessage.contains("Duplicate")) {
+			        featureCache.put(feature.getName(), feature);
+			    }
 				System.out.println("client error: " + errorMessage);
 				System.out.println("Cannot add feature:" + feature.getName());
 			}
@@ -260,7 +273,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	}
 
     @Override
-    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, String layoutName, User user) {
+    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layoutName, User user) {
         ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
         // add Glycans
         List<org.grits.toolbox.glycanarray.library.om.feature.Glycan> glycanList = library.getFeatureLibrary().getGlycan();
@@ -361,9 +374,17 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 view.setDescription(linker.getSequence());
             view.setComment(linker.getComment());
             if (linker.getPubChemId() == null) {
-                // assign a random classification
-                Collections.shuffle(classificationList);
-                view.setClassification((LinkerClassification) classificationList.get(0));
+                String classification = linkerClassificationMap.get(linker.getName());
+                if (classification != null) {
+                    LinkerClassification lClass = new LinkerClassification();
+                    lClass.setClassification(classification);
+                    view.setClassification(lClass);
+                }
+                else {   
+                    // assign a random classification
+                    Collections.shuffle(classificationList);
+                    view.setClassification((LinkerClassification) classificationList.get(0));
+                }
             }
             try {
                 addLinker(view, user);
@@ -386,6 +407,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                     }
                 }
                 if (probe != null) {
+                    boolean linkerOnly = true;
                     for (Ratio r1 : probe.getRatio()) {
                         org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
                         if (glycan != null) {
@@ -400,6 +422,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                             }
                             myFeature.addGlycan(myGlycan);
                             myFeature.setType(FeatureType.NORMAL);
+                            linkerOnly = false;
                         }
                         
                     }
@@ -408,12 +431,22 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                         org.glygen.array.client.model.SmallMoleculeLinker myLinker = new org.glygen.array.client.model.SmallMoleculeLinker();
                         if (linker.getPubChemId() != null) myLinker.setPubChemId(linker.getPubChemId().longValue());  // pubChemId is sufficient to locate this Linker in the repository
                         else {
-                            // need to set random classification and name
+                            // need to set classification and name
                             myLinker.setName(linker.getName());
-                            myLinker.setClassification(classificationList.get(0));
+                            String classification = linkerClassificationMap.get(linker.getName());
+                            if (classification != null) {
+                                LinkerClassification lClass = new LinkerClassification();
+                                lClass.setClassification(classification);
+                                myLinker.setClassification(lClass);
+                            }
+                            else {   
+                                // assign a random classification
+                                Collections.shuffle(classificationList);
+                                myLinker.setClassification((LinkerClassification) classificationList.get(0));
+                            }
                         }
                         myFeature.setLinker(myLinker);
-                        myFeature.setType(FeatureType.CONTROL);
+                        if (linkerOnly) myFeature.setType(FeatureType.CONTROL);
                     } 
                 }
             }
@@ -493,7 +526,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
         return result;  
     }
     
-    List<org.glygen.array.client.model.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, 
+    public static List<org.glygen.array.client.model.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, 
             org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout) {
         List<org.glygen.array.client.model.Spot> spots = new ArrayList<>();
         for (Spot spot: blockLayout.getSpot()) {
@@ -528,7 +561,8 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 }
             }
             s.setFeatures(features);
-            spots.add(s);
+            if (!features.isEmpty())
+                spots.add(s);
         }
         
         return spots;

@@ -178,6 +178,7 @@ public class GlygenArrayController {
 	
 	@Autowired
 	Validator validator;
+	
 	List<Glycan> glycanCache = new ArrayList<Glycan>();
 	
 	List<Linker> linkerCache = new ArrayList<Linker>();

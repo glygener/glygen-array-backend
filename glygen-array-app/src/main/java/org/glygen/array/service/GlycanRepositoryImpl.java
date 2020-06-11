@@ -414,7 +414,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             graph = DEFAULT_GRAPH;
         else
             graph = getGraphForUser(user);
-		List<SparqlEntity> results = queryHelper.retrieveGlycansByLabel(label, graph);
+		List<SparqlEntity> results = queryHelper.retrieveByLabel(label, ontPrefix + "Glycan", graph);
 		if (results.isEmpty())
 			return null;
 		else {
@@ -788,7 +788,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             if (existingURI == null) {
                 // check by label if any
                 if (glycan.getName() != null && !glycan.getName().isEmpty()) {
-                    List <SparqlEntity> results = queryHelper.retrieveGlycansByLabel(glycan.getName(), null);
+                    List <SparqlEntity> results = queryHelper.retrieveByLabel(glycan.getName(), ontPrefix + "Glycan", null);
                     if (results.isEmpty()) {
                         // make it public
                         // need to create the glycan in the public graph, link the user's version to public one
@@ -819,7 +819,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         default:
             // check by label if any
             if (glycan.getName() != null && !glycan.getName().isEmpty()) {
-                List <SparqlEntity> results = queryHelper.retrieveGlycansByLabel(glycan.getName(), null);
+                List <SparqlEntity> results = queryHelper.retrieveByLabel(glycan.getName(), ontPrefix + "Glycan", null);
                 if (results.isEmpty()) {
                     // make it public
                     // need to create the glycan in the public graph, link the user's version to public one

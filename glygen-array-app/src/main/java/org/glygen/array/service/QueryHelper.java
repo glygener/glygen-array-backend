@@ -20,7 +20,7 @@ public class QueryHelper {
     String prefix = GlygenArrayRepositoryImpl.prefix;
     
     
-    public List<SparqlEntity> retrieveGlycansByLabel (String label, String graph) throws SparqlException {
+    public List<SparqlEntity> retrieveByLabel (String label, String type, String graph) throws SparqlException {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -28,7 +28,7 @@ public class QueryHelper {
         if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
-        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        queryBuf.append ( " ?s rdf:type  <" + type + ">. \n");
         queryBuf.append ( " {?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n }");
         queryBuf.append ( " UNION {?s gadr:has_alias ?a FILTER (lcase(str(?a)) = \"" + label.toLowerCase() + "\") \n }");
         queryBuf.append ( "}\n");
@@ -145,8 +145,9 @@ public class QueryHelper {
         queryBuf.append ( "<" +  GlygenArrayRepository.uriPrefix + id + "> gadr:has_date_addedtolibrary ?d . }\n");
         return sparqlDAO.query(queryBuf.toString());
     }
+   
     
-   public List<SparqlEntity> findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
+    public List<SparqlEntity> findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
         String fromString = "FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n";
         String whereClause = "WHERE {";
         String where = " { " + 

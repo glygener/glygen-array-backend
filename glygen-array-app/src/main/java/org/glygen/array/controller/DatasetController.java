@@ -6,6 +6,10 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.config.SesameTransactionConfig;
@@ -31,6 +35,7 @@ import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.grits.toolbox.glycanarray.library.om.feature.Feature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +86,9 @@ public class DatasetController {
     
     @Autowired
     ResourceLoader resourceLoader;
+    
+    @Autowired
+    Validator validator;
     
     @ApiOperation(value = "Import experiment results from uploaded excel file")
     @RequestMapping(value = "/addDatasetFromExcel", method=RequestMethod.POST, 
@@ -161,15 +169,36 @@ public class DatasetController {
             @ApiParam(required=true, value="Array dataset to be added") 
             @RequestBody ArrayDataset dataset, Principal p) {
         
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (dataset.getName() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "name", dataset.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (dataset.getDescription() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "description", dataset.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         //TODO do validation on other fields such as Sample, rawdata, processeddata
         if (dataset.getName() == null || dataset.getName().isEmpty()) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
-            throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         try {
             return datasetRepository.addArrayDataset(dataset, user);
@@ -192,15 +221,50 @@ public class DatasetController {
             @ApiParam(required=true, value="Sample metadata to be added") 
             @RequestBody Sample sample, Principal p) {
         
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        //TODO do validation on other fields such as Sample, rawdata, processeddata
-        if (sample.getName() == null || sample.getName().isEmpty()) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("name", "NoEmpty"));
-            throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (sample.getName() != null) {
+                Set<ConstraintViolation<Sample>> violations = validator.validateValue(Sample.class, "name", sample.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (sample.getDescription() != null) {
+                Set<ConstraintViolation<Sample>> violations = validator.validateValue(Sample.class, "description", sample.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
         }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (sample.getName() == null || sample.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (sample.getTemplate() == null || sample.getTemplate().isEmpty()) {
+            errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check if the template exists
+        try {
+            String templateURI = datasetRepository.getTemplateByName(sample.getTemplate(), user);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         try {
             return datasetRepository.addSample(sample, user);

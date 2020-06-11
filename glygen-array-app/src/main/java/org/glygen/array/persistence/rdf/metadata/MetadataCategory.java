@@ -5,6 +5,7 @@ import java.util.List;
 public class MetadataCategory {
     String id;
     String uri;
+    String template;
 
     List<Descriptor> descriptors;
     List<DescriptorGroup> descriptorGroups;
@@ -55,5 +56,17 @@ public class MetadataCategory {
      */
     public void setUri(String uri) {
         this.uri = uri;
+    }
+    /**
+     * @return the template
+     */
+    public String getTemplate() {
+        return template;
+    }
+    /**
+     * @param template the template to set
+     */
+    public void setTemplate(String template) {
+        this.template = template;
     }
 }
