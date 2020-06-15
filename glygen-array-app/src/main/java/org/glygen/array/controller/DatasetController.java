@@ -31,6 +31,7 @@ import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
 import org.glygen.array.view.ErrorCodes;
@@ -77,6 +78,9 @@ public class DatasetController {
     
     @Autowired
     FeatureRepository featureRepository;
+    
+    @Autowired
+    MetadataTemplateRepository templateRepository;
     
     @Autowired
     UserRepository userRepository;
@@ -254,7 +258,7 @@ public class DatasetController {
         
         // check if the template exists
         try {
-            String templateURI = datasetRepository.getTemplateByName(sample.getTemplate(), user);
+            String templateURI = templateRepository.getTemplateByName(sample.getTemplate());
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
@@ -410,6 +414,77 @@ public class DatasetController {
         subLabel.setDescriptors(groupDescriptors2);
         
         groupDescriptors.add(subLabel);
+        
+        subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reference");
+        subLabel.setDescription("A reference that describest the method");
+        subLabel.setMandatory(false);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        groupDescriptors2 = new ArrayList<Description>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Type");
+        descriptor.setDescription("Type of reference (DOI, PMID, URL)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Value");
+        descriptor.setDescription("URL, PMID or DOI");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
+        descriptorGroup.setDescriptors(groupDescriptors);
+        
+        descriptors.add(descriptorGroup);
+        sampleTemplate.setDescriptors(descriptors);
+        templates.add(sampleTemplate);
+        
+        sampleTemplate = new MetadataTemplate();
+        sampleTemplate.setId("1234568");
+        sampleTemplate.setName("Fluid Sample Template");
+        sampleTemplate.setType(MetadataTemplateType.SAMPLE);
+        descriptors = new ArrayList<>();
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Species");
+        descriptor.setDescription("The species of the protein");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        descriptors.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Strain");
+        descriptor.setDescription("Strain of the origin if the sample is a micro organism");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
+        
+        descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Deactivation method");
+        descriptorGroup.setMandatory(false);
+        descriptorGroup.setMaxOccurrence(1);
+        descriptorGroup.setDescription("Method use to deactive the organism (e.g. virus)");
+        groupDescriptors = new ArrayList<Description>();
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Method");
+        descriptor.setDescription("Name of the method");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors.add(descriptor);
+        
         
         subLabel = new DescriptorGroupTemplate();
         subLabel.setName ("Reference");
