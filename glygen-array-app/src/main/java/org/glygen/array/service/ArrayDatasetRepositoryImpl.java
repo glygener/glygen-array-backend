@@ -90,6 +90,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Autowired
     QueryHelper queryHelper;
     
+    @Autowired
+    MetadataTemplateRepository templateRepository;
+    
     @Override
     public String addArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
@@ -371,7 +374,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             String sampleURI = addGenericInfo(sample.getName(), sample.getDescription(), statements, "SA", graph);
             // add template
             // find the template with given name and add the object property from sample to the metadatatemplate
-            String templateURI = getTemplateByName(sample.getTemplate(), user);
+            String templateURI = templateRepository.getTemplateByName(sample.getTemplate());
             if (templateURI != null) 
                 statements.add(f.createStatement(f.createIRI(sampleURI), hasTemplate, f.createIRI(templateURI)));
             addMetadata (sampleURI, sample, statements, graph);
@@ -382,21 +385,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             //TODO
         }
         return null;
-    }
-    
-    
-    public String getTemplateByName (String label, UserEntity user) throws SparqlException, SQLException {
-        String graph = null;
-        if (user == null) {
-            // cannot add 
-            throw new SparqlException ("The user must be provided to put data into private repository");
-        }
-        List<SparqlEntity> results = queryHelper.retrieveByLabel(label, ontPrefix + "SampleTemplate", graph);
-        if (results.isEmpty()) {
-            return null;
-        }
-        String templateURI = results.get(0).getValue("s");
-        return templateURI;
     }
     
     /**
