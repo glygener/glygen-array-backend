@@ -5,18 +5,34 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
+import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
+import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.persistence.rdf.template.Namespace;
+
 
 class Config {
     int description = 3;
@@ -39,9 +55,14 @@ public class MetadataOntologyParser {
     public static final String SEPERATOR = "/";
     public static final String SEPERATOR2 = ",";
     
+    static String prefix = "http://purl.org/gadr/template#";
+    static String dataprefix = "http://purl.org/gadr/data/";
+    
+    static int descriptorId=1;
+    
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println ("Please provide the file location as an argument");
+        if (args.length < 2) {
+            System.out.println ("Please provide the file location as an argument and the type of templates (SampleTemplate, PrinterTemplate etc.)");
             System.exit(1);
         }
 
@@ -53,10 +74,11 @@ public class MetadataOntologyParser {
         }
         
         String filename = args[0];
+        String type = args[1];
         try {       
             MetadataOntologyParser parser = new MetadataOntologyParser();
             HashMap<String, List<Descriptor>> mp = parser.read(filename, new Config());
-            parser.createOntology(mp);
+            parser.createOntology(mp, type);
             System.out.println("Finished importing metaData to the Ontology");
         } finally {
             warningOut.close();
@@ -496,7 +518,7 @@ public class MetadataOntologyParser {
     private boolean nameColumnsEmpty(Row row, Sheet sheet) {
         Cell nameCell = row.getCell(0);
         Cell childNameCell = row.getCell(1);
-        Cell subNameCell = row.getCell(1);
+        Cell subNameCell = row.getCell(2);
         if ((nameCell == null || nameCell.getCellType() == Cell.CELL_TYPE_BLANK) 
             && (childNameCell == null || childNameCell.getCellType() == Cell.CELL_TYPE_BLANK)
             && (subNameCell == null || subNameCell.getCellType() == Cell.CELL_TYPE_BLANK)) { 
@@ -574,8 +596,180 @@ public class MetadataOntologyParser {
         return duplicateFound;
     }
     
-    private void createOntology(HashMap<String, List<Descriptor>> mp) {
-        // TODO Auto-generated method stub
+    private void createOntology(HashMap<String, List<Descriptor>> mp, String type) {
+        List<MetadataTemplate> templates = new ArrayList<MetadataTemplate>();
+        for (String sheetName: mp.keySet()) {
+            MetadataTemplate metadataTemplate = new MetadataTemplate();
+            MetadataTemplateType mType = MetadataTemplateType.forValue(type);
+            metadataTemplate.setName(sheetName + " " + mType.name().toLowerCase() + " Template");
+            metadataTemplate.setType (mType);
+            List<Description> descriptors = new ArrayList<Description>();
+            for (Descriptor d: mp.get(sheetName)) {
+                Description description = createDescription(d);
+                descriptors.add(description);
+            }
+            metadataTemplate.setDescriptors(descriptors);
+            templates.add(metadataTemplate);
+        }
+        
+        // copy common descriptors to all other templates
+        MetadataTemplate commonTemplate = null;
+        for (MetadataTemplate template: templates) {
+            if (template.getName().startsWith("Common")) {
+                commonTemplate = template;
+            }
+        }
+        if (commonTemplate != null) {
+            for (MetadataTemplate template: templates) {
+                if (!template.getName().startsWith("Common")) {
+                    template.getDescriptors().addAll(commonTemplate.getDescriptors());
+                }
+            }
+        }
+        templates.remove(commonTemplate);
+        
+        // read the ontology (template ontology) add templates and write back into the OWL file
+        try {
+            InputStream inputStream = new FileInputStream(new File("ontology/gadr-template.owl"));
+            Model model = Rio.parse(inputStream, "http://purl.org/gadr/template", RDFFormat.RDFXML);
+            ValueFactory f = SimpleValueFactory.getInstance();
+            
+            // add templates/descriptors etc. as individuals
+            int id = 1;
+            
+            for (MetadataTemplate template: templates) {
+                IRI metadataIRI = f.createIRI( prefix + "Metadata" + id);
+                IRI typeIRI = f.createIRI(prefix + template.getType().getLabel());
+                model.add(f.createStatement(metadataIRI, RDF.TYPE, typeIRI));
+                model.add(f.createStatement(metadataIRI, RDFS.LABEL, f.createLiteral(template.getName())));
+                if (template.getDescription() != null)
+                    model.add(f.createStatement(metadataIRI, RDFS.COMMENT, f.createLiteral(template.getDescription())));
+                id++;
+                
+                for (Description description: template.getDescriptors()) {
+                    String descriptionURI = addDescriptionToOntology (model, f, description);
+                    descriptorId++;
+                    model.add(f.createStatement(metadataIRI, f.createIRI(prefix + "has_description_context"), f.createIRI(descriptionURI)));
+                }
+            }
+            
+            Rio.write(model, new FileOutputStream("ontology/gadr-template-individuals.owl"), RDFFormat.RDFXML);
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        
+    }
+    
+    private String addDescriptionToOntology(Model model, ValueFactory f, Description description) {
+        String uri = prefix + "DescriptionContext" + descriptorId;
+        IRI descriptionContext = f.createIRI(uri);
+        if (description instanceof DescriptorTemplate) {
+            model.add(f.createStatement(descriptionContext, RDF.TYPE, f.createIRI(prefix + "simple_description_context")));
+            String descriptorURI = prefix + "Descriptor" + descriptorId;
+            IRI descriptor = f.createIRI(descriptorURI);
+            IRI hasDescriptor = f.createIRI(prefix + "has_descriptor");
+            model.add(f.createStatement(descriptor, RDF.TYPE, f.createIRI(dataprefix + "descriptor")));
+            model.add(f.createStatement(descriptor, RDFS.LABEL, f.createLiteral(description.getName())));
+            if (description.getDescription() != null)
+                model.add(f.createStatement(descriptor, RDFS.COMMENT, f.createLiteral(description.getDescription())));
+            model.add(f.createStatement(descriptionContext, hasDescriptor, descriptor));
+            if (((DescriptorTemplate) description).getUnits() != null && !((DescriptorTemplate) description).getUnits().isEmpty()) {
+                IRI hasUnit = f.createIRI(prefix + "has_unit_of_measurement");
+                for (String unit: ((DescriptorTemplate) description).getUnits()) {
+                    model.add(f.createStatement(descriptionContext, hasUnit, f.createLiteral(unit)));
+                }
+            }
+            // namespace
+            if (((DescriptorTemplate) description).getNamespace() != null) {
+                Namespace namespace = ((DescriptorTemplate) description).getNamespace();
+                IRI hasNamespace = f.createIRI(prefix + "has_namespace");
+                IRI hasFile = f.createIRI(prefix + "has_file");
+                if (namespace.getName().equalsIgnoreCase("selection") || namespace.getName().equalsIgnoreCase("dictionary")) {
+                    // create namespace object in the ontology
+                    //TODO how to handle selection/dictionary?
+                    //through files?
+                    IRI namespaceIRI = f.createIRI(prefix + "Namespace" + namespace.getName() + descriptorId);
+                    model.add(f.createStatement(namespaceIRI, RDF.TYPE, f.createIRI(prefix + "namespace")));
+                    model.add(f.createStatement(descriptor, hasNamespace, namespaceIRI));
+                    model.add(f.createStatement(namespaceIRI, RDFS.LABEL, f.createLiteral(namespace.getName())));   //TODO ???
+                    if (namespace.getFilename() != null)
+                        model.add(f.createStatement(namespaceIRI, hasFile, f.createLiteral(namespace.getFilename())));
+                } else {
+                    // just add the object property
+                    model.add(f.createStatement(descriptor, hasNamespace, f.createIRI(namespace.getUri())));
+                }
+            }
+            
+        } else if (description instanceof DescriptorGroupTemplate) {
+            model.add(f.createStatement(descriptionContext, RDF.TYPE, f.createIRI(prefix + "complex_description_context")));
+            model.add(f.createStatement(descriptionContext, RDFS.LABEL, f.createLiteral(description.getName())));
+            if (description.getDescription() != null)
+                model.add(f.createStatement(descriptionContext, RDFS.COMMENT, f.createLiteral(description.getDescription())));
+            
+            for (Description d: ((DescriptorGroupTemplate) description).getDescriptors()) {
+                descriptorId++;
+                String descURI = addDescriptionToOntology(model, f, d);
+                model.add(f.createStatement(descriptionContext, f.createIRI(prefix + "has_description_context"), f.createIRI(descURI)));
+            }
+        }
+        
+        IRI cardinality = f.createIRI(prefix + "cardinality");
+        IRI isRequired = f.createIRI(prefix + "is_required");
+        IRI hasExample = f.createIRI(prefix + "has_example");
+        Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
+        Literal required = f.createLiteral(description.isMandatory());
+        model.add(f.createStatement(descriptionContext, cardinality, card));
+        model.add(f.createStatement(descriptionContext, isRequired, required));
+        if (description.getExample() != null) {
+            model.add(f.createStatement(descriptionContext, hasExample, f.createLiteral(description.getExample())));
+        }
+        
+        return uri;
+    }
+
+    Description createDescription (Descriptor d) {
+        Description description = null;
+        if (d.getChildren() != null && !d.getChildren().isEmpty()) {
+            // top level descriptor group
+            description = new DescriptorGroupTemplate();
+            List<Description> descriptors = new ArrayList<Description>();
+            for (Descriptor child: d.getChildren()) {
+                descriptors.add(createDescription(child));
+            }
+            ((DescriptorGroupTemplate)description).setDescriptors(descriptors);
+        } else {
+            description = new DescriptorTemplate();
+            Namespace namespace = new Namespace();
+            namespace.setName(d.getType());
+            if (d.getType().equalsIgnoreCase("label")) {
+                namespace.setUri("http://www.w3.org/2001/XMLSchema#token");
+            } else if (d.getType().equalsIgnoreCase("text")) {
+                namespace.setUri("http://www.w3.org/2001/XMLSchema#string");
+            } else if (d.getType().equalsIgnoreCase("Number")) {
+                namespace.setUri("http://www.w3.org/2001/XMLSchema#double");
+            } else if (d.getType().equalsIgnoreCase("Date")) {
+                namespace.setUri("http://www.w3.org/2001/XMLSchema#date");
+            } else if (d.getType().equalsIgnoreCase("selection")) {
+                if (d.getSelection() != null)
+                    ((DescriptorTemplate)description).setSelectionList(Arrays.asList(d.getSelection()));
+            } else if (d.getType().equalsIgnoreCase("dictionary")) {
+                namespace.setUri(d.getDictionary());
+            }
+                
+            ((DescriptorTemplate)description).setNamespace(namespace);
+            if (d.getMeasurement() != null) {
+                ((DescriptorTemplate)description).setUnits(Arrays.asList(d.getMeasurement()));
+            }
+        }
+        
+        description.setName(d.getName());
+        description.setDescription(d.getDescription());
+        description.setMandatory(d.getMandatory());
+        description.setMaxOccurrence(d.getMultiplicity().equals("n") ? Integer.MAX_VALUE : 1);
+        description.setExample(d.getExample());
+        return description;
         
     }
     

@@ -258,7 +258,7 @@ public class DatasetController {
         
         // check if the template exists
         try {
-            String templateURI = templateRepository.getTemplateByName(sample.getTemplate());
+            String templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
@@ -292,7 +292,15 @@ public class DatasetController {
             @RequestParam("type")
             MetadataTemplateType type, Principal p) {
         
-        List<MetadataTemplate> templates = new ArrayList<MetadataTemplate>();
+        List<MetadataTemplate> templates;
+        try {
+            templates = templateRepository.getTemplateByType(type);
+        } catch (SparqlException | SQLException e) {
+            logger.error("Error retrieving templates for type\" + type", e);
+            throw new GlycanRepositoryException("Error retrieving templates for type" + type, e);
+        }
+        
+       /* List<MetadataTemplate> templates = new ArrayList<MetadataTemplate>();
         
         //TODO retrieve them from the repository
         MetadataTemplate sampleTemplate = new MetadataTemplate();
@@ -516,8 +524,19 @@ public class DatasetController {
         
         descriptors.add(descriptorGroup);
         sampleTemplate.setDescriptors(descriptors);
-        templates.add(sampleTemplate);
+        templates.add(sampleTemplate);*/
         
         return templates;
+    }
+    
+    
+    @RequestMapping(value="/populateTemplates", method = RequestMethod.POST)
+    public void populateTemplates (Principal p) { 
+        try {
+            templateRepository.populateTemplateOntology();
+        } catch (SparqlException e) {
+            logger.error("Error populating templates", e);
+            throw new GlycanRepositoryException("Error populating templates", e);
+        }
     }
 }

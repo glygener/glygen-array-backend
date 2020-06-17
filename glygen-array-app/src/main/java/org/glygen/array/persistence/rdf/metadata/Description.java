@@ -8,6 +8,7 @@ public abstract class Description {
     String description;
     boolean mandatory;
     Integer maxOccurrence;
+    String example;
     
     public abstract boolean isGroup();
 
@@ -93,6 +94,20 @@ public abstract class Description {
      */
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    /**
+     * @return the example
+     */
+    public String getExample() {
+        return example;
+    }
+
+    /**
+     * @param example the example to set
+     */
+    public void setExample(String example) {
+        this.example = example;
     }
 
 }

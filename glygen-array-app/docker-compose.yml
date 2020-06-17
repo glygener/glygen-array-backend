@@ -8,6 +8,7 @@ services:
       - ${HOME}/glygen-array/maven:/root/.m2
       - ${HOME}/glygen-array/images:/images
       - ${HOME}/glygen-array/uploads:/uploads
+      - ./ontology:/ontology
       - .:/workspace
     working_dir: /workspace/
     command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"

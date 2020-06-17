@@ -1,13 +1,15 @@
 package org.glygen.array.persistence.rdf.template;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum MetadataTemplateType {
     
-    SAMPLE("SampleTemplate"),
-    PRINTER("PrinterTemplate"),
-    SCANNER("ScannerTemplate"),
-    SLIDE("SlideTemplate"),
-    DATAPROCESSINGSOFTWARE("DataProcessingSoftwareTemplate"),
-    IMAGEANALYSISSOFTWARE("ImageAnaylsisSoftwareTemplate");
+    SAMPLE("sample_template"),
+    PRINTER("printer_template"),
+    SCANNER("scanner_template"),
+    SLIDE("slide_template"),
+    DATAPROCESSINGSOFTWARE("data_processing_software_template"),
+    IMAGEANALYSISSOFTWARE("image_anaylsis_software_template");
     
     String label;
     
@@ -22,5 +24,22 @@ public enum MetadataTemplateType {
     
     public void setLabel(String label) {
         this.label = label;
+    }
+    
+    @JsonCreator
+    public static MetadataTemplateType forValue(String value) {
+        if (value.equals("sample_template"))
+            return SAMPLE;
+        else if (value.equals("printer_template"))
+            return PRINTER;
+        else if (value.equals("scanner_template"))
+            return SCANNER;
+        else if (value.equals("slide_template"))
+            return SLIDE;
+        else if (value.equals("data_processing_software_template"))
+            return DATAPROCESSINGSOFTWARE;
+        else if (value.equals("image_anaylsis_software_template"))
+            return IMAGEANALYSISSOFTWARE;
+        return SAMPLE;
     }
 }

@@ -19,9 +19,6 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
-import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
-import org.glygen.array.persistence.rdf.MassOnlyGlycan;
-import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -35,7 +32,7 @@ import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Sample;
-import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -374,13 +371,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             String sampleURI = addGenericInfo(sample.getName(), sample.getDescription(), statements, "SA", graph);
             // add template
             // find the template with given name and add the object property from sample to the metadatatemplate
-            String templateURI = templateRepository.getTemplateByName(sample.getTemplate());
+            String templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
             if (templateURI != null) 
                 statements.add(f.createStatement(f.createIRI(sampleURI), hasTemplate, f.createIRI(templateURI)));
             addMetadata (sampleURI, sample, statements, graph);
             IRI graphIRI = f.createIRI(graph);
             sparqlDAO.addStatements(statements, graphIRI);
             
+            return sampleURI;
         } else {
             //TODO
         }

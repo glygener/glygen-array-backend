@@ -1,0 +1,3 @@
+Sp20	ClassificationX
+Sp25	ClassificationY
+Grid Marker	ClassificationC

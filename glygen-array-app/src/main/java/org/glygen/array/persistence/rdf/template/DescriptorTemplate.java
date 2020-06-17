@@ -9,8 +9,7 @@ public class DescriptorTemplate extends Description {
     
     Namespace namespace;
     List<String> selectionList;
-    List<UnitOfMeasurement> units;
-    UnitOfMeasurement defaultUnit;
+    List<String> units;
         
     @Override
     public boolean isGroup() {
@@ -48,30 +47,14 @@ public class DescriptorTemplate extends Description {
     /**
      * @return the units
      */
-    public List<UnitOfMeasurement> getUnits() {
+    public List<String> getUnits() {
         return units;
     }
 
     /**
      * @param units the units to set
      */
-    public void setUnits(List<UnitOfMeasurement> units) {
+    public void setUnits(List<String> units) {
         this.units = units;
     }
-
-    /**
-     * @return the defaultUnit
-     */
-    public UnitOfMeasurement getDefaultUnit() {
-        return defaultUnit;
-    }
-
-    /**
-     * @param defaultUnit the defaultUnit to set
-     */
-    public void setDefaultUnit(UnitOfMeasurement defaultUnit) {
-        this.defaultUnit = defaultUnit;
-    }
-    
-
 }

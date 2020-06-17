@@ -9,7 +9,9 @@ import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 
 public interface MetadataTemplateRepository {
     
-    String getTemplateByName (String name) throws SparqlException, SQLException;
-    List<MetadataTemplate> getTemplateByType (String name, MetadataTemplateType type) throws SparqlException, SQLException;
+    void populateTemplateOntology() throws SparqlException;
+    
+    String getTemplateByName (String name, MetadataTemplateType type) throws SparqlException, SQLException;
+    List<MetadataTemplate> getTemplateByType (MetadataTemplateType type) throws SparqlException, SQLException;
 
 }
