@@ -22,7 +22,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
-import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
@@ -95,7 +95,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             templateObject = new MetadataTemplate();
             templateObject.setUri(templateURI);
             templateObject.setId(templateURI.substring(templateURI.lastIndexOf("/")+1));
-            templateObject.setDescriptors(new ArrayList<Description>());
+            templateObject.setDescriptors(new ArrayList<DescriptionTemplate>());
         }
         
         while (statements.hasNext()) {
@@ -108,7 +108,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 templateObject.setDescription(comment.stringValue());
             } else if (st.getPredicate().equals(hasDescriptionContext)) {
                 Value uriValue = st.getObject();
-                Description description = getDescriptionFromURI(uriValue.stringValue());
+                DescriptionTemplate description = getDescriptionFromURI(uriValue.stringValue());
                 templateObject.getDescriptors().add(description);
             } else if (st.getPredicate().equals(RDF.TYPE)) {
                 Value typeValue = st.getObject();
@@ -120,9 +120,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         return templateObject;
     }
 
-    private Description getDescriptionFromURI(String uri) {
+    @Override
+    public DescriptionTemplate getDescriptionFromURI(String uri) {
         String graph = GlygenArrayRepositoryImpl.DEFAULT_GRAPH; 
-        Description description = null;
+        DescriptionTemplate description = null;
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI descriptionContext = f.createIRI(uri);
         IRI graphIRI = f.createIRI(graph);
@@ -137,8 +138,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 ((DescriptorTemplate) description).setUnits(new ArrayList<String>());
             } else {
                 description = new DescriptorGroupTemplate();
-                ((DescriptorGroupTemplate) description).setDescriptors (new ArrayList<Description>());
+                ((DescriptorGroupTemplate) description).setDescriptors (new ArrayList<DescriptionTemplate>());
             }
+            description.setUri(uri);
+            description.setId(uri.substring(uri.lastIndexOf("/")+1));
         }
         
         IRI hasDescriptor = f.createIRI(templatePrefix + "has_descriptor");
@@ -203,7 +206,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(hasDescriptionContext)) {
                 String descriptionContextURI = st.getObject().stringValue();
                 // get sub descriptions
-                Description child = getDescriptionFromURI(descriptionContextURI);
+                DescriptionTemplate child = getDescriptionFromURI(descriptionContextURI);
                 ((DescriptorGroupTemplate) description).getDescriptors().add(child);
             } else if (st.getPredicate().equals(cardinality)) {
                 String value = st.getObject().stringValue();

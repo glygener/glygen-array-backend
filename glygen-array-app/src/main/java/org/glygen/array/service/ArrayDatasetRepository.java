@@ -22,4 +22,12 @@ public interface ArrayDatasetRepository {
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     
     String addSample (Sample sample, UserEntity user) throws SparqlException, SQLException;
+    
+    List<Sample> getSampleByUser (UserEntity user) throws SparqlException, SQLException;
+    
+    List<Sample> getSampleByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+    List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    void deleteSample (String sampleId, UserEntity user) throws SparqlException, SQLException;
+    int getSampleCountByUser(UserEntity user) throws SQLException, SparqlException;
 }

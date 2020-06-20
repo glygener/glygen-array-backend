@@ -1,48 +1,10 @@
 package org.glygen.array.persistence.rdf.metadata;
 
-public class Descriptor extends Description {
+public class Descriptor extends Description{
     
     String value;
-    String namespaceURI;
-    String unitURI;
+    String unit;
     
-    
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
-    /**
-     * @param id the id to set
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-    /**
-     * @return the uri
-     */
-    public String getUri() {
-        return uri;
-    }
-    /**
-     * @param uri the uri to set
-     */
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-    /**
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-    /**
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
     /**
      * @return the value
      */
@@ -55,46 +17,22 @@ public class Descriptor extends Description {
     public void setValue(String value) {
         this.value = value;
     }
+    
     /**
-     * @return the namespaceURI
+     * @return the unit
      */
-    public String getNamespaceURI() {
-        return namespaceURI;
+    public String getUnit() {
+        return unit;
     }
     /**
-     * @param namespaceURI the namespaceURI to set
+     * @param unit the unit to set
      */
-    public void setNamespaceURI(String namespaceURI) {
-        this.namespaceURI = namespaceURI;
-    }
-    /**
-     * @return the unitURI
-     */
-    public String getUnitURI() {
-        return unitURI;
-    }
-    /**
-     * @param unitURI the unitURI to set
-     */
-    public void setUnitURI(String unitURI) {
-        this.unitURI = unitURI;
-    }
-    /**
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-    /**
-     * @param description the description to set
-     */
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
     
     @Override
     public boolean isGroup() {
         return false;
     }
-
 }

@@ -17,10 +17,11 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
-import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
@@ -36,6 +37,8 @@ import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.LinkerListResultView;
+import org.glygen.array.view.SampleListResultView;
 import org.grits.toolbox.glycanarray.library.om.feature.Feature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -278,6 +281,59 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "List all samples for the user")
+    @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Samples retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to list samples"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public SampleListResultView listSamples (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of samples to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        SampleListResultView result = new SampleListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getSampleCountByUser (user);
+            
+            List<Sample> samples = datasetRepository.getSampleByUser(user, offset, limit, field, order, searchValue);
+            result.setRows(samples);
+            result.setTotal(total);
+            result.setFilteredTotal(samples.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
     @ApiOperation(value = "Retrieve list of templates for the given type")
     @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
@@ -307,7 +363,7 @@ public class DatasetController {
         sampleTemplate.setId("1234567");
         sampleTemplate.setName("Protein Sample Template");
         sampleTemplate.setType(MetadataTemplateType.SAMPLE);
-        List<Description> descriptors = new ArrayList<>();
+        List<DescriptionTemplate> descriptors = new ArrayList<>();
         DescriptorTemplate descriptor = new DescriptorTemplate();
         descriptor.setName ("AA Sequence");
         descriptor.setDescription("Amino acid sequence in fasta format");
@@ -343,7 +399,7 @@ public class DatasetController {
         descriptorGroup.setMandatory(true);
         descriptorGroup.setMaxOccurrence(Integer.MAX_VALUE);
         descriptorGroup.setDescription("Entry of the protein in a reference database (e.g. Uniprot)");
-        List<Description> groupDescriptors = new ArrayList<Description>();
+        List<DescriptionTemplate> groupDescriptors = new ArrayList<DescriptionTemplate>();
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Database");
         descriptor.setDescription("Name of the database");
@@ -381,7 +437,7 @@ public class DatasetController {
         descriptorGroup.setMandatory(false);
         descriptorGroup.setMaxOccurrence(1);
         descriptorGroup.setDescription("Provide information if the protein is directly labelled");
-        groupDescriptors = new ArrayList<Description>();
+        groupDescriptors = new ArrayList<DescriptionTemplate>();
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Name");
         descriptor.setDescription("Name of the label");
@@ -402,7 +458,7 @@ public class DatasetController {
         subLabel.setMandatory(true);
         subLabel.setMaxOccurrence(Integer.MAX_VALUE);
         
-        List<Description> groupDescriptors2 = new ArrayList<Description>();
+        List<DescriptionTemplate> groupDescriptors2 = new ArrayList<DescriptionTemplate>();
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Name");
         descriptor.setDescription("Names of reagents used in labelling procedure");
@@ -429,7 +485,7 @@ public class DatasetController {
         subLabel.setMandatory(false);
         subLabel.setMaxOccurrence(Integer.MAX_VALUE);
         
-        groupDescriptors2 = new ArrayList<Description>();
+        groupDescriptors2 = new ArrayList<DescriptionTemplate>();
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Type");
         descriptor.setDescription("Type of reference (DOI, PMID, URL)");
@@ -483,7 +539,7 @@ public class DatasetController {
         descriptorGroup.setMandatory(false);
         descriptorGroup.setMaxOccurrence(1);
         descriptorGroup.setDescription("Method use to deactive the organism (e.g. virus)");
-        groupDescriptors = new ArrayList<Description>();
+        groupDescriptors = new ArrayList<DescriptionTemplate>();
         
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Method");
@@ -500,7 +556,7 @@ public class DatasetController {
         subLabel.setMandatory(false);
         subLabel.setMaxOccurrence(Integer.MAX_VALUE);
         
-        groupDescriptors2 = new ArrayList<Description>();
+        groupDescriptors2 = new ArrayList<DescriptionTemplate>();
         descriptor = new DescriptorTemplate();
         descriptor.setName ("Type");
         descriptor.setDescription("Type of reference (DOI, PMID, URL)");

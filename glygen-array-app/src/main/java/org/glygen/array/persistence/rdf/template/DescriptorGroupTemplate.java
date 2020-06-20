@@ -2,11 +2,9 @@ package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.metadata.Description;
+public class DescriptorGroupTemplate extends DescriptionTemplate {
 
-public class DescriptorGroupTemplate extends Description {
-
-    List<Description> descriptors;
+    List<DescriptionTemplate> descriptors;
     
     @Override
     public boolean isGroup() {
@@ -16,14 +14,14 @@ public class DescriptorGroupTemplate extends Description {
     /**
      * @return the descriptors
      */
-    public List<Description> getDescriptors() {
+    public List<DescriptionTemplate> getDescriptors() {
         return descriptors;
     }
 
     /**
      * @param descriptors the descriptors to set
      */
-    public void setDescriptors(List<Description> descriptors) {
+    public void setDescriptors(List<DescriptionTemplate> descriptors) {
         this.descriptors = descriptors;
     }
 

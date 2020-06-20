@@ -2,10 +2,9 @@ package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.metadata.Description;
 import org.grits.toolbox.glycanarray.om.model.UnitOfMeasurement;
 
-public class DescriptorTemplate extends Description {
+public class DescriptorTemplate extends DescriptionTemplate {
     
     Namespace namespace;
     List<String> selectionList;

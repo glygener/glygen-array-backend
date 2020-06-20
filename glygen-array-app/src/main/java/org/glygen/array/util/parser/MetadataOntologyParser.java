@@ -26,7 +26,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
-import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
@@ -58,7 +58,7 @@ public class MetadataOntologyParser {
     static String prefix = "http://purl.org/gadr/template#";
     static String dataprefix = "http://purl.org/gadr/data/";
     
-    static int descriptorId=1;
+    int descriptorId=1;
     
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -75,8 +75,13 @@ public class MetadataOntologyParser {
         
         String filename = args[0];
         String type = args[1];
+        Integer descId = null;
+        if (args.length > 2) {
+            descId = Integer.parseInt(args[2]);
+        }
         try {       
             MetadataOntologyParser parser = new MetadataOntologyParser();
+            if (descId != null)  parser.setDescriptorId(descId);
             HashMap<String, List<Descriptor>> mp = parser.read(filename, new Config());
             parser.createOntology(mp, type);
             System.out.println("Finished importing metaData to the Ontology");
@@ -603,9 +608,9 @@ public class MetadataOntologyParser {
             MetadataTemplateType mType = MetadataTemplateType.forValue(type);
             metadataTemplate.setName(sheetName + " " + mType.name().toLowerCase() + " Template");
             metadataTemplate.setType (mType);
-            List<Description> descriptors = new ArrayList<Description>();
+            List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
             for (Descriptor d: mp.get(sheetName)) {
-                Description description = createDescription(d);
+                DescriptionTemplate description = createDescription(d);
                 descriptors.add(description);
             }
             metadataTemplate.setDescriptors(descriptors);
@@ -646,7 +651,7 @@ public class MetadataOntologyParser {
                     model.add(f.createStatement(metadataIRI, RDFS.COMMENT, f.createLiteral(template.getDescription())));
                 id++;
                 
-                for (Description description: template.getDescriptors()) {
+                for (DescriptionTemplate description: template.getDescriptors()) {
                     String descriptionURI = addDescriptionToOntology (model, f, description);
                     descriptorId++;
                     model.add(f.createStatement(metadataIRI, f.createIRI(prefix + "has_description_context"), f.createIRI(descriptionURI)));
@@ -662,7 +667,7 @@ public class MetadataOntologyParser {
         
     }
     
-    private String addDescriptionToOntology(Model model, ValueFactory f, Description description) {
+    private String addDescriptionToOntology(Model model, ValueFactory f, DescriptionTemplate description) {
         String uri = prefix + "DescriptionContext" + descriptorId;
         IRI descriptionContext = f.createIRI(uri);
         if (description instanceof DescriptorTemplate) {
@@ -708,7 +713,7 @@ public class MetadataOntologyParser {
             if (description.getDescription() != null)
                 model.add(f.createStatement(descriptionContext, RDFS.COMMENT, f.createLiteral(description.getDescription())));
             
-            for (Description d: ((DescriptorGroupTemplate) description).getDescriptors()) {
+            for (DescriptionTemplate d: ((DescriptorGroupTemplate) description).getDescriptors()) {
                 descriptorId++;
                 String descURI = addDescriptionToOntology(model, f, d);
                 model.add(f.createStatement(descriptionContext, f.createIRI(prefix + "has_description_context"), f.createIRI(descURI)));
@@ -729,12 +734,12 @@ public class MetadataOntologyParser {
         return uri;
     }
 
-    Description createDescription (Descriptor d) {
-        Description description = null;
+    DescriptionTemplate createDescription (Descriptor d) {
+        DescriptionTemplate description = null;
         if (d.getChildren() != null && !d.getChildren().isEmpty()) {
             // top level descriptor group
             description = new DescriptorGroupTemplate();
-            List<Description> descriptors = new ArrayList<Description>();
+            List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
             for (Descriptor child: d.getChildren()) {
                 descriptors.add(createDescription(child));
             }
@@ -953,6 +958,13 @@ public class MetadataOntologyParser {
         public void setMandatory(Boolean mandatory) {
             this.mandatory = mandatory;
         }
+    }
+
+    /**
+     * @param descriptorId the descriptorId to set
+     */
+    public void setDescriptorId(int descriptorId) {
+        this.descriptorId = descriptorId;
     }
 }
 

@@ -2,8 +2,6 @@ package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.metadata.Description;
-
 public class MetadataTemplate {
     
     String id;
@@ -11,7 +9,7 @@ public class MetadataTemplate {
     String name;
     String description;
     MetadataTemplateType type;
-    List<Description> descriptors;
+    List<DescriptionTemplate> descriptors;
     
     /**
      * @return the id
@@ -64,13 +62,13 @@ public class MetadataTemplate {
     /**
      * @return the descriptors
      */
-    public List<Description> getDescriptors() {
+    public List<DescriptionTemplate> getDescriptors() {
         return descriptors;
     }
     /**
      * @param descriptors the descriptors to set
      */
-    public void setDescriptors(List<Description> descriptors) {
+    public void setDescriptors(List<DescriptionTemplate> descriptors) {
         this.descriptors = descriptors;
     }
     /**
