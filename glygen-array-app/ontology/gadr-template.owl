@@ -34,7 +34,9 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
     <!-- http://purl.org/gadr/data/has_molecule -->
 
-    <owl:AnnotationProperty rdf:about="http://purl.org/gadr/data/has_molecule"/>
+    <owl:AnnotationProperty rdf:about="http://purl.org/gadr/data/has_molecule">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+    </owl:AnnotationProperty>
     
 
 
@@ -70,14 +72,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/template#slide_layout"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/block"/>
     </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/data/has_molecule -->
-
-    <rdf:Description rdf:about="http://purl.org/gadr/data/has_molecule">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
-    </rdf:Description>
     
 
 

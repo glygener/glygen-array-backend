@@ -10,12 +10,14 @@ import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 
 public interface MetadataTemplateRepository {
     
+    public static String templatePrefix = "http://purl.org/gadr/template#";
+    
     void populateTemplateOntology() throws SparqlException;
     
     String getTemplateByName (String name, MetadataTemplateType type) throws SparqlException, SQLException;
     List<MetadataTemplate> getTemplateByType (MetadataTemplateType type) throws SparqlException, SQLException;
 
-    DescriptionTemplate getDescriptionFromURI(String uri);
+    DescriptionTemplate getDescriptionFromURI(String uri) throws SparqlException;
 
     void deleteTemplates() throws SparqlException;
 

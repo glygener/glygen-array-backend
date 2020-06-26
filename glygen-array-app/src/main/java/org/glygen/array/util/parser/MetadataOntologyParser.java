@@ -32,6 +32,7 @@ import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.persistence.rdf.template.Namespace;
+import org.glygen.array.service.MetadataTemplateRepository;
 
 
 class Config {
@@ -56,7 +57,7 @@ public class MetadataOntologyParser {
     public static final String SEPERATOR = "/";
     public static final String SEPERATOR2 = ",";
     
-    static String prefix = "http://purl.org/gadr/template#";
+    static String prefix = MetadataTemplateRepository.templatePrefix;
     static String dataprefix = "http://purl.org/gadr/data/";
     
     int descriptorId=1;

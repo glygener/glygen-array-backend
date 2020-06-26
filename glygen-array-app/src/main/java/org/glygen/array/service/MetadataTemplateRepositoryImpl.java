@@ -45,7 +45,6 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     SesameSparqlDAO sparqlDAO;
     
     String prefix = GlygenArrayRepositoryImpl.prefix;
-    String templatePrefix = "http://purl.org/gadr/template#";
 
     @Override
     public String getTemplateByName (String label, MetadataTemplateType type) throws SparqlException, SQLException {
@@ -80,7 +79,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         return templates;
     }
 
-    public MetadataTemplate getTemplateFromURI(String templateURI) {
+    public MetadataTemplate getTemplateFromURI(String templateURI) throws SparqlException {
         
         MetadataTemplate templateObject = null;
         
@@ -123,7 +122,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     }
 
     @Override
-    public DescriptionTemplate getDescriptionFromURI(String uri) {
+    public DescriptionTemplate getDescriptionFromURI(String uri) throws SparqlException{
         String graph = GlygenArrayRepositoryImpl.DEFAULT_GRAPH; 
         DescriptionTemplate description = null;
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -151,7 +150,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI cardinality = f.createIRI(templatePrefix + "cardinality");
         IRI isRequired = f.createIRI(templatePrefix + "is_required");
         IRI hasExample = f.createIRI(templatePrefix + "has_example");
-        IRI hasUrl = f.createIRI(prefix + "has_url");
+        IRI hasUrl = f.createIRI(templatePrefix + "has_url");
         IRI hasUnit = f.createIRI(templatePrefix + "has_unit_of_measurement");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
