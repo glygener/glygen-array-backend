@@ -142,7 +142,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 ((DescriptorGroupTemplate) description).setDescriptors (new ArrayList<DescriptionTemplate>());
             }
             description.setUri(uri);
-            description.setId(uri.substring(uri.lastIndexOf("/")+1));
+            description.setId(uri.substring(uri.lastIndexOf("#")+1));
         }
         
         IRI hasDescriptor = f.createIRI(templatePrefix + "has_descriptor");

@@ -129,8 +129,8 @@ select create_constraint_if_not_exists(
         'email',
         'fk_emailuser', 'alter table email add constraint fk_emailuser foreign key (userId) references users;');
         
-create sequence IF NOT EXISTS ROLE_SEQ start 4 increment 50;
-create sequence IF NOT EXISTS USER_SEQ start 2 increment 50;
+create sequence IF NOT EXISTS ROLE_SEQ start 10 increment 50;
+create sequence IF NOT EXISTS USER_SEQ start 10 increment 50;
 create sequence IF NOT EXISTS TOKEN_SEQ minvalue 1 start 1 increment 1;
 create sequence IF NOT EXISTS GRAPH_SEQ minvalue 1 start 1 increment 1;
 create sequence IF NOT EXISTS EMAIL_SEQ minvalue 1 start 1 increment 1;

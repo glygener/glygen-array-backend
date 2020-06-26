@@ -379,8 +379,6 @@ public class UtilityController {
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Return a list of metadata templates"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve templates"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public List<MetadataTemplate> getAllTemplatesByType (
