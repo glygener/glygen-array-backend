@@ -3,6 +3,7 @@ package org.glygen.array.controller;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,9 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
@@ -27,6 +31,7 @@ import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -47,6 +52,9 @@ import io.swagger.annotations.ApiResponses;
 public class UtilityController {
     
     final static Logger logger = LoggerFactory.getLogger("event-logger");
+    
+    @Autowired
+    MetadataTemplateRepository templateRepository;
 	
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -342,5 +350,256 @@ public class UtilityController {
             throw errorMessage;
         }
         return unitLevels;
+    }
+    
+    @ApiOperation(value = "Retrieve list of templates for the given type")
+    @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Return a list of metadata templates"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve templates"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public List<MetadataTemplate> getAllTemplatesByType (
+            @ApiParam(required=true, value="Type of the metadatatemplate") 
+            @RequestParam("type")
+            MetadataTemplateType type) {
+        
+        List<MetadataTemplate> templates;
+        try {
+            templates = templateRepository.getTemplateByType(type);
+        } catch (SparqlException | SQLException e) {
+            logger.error("Error retrieving templates for type\" + type", e);
+            throw new GlycanRepositoryException("Error retrieving templates for type" + type, e);
+        }
+        
+       /* List<MetadataTemplate> templates = new ArrayList<MetadataTemplate>();
+        
+        //TODO retrieve them from the repository
+        MetadataTemplate sampleTemplate = new MetadataTemplate();
+        sampleTemplate.setId("1234567");
+        sampleTemplate.setName("Protein Sample Template");
+        sampleTemplate.setType(MetadataTemplateType.SAMPLE);
+        List<DescriptionTemplate> descriptors = new ArrayList<>();
+        DescriptorTemplate descriptor = new DescriptorTemplate();
+        descriptor.setName ("AA Sequence");
+        descriptor.setDescription("Amino acid sequence in fasta format");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        Namespace namespace = new Namespace();
+        namespace.setName("text");
+        namespace.setUri("http://www.w3.org/2001/XMLSchema#string");
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
+        Namespace namespace2 = new Namespace();
+        namespace2.setName("dictionary");
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Species");
+        descriptor.setDescription("The species of the protein");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        descriptors.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Strain");
+        descriptor.setDescription("Strain of the origin if the sample is a micro organism");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
+        DescriptorGroupTemplate descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Database entry");
+        descriptorGroup.setMandatory(true);
+        descriptorGroup.setMaxOccurrence(Integer.MAX_VALUE);
+        descriptorGroup.setDescription("Entry of the protein in a reference database (e.g. Uniprot)");
+        List<DescriptionTemplate> groupDescriptors = new ArrayList<DescriptionTemplate>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Database");
+        descriptor.setDescription("Name of the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Database URL");
+        descriptor.setDescription("Web link of the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Id");
+        descriptor.setDescription("Identifier of the protein in the database");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("URL");
+        descriptor.setDescription("Web link of the protein in the database");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptorGroup.setDescriptors(groupDescriptors);
+        
+        descriptors.add(descriptorGroup);
+        
+        descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Label");
+        descriptorGroup.setMandatory(false);
+        descriptorGroup.setMaxOccurrence(1);
+        descriptorGroup.setDescription("Provide information if the protein is directly labelled");
+        groupDescriptors = new ArrayList<DescriptionTemplate>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Name");
+        descriptor.setDescription("Name of the label");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors.add(descriptor);
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Method");
+        descriptor.setDescription("Name of the labeling method");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors.add(descriptor);
+        
+        DescriptorGroupTemplate subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reagent");
+        subLabel.setMandatory(true);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        List<DescriptionTemplate> groupDescriptors2 = new ArrayList<DescriptionTemplate>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Name");
+        descriptor.setDescription("Names of reagents used in labelling procedure");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("URL");
+        descriptor.setDescription("URL with information of the Reagent (Pubchem, Vendor page)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
+        
+        subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reference");
+        subLabel.setDescription("A reference that describest the method");
+        subLabel.setMandatory(false);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        groupDescriptors2 = new ArrayList<DescriptionTemplate>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Type");
+        descriptor.setDescription("Type of reference (DOI, PMID, URL)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Value");
+        descriptor.setDescription("URL, PMID or DOI");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
+        descriptorGroup.setDescriptors(groupDescriptors);
+        
+        descriptors.add(descriptorGroup);
+        sampleTemplate.setDescriptors(descriptors);
+        templates.add(sampleTemplate);
+        
+        sampleTemplate = new MetadataTemplate();
+        sampleTemplate.setId("1234568");
+        sampleTemplate.setName("Fluid Sample Template");
+        sampleTemplate.setType(MetadataTemplateType.SAMPLE);
+        descriptors = new ArrayList<>();
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Species");
+        descriptor.setDescription("The species of the protein");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        descriptors.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Strain");
+        descriptor.setDescription("Strain of the origin if the sample is a micro organism");
+        descriptor.setMandatory(false);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        descriptors.add(descriptor);
+        
+        
+        descriptorGroup = new DescriptorGroupTemplate();
+        descriptorGroup.setName("Deactivation method");
+        descriptorGroup.setMandatory(false);
+        descriptorGroup.setMaxOccurrence(1);
+        descriptorGroup.setDescription("Method use to deactive the organism (e.g. virus)");
+        groupDescriptors = new ArrayList<DescriptionTemplate>();
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Method");
+        descriptor.setDescription("Name of the method");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors.add(descriptor);
+        
+        
+        subLabel = new DescriptorGroupTemplate();
+        subLabel.setName ("Reference");
+        subLabel.setDescription("A reference that describest the method");
+        subLabel.setMandatory(false);
+        subLabel.setMaxOccurrence(Integer.MAX_VALUE);
+        
+        groupDescriptors2 = new ArrayList<DescriptionTemplate>();
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Type");
+        descriptor.setDescription("Type of reference (DOI, PMID, URL)");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace2);
+        groupDescriptors2.add(descriptor);
+        
+        descriptor = new DescriptorTemplate();
+        descriptor.setName ("Value");
+        descriptor.setDescription("URL, PMID or DOI");
+        descriptor.setMandatory(true);
+        descriptor.setMaxOccurrence(1);
+        descriptor.setNamespace(namespace);
+        groupDescriptors2.add(descriptor);
+        
+        subLabel.setDescriptors(groupDescriptors2);
+        
+        groupDescriptors.add(subLabel);
+        descriptorGroup.setDescriptors(groupDescriptors);
+        
+        descriptors.add(descriptorGroup);
+        sampleTemplate.setDescriptors(descriptors);
+        templates.add(sampleTemplate);*/
+        
+        return templates;
     }
 }

@@ -3274,16 +3274,4 @@ public class GlygenArrayController {
         	return result;
         }
 	}
-	
-    @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
-            produces={"application/json", "application/xml"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
-	public Confirmation resetRepository (Principal p) {
-        try {
-            repository.resetRepository();
-            return new Confirmation("emptied the repository", HttpStatus.OK.value());
-        } catch (SQLException e) {
-            throw new GlycanRepositoryException(e);
-        }
-	}
 }

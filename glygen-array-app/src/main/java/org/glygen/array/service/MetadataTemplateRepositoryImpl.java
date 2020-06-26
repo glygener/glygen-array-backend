@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Statement;
@@ -16,6 +17,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
@@ -246,6 +248,78 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             throw new SparqlException ("Cannot read ontology file", e);
         }
         
+    }
+    
+    public void deleteTemplate (String uri) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI template = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        IRI hasDescriptionContext = f.createIRI(templatePrefix + "has_description_context");
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(template, hasDescriptionContext, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String contextURI = v.stringValue();
+            deleteDescriptionContext(contextURI);
+        }
+        
+        statements = sparqlDAO.getStatements(template, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+    }
+    
+    public void deleteDescriptionContext (String uri) throws RepositoryException, SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        IRI context = f.createIRI(uri);
+        IRI hasDescriptor = f.createIRI(templatePrefix + "has_descriptor");
+        IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
+        IRI hasDescriptionContext = f.createIRI(templatePrefix + "has_description_context");
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(context, hasDescriptionContext, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String contextURI = v.stringValue();
+            deleteDescriptionContext (contextURI);
+        }
+        statements = sparqlDAO.getStatements(context, hasDescriptor, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String descriptorURI = v.stringValue();
+            IRI descriptor = f.createIRI(descriptorURI);
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(descriptor, hasNamespace, null, graphIRI);
+            while (statements2.hasNext()) {
+                Statement st2 = statements2.next();
+                Value v2 = st2.getObject();
+                IRI namespace = f.createIRI(v2.stringValue());
+                RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(namespace, null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements3), graphIRI);
+            }
+            statements2 = sparqlDAO.getStatements(descriptor, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI); 
+        }
+        statements = sparqlDAO.getStatements(context, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+        
+    }
+
+    @Override
+    public void deleteTemplates() throws SparqlException {    
+        for (MetadataTemplateType type: MetadataTemplateType.values()) {
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s \n");
+            queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append ( " ?s rdf:type  <" + templatePrefix  + type.getLabel() + ">. \n}");
+            
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            for (SparqlEntity sparqlEntity : results) {
+                String templateURI = sparqlEntity.getValue("s");
+                deleteTemplate(templateURI);
+            }   
+        }
     }
 
 }

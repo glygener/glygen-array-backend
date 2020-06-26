@@ -2,7 +2,6 @@ package org.glygen.array.controller;
 
 import java.time.LocalDate;
 
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.WebAccessLoggingEntity;
 import org.glygen.array.persistence.WebEventLoggingEntity;
 import org.glygen.array.persistence.dao.WebAccessLoggingDAO;

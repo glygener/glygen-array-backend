@@ -319,7 +319,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
-	<rdfs:label>Molecule sample Template</rdfs:label>
+	<rdfs:label>Molecule Sample</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -951,39 +951,9 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor26">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Sample type</rdfs:label>
-	<rdfs:comment>Samples may include but are not restricted to glycan binding proteins, glycan binding organisms, and other synthetic glycan binding molecules such as aptamers. </rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor26"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection26">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor26">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespaceselection26"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection26">
-	<rdfs:label>selection</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>protein</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext26"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Commercial</rdfs:label>
+	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext27">
@@ -992,8 +962,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor27">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the sample as provided by the user</rdfs:comment>
+	<rdfs:label>Vendor</rdfs:label>
+	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext27">
@@ -1007,17 +977,39 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext27">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Vector labs</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext27"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Commercial</rdfs:label>
-	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor28">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Catalogue number</rdfs:label>
+	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor28"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor28">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example>B-1305</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext28"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext29">
@@ -1026,8 +1018,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor29">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Vendor</rdfs:label>
-	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<rdfs:label>Batch ID</rdfs:label>
+	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext29">
@@ -1040,81 +1032,67 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext29">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Vector labs</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext29"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor30">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Catalogue number</rdfs:label>
-	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor30"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor30">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>B-1305</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext30"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor31">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Batch ID</rdfs:label>
-	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor31"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor31">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
-	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Z1002</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext28">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext31"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext29"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext28"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext26"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Sample preparation</rdfs:label>
+	<rdfs:comment></rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor31">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Name of the method</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor31"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary31">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor31">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary31"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary31">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext31">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext31"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Sample preparation</rdfs:label>
-	<rdfs:comment></rdfs:comment>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext33">
@@ -1123,8 +1101,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor33">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Name of the method</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext33">
@@ -1154,80 +1132,114 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext34">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor35">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor35"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary35">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor35">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary35"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary35">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext34">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext35"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor36">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor34">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor36"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext34">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor34"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor36">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor34">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext34">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext36"/>
-	<template:cardinality>n</template:cardinality>
+	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext34"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext32"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor35">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Comment</rdfs:label>
+	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor35"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor35">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext35"/>
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext30"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
+	<rdfs:label>Organism Sample</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor36">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Species</rdfs:label>
+	<rdfs:comment>The species of the protein</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor36"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary36">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor36">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary36"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary36">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example>Homo sapiens</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext36"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext37">
@@ -1236,8 +1248,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor37">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Comment</rdfs:label>
-	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+	<rdfs:label>Strain</rdfs:label>
+	<rdfs:comment>Strain of the origin if the sample is a micro organism</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext37">
@@ -1245,7 +1257,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor37">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext37">
@@ -1254,56 +1266,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext37"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext32"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
-	<rdfs:label>Organism sample Template</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor38">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Species</rdfs:label>
-	<rdfs:comment>The species of the protein</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor38"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary38">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor38">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary38"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary38">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>Homo sapiens</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext38"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Deactivation method</rdfs:label>
+	<rdfs:comment>Method use to deactive the organism (e.g. virus)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext39">
@@ -1312,32 +1282,40 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor39">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Strain</rdfs:label>
-	<rdfs:comment>Strain of the origin if the sample is a micro organism</rdfs:comment>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Method used</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext39">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor39"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary39">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor39">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary39"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary39">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext39">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext39"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Deactivation method</rdfs:label>
-	<rdfs:comment>Method use to deactive the organism (e.g. virus)</rdfs:comment>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext41">
@@ -1346,8 +1324,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor41">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Method used</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext41">
@@ -1377,45 +1355,51 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor43">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor42">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor43"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor42"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary43">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor42">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor43">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary43"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary43">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext43"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext42"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext40"/>
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext38"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Commercial</rdfs:label>
+	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext44">
@@ -1424,8 +1408,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor44">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<rdfs:label>Vendor</rdfs:label>
+	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext44">
@@ -1439,25 +1423,11 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext44">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Vector labs</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext44"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext42"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext40"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext45">
@@ -1466,33 +1436,25 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor45">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Sample type</rdfs:label>
-	<rdfs:comment>Samples may include but are not restricted to glycan binding proteins, glycan binding organisms, and other synthetic glycan binding molecules such as aptamers. </rdfs:comment>
+	<rdfs:label>Catalogue number</rdfs:label>
+	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext45">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor45"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection45">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor45">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespaceselection45"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection45">
-	<rdfs:label>selection</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext45">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>protein</template:has_example>
+	<template:has_example>B-1305</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext45"/>
 </rdf:Description>
 
@@ -1502,8 +1464,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor46">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the sample as provided by the user</rdfs:comment>
+	<rdfs:label>Batch ID</rdfs:label>
+	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext46">
@@ -1516,18 +1478,25 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext46">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example>Z1002</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext46"/>
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext46"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext43"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Commercial</rdfs:label>
-	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<rdfs:label>Sample preparation</rdfs:label>
+	<rdfs:comment></rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext48">
@@ -1536,22 +1505,30 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor48">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Vendor</rdfs:label>
-	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Name of the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext48">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor48"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary48">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor48">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary48"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary48">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext48">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Vector labs</template:has_example>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
@@ -1559,31 +1536,9 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor49">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Catalogue number</rdfs:label>
-	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor49"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor49">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>B-1305</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext49"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext50">
@@ -1592,26 +1547,97 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor50">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Batch ID</rdfs:label>
-	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext50">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor50"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary50">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor50">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary50"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary50">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext50">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>Z1002</template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext50"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor51">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor51"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor51">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext51"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext50"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext49"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor52">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Comment</rdfs:label>
+	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor52"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor52">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext52"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -1621,52 +1647,45 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext47"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Sample preparation</rdfs:label>
-	<rdfs:comment></rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor52">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Name of the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor52"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary52">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor52">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary52"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary52">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext52"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
+	<rdfs:label>Fluid Sample</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor53">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Species</rdfs:label>
+	<rdfs:comment>The species of the protein</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor53"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary53">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor53">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary53"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary53">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example>Homo sapiens</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext53"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext54">
@@ -1675,8 +1694,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor54">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<rdfs:label>Fluid type</rdfs:label>
+	<rdfs:comment>Type of fluid (urine, serum)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext54">
@@ -1701,43 +1720,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext54"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor55">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor55"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor55">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext55"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext53"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Disease</rdfs:label>
+	<rdfs:comment>Disease that the fluid hosts was exposed</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext56">
@@ -1746,38 +1736,34 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor56">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Comment</rdfs:label>
-	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+	<rdfs:label>Name</rdfs:label>
+	<rdfs:comment>Name of the disease</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext56">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor56"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary56">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor56">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary56"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary56">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext56">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext51">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext56"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext51"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
-	<rdfs:label>Fluid sample Template</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext57">
@@ -1786,8 +1772,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor57">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Species</rdfs:label>
-	<rdfs:comment>The species of the protein</rdfs:comment>
+	<rdfs:label>ICD10</rdfs:label>
+	<rdfs:comment>ICD10 ID of the disease</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext57">
@@ -1809,53 +1795,60 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext57">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Homo sapiens</template:has_example>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext57"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext57"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext55"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Perturbation</rdfs:label>
+	<rdfs:comment>Any modification the fluid host was exposed to (radiation, medication)</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor58">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor59">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Fluid type</rdfs:label>
-	<rdfs:comment>Type of fluid (urine, serum)</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of perturbation</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor58"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor59"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary58">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary59">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor58">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary58"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor59">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary59"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary58">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary59">
 	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext58"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Disease</rdfs:label>
-	<rdfs:comment>Disease that the fluid hosts was exposed</rdfs:comment>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext59"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext60">
@@ -1864,24 +1857,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor60">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the disease</rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>A name for the perturbation (e.g. name of the medication)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext60">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor60"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary60">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor60">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary60"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary60">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext60">
@@ -1890,7 +1875,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext60"/>
 </rdf:Description>
 
@@ -1900,33 +1885,25 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor61">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>ICD10</rdfs:label>
-	<rdfs:comment>ICD10 ID of the disease</rdfs:comment>
+	<rdfs:label>URL</rdfs:label>
+	<rdfs:comment>URL for the perturbation</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext61">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor61"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary61">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor61">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary61"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary61">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext61">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext61"/>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
@@ -1934,13 +1911,13 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext59"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext58"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Perturbation</rdfs:label>
-	<rdfs:comment>Any modification the fluid host was exposed to (radiation, medication)</rdfs:comment>
+	<rdfs:label>Commercial</rdfs:label>
+	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext63">
@@ -1949,30 +1926,22 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor63">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of perturbation</rdfs:comment>
+	<rdfs:label>Vendor</rdfs:label>
+	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext63">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor63"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary63">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor63">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary63"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary63">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext63">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Vector labs</template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -1985,8 +1954,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor64">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>A name for the perturbation (e.g. name of the medication)</rdfs:comment>
+	<rdfs:label>Catalogue number</rdfs:label>
+	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext64">
@@ -2000,7 +1969,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext64">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>B-1305</template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -2013,8 +1982,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor65">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>URL</rdfs:label>
-	<rdfs:comment>URL for the perturbation</rdfs:comment>
+	<rdfs:label>Batch ID</rdfs:label>
+	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext65">
@@ -2028,12 +1997,12 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext65">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Z1002</template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext65"/>
-	<template:cardinality>n</template:cardinality>
+	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
@@ -2043,39 +2012,9 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor66">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Sample type</rdfs:label>
-	<rdfs:comment>Samples may include but are not restricted to glycan binding proteins, glycan binding organisms, and other synthetic glycan binding molecules such as aptamers. </rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor66"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection66">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor66">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespaceselection66"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection66">
-	<rdfs:label>selection</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>protein</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext66"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Sample preparation</rdfs:label>
+	<rdfs:comment></rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext67">
@@ -2084,16 +2023,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor67">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the sample as provided by the user</rdfs:comment>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Name of the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext67">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor67"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary67">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor67">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary67"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary67">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext67">
@@ -2102,14 +2049,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext67"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Commercial</rdfs:label>
-	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext69">
@@ -2118,22 +2065,30 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor69">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Vendor</rdfs:label>
-	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext69">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor69"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary69">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor69">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary69"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary69">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext69">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Vector labs</template:has_example>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
@@ -2146,8 +2101,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor70">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Catalogue number</rdfs:label>
-	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext70">
@@ -2161,11 +2116,18 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext70">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>B-1305</template:has_example>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext70"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext68"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext71">
@@ -2174,8 +2136,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor71">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Batch ID</rdfs:label>
-	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<rdfs:label>Comment</rdfs:label>
+	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext71">
@@ -2183,16 +2145,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor71">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext71">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>Z1002</template:has_example>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext71"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
@@ -2200,13 +2162,48 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext68"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext66"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
+	<rdfs:label>Protein Sample</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Sample preparation</rdfs:label>
-	<rdfs:comment></rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor72">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Species</rdfs:label>
+	<rdfs:comment>The species of the protein</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor72"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary72">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor72">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary72"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary72">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example>Homo sapiens</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext72"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext73">
@@ -2215,40 +2212,32 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor73">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Name of the method</rdfs:comment>
+	<rdfs:label>Strain</rdfs:label>
+	<rdfs:comment>Strain of the origin if the sample is a micro organism</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext73">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor73"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary73">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor73">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary73"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary73">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext73">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext73"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<rdfs:label>Database entry</rdfs:label>
+	<rdfs:comment>Entry of the protein in a reference database (e.g. Uniprot)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext75">
@@ -2257,30 +2246,22 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor75">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<rdfs:label>Database</rdfs:label>
+	<rdfs:comment>Name of the database</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext75">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor75"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary75">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor75">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary75"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary75">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext75">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Uniprot</template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
@@ -2293,8 +2274,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor76">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<rdfs:label>Database URL</rdfs:label>
+	<rdfs:comment>Web link of the database</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext76">
@@ -2308,18 +2289,11 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext76">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>https://www.uniprot.org/</template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext76"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext74"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext77">
@@ -2328,8 +2302,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor77">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Comment</rdfs:label>
-	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+	<rdfs:label>Id</rdfs:label>
+	<rdfs:comment>Identifier of the protein in the database</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext77">
@@ -2337,29 +2311,17 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor77">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext77">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example>P03390</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext72">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext77"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext72"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#sample_template"/>
-	<rdfs:label>Protein sample Template</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext78">
@@ -2368,68 +2330,75 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor78">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Species</rdfs:label>
-	<rdfs:comment>The species of the protein</rdfs:comment>
+	<rdfs:label>URL</rdfs:label>
+	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext78">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor78"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary78">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor78">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary78"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary78">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext78">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>Homo sapiens</template:has_example>
+	<template:has_example>https://www.uniprot.org/uniprot/P03390</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext78"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor79">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Strain</rdfs:label>
-	<rdfs:comment>Strain of the origin if the sample is a micro organism</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor79"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor79">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext79"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext74"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Expression system</rdfs:label>
+	<rdfs:comment>If the protein was expressed in another organism</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Database entry</rdfs:label>
-	<rdfs:comment>Entry of the protein in a reference database (e.g. Uniprot)</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor80">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Species</rdfs:label>
+	<rdfs:comment>Speices of the expression system</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor80"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary80">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor80">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary80"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary80">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example>E. coli</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext80"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext81">
@@ -2438,8 +2407,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor81">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Database</rdfs:label>
-	<rdfs:comment>Name of the database</rdfs:comment>
+	<rdfs:label>Strain</rdfs:label>
+	<rdfs:comment>Strain of the expression system</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext81">
@@ -2452,11 +2421,11 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext81">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Uniprot</template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext81"/>
 </rdf:Description>
 
@@ -2466,8 +2435,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor82">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Database URL</rdfs:label>
-	<rdfs:comment>Web link of the database</rdfs:comment>
+	<rdfs:label>Range start</rdfs:label>
+	<rdfs:comment>Number of first amino acid </rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext82">
@@ -2475,16 +2444,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor82">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext82">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>https://www.uniprot.org/</template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext82"/>
 </rdf:Description>
 
@@ -2494,8 +2463,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor83">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Id</rdfs:label>
-	<rdfs:comment>Identifier of the protein in the database</rdfs:comment>
+	<rdfs:label>Range end</rdfs:label>
+	<rdfs:comment>Number of last amino acid</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext83">
@@ -2503,94 +2472,72 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor83">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext83">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>P03390</template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext83"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor84">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>URL</rdfs:label>
-	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor84"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor84">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>https://www.uniprot.org/uniprot/P03390</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext84"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext80"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext79"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Synthetic</rdfs:label>
+	<rdfs:comment>Information if the protein was synthetic frabricated</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Expression system</rdfs:label>
-	<rdfs:comment>If the protein was expressed in another organism</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor86">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor85">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Species</rdfs:label>
-	<rdfs:comment>Speices of the expression system</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor86"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary86">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor86">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary86"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary86">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>E. coli</template:has_example>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Method use to synthesis the protein</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext86"/>
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor85"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary85">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor85">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary85"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary85">
+	<rdfs:label>dictionary</rdfs:label>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext85"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext87">
@@ -2599,25 +2546,33 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor87">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Strain</rdfs:label>
-	<rdfs:comment>Strain of the expression system</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext87">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor87"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary87">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor87">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary87"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary87">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext87">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext87"/>
 </rdf:Description>
 
@@ -2627,8 +2582,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor88">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Range start</rdfs:label>
-	<rdfs:comment>Number of first amino acid </rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext88">
@@ -2636,100 +2591,99 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor88">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext88">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext88"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor89">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Range end</rdfs:label>
-	<rdfs:comment>Number of last amino acid</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor89"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor89">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext89"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext86"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext85"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext84"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Label</rdfs:label>
+	<rdfs:comment>Provide information if the protein is directly labelled.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Synthetic</rdfs:label>
-	<rdfs:comment>Information if the protein was synthetic frabricated</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor91">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor90">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Method use to synthesis the protein</rdfs:comment>
+	<rdfs:label>Name</rdfs:label>
+	<rdfs:comment>Name of the label.</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor91"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor90"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary91">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor90">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor91">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary91"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary91">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext91"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext90"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Reagent</rdfs:label>
+	<rdfs:comment></rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor92">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Name</rdfs:label>
+	<rdfs:comment>Names of reagents used in labelling procedure. </rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor92"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor92">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext92"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext93">
@@ -2738,24 +2692,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor93">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<rdfs:label>URL</rdfs:label>
+	<rdfs:comment>URL with information of the Reagent (Pubchem, Vendor page)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext93">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor93"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary93">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor93">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary93"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary93">
-	<rdfs:label>dictionary</rdfs:label>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext93">
@@ -2764,8 +2710,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext93"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext91"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext94">
@@ -2774,16 +2727,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor94">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Name of the labeling method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext94">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor94"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary94">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor94">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary94"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary94">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext94">
@@ -2792,28 +2753,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext94"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext92"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext90"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Label</rdfs:label>
-	<rdfs:comment>Provide information if the protein is directly labelled.</rdfs:comment>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext96">
@@ -2822,16 +2769,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor96">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the label.</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext96">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor96"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary96">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor96">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary96"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary96">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext96">
@@ -2845,37 +2800,51 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reagent</rdfs:label>
-	<rdfs:comment></rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor98">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor97">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Names of reagents used in labelling procedure. </rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor98"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor97"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor98">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor97">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext98"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext97"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext95"/>
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext89"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Purity</rdfs:label>
+	<rdfs:comment>Information about the purity of the protein</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext99">
@@ -2884,8 +2853,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor99">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>URL</rdfs:label>
-	<rdfs:comment>URL with information of the Reagent (Pubchem, Vendor page)</rdfs:comment>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>Percent value of purity</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext99">
@@ -2893,7 +2862,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor99">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext99">
@@ -2902,15 +2871,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext99"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext97"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext100">
@@ -2920,7 +2882,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor100">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Name of the labeling method</rdfs:comment>
+	<rdfs:comment>Method of purification</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext100">
@@ -2945,50 +2907,49 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext100"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor102">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor102"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary102">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor102">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary102"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary102">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext98"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext102"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor101">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>AA sequence</rdfs:label>
+	<rdfs:comment>Amino acid sequence in fasta format</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor101"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor101">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext101"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Commercial</rdfs:label>
+	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext103">
@@ -2997,8 +2958,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor103">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<rdfs:label>Vendor</rdfs:label>
+	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext103">
@@ -3012,31 +2973,39 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext103">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>Vector labs</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext103"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext101"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext95"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Purity</rdfs:label>
-	<rdfs:comment>Information about the purity of the protein</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor104">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Catalogue number</rdfs:label>
+	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor104"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor104">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example>B-1305</template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext104"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext105">
@@ -3045,8 +3014,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor105">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>Percent value of purity</rdfs:comment>
+	<rdfs:label>Batch ID</rdfs:label>
+	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext105">
@@ -3054,60 +3023,30 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor105">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext105">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example>Z1002</template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext105"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor106">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Method of purification</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor106"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary106">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor106">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary106"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary106">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext106"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext104"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext102"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Sample preparation</rdfs:label>
+	<rdfs:comment></rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext107">
@@ -3116,16 +3055,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor107">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>AA sequence</rdfs:label>
-	<rdfs:comment>Amino acid sequence in fasta format</rdfs:comment>
+	<rdfs:label>Method</rdfs:label>
+	<rdfs:comment>Name of the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext107">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor107"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary107">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor107">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary107"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary107">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext107">
@@ -3134,44 +3081,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext107"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor108">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Sample type</rdfs:label>
-	<rdfs:comment>Samples may include but are not restricted to glycan binding proteins, glycan binding organisms, and other synthetic glycan binding molecules such as aptamers. </rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor108"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection108">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor108">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespaceselection108"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespaceselection108">
-	<rdfs:label>selection</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>protein</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext108"/>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Reference</rdfs:label>
+	<rdfs:comment>A reference that describest the method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext109">
@@ -3180,16 +3097,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor109">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Name</rdfs:label>
-	<rdfs:comment>Name of the sample as provided by the user</rdfs:comment>
+	<rdfs:label>Type</rdfs:label>
+	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext109">
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor109"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary109">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor109">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary109"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary109">
+	<rdfs:label>dictionary</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext109">
@@ -3198,14 +3123,43 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext109"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Commercial</rdfs:label>
-	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor110">
+	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdfs:label>Value</rdfs:label>
+	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor110"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor110">
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext110"/>
+	<template:cardinality>n</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext108"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext111">
@@ -3214,8 +3168,8 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor111">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Vendor</rdfs:label>
-	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<rdfs:label>Comment</rdfs:label>
+	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext111">
@@ -3223,234 +3177,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor111">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext111">
 	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>Vector labs</template:has_example>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+	<template:has_example></template:has_example>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext111"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext112">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor112">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Catalogue number</rdfs:label>
-	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext112">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor112"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor112">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext112">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example>B-1305</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext112"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext113">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor113">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Batch ID</rdfs:label>
-	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext113">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor113"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor113">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext113">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example>Z1002</template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext113"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext110"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext114">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Sample preparation</rdfs:label>
-	<rdfs:comment></rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext115">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor115">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Method</rdfs:label>
-	<rdfs:comment>Name of the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext115">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor115"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary115">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor115">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary115"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary115">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext115">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext114">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext115"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext116">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Reference</rdfs:label>
-	<rdfs:comment>A reference that describest the method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext117">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor117">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Type</rdfs:label>
-	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext117">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor117"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary117">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor117">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary117"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespacedictionary117">
-	<rdfs:label>dictionary</rdfs:label>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext117">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext116">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext117"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext118">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor118">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Value</rdfs:label>
-	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext118">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor118"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor118">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext118">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext116">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext118"/>
-	<template:cardinality>n</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext114">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext116"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext119">
-	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor119">
-	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Comment</rdfs:label>
-	<rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext119">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor119"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor119">
-	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext119">
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext114">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext119"/>
-	<template:cardinality>1</template:cardinality>
-	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
-</rdf:Description>
-
-<rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext114"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext106"/>
 </rdf:Description>
 
 </rdf:RDF>

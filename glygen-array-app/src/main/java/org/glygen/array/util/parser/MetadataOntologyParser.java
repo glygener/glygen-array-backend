@@ -42,7 +42,8 @@ class Config {
     int dictionary = 7;
     int unit=8;
     int example=9;
-    int totalCols = 10;
+    int wiki = 10;
+    int totalCols = 11;
 }
 
 public class MetadataOntologyParser {
@@ -204,6 +205,8 @@ public class MetadataOntologyParser {
                                     readMeasurement(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.example) {
                                     readExample(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } else if (cell.getColumnIndex() == config.wiki) {
+                                    readWiki(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else {
                                     continue;
                                 }
@@ -468,6 +471,37 @@ public class MetadataOntologyParser {
     }
     
     /***
+     * Reads the values for wiki url and adds to the descriptor 
+     * @param cell cell to be read
+     * @param descriptor descriptor to be modified
+     * @param childDescriptor child descriptor to be modified
+     * @param sheet sheet that is currently being read
+     * @param isChild boolean if it is a child or not
+     */
+    public static void readWiki(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+            String example = cell.getRichStringCellValue().getString();
+            if (!example.equals("")) {
+                if (level == 1) {
+                    childDescriptor.setWikiLink(example);
+                } else if (level == 0){
+                    descriptor.setWikiLink(example);
+                } else if (level == 2){
+                    subDescriptor.setWikiLink(example);
+                }
+            } else {
+                warningOut.println("WARNING: No value for Example provided on sheet: "
+                        + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                        + " column: " + (cell.getColumnIndex() + 1));
+            }
+        } else {
+            errorOut.println("ERROR: Invalid value for example on sheet: "
+                    + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                    + " column: " + (cell.getColumnIndex() + 1));
+        }
+    }
+    
+    /***
      * Reads the values for measurement and adds to the descriptor 
      * @param cell cell to be read
      * @param descriptor descriptor to be modified
@@ -606,7 +640,9 @@ public class MetadataOntologyParser {
         for (String sheetName: mp.keySet()) {
             MetadataTemplate metadataTemplate = new MetadataTemplate();
             MetadataTemplateType mType = MetadataTemplateType.forValue(type);
-            metadataTemplate.setName(sheetName + " " + mType.name().toLowerCase() + " Template");
+            String firstLetter = mType.name().substring(0, 1);
+            String rest = mType.name().substring(1);
+            metadataTemplate.setName(sheetName + " " + firstLetter + rest.toLowerCase());
             metadataTemplate.setType (mType);
             List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
             for (Descriptor d: mp.get(sheetName)) {
@@ -790,7 +826,7 @@ public class MetadataOntologyParser {
         List<Descriptor> children;
         Boolean mandatory = false;
         Integer position = null;
-        
+        String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
 
         /**
          * @return the name
@@ -957,6 +993,20 @@ public class MetadataOntologyParser {
          */
         public void setMandatory(Boolean mandatory) {
             this.mandatory = mandatory;
+        }
+
+        /**
+         * @return the wikiLink
+         */
+        public String getWikiLink() {
+            return wikiLink;
+        }
+
+        /**
+         * @param wikiLink the wikiLink to set
+         */
+        public void setWikiLink(String wikiLink) {
+            this.wikiLink = wikiLink;
         }
     }
 

@@ -17,4 +17,6 @@ public interface MetadataTemplateRepository {
 
     DescriptionTemplate getDescriptionFromURI(String uri);
 
+    void deleteTemplates() throws SparqlException;
+
 }
