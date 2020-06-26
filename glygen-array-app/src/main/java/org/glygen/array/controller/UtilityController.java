@@ -3,7 +3,6 @@ package org.glygen.array.controller;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +15,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.MetadataTemplateRepository;
@@ -350,6 +350,28 @@ public class UtilityController {
             throw errorMessage;
         }
         return unitLevels;
+    }
+    
+    @ApiOperation(value = "Retrieve descriptor with the given id")
+    @RequestMapping(value="/getDescriptor/{descriptorId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Return the details of the given descriptor"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public DescriptionTemplate getDescriptorTemplate (
+            @ApiParam(required=true, value="Id if the descriptor or descriptor group") 
+            @PathVariable("descriptorId")
+            String id) {
+        
+        try {
+            String uri = MetadataTemplateRepository.templatePrefix + id;
+            DescriptionTemplate description = templateRepository.getDescriptionFromURI(uri);
+            return description;
+        } catch (SparqlException e) {
+            logger.error("Error retrieving descriptor with given id \" + id", e);
+            throw new GlycanRepositoryException("Error retrieving descriptor with given id " + id, e);
+        }
     }
     
     @ApiOperation(value = "Retrieve list of templates for the given type")
