@@ -350,6 +350,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -378,6 +379,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -406,6 +408,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -434,6 +437,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -441,6 +445,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -483,6 +488,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext6">
@@ -525,6 +531,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext8">
@@ -553,6 +560,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext8">
@@ -560,6 +568,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext6">
@@ -567,6 +576,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -601,6 +611,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -635,6 +646,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext13">
@@ -663,6 +675,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext13">
@@ -670,6 +683,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -706,6 +720,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -748,6 +763,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext17">
@@ -776,6 +792,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext17">
@@ -783,6 +800,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -790,6 +808,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -824,6 +843,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext20">
@@ -860,6 +880,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext20">
@@ -867,6 +888,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -909,6 +931,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext23">
@@ -937,6 +960,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext23">
@@ -944,6 +968,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -978,6 +1003,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Vector labs</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
@@ -1006,6 +1032,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>B-1305</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
@@ -1034,6 +1061,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Z1002</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
@@ -1041,6 +1069,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -1083,6 +1112,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
@@ -1125,6 +1155,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
@@ -1153,6 +1184,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
@@ -1160,6 +1192,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
@@ -1188,6 +1221,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
@@ -1195,6 +1229,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata1">
@@ -1236,6 +1271,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Homo sapiens</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -1264,6 +1300,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -1306,6 +1343,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
@@ -1348,6 +1386,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
@@ -1376,6 +1415,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
@@ -1383,6 +1423,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext38">
@@ -1390,6 +1431,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -1424,6 +1466,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Vector labs</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
@@ -1452,6 +1495,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>B-1305</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
@@ -1480,6 +1524,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Z1002</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
@@ -1487,6 +1532,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -1529,6 +1575,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
@@ -1571,6 +1618,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
@@ -1599,6 +1647,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
@@ -1606,6 +1655,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
@@ -1634,6 +1684,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext47">
@@ -1641,6 +1692,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -1682,6 +1734,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Homo sapiens</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -1718,6 +1771,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -1760,6 +1814,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
@@ -1796,6 +1851,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
@@ -1803,6 +1859,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -1845,6 +1902,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
@@ -1873,6 +1931,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
@@ -1901,6 +1960,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
@@ -1908,6 +1968,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -1942,6 +2003,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Vector labs</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -1970,6 +2032,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>B-1305</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -1998,6 +2061,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Z1002</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -2005,6 +2069,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -2047,6 +2112,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
@@ -2089,6 +2155,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
@@ -2117,6 +2184,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
@@ -2124,6 +2192,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
@@ -2152,6 +2221,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
@@ -2159,6 +2229,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata3">
@@ -2200,6 +2271,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Homo sapiens</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2228,6 +2300,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2262,6 +2335,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Uniprot</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
@@ -2290,6 +2364,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>https://www.uniprot.org/</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
@@ -2318,6 +2393,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>P03390</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
@@ -2346,6 +2422,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>https://www.uniprot.org/uniprot/P03390</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext74">
@@ -2353,6 +2430,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2395,6 +2473,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>E. coli</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
@@ -2423,6 +2502,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
@@ -2451,6 +2531,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
@@ -2479,6 +2560,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext79">
@@ -2486,6 +2568,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2528,6 +2611,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
@@ -2570,6 +2654,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
@@ -2598,6 +2683,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext86">
@@ -2605,6 +2691,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
@@ -2612,6 +2699,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2646,6 +2734,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
@@ -2680,6 +2769,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
@@ -2708,6 +2798,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext91">
@@ -2715,6 +2806,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
@@ -2751,6 +2843,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
@@ -2793,6 +2886,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
@@ -2821,6 +2915,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext95">
@@ -2828,6 +2923,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
@@ -2835,6 +2931,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2869,6 +2966,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
@@ -2905,6 +3003,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext98">
@@ -2912,6 +3011,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2940,6 +3040,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -2974,6 +3075,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>Vector labs</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
@@ -3002,6 +3104,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example>B-1305</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
@@ -3030,6 +3133,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example>Z1002</template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
@@ -3037,6 +3141,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">
@@ -3079,6 +3184,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
@@ -3121,6 +3227,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
@@ -3149,6 +3256,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
@@ -3156,6 +3264,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
@@ -3184,6 +3293,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
@@ -3191,6 +3301,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
+	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata4">

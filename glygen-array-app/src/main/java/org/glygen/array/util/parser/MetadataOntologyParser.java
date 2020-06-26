@@ -759,12 +759,16 @@ public class MetadataOntologyParser {
         IRI cardinality = f.createIRI(prefix + "cardinality");
         IRI isRequired = f.createIRI(prefix + "is_required");
         IRI hasExample = f.createIRI(prefix + "has_example");
+        IRI hasUrl = f.createIRI(prefix + "has_url");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
         model.add(f.createStatement(descriptionContext, isRequired, required));
         if (description.getExample() != null) {
             model.add(f.createStatement(descriptionContext, hasExample, f.createLiteral(description.getExample())));
+        }
+        if (description.getWikiLink() != null) {
+            model.add(f.createStatement(descriptionContext, hasUrl, f.createLiteral(description.getWikiLink())));
         }
         
         return uri;
@@ -810,6 +814,7 @@ public class MetadataOntologyParser {
         description.setMandatory(d.getMandatory());
         description.setMaxOccurrence(d.getMultiplicity().equals("n") ? Integer.MAX_VALUE : 1);
         description.setExample(d.getExample());
+        description.setWikiLink(d.getWikiLink());
         return description;
         
     }

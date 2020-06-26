@@ -9,6 +9,7 @@ public abstract class DescriptionTemplate {
     boolean mandatory;
     Integer maxOccurrence;
     String example;
+    String wikiLink;
     
     public abstract boolean isGroup();
 
@@ -108,6 +109,20 @@ public abstract class DescriptionTemplate {
      */
     public void setExample(String example) {
         this.example = example;
+    }
+
+    /**
+     * @return the wikiLink
+     */
+    public String getWikiLink() {
+        return wikiLink;
+    }
+
+    /**
+     * @param wikiLink the wikiLink to set
+     */
+    public void setWikiLink(String wikiLink) {
+        this.wikiLink = wikiLink;
     }
 
 }

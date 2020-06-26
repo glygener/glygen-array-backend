@@ -151,6 +151,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI cardinality = f.createIRI(templatePrefix + "cardinality");
         IRI isRequired = f.createIRI(templatePrefix + "is_required");
         IRI hasExample = f.createIRI(templatePrefix + "has_example");
+        IRI hasUrl = f.createIRI(prefix + "has_url");
         IRI hasUnit = f.createIRI(templatePrefix + "has_unit_of_measurement");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
@@ -222,6 +223,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 description.setMandatory(value.equalsIgnoreCase("true"));
             } else if (st.getPredicate().equals(hasExample)) {
                 description.setExample(st.getObject().stringValue());
+            } else if (st.getPredicate().equals(hasUrl)) {
+                description.setWikiLink(st.getObject().stringValue());
             } else if (st.getPredicate().equals(hasUnit)) {
                 ((DescriptorTemplate) description).getUnits().add(st.getObject().stringValue());
             } 

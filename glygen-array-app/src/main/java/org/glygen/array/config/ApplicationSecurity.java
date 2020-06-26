@@ -363,6 +363,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 		
 		http.cors().and().authorizeRequests()
 		    .requestMatchers(PUBLIC_URLS).permitAll()
+		    .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
             .anyRequest().fullyAuthenticated()
             .and().csrf().disable()
             .httpBasic().disable()
