@@ -27,11 +27,16 @@ import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
+import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
+import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +52,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     final static String rawdataTypePredicate = ontPrefix + "raw_data";
     final static String processedDataTypePredicate = ontPrefix + "processed_data";
     final static String slideTypePredicate = ontPrefix + "slide";
+    final static String printerTypePredicate = ontPrefix + "printer";
+    final static String scannerTypePredicate = ontPrefix + "scanner";
+    final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
+    final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
+    final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";
     final static String simpleDescriptionTypePredicate = ontPrefix + "simple_description";
     final static String complexDescriptionTypePredicate = ontPrefix + "complex_description";
     
@@ -279,13 +289,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return measurementURI;
     }
 
-
-    private String addImage(Image image, List<Statement> statements, String graph) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
     private String addProcessedData(ProcessedData processedData, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
@@ -356,9 +359,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return uri;
     }
-
-    @Override
-    public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
+    
+    String addMetadataCategory (MetadataCategory metadata, MetadataTemplateType metadataType, 
+            String templatePredicate, String typePredicate, String prefix, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null) {
             // cannot add 
@@ -369,29 +372,35 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         graph = getGraphForUser(user);
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
-        IRI hasTemplate = f.createIRI(hasSampleTemplatePredicate);
-        IRI type = f.createIRI(sampleTypePredicate);
+        
+        IRI hasTemplate = f.createIRI(templatePredicate);
+        IRI type = f.createIRI(typePredicate);
         // check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
-        String existing = getEntityByLabel(sample.getName(), graph, datasetTypePredicate);
+        String existing = getEntityByLabel(metadata.getName(), graph, sampleTypePredicate);
         if (existing == null) {
             // add to user's local repository
             List<Statement> statements = new ArrayList<Statement>();
-            String sampleURI = addGenericInfo(sample.getName(), sample.getDescription(), statements, "SA", graph);
+            String metadataURI = addGenericInfo(metadata.getName(), metadata.getDescription(), statements, prefix, graph);
             // add template
             // find the template with given name and add the object property from sample to the metadatatemplate
-            String templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
-            IRI sampleIRI = f.createIRI(sampleURI);
+            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), metadataType);
+            IRI sampleIRI = f.createIRI(metadataURI);
             if (templateURI != null) 
                 statements.add(f.createStatement(sampleIRI, hasTemplate, f.createIRI(templateURI), graphIRI));
             statements.add(f.createStatement(sampleIRI, RDF.TYPE, type, graphIRI));
-            addMetadata (sampleURI, sample, statements, graph);
+            addMetadata (metadataURI, metadata, statements, graph);
             sparqlDAO.addStatements(statements, graphIRI);
             
-            return sampleURI;
+            return metadataURI;
         } else {
             //TODO
         }
         return null;
+    }
+
+    @Override
+    public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (sample, MetadataTemplateType.SAMPLE, hasSampleTemplatePredicate, sampleTypePredicate, "SA", user);
     }
     
     /**
@@ -598,7 +607,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             } else if (st.getPredicate().equals(hasSample)) {
                 Value uriValue = st.getObject();
-                datasetObject.setSample(getSampleFromURI(uriValue.stringValue(), user));            
+                datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, user));            
             } else if (st.getPredicate().equals(hasRawData)) {
                 Value uriValue = st.getObject();
                 datasetObject.getRawDataList().add(getRawData(uriValue.stringValue(), graph));        
@@ -620,7 +629,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     Statement stPublic = statementsPublic.next();
                     if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = st.getObject();
-                        datasetObject.setSample(getSampleFromURI(uriValue.stringValue(), null));            
+                        datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, null));            
                     } else if (stPublic.getPredicate().equals(hasRawData)) {
                         uriValue = st.getObject();
                         datasetObject.getRawDataList().add(getRawData(uriValue.stringValue(), DEFAULT_GRAPH));        
@@ -638,25 +647,153 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return datasetObject;
     }
     
-    private ProcessedData getProcessedData(String uriValue, String graph) {
-        // TODO Auto-generated method stub
+    private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
+        Description descriptorObject = null;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI descriptorIRI = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasValue = f.createIRI(valuePredicate);
+        IRI hasKey = f.createIRI(keyPredicate);
+        IRI hasUnit = f.createIRI(unitPredicate);
+        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(RDF.TYPE)) {
+                String value = st.getObject().stringValue();
+                if (value.contains("simple")) {
+                    descriptorObject = new Descriptor();
+                } else if (value.contains("complex")) {
+                    descriptorObject = new DescriptorGroup();
+                    ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
+                }
+            } else if (st.getPredicate().equals(hasKey)) {
+                // retrieve descriptorTemplate from template repository
+                String tempURI = st.getObject().stringValue();
+                DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
+                descriptorObject.setKey(key);
+            } else if (st.getPredicate().equals(hasValue)) {
+                String val = st.getObject().stringValue();
+                ((Descriptor)descriptorObject).setValue(val);
+            } else if (st.getPredicate().equals(hasUnit)) {
+                String val = st.getObject().stringValue();
+                ((Descriptor)descriptorObject).setUnit(val);
+            } else if (st.getPredicate().equals(hasDescriptor)) {
+                String descURI = st.getObject().stringValue();
+                ((DescriptorGroup)descriptorObject).getDescriptors().add(getDescriptionFromURI(descURI, graph));
+            }
+        }
+        return descriptorObject;
+    }
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user) throws SparqlException, SQLException {
+        return getArrayDatasetByUser(user, 0, -1, "id", 0 );
+    }
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        
+        return getArrayDatasetByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        if (graph != null) {
+            
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                ArrayDataset dataset = getDatasetFromURI(uri, user);
+                if (dataset != null)
+                    datasets.add(dataset);    
+            }
+        }
+        
+        return datasets;
+    }
+
+    private String getSearchPredicate (String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        
+        int numberOfValues = 3;
+        String filterClause = "filter (";
+        for (int i=1; i < numberOfValues; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < numberOfValues)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
+    
+    private String getSortPredicate(String field) {
+        if (field == null || field.equalsIgnoreCase("name")) 
+            return "rdfs:label";
+        else if (field.equalsIgnoreCase("comment")) 
+            return "rdfs:comment";
+        else if (field.equalsIgnoreCase("dateModified"))
+            return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("id"))
+            return null;
         return null;
     }
 
 
-    private Slide getSlide(String uriValue, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public List<Sample> getSampleByUser(UserEntity user) throws SparqlException, SQLException {
+        return getSampleByUser(user, 0, -1, "id", 0 );
     }
 
 
-    private RawData getRawData(String uriValue, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getSampleByUser(user, offset, limit, field, order, null);
     }
 
-    private Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        Sample sampleObject = null;
+    public List<MetadataCategory> getMetadataCategoryByUser (UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, String typePredicate) throws SparqlException, SQLException {
+        List<MetadataCategory> list = new ArrayList<>();
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        if (graph != null) {
+            
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, typePredicate);
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, user);
+                if (metadata != null)
+                    list.add(metadata);    
+            }
+        }
+        
+        return list;
+    }
+
+    private MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory sampleObject = null;
         
         String graph = null;
         if (user == null)
@@ -679,12 +816,24 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
       
-        IRI hasTemplate = f.createIRI(hasSampleTemplatePredicate);
+        IRI hasTemplate = f.createIRI(typePredicate);
         IRI hasDescriptor = f.createIRI(describedbyPredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(sample, null, null, graphIRI);
         if (statements.hasNext()) {
-            sampleObject = new Sample();
+            if (typePredicate.equals(sampleTypePredicate)) {
+                sampleObject = new Sample();
+            } else if (typePredicate.equals(scannerTypePredicate)) {
+                sampleObject = new ScannerMetadata();
+            } else if (typePredicate.equals(printerTypePredicate)) {
+                sampleObject = new Printer();
+            } else if (typePredicate.equals(slideTemplateTypePredicate)) {
+                sampleObject = new SlideMetadata();
+            } else if (typePredicate.equals(imageAnalysisTypePredicate)) {
+                sampleObject = new ImageAnalysisSoftware();
+            } else if (typePredicate.equals(dataProcessingTypePredicate)) {
+                sampleObject = new DataProcessingSoftware();
+            }
             sampleObject.setUri(uri);
             sampleObject.setId(uri.substring(uri.lastIndexOf("/")+1));
             if (user != null) {
@@ -781,154 +930,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
-        Description descriptorObject = null;
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI descriptorIRI = f.createIRI(uri);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasValue = f.createIRI(valuePredicate);
-        IRI hasKey = f.createIRI(keyPredicate);
-        IRI hasUnit = f.createIRI(unitPredicate);
-        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            if (st.getPredicate().equals(RDF.TYPE)) {
-                String value = st.getObject().stringValue();
-                if (value.contains("simple")) {
-                    descriptorObject = new Descriptor();
-                } else if (value.contains("complex")) {
-                    descriptorObject = new DescriptorGroup();
-                    ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
-                }
-            } else if (st.getPredicate().equals(hasKey)) {
-                // retrieve descriptorTemplate from template repository
-                String tempURI = st.getObject().stringValue();
-                DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
-                descriptorObject.setKey(key);
-            } else if (st.getPredicate().equals(hasValue)) {
-                String val = st.getObject().stringValue();
-                ((Descriptor)descriptorObject).setValue(val);
-            } else if (st.getPredicate().equals(hasUnit)) {
-                String val = st.getObject().stringValue();
-                ((Descriptor)descriptorObject).setUnit(val);
-            } else if (st.getPredicate().equals(hasDescriptor)) {
-                String descURI = st.getObject().stringValue();
-                ((DescriptorGroup)descriptorObject).getDescriptors().add(getDescriptionFromURI(descURI, graph));
-            }
-        }
-        return descriptorObject;
-    }
-
-
-    @Override
-    public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub  
-    }
-
-    @Override
-    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user) throws SparqlException, SQLException {
-        return getArrayDatasetByUser(user, 0, -1, "id", 0 );
-    }
-
-    @Override
-    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        
-        return getArrayDatasetByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
-        
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else
-            graph = getGraphForUser(user);
-        if (graph != null) {
-            
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);
-            
-            for (SparqlEntity sparqlEntity : results) {
-                String uri = sparqlEntity.getValue("s");
-                ArrayDataset dataset = getDatasetFromURI(uri, user);
-                if (dataset != null)
-                    datasets.add(dataset);    
-            }
-        }
-        
-        return datasets;
-    }
-
-    private String getSearchPredicate (String searchValue) {
-        String predicates = "";
-        
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
-        
-        int numberOfValues = 3;
-        String filterClause = "filter (";
-        for (int i=1; i < numberOfValues; i++) {
-            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
-            if (i + 1 < numberOfValues)
-                filterClause += " || ";
-        }
-        filterClause += ")\n";
-            
-        predicates += filterClause;
-        return predicates;
-    }
-    
-    private String getSortPredicate(String field) {
-        if (field == null || field.equalsIgnoreCase("name")) 
-            return "rdfs:label";
-        else if (field.equalsIgnoreCase("comment")) 
-            return "rdfs:comment";
-        else if (field.equalsIgnoreCase("dateModified"))
-            return "gadr:has_date_modified";
-        else if (field.equalsIgnoreCase("id"))
-            return null;
-        return null;
-    }
-
-
-    @Override
-    public List<Sample> getSampleByUser(UserEntity user) throws SparqlException, SQLException {
-        return getSampleByUser(user, 0, -1, "id", 0 );
-    }
-
-
-    @Override
-    public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        return getSampleByUser(user, offset, limit, field, order, null);
-    }
-
-
     @Override
     public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException {
         List<Sample> samples = new ArrayList<>();
         
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else
-            graph = getGraphForUser(user);
-        if (graph != null) {
-            
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, sampleTypePredicate);
-            
-            for (SparqlEntity sparqlEntity : results) {
-                String uri = sparqlEntity.getValue("s");
-                Sample sample = getSampleFromURI(uri, user);
-                if (sample != null)
-                    samples.add(sample);    
-            }
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, sampleTypePredicate);
+        for (MetadataCategory m: list) {
+            samples.add(new Sample(m));
         }
         
         return samples;
@@ -965,14 +974,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return sparqlDAO.query(queryBuf.toString());
     }
 
-
-    @Override
-    public void deleteSample(String sampleId, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
-    }
-
-
     @Override
     public int getSampleCountByUser(UserEntity user) throws SQLException, SparqlException {
         String graph = null;
@@ -981,7 +982,293 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, "Sample");
+        return getCountByUserByType(graph, sampleTypePredicate);
     }
 
+
+    @Override
+    public String addPrinter(Printer metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTER, printerMetadataPredicate, printerTypePredicate, "Pr", user);
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user) throws SparqlException, SQLException {
+        return getPrinterByUser(user, 0, -1, "id", 0 );
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getPrinterByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<Printer> printers = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printerTypePredicate);
+        for (MetadataCategory m: list) {
+            printers.add(new Printer(m));
+        }
+        
+        return printers;
+    }
+
+    @Override
+    public int getPrinterCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, printerTypePredicate);
+    }
+
+
+    @Override
+    public String addScannerMetadata(ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, scannerMetadataPredicate, scannerTypePredicate, "Sc", user);
+    }
+
+
+    @Override
+    public List<ScannerMetadata> getScannerMetadataByUser(UserEntity user) throws SparqlException, SQLException {
+        return getScannerMetadataByUser(user, 0, -1, "id", 0 );
+    }
+
+
+    @Override
+    public List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field,
+            int order) throws SparqlException, SQLException {
+        return getScannerMetadataByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field,
+            int order, String searchValue) throws SparqlException, SQLException {
+        List<ScannerMetadata> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, scannerTypePredicate);
+        for (MetadataCategory m: list) {
+            metadataList.add(new ScannerMetadata(m));
+        }
+        
+        return metadataList;
+    }
+
+    @Override
+    public int getScannerMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, scannerTypePredicate);
+    }
+
+
+    @Override
+    public String addSlideMetadata(SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, slideMetadataPredicate, slideTemplateTypePredicate, "Slm", user);
+    }
+
+
+    @Override
+    public List<SlideMetadata> getSlideMetadataByUser(UserEntity user) throws SparqlException, SQLException {
+        return getSlideMetadataByUser(user, 0, -1, "id", 0 );
+    }
+
+
+    @Override
+    public List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getSlideMetadataByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<SlideMetadata> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, slideTemplateTypePredicate);
+        for (MetadataCategory m: list) {
+            metadataList.add(new SlideMetadata(m));
+        }
+        
+        return metadataList;
+    }
+
+    @Override
+    public int getSlideMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, slideTemplateTypePredicate);
+    }
+
+
+    @Override
+    public String addImageAnalysisSoftware(ImageAnalysisSoftware metadata, UserEntity user)
+            throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, imageProcessingMetadataPredicate, imageAnalysisTypePredicate, "Im", user);
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user)
+            throws SparqlException, SQLException {
+        return getImageAnalysisSoftwareByUser(user, 0, -1, "id", 0 );
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order) throws SparqlException, SQLException {
+        return getImageAnalysisSoftwareByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue) throws SparqlException, SQLException {
+        List<ImageAnalysisSoftware> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, imageAnalysisTypePredicate);
+        for (MetadataCategory m: list) {
+            metadataList.add(new ImageAnalysisSoftware(m));
+        }
+        
+        return metadataList;
+    }
+
+    @Override
+    public int getImageAnalysisSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, imageAnalysisTypePredicate);
+    }
+
+
+    @Override
+    public String addDataProcessingSoftware(DataProcessingSoftware metadata, UserEntity user)
+            throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, processingSoftwareMetadataPredicate, dataProcessingTypePredicate, "DPS", user);
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user)
+            throws SparqlException, SQLException {
+        return getDataProcessingSoftwareByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order) throws SparqlException, SQLException {
+        return getDataProcessingSoftwareByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue) throws SparqlException, SQLException {
+        List<DataProcessingSoftware> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, dataProcessingTypePredicate);
+        for (MetadataCategory m: list) {
+            metadataList.add(new DataProcessingSoftware(m));
+        }
+        
+        return metadataList;
+    }
+
+    @Override
+    public int getDataProcessingSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, dataProcessingTypePredicate);
+    }
+    
+    private String addImage(Image image, List<Statement> statements, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    private ProcessedData getProcessedData(String uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    private Slide getSlide(String uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    private RawData getRawData(String uriValue, String graph) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    @Override
+    public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub  
+    }
+    
+    @Override
+    public void deleteSample(String sampleId, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    public void deleteDataProcessingSoftware(String id, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void deleteImageAnalysisSoftware(String id, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void deleteSlideMetadata(String id, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void deleteScannerMetadata(String id, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void deletePrinter(String id, UserEntity user) throws SparqlException, SQLException {
+        // TODO Auto-generated method stub
+        
+    }
 }

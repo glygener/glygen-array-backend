@@ -2,11 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 
-public class SampleListResultView {
+public class MetadataListResultView {
     int total;
-    List<Sample> rows;
+    List<MetadataCategory> rows;
     int filteredTotal;
     
     public int getTotal() {
@@ -17,11 +17,11 @@ public class SampleListResultView {
         this.total = total;
     }
     
-    public List<Sample> getRows() {
+    public List<MetadataCategory> getRows() {
         return rows;
     }
     
-    public void setRows(List<Sample> rows) {
+    public void setRows(List<MetadataCategory> rows) {
         this.rows = rows;
     }
     
