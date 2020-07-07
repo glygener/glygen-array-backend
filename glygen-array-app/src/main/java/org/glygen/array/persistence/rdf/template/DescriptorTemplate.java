@@ -2,8 +2,9 @@ package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
-import org.grits.toolbox.glycanarray.om.model.UnitOfMeasurement;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
+@JsonTypeName("descriptortemplate")
 public class DescriptorTemplate extends DescriptionTemplate {
     
     Namespace namespace;

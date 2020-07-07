@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.rdf.metadata;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
+@JsonTypeName("descriptor")
 public class Descriptor extends Description{
     
     String value;

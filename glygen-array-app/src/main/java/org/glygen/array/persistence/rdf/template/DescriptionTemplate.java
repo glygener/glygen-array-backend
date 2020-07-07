@@ -1,5 +1,15 @@
 package org.glygen.array.persistence.rdf.template;
 
+import org.glygen.array.persistence.rdf.metadata.Descriptor;
+import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+      @JsonSubTypes.Type(value = DescriptorTemplate.class),
+      @JsonSubTypes.Type(value = DescriptorGroupTemplate.class)})
 public abstract class DescriptionTemplate {
     
     String uri;

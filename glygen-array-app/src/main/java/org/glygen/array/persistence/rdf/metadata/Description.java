@@ -2,6 +2,13 @@ package org.glygen.array.persistence.rdf.metadata;
 
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+      @JsonSubTypes.Type(value = Descriptor.class),
+      @JsonSubTypes.Type(value = DescriptorGroup.class)})
 public abstract class Description {
     String uri;
     String id;
