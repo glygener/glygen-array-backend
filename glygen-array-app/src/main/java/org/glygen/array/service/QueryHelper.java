@@ -27,7 +27,7 @@ public class QueryHelper {
         queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         if (graph != null) queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+        if (graph != null) queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <" + type + ">. \n");
         queryBuf.append ( " {?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n }");
         queryBuf.append ( " UNION {?s gadr:has_alias ?a FILTER (lcase(str(?a)) = \"" + label.toLowerCase() + "\") \n }");

@@ -48,7 +48,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
 
     @Override
     public String getTemplateByName (String label, MetadataTemplateType type) throws SparqlException, SQLException {
-        List<SparqlEntity> results = queryHelper.retrieveByLabel(label, templatePrefix + type.getLabel(), GlygenArrayRepository.DEFAULT_GRAPH);
+        if (label == null || type == null) {
+            throw new SparqlException ("Label must be provided");
+        }
+        List<SparqlEntity> results = queryHelper.retrieveByLabel(label, templatePrefix + type.getLabel(), null);
         if (results.isEmpty()) {
             return null;
         }
@@ -59,7 +62,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     @Override
     public List<MetadataTemplate> getTemplateByType (MetadataTemplateType type)
             throws SparqlException, SQLException {
-        
+        if ( type == null) {
+            throw new SparqlException ("Type must be provided");
+        }
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");

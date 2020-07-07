@@ -458,7 +458,9 @@ public class DatasetController {
         
         // check if the template exists
         try {
-            String templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
+            String templateURI = null;
+            if (sample.getTemplate() != null && !sample.getTemplate().isEmpty())
+                templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
