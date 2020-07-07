@@ -481,7 +481,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasKey = f.createIRI(keyPredicate);
         IRI hasUnit = f.createIRI(unitPredicate);
         
-        IRI unitIRI = descriptor.getUnit() == null ? null : f.createIRI(descriptor.getUnit());
+        Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
         
         if (descriptor.getKey().getUri() == null) {
             // try to get the uri from id
@@ -502,7 +502,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(descr, RDF.TYPE, f.createIRI(simpleDescriptionTypePredicate), graphIRI));
         statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
         statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
-        if (unitIRI != null) statements.add(f.createStatement(descr, hasUnit, unitIRI, graphIRI));
+        if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
         
         return descrURI;     
     }
@@ -836,6 +836,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             sampleObject.setUri(uri);
             sampleObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            sampleObject.setDescriptors(new ArrayList<Descriptor>());
+            sampleObject.setDescriptorGroups(new ArrayList<DescriptorGroup>());
             if (user != null) {
                 Creator owner = new Creator ();
                 owner.setUserId(user.getUserId());
