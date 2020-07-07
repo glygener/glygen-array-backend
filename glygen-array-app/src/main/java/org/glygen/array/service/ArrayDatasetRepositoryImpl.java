@@ -442,7 +442,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (descriptorGroup.getKey().getUri() == null) {
             // try to get the uri from id
             if (descriptorGroup.getKey().getId() != null) {
-                descriptorGroup.getKey().setUri(GlygenArrayRepository.uriPrefix + descriptorGroup.getKey().getId()) ;
+                descriptorGroup.getKey().setUri(MetadataTemplateRepository.templatePrefix + descriptorGroup.getKey().getId()) ;
             } else {
                 throw new SparqlException ("Descriptor template info is missing");
             }
@@ -486,7 +486,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (descriptor.getKey().getUri() == null) {
             // try to get the uri from id
             if (descriptor.getKey().getId() != null) {
-                descriptor.getKey().setUri(GlygenArrayRepository.uriPrefix + descriptor.getKey().getId()) ;
+                descriptor.getKey().setUri(MetadataTemplateRepository.templatePrefix + descriptor.getKey().getId()) ;
             } else {
                 throw new SparqlException ("Descriptor template info is missing");
             }
