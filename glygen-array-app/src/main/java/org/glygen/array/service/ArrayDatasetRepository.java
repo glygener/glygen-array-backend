@@ -3,11 +3,14 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
+import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -76,5 +79,7 @@ public interface ArrayDatasetRepository {
     void deleteDataProcessingSoftware (String id, UserEntity user) throws SparqlException, SQLException;
     int getDataProcessingSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException;
     
+    MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException;
     
+    Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException;
 }

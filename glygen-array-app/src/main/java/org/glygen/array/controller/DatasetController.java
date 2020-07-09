@@ -469,6 +469,18 @@ public class DatasetController {
             throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
         }
         
+        // check if the name is unique
+        if (sample.getName() != null && !sample.getName().trim().isEmpty()) {
+            try {
+                Sample existing = datasetRepository.getSampleByLabel(sample.getName(), user);
+                if (existing != null) {
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing samples", e);
+            }
+        }
+        
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
         

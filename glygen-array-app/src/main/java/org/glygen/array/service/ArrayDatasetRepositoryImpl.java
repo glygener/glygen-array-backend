@@ -683,6 +683,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 ((DescriptorGroup)descriptorObject).getDescriptors().add(getDescriptionFromURI(descURI, graph));
             }
         }
+        descriptorObject.setUri(uri);
+        descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
         return descriptorObject;
     }
 
@@ -815,24 +817,29 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
-      
-        IRI hasTemplate = f.createIRI(typePredicate);
         IRI hasDescriptor = f.createIRI(describedbyPredicate);
         
+        String templatePredicate = null;
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(sample, null, null, graphIRI);
         if (statements.hasNext()) {
             if (typePredicate.equals(sampleTypePredicate)) {
                 sampleObject = new Sample();
+                templatePredicate = hasSampleTemplatePredicate;
             } else if (typePredicate.equals(scannerTypePredicate)) {
                 sampleObject = new ScannerMetadata();
+                templatePredicate = scannerMetadataPredicate;
             } else if (typePredicate.equals(printerTypePredicate)) {
                 sampleObject = new Printer();
+                templatePredicate = printerMetadataPredicate;
             } else if (typePredicate.equals(slideTemplateTypePredicate)) {
                 sampleObject = new SlideMetadata();
+                templatePredicate = slideMetadataPredicate;
             } else if (typePredicate.equals(imageAnalysisTypePredicate)) {
                 sampleObject = new ImageAnalysisSoftware();
+                templatePredicate = imageProcessingMetadataPredicate;
             } else if (typePredicate.equals(dataProcessingTypePredicate)) {
                 sampleObject = new DataProcessingSoftware();
+                templatePredicate = processingSoftwareMetadataPredicate;
             }
             sampleObject.setUri(uri);
             sampleObject.setId(uri.substring(uri.lastIndexOf("/")+1));
@@ -847,6 +854,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 sampleObject.setPublic(true);
             }
         }
+        
+        IRI hasTemplate = f.createIRI(templatePredicate);
         
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -1272,5 +1281,41 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public void deletePrinter(String id, UserEntity user) throws SparqlException, SQLException {
         // TODO Auto-generated method stub
         
+    }
+
+    @Override
+    public MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException {
+        if (label == null || label.isEmpty())
+            return null;
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+        queryBuf.append ( " ?s rdf:type  <" + typePredicate + "> . \n");
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
+                + "}\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String uri = results.get(0).getValue("s");
+            return getMetadataCategoryFromURI(uri, typePredicate, user);
+        }
+    }
+
+
+    @Override
+    public Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, sampleTypePredicate, user);
+        return metadata == null? null : (Sample) metadata;
     }
 }
