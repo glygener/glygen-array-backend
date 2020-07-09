@@ -47,60 +47,59 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(value="sesameTransactionManager") 
 public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implements ArrayDatasetRepository {
     
-    final static String datasetTypePredicate = ontPrefix + "array_dataset";
-    final static String sampleTypePredicate = ontPrefix + "sample";
-    final static String rawdataTypePredicate = ontPrefix + "raw_data";
-    final static String processedDataTypePredicate = ontPrefix + "processed_data";
-    final static String slideTypePredicate = ontPrefix + "slide";
-    final static String printerTypePredicate = ontPrefix + "printer";
-    final static String scannerTypePredicate = ontPrefix + "scanner";
-    final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
-    final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
-    final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";
-    final static String simpleDescriptionTypePredicate = ontPrefix + "simple_description";
-    final static String complexDescriptionTypePredicate = ontPrefix + "complex_description";
+    public final static String datasetTypePredicate = ontPrefix + "array_dataset";
+    public final static String sampleTypePredicate = ontPrefix + "sample";
+    public final static String rawdataTypePredicate = ontPrefix + "raw_data";
+    public final static String processedDataTypePredicate = ontPrefix + "processed_data";
+    public final static String slideTypePredicate = ontPrefix + "slide";
+    public final static String printerTypePredicate = ontPrefix + "printer";
+    public final static String scannerTypePredicate = ontPrefix + "scanner";
+    public final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
+    public final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
+    public final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";
+    public final static String simpleDescriptionTypePredicate = ontPrefix + "simple_description";
+    public final static String complexDescriptionTypePredicate = ontPrefix + "complex_description";
     
     
     //final static String hasDescriptorPredicate = ontPrefix + "has_descriptor";
     //final static String hasDescriptorGroupPredicate = ontPrefix + "has_descriptor_group";
-    final static String describedbyPredicate = ontPrefix + "described_by";
-    final static String namespacePredicate = ontPrefix + "has_namespace";
-    final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
-    final static String valuePredicate = ontPrefix + "has_value";
-    final static String keyPredicate = ontPrefix + "has_key";
-    final static String rfuPredicate = ontPrefix + "has_rfu";
-    final static String stdevPredicate = ontPrefix + "has_stdev";
-    final static String cvPredicate = ontPrefix + "has_cv";
-    final static String hasIntensityPredicate = ontPrefix + "has_intensity";
-    final static String bindingValuePredicate = ontPrefix + "binding_value_of";
-    final static String integratedByPredicate = ontPrefix + "integrated_by";
-    final static String integratesPredicate = ontPrefix + "has_integrates";
+    public final static String describedbyPredicate = ontPrefix + "described_by";
+    public final static String namespacePredicate = ontPrefix + "has_namespace";
+    public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
+    public final static String valuePredicate = ontPrefix + "has_value";
+    public final static String keyPredicate = ontPrefix + "has_key";
+    public final static String rfuPredicate = ontPrefix + "has_rfu";
+    public final static String stdevPredicate = ontPrefix + "has_stdev";
+    public final static String cvPredicate = ontPrefix + "has_cv";
+    public final static String hasIntensityPredicate = ontPrefix + "has_intensity";
+    public final static String bindingValuePredicate = ontPrefix + "binding_value_of";
+    public final static String integratedByPredicate = ontPrefix + "integrated_by";
+    public final static String integratesPredicate = ontPrefix + "has_integrates";
     
-    final static String derivedFromPredicate = ontPrefix + "derived_from";
-    final static String hasMeasurementPredicate = ontPrefix + "has_measurement";
-    final static String measurementOfPredicate = ontPrefix + "measurement_of";
-    final static String imageProcessingMetadataPredicate = ontPrefix + "has_image_processing_metadata";
-    final static String processingSoftwareMetadataPredicate = ontPrefix + "has_processing_software_metadata";
-    final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
-    final static String printerMetadataPredicate = ontPrefix + "printed_by";
-    final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
-    final static String hasFilePredicate = ontPrefix + "has_filename";
-    final static String scanOfPredicate = ontPrefix + "scan_of";
-    final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
+    public final static String derivedFromPredicate = ontPrefix + "derived_from";
+    public final static String hasMeasurementPredicate = ontPrefix + "has_measurement";
+    public final static String measurementOfPredicate = ontPrefix + "measurement_of";
+    public final static String imageProcessingMetadataPredicate = ontPrefix + "has_image_processing_metadata";
+    public final static String processingSoftwareMetadataPredicate = ontPrefix + "has_processing_software_metadata";
+    public final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
+    public final static String printerMetadataPredicate = ontPrefix + "printed_by";
+    public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
+    public final static String hasFilePredicate = ontPrefix + "has_filename";
+    public final static String scanOfPredicate = ontPrefix + "scan_of";
+    public final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
     
-    final static String hasSampleTemplatePredicate = ontPrefix + "has_sample_template";
+    public final static String hasSampleTemplatePredicate = ontPrefix + "has_sample_template";
     
-    final static String hasMeanPredicate = ontPrefix + "has_mean";
-    final static String hasBMeanPredicate = ontPrefix + "has_bMean";
-    final static String hasBMedianPredicate = ontPrefix + "has_bMedian";
-    final static String hasMeanMinusBPredicate = ontPrefix + "has_meanminusB";
-    final static String hasMedianMinusBPredicate = ontPrefix + "has_medianminusB";
-    final static String hasDiameterPredicate = ontPrefix + "has_diameter";
-    final static String hasXCoordinatePredicate = ontPrefix + "has_x_coordinate";
-    final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
-    final static String hasMedianPredicate = ontPrefix + "has_median";
+    public final static String hasMeanPredicate = ontPrefix + "has_mean";
+    public final static String hasBMeanPredicate = ontPrefix + "has_bMean";
+    public final static String hasBMedianPredicate = ontPrefix + "has_bMedian";
+    public final static String hasMeanMinusBPredicate = ontPrefix + "has_meanminusB";
+    public final static String hasMedianMinusBPredicate = ontPrefix + "has_medianminusB";
+    public final static String hasDiameterPredicate = ontPrefix + "has_diameter";
+    public final static String hasXCoordinatePredicate = ontPrefix + "has_x_coordinate";
+    public final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
+    public final static String hasMedianPredicate = ontPrefix + "has_median";
     
-
     @Autowired
     QueryHelper queryHelper;
     
@@ -417,12 +416,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI iri = f.createIRI(uri);
         IRI hasDescriptor = f.createIRI(describedbyPredicate);
         for (Descriptor descriptor: metadata.getDescriptors()) {
+            if (descriptor == null) continue;
             String descriptorURI = addDescriptor(descriptor, statements, graph);
             IRI descrIRI = f.createIRI(descriptorURI);
             statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
         }
         
         for (DescriptorGroup descriptorGroup: metadata.getDescriptorGroups()) {
+            if (descriptorGroup == null) continue;
             String descriptorGroupURI = addDescriptorGroup(descriptorGroup, statements, graph);
             IRI descrGroupIRI = f.createIRI(descriptorGroupURI);
             statements.add(f.createStatement(iri, hasDescriptor, descrGroupIRI, graphIRI));
@@ -459,6 +460,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(descrGroup, hasKey, templateIRI, graphIRI));
         
         for (Description descriptor: descriptorGroup.getDescriptors()) {
+            if (descriptor == null) {
+                continue; // skip null entries if any
+            }
             if (descriptor.isGroup()) {
                 String descrURI = addDescriptorGroup((DescriptorGroup)descriptor, statements, graph);
                 statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));

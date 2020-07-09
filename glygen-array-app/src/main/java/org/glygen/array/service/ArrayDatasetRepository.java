@@ -3,8 +3,6 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.validation.constraints.Size;
-
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;

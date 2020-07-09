@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.persistence.EntityExistsException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
@@ -29,6 +30,7 @@ import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
+import org.glygen.array.service.ArrayDatasetRepositoryImpl;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
@@ -48,6 +50,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -952,6 +955,48 @@ public class DatasetController {
         }
         
         return result;
+    }
+    
+    @GetMapping("/availableMetadataname")
+    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Boolean checkMetadataName(@RequestParam("name") final String name, 
+            @RequestParam("metadata type")
+            MetadataTemplateType type, Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        String typePredicate = null;
+        switch (type) {
+        case SAMPLE:
+            typePredicate = ArrayDatasetRepositoryImpl.sampleTypePredicate;
+            break;
+        case PRINTER: 
+            typePredicate = ArrayDatasetRepositoryImpl.printerTypePredicate;
+            break;
+        case SCANNER:
+            typePredicate = ArrayDatasetRepositoryImpl.scannerTypePredicate;
+            break;
+        case SLIDE:
+            typePredicate = ArrayDatasetRepositoryImpl.slideTemplateTypePredicate;
+            break;
+        case DATAPROCESSINGSOFTWARE: 
+            typePredicate = ArrayDatasetRepositoryImpl.dataProcessingTypePredicate;
+            break;
+        case IMAGEANALYSISSOFTWARE:
+            typePredicate = ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate;
+            break;
+        }
+        MetadataCategory metadata = null;
+        try {
+            metadata = datasetRepository.getMetadataByLabel(name, typePredicate, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve metadata by name", e);
+        }
+        
+        return metadata == null;
     }
     
 }
