@@ -1,6 +1,6 @@
 package org.glygen.array.persistence.rdf.data;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Map;
 
 import org.glygen.array.persistence.rdf.Spot;
@@ -13,10 +13,15 @@ public class RawData {
     
     Map<Measurement, Spot> dataMap;
     ImageAnalysisSoftware metadata;
-    List<Image> images;
+    Image image;
+    Slide slide;
     
     String filename;  // name of the raw data file in uploaded file folder or any other designated data folder
 
+    Date dateModified;
+    Date dateCreated;
+    Date dateAddedToLibrary;
+    
     /**
      * @return the id
      */
@@ -74,17 +79,17 @@ public class RawData {
     }
 
     /**
-     * @return the images
+     * @return the image
      */
-    public List<Image> getImages() {
-        return images;
+    public Image getImage() {
+        return image;
     }
 
     /**
-     * @param images the images to set
+     * @param image the image to set
      */
-    public void setImages(List<Image> images) {
-        this.images = images;
+    public void setImage(Image image) {
+        this.image = image;
     }
 
     /**
@@ -99,6 +104,62 @@ public class RawData {
      */
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    /**
+     * @return the slide
+     */
+    public Slide getSlide() {
+        return slide;
+    }
+
+    /**
+     * @param slide the slide to set
+     */
+    public void setSlide(Slide slide) {
+        this.slide = slide;
+    }
+
+    /**
+     * @return the dateModified
+     */
+    public Date getDateModified() {
+        return dateModified;
+    }
+
+    /**
+     * @param dateModified the dateModified to set
+     */
+    public void setDateModified(Date dateModified) {
+        this.dateModified = dateModified;
+    }
+
+    /**
+     * @return the dateCreated
+     */
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    /**
+     * @param dateCreated the dateCreated to set
+     */
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * @return the dateAddedToLibrary
+     */
+    public Date getDateAddedToLibrary() {
+        return dateAddedToLibrary;
+    }
+
+    /**
+     * @param dateAddedToLibrary the dateAddedToLibrary to set
+     */
+    public void setDateAddedToLibrary(Date dateAddedToLibrary) {
+        this.dateAddedToLibrary = dateAddedToLibrary;
     }
 
 }

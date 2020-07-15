@@ -84,6 +84,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         return templates;
     }
 
+    @Override
     public MetadataTemplate getTemplateFromURI(String templateURI) throws SparqlException {
         
         MetadataTemplate templateObject = null;

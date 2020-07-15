@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
@@ -80,4 +81,5 @@ public interface ArrayDatasetRepository {
     MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException;
     
     Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException;
+    String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
 }

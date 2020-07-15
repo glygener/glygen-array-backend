@@ -21,4 +21,6 @@ public interface MetadataTemplateRepository {
 
     void deleteTemplates() throws SparqlException;
 
+    MetadataTemplate getTemplateFromURI(String templateURI) throws SparqlException;
+
 }

@@ -18,8 +18,9 @@ public class ArrayDataset {
     Sample sample;
     List<RawData> rawDataList;
     ProcessedData processedData;
-    Image image;
     
+    // Should these become part of RawData only??
+    List<Image> images;
     List<Slide> slides;
     
     boolean isPublic = false;
@@ -124,17 +125,17 @@ public class ArrayDataset {
     }
 
     /**
-     * @return the image
+     * @return the images
      */
-    public Image getImage() {
-        return image;
+    public List<Image> getImages() {
+        return images;
     }
 
     /**
-     * @param image the image to set
+     * @param images the images to set
      */
-    public void setImage(Image image) {
-        this.image = image;
+    public void setImage(List<Image> images) {
+        this.images = images;
     }
 
     /**

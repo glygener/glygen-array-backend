@@ -21,13 +21,20 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
+import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.metadata.Descriptor;
+import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
+import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.ArrayDatasetRepositoryImpl;
@@ -151,6 +158,25 @@ public class DatasetController {
         
     } 
     
+    @ApiOperation(value = "Add given  rawdata set for the user")
+    @RequestMapping(value="/addRawData", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added rawdata set"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addRawData (
+            @ApiParam(required=true, value="Raw data set to be added") 
+            @RequestBody RawData rawData, Principal p) {
+        
+        //TODO
+        return null;
+    }
+    
+    
+    
     @ApiOperation(value = "Add given data processing software for the user")
     @RequestMapping(value="/addDataProcessingSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
@@ -200,6 +226,15 @@ public class DatasetController {
             String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.DATAPROCESSINGSOFTWARE);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -267,6 +302,15 @@ public class DatasetController {
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
+            }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
             throw new GlycanRepositoryException("Error retrieving image analysis metadata template " + p.getName(), e1);
@@ -332,6 +376,15 @@ public class DatasetController {
             String templateURI = templateRepository.getTemplateByName(printer.getTemplate(), MetadataTemplateType.PRINTER);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (printer, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -460,12 +513,22 @@ public class DatasetController {
         }
         
         // check if the template exists
+        String templateURI = null;
         try {
-            String templateURI = null;
+            
             if (sample.getTemplate() != null && !sample.getTemplate().isEmpty())
                 templateURI = templateRepository.getTemplateByName(sample.getTemplate(), MetadataTemplateType.SAMPLE);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (sample, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -483,6 +546,8 @@ public class DatasetController {
                 throw new GlycanRepositoryException("Could not query existing samples", e);
             }
         }
+        
+        
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
@@ -545,10 +610,20 @@ public class DatasetController {
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
+            }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
             throw new GlycanRepositoryException("Error retrieving scanner template " + p.getName(), e1);
         }
+       
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid scanner information", errorMessage);
@@ -611,6 +686,15 @@ public class DatasetController {
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
+            }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
             throw new GlycanRepositoryException("Error retrieving slide metadata template " + p.getName(), e1);
@@ -625,6 +709,48 @@ public class DatasetController {
             throw new GlycanRepositoryException("Slide metadata cannot be added for user " + p.getName(), e);
         }
         
+    }
+    
+    @GetMapping("/availableMetadataname")
+    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Boolean checkMetadataName(@RequestParam("name") final String name, 
+            @RequestParam("metadata type")
+            MetadataTemplateType type, Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        String typePredicate = null;
+        switch (type) {
+        case SAMPLE:
+            typePredicate = ArrayDatasetRepositoryImpl.sampleTypePredicate;
+            break;
+        case PRINTER: 
+            typePredicate = ArrayDatasetRepositoryImpl.printerTypePredicate;
+            break;
+        case SCANNER:
+            typePredicate = ArrayDatasetRepositoryImpl.scannerTypePredicate;
+            break;
+        case SLIDE:
+            typePredicate = ArrayDatasetRepositoryImpl.slideTemplateTypePredicate;
+            break;
+        case DATAPROCESSINGSOFTWARE: 
+            typePredicate = ArrayDatasetRepositoryImpl.dataProcessingTypePredicate;
+            break;
+        case IMAGEANALYSISSOFTWARE:
+            typePredicate = ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate;
+            break;
+        }
+        MetadataCategory metadata = null;
+        try {
+            metadata = datasetRepository.getMetadataByLabel(name, typePredicate, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve metadata by name", e);
+        }
+        
+        return metadata == null;
     }
     
     @ApiOperation(value = "List all data processing software metadata for the user")
@@ -957,46 +1083,137 @@ public class DatasetController {
         return result;
     }
     
-    @GetMapping("/availableMetadataname")
-    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public Boolean checkMetadataName(@RequestParam("name") final String name, 
-            @RequestParam("metadata type")
-            MetadataTemplateType type, Principal p) {
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        String typePredicate = null;
-        switch (type) {
-        case SAMPLE:
-            typePredicate = ArrayDatasetRepositoryImpl.sampleTypePredicate;
-            break;
-        case PRINTER: 
-            typePredicate = ArrayDatasetRepositoryImpl.printerTypePredicate;
-            break;
-        case SCANNER:
-            typePredicate = ArrayDatasetRepositoryImpl.scannerTypePredicate;
-            break;
-        case SLIDE:
-            typePredicate = ArrayDatasetRepositoryImpl.slideTemplateTypePredicate;
-            break;
-        case DATAPROCESSINGSOFTWARE: 
-            typePredicate = ArrayDatasetRepositoryImpl.dataProcessingTypePredicate;
-            break;
-        case IMAGEANALYSISSOFTWARE:
-            typePredicate = ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate;
-            break;
-        }
-        MetadataCategory metadata = null;
-        try {
-            metadata = datasetRepository.getMetadataByLabel(name, typePredicate, user);
-        } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve metadata by name", e);
+    private ErrorMessage validateDescriptorGroup(DescriptorGroup descGroup, DescriptionTemplate descGroupTemplate) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        for (DescriptionTemplate descTemplate: ((DescriptorGroupTemplate)descGroupTemplate).getDescriptors()) {
+            boolean exists = false;
+            int count = 0;
+            if (!descTemplate.isGroup()) {
+                for (Description d: descGroup.getDescriptors()) {
+                    DescriptionTemplate t = d.getKey();
+                    if (t.getId() != null) {
+                        if (t.getId().equals(descTemplate.getId())) {
+                            exists = true;
+                            count ++;
+                            if (d.isGroup()) {
+                                ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                                if (error != null) {
+                                    for (ObjectError err: error.getErrors())
+                                        errorMessage.addError(err);
+                                } 
+                            }
+                        }
+                    } else if (t.getUri() != null) {
+                        if (t.getUri().equals(descTemplate.getUri())) {
+                            exists = true;
+                            count++;
+                            if (d.isGroup()) {
+                                ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                                if (error != null) {
+                                    for (ObjectError err: error.getErrors())
+                                        errorMessage.addError(err);
+                                } 
+                            }
+                        }
+                    }
+                }
+            } 
+            if (descTemplate.isMandatory() && !exists) {
+                // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+            }
+            if (descTemplate.getMaxOccurrence() == 1 && count > 1) {
+             // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-maxOccurrence", "NumberExceeded"));
+            }
         }
         
-        return metadata == null;
+        if (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())
+            return null;
+        return errorMessage;
+    }
+
+    ErrorMessage validateMetadata (MetadataCategory metadata, MetadataTemplate template) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        for (DescriptionTemplate descTemplate: template.getDescriptors()) {
+            // validate mandatory and multiplicity
+            boolean exists = false;
+            boolean valueExists = false;
+            int count = 0;
+            if (!descTemplate.isGroup()) {
+                for (Description d: metadata.getDescriptors()) {
+                    DescriptionTemplate t = d.getKey();
+                    if (t.getId() != null) {
+                        if (t.getId().equals(descTemplate.getId())) {
+                            exists = true;
+                            count ++;
+                            if (((Descriptor)d).getValue() != null && !((Descriptor)d).getValue().isEmpty()) {
+                                valueExists = true;
+                            }
+                        }
+                    } else if (t.getUri() != null) {
+                        if (t.getUri().equals(descTemplate.getUri())) {
+                            exists = true;
+                            count++;
+                            if (((Descriptor)d).getValue() != null && !((Descriptor)d).getValue().isEmpty()) {
+                                valueExists = true;
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (Description d: metadata.getDescriptorGroups()) {
+                    DescriptionTemplate t = d.getKey();
+                    if (t.getId() != null) {
+                        if (t.getId().equals(descTemplate.getId())) {
+                            exists = true;
+                            count ++;
+                            ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                            if (error != null) {
+                                for (ObjectError err: error.getErrors())
+                                    errorMessage.addError(err);
+                            }  
+                            
+                        }
+                    } else if (t.getUri() != null) {
+                        if (t.getUri().equals(descTemplate.getUri())) {
+                            exists = true;
+                            count++;
+                            ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                            if (error != null) {
+                                for (ObjectError err: error.getErrors())
+                                    errorMessage.addError(err);
+                            } 
+                        }
+                    }
+                    
+                }
+            }
+            if (descTemplate.isMandatory() && !exists) {
+                // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+            }
+            if (descTemplate.getMaxOccurrence() == 1 && count > 1) {
+             // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-maxOccurrence", "NumberExceeded"));
+            }
+            if (!descTemplate.isGroup() && descTemplate.isMandatory() && !valueExists) {
+                // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-value", "NotFound"));
+            }
+            
+        }
+        
+        if (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())
+            return null;
+        return errorMessage;
+        
     }
     
 }
