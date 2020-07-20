@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -14,6 +15,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
@@ -1280,10 +1282,55 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // TODO Auto-generated method stub  
     }
     
+    void deleteMetadataCategory (String metadataId, String graph) throws SparqlException, SQLException {
+        String uri = uriPrefix + metadataId;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI metadata = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasDescriptor = f.createIRI(describedbyPredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(metadata, hasDescriptor, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String descriptorURI = v.stringValue();
+            deleteDescription(descriptorURI, graph);
+        }
+        
+        statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+    }
+    
+    void deleteDescription (String descriptionURI, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        IRI descriptor = f.createIRI(descriptionURI);
+        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptor, hasDescriptor, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String uri = v.stringValue();
+            deleteDescription (uri, graph);
+        }        
+        statements = sparqlDAO.getStatements(descriptor, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+    }
+    
     @Override
     public void deleteSample(String sampleId, UserEntity user) throws SparqlException, SQLException {
         // TODO Auto-generated method stub
-        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+           /* if (canDeleteSlideLayout(uriPrefix + slideLayoutId, graph)) {
+                
+            }*/
+        }
     }
     
     @Override

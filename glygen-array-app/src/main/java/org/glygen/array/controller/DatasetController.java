@@ -148,7 +148,7 @@ public class DatasetController {
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
         
         try {
             return datasetRepository.addArrayDataset(dataset, user);
@@ -171,8 +171,35 @@ public class DatasetController {
             @ApiParam(required=true, value="Raw data set to be added") 
             @RequestBody RawData rawData, Principal p) {
         
-        //TODO
-        return null;
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        // TODO - validation
+        // check to make sure, the file is specified and exists in the uploads folder
+        if (rawData.getFilename() == null) {
+            errorMessage.addError(new ObjectError("filename", "NotFound"));
+        } else {
+            File file = new File (uploadDir + rawData.getFilename());
+            if (!file.exists()) {
+                errorMessage.addError(new ObjectError("file", "NotFound"));
+            }
+        }
+        // check to make sure the image is specified and image file is in uploads folder
+        // check to make sure the slidelayout (in slide) is specified and the slide layout exists
+        // check if the metadata is valid for each specified metadata
+        
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
+        
+        try {
+            return datasetRepository.addRawData(rawData, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
+        }
     }
     
     
@@ -719,7 +746,7 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Boolean checkMetadataName(@RequestParam("name") final String name, 
-            @RequestParam("metadata type")
+            @RequestParam("metadatatype")
             MetadataTemplateType type, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         String typePredicate = null;
@@ -745,7 +772,7 @@ public class DatasetController {
         }
         MetadataCategory metadata = null;
         try {
-            metadata = datasetRepository.getMetadataByLabel(name, typePredicate, user);
+            metadata = datasetRepository.getMetadataByLabel(name.trim(), typePredicate, user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve metadata by name", e);
         }
