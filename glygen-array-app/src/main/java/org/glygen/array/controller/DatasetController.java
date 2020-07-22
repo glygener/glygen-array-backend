@@ -1249,7 +1249,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given sample from the user's list")
-    @RequestMapping(value="/delete/{sampleId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deletesample/{sampleId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Sample deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -1269,7 +1269,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given image analysis software from the user's list")
-    @RequestMapping(value="/delete/{imageAnaysisMetadataId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deleteimagemetadata/{imageAnaysisMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -1289,7 +1289,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given slide metadata from the user's list")
-    @RequestMapping(value="/delete/{slideMetadataId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deleteslidemetadata/{slideMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -1309,7 +1309,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given data processing software from the user's list")
-    @RequestMapping(value="/delete/{dataProcessingMetadataId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deletedataprocessingmetadata/{dataProcessingMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -1329,7 +1329,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given scanner from the user's list")
-    @RequestMapping(value="/delete/{scannerId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deletescannermetadata/{scannerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Scanner deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -1349,7 +1349,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete given printer from the user's list")
-    @RequestMapping(value="/delete/{printerId}", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deleteprintermetadata/{printerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
