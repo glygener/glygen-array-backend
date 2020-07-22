@@ -15,7 +15,6 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
@@ -76,7 +75,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasIntensityPredicate = ontPrefix + "has_intensity";
     public final static String bindingValuePredicate = ontPrefix + "binding_value_of";
     public final static String integratedByPredicate = ontPrefix + "integrated_by";
-    public final static String integratesPredicate = ontPrefix + "has_integrates";
+    public final static String integratesPredicate = ontPrefix + "integrates";
     
     public final static String derivedFromPredicate = ontPrefix + "derived_from";
     public final static String hasMeasurementPredicate = ontPrefix + "has_measurement";
@@ -218,6 +217,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(slideIRI, printedBy, f.createIRI(printerMetadataURI), graphIRI));
         statements.add(f.createStatement(slideIRI, hasSlideMetadata, f.createIRI(slideMetadataURI), graphIRI));
         
+        //TODO how to associate slide with its slide layout !!! - has_slide_layout??
         sparqlDAO.addStatements(statements, graphIRI);
         return slideURI;
     }
@@ -1282,25 +1282,64 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // TODO Auto-generated method stub  
     }
     
-    void deleteMetadataCategory (String metadataId, String graph) throws SparqlException, SQLException {
-        String uri = uriPrefix + metadataId;
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI metadata = f.createIRI(uri);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasDescriptor = f.createIRI(describedbyPredicate);
-        
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(metadata, hasDescriptor, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            Value v = st.getObject();
-            String descriptorURI = v.stringValue();
-            deleteDescription(descriptorURI, graph);
+    void deleteMetadataCategory (String metadataId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            if (canDeleteMetadata(uriPrefix + metadataId, graph)) {
+                String uri = uriPrefix + metadataId;
+                ValueFactory f = sparqlDAO.getValueFactory();
+                IRI metadata = f.createIRI(uri);
+                IRI graphIRI = f.createIRI(graph);
+                IRI hasDescriptor = f.createIRI(describedbyPredicate);
+                
+                RepositoryResult<Statement> statements = sparqlDAO.getStatements(metadata, hasDescriptor, null, graphIRI);
+                while (statements.hasNext()) {
+                    Statement st = statements.next();
+                    Value v = st.getObject();
+                    String descriptorURI = v.stringValue();
+                    deleteDescription(descriptorURI, graph);
+                }
+                
+                statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            } else {
+                throw new IllegalArgumentException("Cannot delete metadata " + metadataId + ". It is used in an experiment");
+            }
         }
         
-        statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        
     }
     
+    private boolean canDeleteMetadata(String uri, String graph) throws SparqlException {
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_sample <" +  uri + "> . ");
+        queryBuf.append ("UNION {?s gadr:has_image_processing_metadata <" + uri +"> . }");
+        queryBuf.append ("UNION {?s gadr:has_slide_metadata <" + uri +"> . }");
+        queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +"> . }");
+        queryBuf.append ("UNION {?s gadr:printed_by <" + uri +"> . }");
+        queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +"> . }");
+        queryBuf.append ("} LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+        
+        return canDelete;
+    }
+
+
     void deleteDescription (String descriptionURI, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
@@ -1319,48 +1358,32 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public void deleteSample(String sampleId, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        if (graph != null) {
-           /* if (canDeleteSlideLayout(uriPrefix + slideLayoutId, graph)) {
-                
-            }*/
-        }
+        deleteMetadataCategory(sampleId, user);
     }
-    
+
     @Override
     public void deleteDataProcessingSoftware(String id, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
+        deleteMetadataCategory(id, user);
     }
 
     @Override
     public void deleteImageAnalysisSoftware(String id, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
+        deleteMetadataCategory(id, user);
     }
 
     @Override
     public void deleteSlideMetadata(String id, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
+        deleteMetadataCategory(id, user);
     }
 
     @Override
     public void deleteScannerMetadata(String id, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
+        deleteMetadataCategory(id, user);
     }
 
     @Override
     public void deletePrinter(String id, UserEntity user) throws SparqlException, SQLException {
-        // TODO Auto-generated method stub
-        
+        deleteMetadataCategory(id, user);
     }
 
     @Override
@@ -1397,5 +1420,43 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException {
         MetadataCategory metadata = getMetadataByLabel(label, sampleTypePredicate, user);
         return metadata == null? null : (Sample) metadata;
+    }
+
+
+    @Override
+    public Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, user);
+    }
+
+
+    @Override
+    public Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, user);
+    }
+
+
+    @Override
+    public ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, user);
+    }
+
+
+    @Override
+    public SlideMetadata getSlideMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, user);
+    }
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, user);
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user)
+            throws SparqlException, SQLException {
+        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, user);
     }
 }

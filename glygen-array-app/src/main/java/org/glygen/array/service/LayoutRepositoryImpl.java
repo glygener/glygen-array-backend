@@ -381,8 +381,18 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	boolean canDeleteSlideLayout (String slideURI, String graph) throws SparqlException, SQLException { 
         boolean canDelete = true;
-        
-        //TODO check experiments
+                
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_slide ?slide . ?slide gadr:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
+        //TODO check the object property once experiment part is done!
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
         
         return canDelete;
     }

@@ -10,6 +10,7 @@ import java.util.Scanner;
 import java.util.Set;
 
 import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
@@ -19,6 +20,7 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
@@ -40,11 +42,13 @@ import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.ArrayDatasetRepositoryImpl;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
+import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
@@ -58,6 +62,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -1243,4 +1248,147 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Delete given sample from the user's list")
+    @RequestMapping(value="/delete/{sampleId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Sample deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete samples"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteSample (
+            @ApiParam(required=true, value="id of the sample to delete") 
+            @PathVariable("sampleId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteSample(id, user);
+            return new Confirmation("Sample deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete sample " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given image analysis software from the user's list")
+    @RequestMapping(value="/delete/{imageAnaysisMetadataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete image analysis software"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteImageAnalysisSoftware (
+            @ApiParam(required=true, value="id of the image analysis software to delete") 
+            @PathVariable("imageAnaysisMetadataId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteImageAnalysisSoftware(id, user);
+            return new Confirmation("Image analysis software deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete image analysis software " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given slide metadata from the user's list")
+    @RequestMapping(value="/delete/{slideMetadataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete slide metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteSlideMetadata (
+            @ApiParam(required=true, value="id of the slide metadata to delete") 
+            @PathVariable("sampleId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteSlideMetadata(id, user);
+            return new Confirmation("Slide metadata deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete slide metadata " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given data processing software from the user's list")
+    @RequestMapping(value="/delete/{dataProcessingMetadataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete data processing software"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteDataProcessingSoftware (
+            @ApiParam(required=true, value="id of the data processing software to delete") 
+            @PathVariable("dataProcessingMetadataId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteDataProcessingSoftware(id, user);
+            return new Confirmation("Data processing software deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete data processing software " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given scanner from the user's list")
+    @RequestMapping(value="/delete/{scannerId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete scanner"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteScanner (
+            @ApiParam(required=true, value="id of the scanner to delete") 
+            @PathVariable("scannerId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteScannerMetadata(id, user);
+            return new Confirmation("Scanner deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete scanner " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given printer from the user's list")
+    @RequestMapping(value="/delete/{printerId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete printer"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deletePrinter (
+            @ApiParam(required=true, value="id of the printer metadata to delete") 
+            @PathVariable("printerId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deletePrinter(id, user);
+            return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete printer " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Retrieve sample with the given id")
+    @RequestMapping(value="/getsample/{sampleId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Gycan with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Sample getSample (
+            @ApiParam(required=true, value="id of the sample to retrieve") 
+            @PathVariable("sampleId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            Sample sample = datasetRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (sample == null) {
+                throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
+            }
+            return sample;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Sample cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
 }
