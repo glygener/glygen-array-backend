@@ -505,7 +505,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		    graph = DEFAULT_GRAPH;
 		else
 		    graph = getGraphForUser(user);
-		return getCountByUserByType(graph, "Glycan");
+		return getCountByUserByType(graph, ontPrefix + "Glycan");
 	}
 	
 	private GlycanType getGlycanTypeForGlycan (String glycanURI, String graph) throws SparqlException {

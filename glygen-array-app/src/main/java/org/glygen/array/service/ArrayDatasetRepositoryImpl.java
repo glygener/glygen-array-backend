@@ -1324,12 +1324,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_sample <" +  uri + "> . ");
-        queryBuf.append ("UNION {?s gadr:has_image_processing_metadata <" + uri +"> . }");
-        queryBuf.append ("UNION {?s gadr:has_slide_metadata <" + uri +"> . }");
-        queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +"> . }");
-        queryBuf.append ("UNION {?s gadr:printed_by <" + uri +"> . }");
-        queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +"> . }");
+        queryBuf.append ("{?s gadr:has_sample <" +  uri + "> } ");
+        queryBuf.append ("UNION {?s gadr:has_image_processing_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_slide_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:printed_by <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +">  } ");
         queryBuf.append ("} LIMIT 1");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());

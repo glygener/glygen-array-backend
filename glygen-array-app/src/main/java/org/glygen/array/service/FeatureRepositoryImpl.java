@@ -287,7 +287,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         else {
             graph = getGraphForUser(user);
         }
-		return getCountByUserByType(graph, "Feature");
+		return getCountByUserByType(graph, featureTypePredicate);
 	}
 
 	@Override

@@ -117,7 +117,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	/**
 	 * 
 	 * @param graph graph for the user
-	 * @param type "Linker" or "Glycan" (rdf type of the subject)
+	 * @param type the rdf type of the entity http://purl.org/gadr/data#Glycan, http://purl.org/gadr/data#SlideLayout,
 	 * @return total number of triples with that rdf:type as the subject and date_addedToLibrary as the predicate
 	 * @throws SparqlException
 	 */
@@ -131,7 +131,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
-			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/data#" + type +">. }");
+			queryBuf.append (" ?s rdf:type  <" + type +">. }");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			for (SparqlEntity sparqlEntity : results) {
 				String count = sparqlEntity.getValue("count");

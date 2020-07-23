@@ -755,7 +755,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         else {
             graph = getGraphForUser(user);
         }
-		return getCountByUserByType (graph, "Linker");
+		return getCountByUserByType (graph, linkerTypePredicate);
 	}
 	
 	private LinkerType getLinkerTypeForLinker (String linkerURI, String graph) throws SparqlException {
