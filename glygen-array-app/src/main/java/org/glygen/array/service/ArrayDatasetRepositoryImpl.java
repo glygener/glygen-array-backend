@@ -931,7 +931,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             } else if (st.getPredicate().equals(hasTemplate)) {
                 Value uriValue = st.getObject();
-                sampleObject.setTemplate(uriValue.stringValue());            
+                String templateuri = uriValue.stringValue();
+                String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
+                sampleObject.setTemplate(id);            
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 Value value = st.getObject();
                 Description descriptor = getDescriptionFromURI (value.stringValue(), graph);

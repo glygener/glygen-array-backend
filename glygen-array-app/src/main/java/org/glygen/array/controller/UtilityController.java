@@ -622,4 +622,26 @@ public class UtilityController {
         
         return templates;
     }
+    
+    @ApiOperation(value = "Retrieve the template by id")
+    @RequestMapping(value="/getTemplate/{id}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Return the metadata template, if exists"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public MetadataTemplate getTemplate (
+            @ApiParam(required=true, value="Name of the metadata template") 
+            @PathVariable("id")
+            String id) {
+        
+        try {
+            String uri = MetadataTemplateRepository.templatePrefix + id;
+            MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
+            return metadataTemplate;
+        } catch (SparqlException e) {
+            logger.error("Error retrieving templates for type\" + type", e);
+            throw new GlycanRepositoryException("Error retrieving the given templates with id" + id, e);
+        }
+    }
 }
