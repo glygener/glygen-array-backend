@@ -9,7 +9,7 @@ public enum MetadataTemplateType {
     SCANNER("scanner_template"),
     SLIDE("slide_template"),
     DATAPROCESSINGSOFTWARE("data_processing_software_template"),
-    IMAGEANALYSISSOFTWARE("image_anaylsis_software_template");
+    IMAGEANALYSISSOFTWARE("image_analysis_software_template");
     
     String label;
     
@@ -38,7 +38,7 @@ public enum MetadataTemplateType {
             return SLIDE;
         else if (value.equals("data_processing_software_template"))
             return DATAPROCESSINGSOFTWARE;
-        else if (value.equals("image_anaylsis_software_template"))
+        else if (value.equals("image_analysis_software_template"))
             return IMAGEANALYSISSOFTWARE;
         return SAMPLE;
     }

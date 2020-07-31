@@ -16,7 +16,7 @@ public abstract class DescriptionTemplate {
     String id;
     String name;
     String description;
-    boolean mandatory;
+    Boolean mandatory;
     Integer maxOccurrence;
     String example;
     String wikiLink;

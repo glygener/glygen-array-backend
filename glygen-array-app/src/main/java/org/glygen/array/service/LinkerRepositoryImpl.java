@@ -368,11 +368,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				else {
 				    if (l.getClassification().getChebiId() != null) {
 				        classificationIRI = getClassificationByField(
-				                l.getClassification().getChebiId() + "", hasChebiIdPredicate, "integer", graph);
+				                l.getClassification().getChebiId() + "", 
+				                hasChebiIdPredicate.substring(hasChebiIdPredicate.lastIndexOf("#")+1), "integer", graph);
 				    } 
 				    if (classificationIRI == null && l.getClassification().getClassification() != null) {
 				        classificationIRI = getClassificationByField(
-                                l.getClassification().getClassification(), hasClassificationValuePredicate, "string", graph);
+                                l.getClassification().getClassification(), 
+                                hasClassificationValuePredicate.substring(hasClassificationValuePredicate.lastIndexOf("#")+1), "string", graph);
 				    }
 				    if (classificationIRI == null) {
 				        classificationIRI = generateUniqueURI(uriPrefix + "LC", graph);
@@ -448,7 +450,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             fromString += "FROM <" + graph + ">\n";
             where += "  UNION { "
                     + " ?s gadr:has_public_uri ?p . \n" 
-                    + "?p gadr:" + predicate + "\"" + field + "\"^^xsd:" + type + ".\n}";
+                    + "?p gadr:" + predicate + " \"" + field + "\"^^xsd:" + type + ".\n}";
             
         } else {
             where += "}";
@@ -1271,12 +1273,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                else {
 	                    if (((SmallMoleculeLinker) linker).getClassification().getChebiId() != null) {
 	                        classificationIRI = getClassificationByField(
-	                                ((SmallMoleculeLinker) linker).getClassification().getChebiId() + "", hasChebiIdPredicate, "integer", DEFAULT_GRAPH);
+	                                ((SmallMoleculeLinker) linker).getClassification().getChebiId() + "", 
+	                                hasChebiIdPredicate.substring(hasChebiIdPredicate.lastIndexOf("#")+1), "integer", DEFAULT_GRAPH);
 	                    } 
 	                    if (classificationIRI == null && ((SmallMoleculeLinker) linker).getClassification().getClassification() != null) {
 	                        classificationIRI = getClassificationByField(
 	                                ((SmallMoleculeLinker) linker).getClassification().getClassification(), 
-	                                hasClassificationValuePredicate, "string", DEFAULT_GRAPH);
+	                                hasClassificationValuePredicate.substring(hasClassificationValuePredicate.lastIndexOf("#")+1), "string", DEFAULT_GRAPH);
 	                    }
 	                    if (classificationIRI == null) {
 	                        classificationIRI = generateUniqueURI(uriPrefix + "LC", userGraph);

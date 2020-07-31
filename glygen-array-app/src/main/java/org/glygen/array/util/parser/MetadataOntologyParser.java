@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -20,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -676,8 +678,26 @@ public class MetadataOntologyParser {
             Model model = Rio.parse(inputStream, "http://purl.org/gadr/template", RDFFormat.RDFXML);
             ValueFactory f = SimpleValueFactory.getInstance();
             
+            int lastIdUsed = 1;
+            Iterator<Statement> itr = model.iterator();
+            while (itr.hasNext()) {
+                Statement st = itr.next();
+                String uri = st.getSubject().stringValue();
+                if (uri.contains ("Metadata")) {
+                    String idPart = uri.substring(uri.indexOf("Metadata")+8);
+                    try {
+                        int id = Integer.parseInt(idPart);
+                        if (id > lastIdUsed)
+                            lastIdUsed = id;
+                    } catch (NumberFormatException e) {
+                        System.err.println("Could not extract id");
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
             // add templates/descriptors etc. as individuals
-            int id = 1;
+            int id = lastIdUsed+1;
             
             for (MetadataTemplate template: templates) {
                 IRI metadataIRI = f.createIRI( prefix + "Metadata" + id);
