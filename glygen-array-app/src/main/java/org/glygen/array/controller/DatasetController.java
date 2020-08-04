@@ -1123,36 +1123,35 @@ public class DatasetController {
         for (DescriptionTemplate descTemplate: ((DescriptorGroupTemplate)descGroupTemplate).getDescriptors()) {
             boolean exists = false;
             int count = 0;
-            if (!descTemplate.isGroup()) {
-                for (Description d: descGroup.getDescriptors()) {
-                    DescriptionTemplate t = d.getKey();
-                    if (t.getId() != null) {
-                        if (t.getId().equals(descTemplate.getId())) {
-                            exists = true;
-                            count ++;
-                            if (d.isGroup()) {
-                                ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
-                                if (error != null) {
-                                    for (ObjectError err: error.getErrors())
-                                        errorMessage.addError(err);
-                                } 
-                            }
+            for (Description d: descGroup.getDescriptors()) {
+                DescriptionTemplate t = d.getKey();
+                if (t.getId() != null) {
+                    if (t.getId().equals(descTemplate.getId())) {
+                        exists = true;
+                        count ++;
+                        if (d.isGroup()) {
+                            ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                            if (error != null) {
+                                for (ObjectError err: error.getErrors())
+                                    errorMessage.addError(err);
+                            } 
                         }
-                    } else if (t.getUri() != null) {
-                        if (t.getUri().equals(descTemplate.getUri())) {
-                            exists = true;
-                            count++;
-                            if (d.isGroup()) {
-                                ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
-                                if (error != null) {
-                                    for (ObjectError err: error.getErrors())
-                                        errorMessage.addError(err);
-                                } 
-                            }
+                    }
+                } else if (t.getUri() != null) {
+                    if (t.getUri().equals(descTemplate.getUri())) {
+                        exists = true;
+                        count++;
+                        if (d.isGroup()) {
+                            ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
+                            if (error != null) {
+                                for (ObjectError err: error.getErrors())
+                                    errorMessage.addError(err);
+                            } 
                         }
                     }
                 }
-            } 
+            }
+
             if (descTemplate.isMandatory() && !exists) {
                 // violation
                 errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
