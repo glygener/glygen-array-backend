@@ -24,6 +24,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
@@ -129,6 +130,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
 
     @Override
     public DescriptionTemplate getDescriptionFromURI(String uri) throws SparqlException{
+        List<DescriptionTemplate> descriptorList = new ArrayList<>();
+        List<DescriptionTemplate> descriptorGroupList = new ArrayList<>();
+        
         String graph = GlygenArrayRepositoryImpl.DEFAULT_GRAPH; 
         DescriptionTemplate description = null;
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -145,7 +149,6 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 ((DescriptorTemplate) description).setUnits(new ArrayList<String>());
             } else {
                 description = new DescriptorGroupTemplate();
-                ((DescriptorGroupTemplate) description).setDescriptors (new ArrayList<DescriptionTemplate>());
             }
             description.setUri(uri);
             description.setId(uri.substring(uri.lastIndexOf("#")+1));
@@ -215,7 +218,11 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 String descriptionContextURI = st.getObject().stringValue();
                 // get sub descriptions
                 DescriptionTemplate child = getDescriptionFromURI(descriptionContextURI);
-                ((DescriptorGroupTemplate) description).getDescriptors().add(child);
+                if (child.isGroup()) {
+                    descriptorGroupList.add(child);
+                } else {
+                    descriptorList.add(child);
+                }
             } else if (st.getPredicate().equals(cardinality)) {
                 String value = st.getObject().stringValue();
                 if (value.equalsIgnoreCase("n")) {
@@ -233,6 +240,12 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(hasUnit)) {
                 ((DescriptorTemplate) description).getUnits().add(st.getObject().stringValue());
             } 
+        }
+        
+        if (description.isGroup()) {
+            ((DescriptorGroupTemplate) description).setDescriptors(new ArrayList<DescriptionTemplate>());
+            ((DescriptorGroupTemplate) description).getDescriptors().addAll(descriptorList);
+            ((DescriptorGroupTemplate) description).getDescriptors().addAll(descriptorGroupList);
         }
         
         return description;
