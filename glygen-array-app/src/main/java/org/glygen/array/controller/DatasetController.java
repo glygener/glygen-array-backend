@@ -1260,7 +1260,7 @@ public class DatasetController {
             @PathVariable("sampleId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteSample(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Sample deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete sample " + id, e);
@@ -1280,7 +1280,7 @@ public class DatasetController {
             @PathVariable("imageAnaysisMetadataId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteImageAnalysisSoftware(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Image analysis software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete image analysis software " + id, e);
@@ -1300,7 +1300,7 @@ public class DatasetController {
             @PathVariable("sampleId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteSlideMetadata(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Slide metadata deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete slide metadata " + id, e);
@@ -1320,7 +1320,7 @@ public class DatasetController {
             @PathVariable("dataProcessingMetadataId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteDataProcessingSoftware(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Data processing software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete data processing software " + id, e);
@@ -1340,7 +1340,7 @@ public class DatasetController {
             @PathVariable("scannerId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteScannerMetadata(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Scanner deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete scanner " + id, e);
@@ -1360,7 +1360,7 @@ public class DatasetController {
             @PathVariable("printerId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deletePrinter(id, user);
+            datasetRepository.deleteMetadata(id, user);
             return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
@@ -1389,5 +1389,97 @@ public class DatasetController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Sample cannot be retrieved for user " + p.getName(), e);
         }   
+    }
+    
+    @ApiOperation(value = "Update given sample for the user")
+    @RequestMapping(value = "/updateSample", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Sample updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update samples"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateSample(
+            @ApiParam(required=true, value="Sample with updated fields") 
+            @RequestBody Sample metadata, Principal p) throws SQLException {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (metadata.getName() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "name", metadata.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (metadata.getDescription() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "description", metadata.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+       
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (metadata.getName() == null || metadata.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
+            errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check if the template exists
+        String templateURI = null;
+        try {
+            
+            if (metadata.getTemplate() != null && !metadata.getTemplate().isEmpty())
+                templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.SAMPLE);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = validateMetadata (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                }    
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
+        }
+        
+        // check if the name is unique
+        if (metadata.getName() != null && !metadata.getName().trim().isEmpty()) {
+            try {
+                Sample existing = datasetRepository.getSampleByLabel(metadata.getName(), user);
+                if (existing != null) {
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing samples", e);
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
+        
+        try {
+            datasetRepository.updateMetadata(metadata, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Error updating sample with id: " + metadata.getId());
+        }
+        return new Confirmation("Sample updated successfully", HttpStatus.OK.value());
+        
     }
 }

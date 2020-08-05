@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityNotFoundException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.eclipse.rdf4j.common.iteration.Iterations;
@@ -683,6 +684,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
+        List<Description> descriptorList = new ArrayList<Description>();
+        List<Description> descriptorGroupList = new ArrayList<Description>();
         Description descriptorObject = null;
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI descriptorIRI = f.createIRI(uri);
@@ -700,7 +703,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     descriptorObject = new Descriptor();
                 } else if (value.contains("complex")) {
                     descriptorObject = new DescriptorGroup();
-                    ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
                 }
             } else if (st.getPredicate().equals(hasKey)) {
                 // retrieve descriptorTemplate from template repository
@@ -715,11 +717,20 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 ((Descriptor)descriptorObject).setUnit(val);
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 String descURI = st.getObject().stringValue();
-                ((DescriptorGroup)descriptorObject).getDescriptors().add(getDescriptionFromURI(descURI, graph));
+                Description d = getDescriptionFromURI(descURI, graph);
+                if (d.isGroup()) 
+                    descriptorGroupList.add(d);
+                else 
+                    descriptorList.add(d);
             }
         }
         descriptorObject.setUri(uri);
         descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+        if (descriptorObject.isGroup()) {
+            ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
+            ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorList);
+            ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorGroupList);
+        }
         return descriptorObject;
     }
 
@@ -1284,7 +1295,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // TODO Auto-generated method stub  
     }
     
-    void deleteMetadataCategory (String metadataId, UserEntity user) throws SparqlException, SQLException {
+    @Override
+    public void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1359,36 +1371,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     @Override
-    public void deleteSample(String sampleId, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(sampleId, user);
-    }
-
-    @Override
-    public void deleteDataProcessingSoftware(String id, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(id, user);
-    }
-
-    @Override
-    public void deleteImageAnalysisSoftware(String id, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(id, user);
-    }
-
-    @Override
-    public void deleteSlideMetadata(String id, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(id, user);
-    }
-
-    @Override
-    public void deleteScannerMetadata(String id, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(id, user);
-    }
-
-    @Override
-    public void deletePrinter(String id, UserEntity user) throws SparqlException, SQLException {
-        deleteMetadataCategory(id, user);
-    }
-
-    @Override
     public MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException {
         if (label == null || label.isEmpty())
             return null;
@@ -1460,5 +1442,62 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user)
             throws SparqlException, SQLException {
         return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, user);
+    }
+    
+    @Override
+    public void updateMetadata (MetadataCategory metadata, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        // delete all existing descriptors for the sample and add them back
+        String uri = null;
+        if (metadata.getUri() != null)
+            uri = metadata.getUri();
+        else
+            uri = uriPrefix + metadata.getId();
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasDescriptor = f.createIRI(describedbyPredicate);
+        IRI metadataIRI = f.createIRI(uri);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        
+        // check if it exists
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(metadataIRI, null, null, graphIRI);
+        if (!result.hasNext()) {
+            // does not exist
+            throw new EntityNotFoundException("metadata with the given id is not found in the repository");
+        }
+        
+        result = sparqlDAO.getStatements(metadataIRI, hasDescriptor, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            Value v = st.getObject();
+            String descriptorURI = v.stringValue();
+            deleteDescription(descriptorURI, graph);
+        }
+    
+        // delete name/description
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+        
+        Literal date = f.createLiteral(new Date());
+        Literal label = metadata.getName() == null ? null : f.createLiteral(metadata.getName());
+        Literal comment = metadata.getDescription() == null ? null : f.createLiteral(metadata.getDescription());
+        
+        // add updated name/description
+        List<Statement> statements = new ArrayList<Statement>();
+        if (label != null) statements.add(f.createStatement(metadataIRI, RDFS.LABEL, label, graphIRI));
+        if (comment != null) statements.add(f.createStatement(metadataIRI, RDFS.COMMENT, comment, graphIRI));
+        statements.add(f.createStatement(metadataIRI, hasModifiedDate, date, graphIRI));
+        
+        // add descriptors back
+        addMetadata (uri, metadata, statements, graph);
+        sparqlDAO.addStatements(statements, graphIRI);
     }
 }
