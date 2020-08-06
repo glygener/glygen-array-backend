@@ -1692,7 +1692,9 @@ public class DatasetController {
                 }
                     
                 if (existing != null) {
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                    if (!existing.getId().equalsIgnoreCase(metadata.getId())) {
+                        errorMessage.addError(new ObjectError("name", "Duplicate"));
+                    }
                 }
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Could not query existing metadata", e);
