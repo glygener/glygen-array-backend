@@ -1500,4 +1500,39 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         addMetadata (uri, metadata, statements, graph);
         sparqlDAO.addStatements(statements, graphIRI);
     }
+
+
+    @Override
+    public Printer getPrinterByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, printerTypePredicate, user);
+        return metadata == null? null : (Printer) metadata;
+    }
+
+
+    @Override
+    public ScannerMetadata getScannerMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, scannerTypePredicate, user);
+        return metadata == null? null : (ScannerMetadata) metadata;
+    }
+
+
+    @Override
+    public SlideMetadata getSlideMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, slideTemplateTypePredicate, user);
+        return metadata == null? null : (SlideMetadata) metadata;
+    }
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwarByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, imageAnalysisTypePredicate, user);
+        return metadata == null? null : (ImageAnalysisSoftware) metadata;
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, dataProcessingTypePredicate, user);
+        return metadata == null? null : (DataProcessingSoftware) metadata;
+    }
 }

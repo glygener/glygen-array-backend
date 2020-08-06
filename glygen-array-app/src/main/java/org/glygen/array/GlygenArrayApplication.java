@@ -16,10 +16,13 @@
 
 package org.glygen.array;
 
+import org.glygen.array.typeahead.NamespaceHandler;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.web.context.request.RequestContextListener;
 
 import com.ulisesbocchio.jasyptspringboot.environment.StandardEncryptableEnvironment;
@@ -39,5 +42,10 @@ public class GlygenArrayApplication {
 		new SpringApplicationBuilder()
 		.environment(new StandardEncryptableEnvironment())
 	    .sources(GlygenArrayApplication.class).run(args);
+	}
+	
+	@EventListener(ApplicationReadyEvent.class)
+	public void doSomethingAfterStartup() {
+	    NamespaceHandler.loadNamespaces();
 	}
 }

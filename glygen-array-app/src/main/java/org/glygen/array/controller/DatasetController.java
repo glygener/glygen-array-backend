@@ -1373,7 +1373,7 @@ public class DatasetController {
     @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Gycan with given id does not exist"),
+            @ApiResponse(code=404, message="Sample with given id does not exist"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Sample getSample (
@@ -1391,6 +1391,124 @@ public class DatasetController {
         }   
     }
     
+    @ApiOperation(value = "Retrieve printer with the given id")
+    @RequestMapping(value="/getPrinter/{printerId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Printer with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Printer getPrinter (
+            @ApiParam(required=true, value="id of the printer to retrieve") 
+            @PathVariable("printerId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            Printer metadata = datasetRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printer cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve scanner with the given id")
+    @RequestMapping(value="/getScanner/{scannerId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="ScannerMetadata with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ScannerMetadata getScanner (
+            @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
+            @PathVariable("scannerId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("ScannerMetadata cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    @ApiOperation(value = "Retrieve SlideMetadata with the given id")
+    @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="SlideMetadata retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Printer with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public SlideMetadata getSlideMetadata (
+            @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
+            @PathVariable("slideId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            SlideMetadata metadata = datasetRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("SlideMetadata cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id")
+    @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="ImageAnalysisSoftware retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="ImageAnalysisSoftware with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ImageAnalysisSoftware getImageAnaylsisSoftware (
+            @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
+            @PathVariable("imagesoftwareId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("ImageAnalysisSoftware cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id")
+    @RequestMapping(value="/getDataProcessingSoftware/{dataprocessingId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="DataProcessingSoftware with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public DataProcessingSoftware getDataProcessingSoftware (
+            @ApiParam(required=true, value="id of the DataProcessingSoftware to retrieve") 
+            @PathVariable("dataprocessingId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("DataProcessingSoftware cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
     @ApiOperation(value = "Update given sample for the user")
     @RequestMapping(value = "/updateSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
@@ -1404,6 +1522,97 @@ public class DatasetController {
     public Confirmation updateSample(
             @ApiParam(required=true, value="Sample with updated fields") 
             @RequestBody Sample metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.SAMPLE, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given printer for the user")
+    @RequestMapping(value = "/updatePrinter", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update printers"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updatePrinter(
+            @ApiParam(required=true, value="Printer with updated fields") 
+            @RequestBody Printer metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.PRINTER, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given scanner metadata for the user")
+    @RequestMapping(value = "/updateScanner", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner metadata updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update scanners"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateScanner(
+            @ApiParam(required=true, value="Scanner with updated fields") 
+            @RequestBody ScannerMetadata metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.SCANNER, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given slide metadata for the user")
+    @RequestMapping(value = "/updateSlideMetadata", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Slide Metadata updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update slide metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateSlideMetadata(
+            @ApiParam(required=true, value="Slide metadata with updated fields") 
+            @RequestBody SlideMetadata metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.SLIDE, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given image analysis software for the user")
+    @RequestMapping(value = "/updateImageAnalysisSoftware", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update image analysis software"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateImageAnalysisSoftware(
+            @ApiParam(required=true, value="Image analysis software with updated fields") 
+            @RequestBody ImageAnalysisSoftware metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given data processing software for the user")
+    @RequestMapping(value = "/updateDataProcessingSoftware", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update data processing software"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateDataProcessingSoftware(
+            @ApiParam(required=true, value="Data processing software with updated fields") 
+            @RequestBody DataProcessingSoftware metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, p);
+        
+    }
+    
+     
+    private Confirmation updateMetadata (MetadataCategory metadata, MetadataTemplateType type, Principal p) {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1441,7 +1650,7 @@ public class DatasetController {
         try {
             
             if (metadata.getTemplate() != null && !metadata.getTemplate().isEmpty())
-                templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.SAMPLE);
+                templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), type);
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
@@ -1456,30 +1665,52 @@ public class DatasetController {
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
-            throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
+            throw new GlycanRepositoryException("Error retrieving metadata template " + p.getName(), e1);
         }
         
         // check if the name is unique
         if (metadata.getName() != null && !metadata.getName().trim().isEmpty()) {
             try {
-                Sample existing = datasetRepository.getSampleByLabel(metadata.getName(), user);
+                
+                MetadataCategory existing = null;
+                switch (type) {
+                case SAMPLE:
+                    existing = datasetRepository.getSampleByLabel(metadata.getName(), user);
+                    break;
+                case PRINTER:
+                    existing = datasetRepository.getPrinterByLabel(metadata.getName(), user);
+                    break;
+                case SCANNER:
+                    existing = datasetRepository.getScannerMetadataByLabel(metadata.getName(), user);
+                    break;
+                case SLIDE:
+                    existing = datasetRepository.getSlideMetadataByLabel(metadata.getName(), user);
+                    break;
+                case IMAGEANALYSISSOFTWARE:
+                    existing = datasetRepository.getImageAnalysisSoftwarByLabel(metadata.getName(), user);
+                    break;
+                case DATAPROCESSINGSOFTWARE:
+                    existing = datasetRepository.getDataProcessingSoftwareByLabel(metadata.getName(), user);
+                    break;
+                }
+                    
                 if (existing != null) {
                     errorMessage.addError(new ObjectError("name", "Duplicate"));
                 }
             } catch (SparqlException | SQLException e) {
-                throw new GlycanRepositoryException("Could not query existing samples", e);
+                throw new GlycanRepositoryException("Could not query existing metadata", e);
             }
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-            throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid metadata information", errorMessage);
         
         try {
             datasetRepository.updateMetadata(metadata, user);
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Error updating sample with id: " + metadata.getId());
+            throw new GlycanRepositoryException("Error updating metadata with id: " + metadata.getId());
         }
-        return new Confirmation("Sample updated successfully", HttpStatus.OK.value());
+        return new Confirmation("Metadata updated successfully", HttpStatus.OK.value());
         
     }
 }
