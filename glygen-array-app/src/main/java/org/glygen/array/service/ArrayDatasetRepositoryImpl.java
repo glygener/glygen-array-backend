@@ -1356,7 +1356,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     void deleteDescription (String descriptionURI, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        IRI graphIRI = f.createIRI(graph);
         IRI descriptor = f.createIRI(descriptionURI);
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptor, hasDescriptor, null, graphIRI);
@@ -1481,11 +1481,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             deleteDescription(descriptorURI, graph);
         }
     
-        // delete name/description
+        // delete name/description and connection to the old descriptors
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasModifiedDate, null, graphIRI)), graphIRI);
-        
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasDescriptor, null, graphIRI)), graphIRI);
         Literal date = f.createLiteral(new Date());
         Literal label = metadata.getName() == null ? null : f.createLiteral(metadata.getName());
         Literal comment = metadata.getDescription() == null ? null : f.createLiteral(metadata.getDescription());

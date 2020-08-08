@@ -441,10 +441,10 @@ public class UtilityController {
             @ApiParam(required=false, value="limit of number of matches") 
             @RequestParam(name="limit", required=false)
             Integer limit) {
-        // find the exact match if exists and putthere it as the first proposal
+        // find the exact match if exists and put it as the first proposal
         PatriciaTrie<String> trie = NamespaceHandler.getTrieForNamespace(namespace);
-        Entry<String, String> entry = trie.select(key);
-        SortedMap<String, String> resultMap = trie.prefixMap(key);
+        Entry<String, String> entry = trie.select(key.toLowerCase());
+        SortedMap<String, String> resultMap = trie.prefixMap(key.toLowerCase());
         List<String> result = new ArrayList<String>();
         int i=0;
         if (entry != null && !resultMap.containsValue(entry.getValue())) {
