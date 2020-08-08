@@ -518,8 +518,8 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (glycan.getComment() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
+			if (glycan.getDescription() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -732,8 +732,8 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (glycan.getComment() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
+			if (glycan.getDescription() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -1013,8 +1013,8 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (glycan.getComment() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getComment());
+			if (glycan.getDescription() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -1041,7 +1041,7 @@ public class GlygenArrayController {
 		g.setName(glycan.getName() != null ? glycan.getName().trim() : glycan.getName());
 		g.setGlytoucanId(glycan.getGlytoucanId() != null ? glycan.getGlytoucanId().trim() : glycan.getGlytoucanId());
 		g.setInternalId(glycan.getInternalId() != null ? glycan.getInternalId().trim(): glycan.getInternalId());
-		g.setComment(glycan.getComment() != null ? glycan.getComment().trim() : glycan.getComment());
+		g.setDescription(glycan.getDescription() != null ? glycan.getDescription().trim() : glycan.getDescription());
 		
 		String glycoCT = glycan.getSequence().trim();
 		UserEntity user;
@@ -2401,7 +2401,7 @@ public class GlygenArrayController {
 		        				SequenceDefinedGlycan myGlycan = new SequenceDefinedGlycan();
 		        				myGlycan.setSequence(glycan.getSequence());  
 		        				myGlycan.setName(glycan.getName());
-		        				myGlycan.setComment(glycan.getComment());
+		        				myGlycan.setDescription(glycan.getComment());
 		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
 		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
@@ -3037,8 +3037,8 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (glycanView.getComment() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycanView.getComment().trim());
+			if (glycanView.getDescription() != null) {
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycanView.getDescription().trim());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
@@ -3058,7 +3058,7 @@ public class GlygenArrayController {
 			Glycan glycan= new Glycan();
 			glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
-			glycan.setComment(glycanView.getComment() != null ? glycanView.getComment().trim() : glycanView.getComment());
+			glycan.setDescription(glycanView.getDescription() != null ? glycanView.getDescription().trim() : glycanView.getDescription());
 			glycan.setName(glycanView.getName() != null ? glycanView.getName().trim() : null);		
 			
 			Glycan local = null;

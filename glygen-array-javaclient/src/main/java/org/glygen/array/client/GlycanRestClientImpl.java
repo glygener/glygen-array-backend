@@ -272,7 +272,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return null;
 	}
 
-    @Override
+    
     public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layoutName, User user) {
         ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
         // add Glycans
@@ -596,4 +596,10 @@ public class GlycanRestClientImpl implements GlycanRestClient {
         }
         
     }
+
+	@Override
+	public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, String layout, User user) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

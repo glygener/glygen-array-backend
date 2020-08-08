@@ -30,7 +30,7 @@ public class Glycan {
 	String uri;
 	String internalId;
 	String name;
-	String comment;
+	String description;
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
@@ -115,14 +115,14 @@ public class Glycan {
 	 * @return the comment
 	 */
 	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
-	public String getComment() {
-		return comment;
+	public String getDescription() {
+		return description;
 	}
 	/**
 	 * @param comment the comment to set
 	 */
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	
 	/**
