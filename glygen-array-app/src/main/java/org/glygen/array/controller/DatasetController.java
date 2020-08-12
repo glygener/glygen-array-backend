@@ -45,6 +45,7 @@ import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
+import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -449,7 +450,7 @@ public class DatasetController {
             String datasetName, 
             @ApiParam(required=true, value="(internal) name of the sample used in the experiment, must already be in the repository") 
             @RequestParam("sampleName")
-            String sample,
+            String sampleName,
             @ApiParam(required=true, value="configuration information related to excel file") 
             @RequestBody
             ProcessedResultConfiguration config,
@@ -471,8 +472,16 @@ public class DatasetController {
                     ArrayDataset dataset = new ArrayDataset();
                     dataset.setName(datasetName);
                     // TODO retrieve dataset from repository and update (add processed data)
-                    // TODO get Sample from repository
-                    //dataset.setSample(sample);
+                    // get Sample from repository
+                    Sample sample = datasetRepository.getSampleByLabel(sampleName, user);
+                    if (sample != null)
+                        dataset.setSample(sample);
+                    else {
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("sample", "NotFound"));
+                        throw new IllegalArgumentException("Sample cannot be found", errorMessage);
+                    }
                     dataset.setProcessedData(processedData);
                     return datasetRepository.addArrayDataset(dataset, user);   
                 } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {
@@ -509,6 +518,24 @@ public class DatasetController {
     public String addSample (
             @ApiParam(required=true, value="Sample metadata to be added") 
             @RequestBody Sample sample, Principal p) {
+        return addSample(sample, true, p);
+    }
+        
+    @ApiOperation(value = "Add given sample metadata for the user")
+    @RequestMapping(value="/addSampleNoValidation", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register samples"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addSample (
+            @ApiParam(required=true, value="Sample metadata to be added") 
+            @RequestBody Sample sample, 
+            @ApiParam(required=false, defaultValue = "true", value="bypass mandatory/multiplicty validation checks if set to false (not recommended)") 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate, Principal p) {   
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -553,11 +580,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (sample, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (sample, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -575,8 +604,6 @@ public class DatasetController {
                 throw new GlycanRepositoryException("Could not query existing samples", e);
             }
         }
-        
-        
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
@@ -780,6 +807,59 @@ public class DatasetController {
         }
         
         return metadata == null;
+    }
+    
+    @ApiOperation(value = "List all datasets for the user")
+    @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public ArrayDatasetListView listArrayDataset (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        ArrayDatasetListView result = new ArrayDatasetListView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getSampleCountByUser (user);
+            
+            List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
     }
     
     @ApiOperation(value = "List all data processing software metadata for the user")

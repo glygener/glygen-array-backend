@@ -19,5 +19,6 @@ public class ScannerMetadata extends MetadataCategory {
         this.name = metadata.name;
         this.template = metadata.template;
         this.user = metadata.user;
+        this.templateType = metadata.templateType;
     }
 }

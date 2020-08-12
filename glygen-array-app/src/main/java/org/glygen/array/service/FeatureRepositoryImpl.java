@@ -175,7 +175,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
-        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
                 + "}\n");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())

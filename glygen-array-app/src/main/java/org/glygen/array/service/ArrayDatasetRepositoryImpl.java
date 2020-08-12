@@ -40,6 +40,7 @@ import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -108,6 +109,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Autowired
     MetadataTemplateRepository templateRepository;
+    
+    @Autowired
+    FeatureRepository featureRepository;
     
     @Override
     public String addArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
@@ -335,6 +339,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
         
         for (Intensity intensity: processedData.getIntensity()) {
+            if (intensity == null) continue;
             String intensityURI = generateUniqueURI(uriPrefix + "I", graph);
             IRI intensityIRI = f.createIRI(intensityURI);
             Literal rfu = f.createLiteral(intensity.getRfu());
@@ -347,18 +352,22 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 IRI feature = f.createIRI(intensity.getFeature().getUri());
                 statements.add(f.createStatement(intensityIRI, bindingValueOf, feature, graphIRI));
             }
-            for (Measurement measurement: intensity.getMeasurements()) {
-                if (measurement.getUri() != null) {
-                    IRI measurementIRI = f.createIRI(measurement.getUri());
-                    statements.add(f.createStatement(intensityIRI, integrates, measurementIRI, graphIRI));
+            if (intensity.getMeasurements() != null) {
+                for (Measurement measurement: intensity.getMeasurements()) {
+                    if (measurement.getUri() != null) {
+                        IRI measurementIRI = f.createIRI(measurement.getUri());
+                        statements.add(f.createStatement(intensityIRI, integrates, measurementIRI, graphIRI));
+                    }
                 }
             }
             statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
         }
-        // add metadata
-        String processingSoftwareMetadata = generateUniqueURI(uriPrefix + "PSM", graph);
-        addMetadata(processingSoftwareMetadata, processedData.getMetadata(), statements, graph);
-        statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processingSoftwareMetadata), graphIRI));
+        if (processedData.getMetadata() != null) {
+            // add metadata
+            String processingSoftwareMetadata = generateUniqueURI(uriPrefix + "PSM", graph);
+            addMetadata(processingSoftwareMetadata, processedData.getMetadata(), statements, graph);
+            statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processingSoftwareMetadata), graphIRI));
+        }
         
         sparqlDAO.addStatements(statements, graphIRI);
         return processedURI;
@@ -423,7 +432,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } else {
             //TODO
         }
-        return null;
+        return existing;
     }
 
     @Override
@@ -444,19 +453,23 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI graphIRI = f.createIRI(graph);
         IRI iri = f.createIRI(uri);
         IRI hasDescriptor = f.createIRI(describedbyPredicate);
-        for (Descriptor descriptor: metadata.getDescriptors()) {
-            if (descriptor == null) continue;
-            if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
-            String descriptorURI = addDescriptor(descriptor, statements, graph);
-            IRI descrIRI = f.createIRI(descriptorURI);
-            statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
+        if (metadata.getDescriptors() != null) {
+            for (Descriptor descriptor: metadata.getDescriptors()) {
+                if (descriptor == null) continue;
+                if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
+                String descriptorURI = addDescriptor(descriptor, statements, graph);
+                IRI descrIRI = f.createIRI(descriptorURI);
+                statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
+            }
         }
         
-        for (DescriptorGroup descriptorGroup: metadata.getDescriptorGroups()) {
-            if (descriptorGroup == null) continue;
-            String descriptorGroupURI = addDescriptorGroup(descriptorGroup, statements, graph);
-            IRI descrGroupIRI = f.createIRI(descriptorGroupURI);
-            statements.add(f.createStatement(iri, hasDescriptor, descrGroupIRI, graphIRI));
+        if (metadata.getDescriptorGroups() != null) {
+            for (DescriptorGroup descriptorGroup: metadata.getDescriptorGroups()) {
+                if (descriptorGroup == null) continue;
+                String descriptorGroupURI = addDescriptorGroup(descriptorGroup, statements, graph);
+                IRI descrGroupIRI = f.createIRI(descriptorGroupURI);
+                statements.add(f.createStatement(iri, hasDescriptor, descrGroupIRI, graphIRI));
+            }
         }
     }
     
@@ -652,7 +665,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.getSlides().add(getSlide(uriValue.stringValue(), graph));            
             } else if (st.getPredicate().equals(hasProcessedData)) {
                 Value uriValue = st.getObject();
-                datasetObject.setProcessedData(getProcessedData(uriValue.stringValue(), graph));            
+                datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), user));            
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the arrray dataset is already public
@@ -674,7 +687,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.getSlides().add(getSlide(uriValue.stringValue(), DEFAULT_GRAPH));            
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = st.getObject();
-                        datasetObject.setProcessedData(getProcessedData(uriValue.stringValue(), DEFAULT_GRAPH));            
+                        datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), null));            
                     }
                 }
             }
@@ -944,7 +957,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Value uriValue = st.getObject();
                 String templateuri = uriValue.stringValue();
                 String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
-                sampleObject.setTemplate(id);            
+                sampleObject.setTemplate(id);  
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri);
+                sampleObject.setTemplateType(template.getName());
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 Value value = st.getObject();
                 Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
@@ -1273,9 +1288,84 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return null;
     }
     
-    private ProcessedData getProcessedData(String uriValue, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    public ProcessedData getProcessedDataFromURI(String uriValue, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI processedData = f.createIRI(uriValue);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasRFU = f.createIRI(rfuPredicate);
+        IRI hasStdev = f.createIRI(stdevPredicate);
+        IRI hasCV = f.createIRI(cvPredicate);
+        IRI hasIntensity = f.createIRI(hasIntensityPredicate);
+        IRI bindingValueOf = f.createIRI(bindingValuePredicate);
+        IRI integrates = f.createIRI(integratesPredicate);
+        IRI integratedBy = f.createIRI(integratedByPredicate);   //TODO should we add statisticalMethod to the intensity???
+        //TODO what about concentration level
+        IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
+        
+        ProcessedData processedObject = new ProcessedData();
+        List<Intensity> intensities = new ArrayList<Intensity>();
+        processedObject.setIntensity(intensities);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(hasIntensity)) {
+                String intensityURI = st.getObject().stringValue();
+                Intensity intensity = new Intensity();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(intensityURI), null, null, graphIRI);
+                if (statements2.hasNext()) {
+                    intensities.add(intensity);
+                }
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(bindingValueOf)) {
+                        String featureURI = st2.getObject().stringValue();
+                        intensity.setFeature(featureRepository.getFeatureFromURI(featureURI, user));
+                    } else if (st2.getPredicate().equals(hasRFU)) {
+                        Value val = st2.getObject();
+                        try {
+                            intensity.setRfu(Double.parseDouble(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.error("rfu should be a double in the repository!", e);
+                        }
+                    } else if (st2.getPredicate().equals(hasStdev)) {
+                        Value val = st2.getObject();
+                        try {
+                            intensity.setStDev(Double.parseDouble(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.error("stdev should be a double in the repository!", e);
+                        }
+                    } else if (st2.getPredicate().equals(integrates)) {
+                        // TODO get measurements
+                        
+                    } else if (st2.getPredicate().equals(hasCV)) {
+                        Value val = st2.getObject();
+                        try {
+                            intensity.setPercentCV(Double.parseDouble(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.error("%CV should be a double in the repository!", e);
+                        }
+                    }
+                }
+                                
+            } else if (st.getPredicate().equals(hasProcessingSWMetadata)) {
+                String metadataURI = st.getObject().stringValue();
+                DataProcessingSoftware metadata = getDataProcessingSoftwareFromURI(metadataURI, user);
+                processedObject.setMetadata(metadata);
+            }
+        }
+        
+        return processedObject;
     }
 
 
@@ -1388,7 +1478,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <" + typePredicate + "> . \n");
-        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
                 + "}\n");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())

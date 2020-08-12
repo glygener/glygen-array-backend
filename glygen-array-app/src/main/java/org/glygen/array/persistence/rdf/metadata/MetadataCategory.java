@@ -12,6 +12,7 @@ public class MetadataCategory {
     String id;
     String uri;
     String template;
+    String templateType;
 
     List<Descriptor> descriptors;
     List<DescriptorGroup> descriptorGroups;
@@ -170,5 +171,17 @@ public class MetadataCategory {
      */
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+    /**
+     * @return the templateType
+     */
+    public String getTemplateType() {
+        return templateType;
+    }
+    /**
+     * @param templateType the templateType to set
+     */
+    public void setTemplateType(String templateType) {
+        this.templateType = templateType;
     }
 }
