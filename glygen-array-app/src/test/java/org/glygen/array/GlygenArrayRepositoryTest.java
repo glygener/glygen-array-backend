@@ -74,7 +74,7 @@ public class GlygenArrayRepositoryTest {
 			
 			// then test update
 			g.setName("updatedGlycan");
-			g.setComment(null);
+			g.setDescription(null);
 			g.setInternalId("TestSource2");
 			
 			String glycanId = g.getUri().substring(g.getUri().lastIndexOf("/")+1);
@@ -83,7 +83,7 @@ public class GlygenArrayRepositoryTest {
 			Glycan updated = glycanRepository.getGlycanById(glycanId, user);
 			assertTrue(updated.getName().equals("updatedGlycan"));
 			assertTrue(updated.getInternalId().equals("TestSource2"));
-			assertTrue(updated.getComment() == null || updated.getComment().equals(""));
+			assertTrue(updated.getDescription() == null || updated.getDescription().equals(""));
 			
 			glycanRepository.deleteGlycan(glycanId, user);
 			Glycan deleted = glycanRepository.getGlycanById(glycanId, user);
@@ -214,7 +214,7 @@ public class GlygenArrayRepositoryTest {
 				"2:2o(4+1)3d");
 		g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		g.setInternalId("TestSource");
-		g.setComment("My Comment");
+		g.setDescription("My Comment");
 		g.setMass(100.0);
 		
 		String glycanId = glycanRepository.addGlycan(g, user);
@@ -287,7 +287,7 @@ public class GlygenArrayRepositoryTest {
 					"4:4d(5+1)5n");
 			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 			g.setInternalId("TestSource2");
-			g.setComment("My Comment2");
+			g.setDescription("My Comment2");
 			g.setMass(210.0);
 			
 			String glycanId = glycanRepository.addGlycan(g, user);
@@ -364,7 +364,7 @@ public class GlygenArrayRepositoryTest {
 					"4:4d(5+1)5n");
 			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 			g.setInternalId("TestSource2");
-			g.setComment("My Comment2");
+			g.setDescription("My Comment2");
 			g.setMass(210.0);
 			
 			String glycanId = glycanRepository.addGlycan(g, user);
@@ -491,7 +491,7 @@ public class GlygenArrayRepositoryTest {
 					"4:4d(5+1)5n");
 			g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 			g.setInternalId("TestSource2");
-			g.setComment("My Comment2");
+			g.setDescription("My Comment2");
 			g.setMass(210.0);
 			
 			String glycanId = glycanRepository.addGlycan(g, user);

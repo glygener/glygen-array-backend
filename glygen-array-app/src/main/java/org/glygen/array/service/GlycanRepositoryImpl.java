@@ -147,7 +147,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		Literal type = f.createLiteral(g.getType().name());
 		IRI graphIRI = f.createIRI(graph);
 		Literal glycanLabel = g.getName() == null ? null : f.createLiteral(g.getName());
-		Literal glycanComment = g.getComment() == null ? null : f.createLiteral(g.getComment());
+		Literal glycanComment = g.getDescription() == null ? null : f.createLiteral(g.getDescription());
 		Literal internalId = g.getInternalId() == null ? null : f.createLiteral(g.getInternalId());
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
@@ -282,7 +282,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId());
 			IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 			Literal glycanLabel = g.getName() == null ? f.createLiteral("") : f.createLiteral(g.getName());
-			Literal glycanComment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+			Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription());
 			IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
 			Literal type = f.createLiteral(g.getType().name());
 			IRI glycanType = f.createIRI(ontPrefix + "Glycan");
@@ -644,7 +644,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				glycanObject.setUser(creator);
 			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
 				Value comment = st.getObject();
-				glycanObject.setComment(comment.stringValue());
+				glycanObject.setDescription(comment.stringValue());
 			} else if (st.getPredicate().equals(hasInternalId)) {
 				Value internalId = st.getObject();
 				glycanObject.setInternalId(internalId.stringValue());
@@ -757,7 +757,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		String glycanURI = g.getUri();
 		IRI glycan = f.createIRI(glycanURI);
 		Literal glycanLabel = f.createLiteral(g.getName());
-		Literal glycanComment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+		Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription());
 		Literal internalId = g.getInternalId() == null? f.createLiteral("") : f.createLiteral(g.getInternalId());
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
