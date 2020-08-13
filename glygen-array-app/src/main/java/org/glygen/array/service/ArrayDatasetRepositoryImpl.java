@@ -959,7 +959,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
                 sampleObject.setTemplate(id);  
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri);
-                sampleObject.setTemplateType(template.getName());
+                if (template != null)
+                    sampleObject.setTemplateType(template.getName());
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 Value value = st.getObject();
                 Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
