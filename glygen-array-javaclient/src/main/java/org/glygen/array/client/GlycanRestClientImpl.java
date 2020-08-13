@@ -272,7 +272,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return null;
 	}
 
-    
+    @Override
     public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layoutName, User user) {
         ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
         // add Glycans
@@ -567,39 +567,4 @@ public class GlycanRestClientImpl implements GlycanRestClient {
         
         return spots;
     }
-
-    @Override
-    public String resetRepository() {
-        if (token == null) login(this.username, this.password);
-        //set the header with token
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.add("Authorization", token);
-        HttpEntity<?> requestEntity = new HttpEntity<Object>(headers);
-        String url = this.url + "array/reset";
-        System.out.println("URL: " + url);
-        try {
-            ResponseEntity<Confirmation> response = this.restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Confirmation.class);
-            return response.getBody().getMessage();
-        } catch (HttpServerErrorException e) {
-            String errorMessage = e.getResponseBodyAsString();
-            if (errorMessage != null) {
-                System.out.println("server error: " + errorMessage);
-            } 
-            return errorMessage;
-        } catch (HttpClientErrorException e) {
-            String errorMessage = e.getResponseBodyAsString();
-            if (errorMessage != null) {
-                System.out.println("client error: " + errorMessage);
-            }
-            return errorMessage;
-        }
-        
-    }
-
-	@Override
-	public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, String layout, User user) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

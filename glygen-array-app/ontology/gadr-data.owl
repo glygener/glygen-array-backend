@@ -57,7 +57,17 @@
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
         <owl:inverseOf rdf:resource="http://purl.org/gadr/data/owner_of"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/array_dataset"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/chemical_entity"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/feature"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#block_layout"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#slide_layout"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/owner"/>
         <rdfs:comment>An object property to relate simple description class with its owner or creator.</rdfs:comment>
     </owl:ObjectProperty>
@@ -88,7 +98,6 @@
     <!-- http://purl.org/gadr/data/has_block -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_block">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/block"/>
         <rdfs:comment>A glycan array slide has one or multiple blocks with array probes on it. This property is used to link the blocks with the slide.</rdfs:comment>
     </owl:ObjectProperty>
@@ -217,6 +226,15 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_molecule_position -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule_position">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature_context"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_processed_data -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_processed_data">
@@ -224,6 +242,15 @@
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/processed_data"/>
         <rdfs:comment>Links a processed data file to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_publication -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_publication">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/publication"/>
     </owl:ObjectProperty>
     
 
@@ -286,16 +313,6 @@
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
         <rdfs:comment>Associates the slide with its metadata.</rdfs:comment>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/data/has_spot -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_spot">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/block"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
-        <rdfs:comment>Associates the spot with the glycans with a block on the slide.</rdfs:comment>
     </owl:ObjectProperty>
     
 
@@ -406,6 +423,15 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_alias -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_alias">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycan"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_bMean -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_bMean">
@@ -485,6 +511,7 @@ Inverse of created_by object property</rdfs:comment>
     <!-- http://purl.org/gadr/data/has_glytoucan_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_glytoucan_id">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycan"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>Links a glycan object with a GlyTouCan ID.</rdfs:comment>
@@ -563,7 +590,7 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_mass">
         <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:comment>Mass of the compound</rdfs:comment>
     </owl:DatatypeProperty>
@@ -619,12 +646,50 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_pdbId -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pdbId">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_position -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_position">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_pubchem_compound_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubchem_compound_id">
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
         <rdfs:comment>Adds a PubChem ID to a chemical entity.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_public_uri -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_public_uri">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/array_dataset"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/chemical_entity"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/feature"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#block_layout"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#slide_layout"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:comment>reference to the uri of this entity in the public graph</rdfs:comment>
     </owl:DatatypeProperty>
     
 
@@ -688,6 +753,15 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_smiles -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_smiles">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_stdev -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_stdev">
@@ -698,9 +772,22 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_type -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_type">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <rdfs:comment>Glycan can be of one of these types: &quot;MassOnly, Unknown, CompositionBased, ClassificationBased, FragmentOnly&quot;
+
+Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Peptide Linker&quot;, &quot;Protein Linker&quot;</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_uniprot_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_uniprot_id">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
@@ -924,6 +1011,14 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/feature_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/feature_context">
+        <rdfs:label>Feature Context</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/data/glycan -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/glycan">
@@ -1029,6 +1124,14 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/publication -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/publication">
+        <rdfs:label>Publication</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/data/raw_data -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/raw_data">
@@ -1120,6 +1223,18 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:comment>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</rdfs:comment>
         <rdfs:label>Unit of Measurement</rdfs:label>
     </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#block_layout -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#block_layout"/>
+    
+
+
+    <!-- http://purl.org/gadr/template#slide_layout -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#slide_layout"/>
 </rdf:RDF>
 
 

@@ -88,5 +88,9 @@ public class UserRestClientImpl implements UserRestClient {
 		this.url = url;
 		
 	}
+    @Override
+    public String getToken() {
+        return this.token;
+    }
 
 }

@@ -1,6 +1,7 @@
 package org.glygen.array.client;
 
 import java.util.List;
+import java.util.Map;
 
 import org.glygen.array.client.model.BlockLayout;
 import org.glygen.array.client.model.Feature;
@@ -31,11 +32,10 @@ public interface GlycanRestClient {
 	/** 
 	 * 
 	 * @param library library file to get slide layout
+	 * @param linkerClassificationMap TODO
 	 * @param layout layout name to import, if null, all slide layouts will be imported
 	 * @param user user login
 	 * @return a result object with the added slide layouts, errors and duplicates
 	 */
-	public ImportGRITSLibraryResult addFromLibrary (ArrayDesignLibrary library, String layout, User user);
-	
-	public String resetRepository();
+	public ImportGRITSLibraryResult addFromLibrary (ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layout, User user);
 }

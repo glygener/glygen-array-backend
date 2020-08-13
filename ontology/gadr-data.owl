@@ -716,6 +716,7 @@ Inverse of created_by object property</rdfs:comment>
                 <owl:unionOf rdf:parseType="Collection">
                     <rdf:Description rdf:about="http://purl.org/gadr/data/image"/>
                     <rdf:Description rdf:about="http://purl.org/gadr/data/raw_data"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#description_context"/>
                 </owl:unionOf>
             </owl:Class>
         </rdfs:domain>
@@ -1120,6 +1121,12 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:comment>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</rdfs:comment>
         <rdfs:label>Unit of Measurement</rdfs:label>
     </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#description_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#description_context"/>
 </rdf:RDF>
 
 

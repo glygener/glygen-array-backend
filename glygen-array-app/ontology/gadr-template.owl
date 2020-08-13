@@ -34,8 +34,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
     <!-- http://purl.org/gadr/data/has_molecule -->
 
-    <owl:AnnotationProperty rdf:about="http://purl.org/gadr/data/has_molecule">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+    <owl:AnnotationProperty rdf:about="http://purl.org/gadr/data/has_molecule"/>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_spot -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/gadr/data/has_spot">
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
     </owl:AnnotationProperty>
     
 
@@ -60,7 +67,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/data/created_by -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#slide_layout"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/owner"/>
     </owl:ObjectProperty>
     
@@ -69,9 +75,24 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/data/has_block -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_block">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#slide_layout"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/slide_metadata"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#slide_layout"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/block"/>
     </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_molecule -->
+
+    <rdf:Description rdf:about="http://purl.org/gadr/data/has_molecule">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+    </rdf:Description>
     
 
 
@@ -110,8 +131,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/template#has_description_context -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_description_context">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#template"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#complex_description_context"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#template"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#description_context"/>
         <rdfs:comment>An object property to associate a Template or a Complex Description to a Description Context.</rdfs:comment>
     </owl:ObjectProperty>
@@ -124,6 +151,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/descriptor"/>
         <rdfs:comment>An Object property to link a simple description context to its descriptor.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/template#has_feature_ratio -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_feature_ratio">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/template#ratio_context"/>
     </owl:ObjectProperty>
     
 
@@ -189,6 +225,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#slide_template"/>
         <rdfs:comment>Sub property of has_template property, restricting acess from slide metadata category to slide template.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/template#has_spot -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_spot">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
     </owl:ObjectProperty>
     
 
@@ -261,6 +306,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/template#block_layout"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
         <rdfs:comment>height dimension for block/slide layout</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/template#has_ratio -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_ratio">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/template#ratio_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>
     
 
@@ -426,6 +480,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
         <rdfs:comment>Template specific to Printer category.</rdfs:comment>
         <rdfs:label>Printer Template</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#ratio_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#ratio_context">
+        <rdfs:label>Ratio Context</rdfs:label>
     </owl:Class>
     
 

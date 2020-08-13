@@ -2,11 +2,15 @@ package org.glygen.array.client;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -29,7 +33,6 @@ import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
 import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.BlockLayout;
 import org.grits.toolbox.glycanarray.library.om.layout.SlideLayout;
-import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -38,6 +41,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -82,6 +87,7 @@ public class Application implements CommandLineRunner {
 		glycanClient.setPassword(args[1]);
 		glycanClient.setURL(settings.scheme + settings.host + settings.basePath);
 		
+		Map<String, String> linkerClassificationMap = readLinkerClassificationMap ();
 		
 		// read Library and create glycans in the repository
 		File libraryFile = new File (args[2]);
@@ -142,9 +148,17 @@ public class Application implements CommandLineRunner {
 						view.setDescription(linker.getSequence());
 					view.setComment(linker.getComment());
 					if (linker.getPubChemId() == null) {
-						// assign a random classification
-						Collections.shuffle(classificationList);
-						view.setClassification((LinkerClassification) classificationList.get(0));
+					    String classification = linkerClassificationMap.get(linker.getName());
+		                if (classification != null) {
+		                    LinkerClassification lClass = new LinkerClassification();
+		                    lClass.setClassification(classification);
+		                    view.setClassification(lClass);
+		                }
+		                else {   
+		                    // assign a random classification
+		                    Collections.shuffle(classificationList);
+		                    view.setClassification((LinkerClassification) classificationList.get(0));
+		                }
 					}
 					try {
 						glycanClient.addLinker(view, user);
@@ -168,6 +182,7 @@ public class Application implements CommandLineRunner {
                             }
                         }
                         if (probe != null) {
+                            boolean linkerOnly = true;
                             for (Ratio r1 : probe.getRatio()) {
                                 Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
                                 if (glycan != null) {
@@ -182,6 +197,7 @@ public class Application implements CommandLineRunner {
                                     }
                                     myFeature.addGlycan(myGlycan);
                                     myFeature.setType(FeatureType.NORMAL);
+                                    linkerOnly = false;
                                 }  
                             }
                             Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
@@ -191,10 +207,20 @@ public class Application implements CommandLineRunner {
                                 else {
                                     // need to set random classification and name
                                     myLinker.setName(linker.getName());
-                                    myLinker.setClassification(classificationList.get(0));
+                                    String classification = linkerClassificationMap.get(linker.getName());
+                                    if (classification != null) {
+                                        LinkerClassification lClass = new LinkerClassification();
+                                        lClass.setClassification(classification);
+                                        myLinker.setClassification(lClass);
+                                    }
+                                    else {   
+                                        // assign a random classification
+                                        Collections.shuffle(classificationList);
+                                        myLinker.setClassification((LinkerClassification) classificationList.get(0));
+                                    }
                                 }
                                 myFeature.setLinker(myLinker);
-                                myFeature.setType(FeatureType.CONTROL);
+                                if (linkerOnly) myFeature.setType(FeatureType.CONTROL);
                             } 
                         }
                     }
@@ -213,7 +239,7 @@ public class Application implements CommandLineRunner {
 		        	myLayout.setDescription(blockLayout.getComment());
 		        	myLayout.setWidth(blockLayout.getColumnNum());
 		        	myLayout.setHeight(blockLayout.getRowNum());
-		        	myLayout.setSpots(getSpotsFromBlockLayout(library, blockLayout));
+		        	myLayout.setSpots(GlycanRestClientImpl.getSpotsFromBlockLayout(library, blockLayout));
 		        	
 		        	try {
 		        		glycanClient.addBlockLayout (myLayout, user);
@@ -244,7 +270,7 @@ public class Application implements CommandLineRunner {
 	        			org.glygen.array.client.model.BlockLayout myLayout = new org.glygen.array.client.model.BlockLayout();
 	        			myLayout.setName(blockLayout.getName());
 	        			myBlock.setBlockLayout(myLayout);
-	        			myLayout.setSpots(getSpotsFromBlockLayout(library, blockLayout));
+	        			myLayout.setSpots(GlycanRestClientImpl.getSpotsFromBlockLayout(library, blockLayout));
 	        			blocks.add(myBlock);
 	        		}
 	        		
@@ -261,8 +287,7 @@ public class Application implements CommandLineRunner {
 					}
 				}
 	        } else if (importType.equals("All")) {
-	            System.out.println(glycanClient.resetRepository());
-	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, null, user);
+	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, linkerClassificationMap, null, user);
 	            for (org.glygen.array.client.model.SlideLayout layout: result.getAddedLayouts()) {
 	                log.info("Added: " + layout.getName());
 	            }
@@ -276,45 +301,26 @@ public class Application implements CommandLineRunner {
 		}
 	}
 	
-	List<org.glygen.array.client.model.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, BlockLayout blockLayout) {
-		List<org.glygen.array.client.model.Spot> spots = new ArrayList<>();
-    	for (Spot spot: blockLayout.getSpot()) {
-    		org.glygen.array.client.model.Spot s = new org.glygen.array.client.model.Spot();
-    		s.setRow(spot.getY());
-    		s.setColumn(spot.getX());
-    		s.setGroup(spot.getGroup());
-    		s.setConcentration(spot.getConcentration());
-    		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
-    		List<org.glygen.array.client.model.Feature> features = new ArrayList<>();
-    		if (feature != null) {
-                List<Ratio> ratios = feature.getRatio();
-                for (Ratio ratio : ratios) {
-                    org.glygen.array.client.model.Feature myFeature = new org.glygen.array.client.model.Feature();
-                    myFeature.setName(feature.getName());
-                    GlycanProbe probe = null;
-                    for (GlycanProbe p : library.getFeatureLibrary().getGlycanProbe()) {
-                        if (p.getId().equals(ratio.getItemId())) {
-                            probe = p;
-                            break;
-                        }
-                    }
-                    if (probe != null) {   
-                        Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
-                        if (linker != null) {
-                            myFeature.setType(FeatureType.NORMAL);
-                        } else {
-                            myFeature.setType(FeatureType.CONTROL);
-                        }
-                    }
-                    features.add(myFeature);
-                }
+	private Map<String, String> readLinkerClassificationMap() {
+	    Map<String, String> map = new HashMap<String, String>();
+	    Resource resource = new ClassPathResource("linkerClassifications.txt");
+        try {
+            File file = resource.getFile();
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNext()) {
+                String line = scanner.nextLine();
+                String[] mapping = line.split("\\t");
+                if (mapping.length >= 2 && mapping[1].trim().length() > 0) {
+                    map.put(mapping[0].trim(), mapping[1].trim());
+                } 
             }
-    		s.setFeatures(features);
-    		spots.add(s);
-    	}
-    	
-    	return spots;
-	}
+            scanner.close();
+        } catch (IOException e) {
+            log.error("Cannot read linker classification mapping file", e);
+        }
+        return map;
+    }
+
 	
 	public class GlygenSettings {
 		String host;

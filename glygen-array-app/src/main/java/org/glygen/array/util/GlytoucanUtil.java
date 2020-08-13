@@ -162,11 +162,11 @@ public class GlytoucanUtil {
 		
 		//String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/35_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5]/1-1-2-3-3/a4-b1_b4-c1_c3-d1_c6-e1");
 		
-		String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		//String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
 		//String accessionNumber = GlytoucanUtil.getInstance().getAccessionNumber("WURCS=2.0/7,12,11/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O][a2112h-1b_1-5_2*NCC/3=O]/1-1-2-3-1-4-5-6-3-1-7-4/a4-b1_a6-l1_b4-c1_c3-d1_c6-i1_d2-e1_e3-f1_e4-g1_g3-h2_i2-j1_j4-k1");
 		
 		//System.out.println(sequence);
-		System.out.println(accessionNumber);
+		//System.out.println(accessionNumber);
 		
 		//GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
         //GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
@@ -262,7 +262,7 @@ public class GlytoucanUtil {
 		 
 		*/ 
 		
-		String glycoCTSeq = "RES\n" + 
+		/*String glycoCTSeq = "RES\n" + 
 		        "1b:b-dglc-HEX-1:5\n" + 
 		        "2s:n-acetyl\n" + 
 		        "3b:b-dglc-HEX-1:5\n" + 
@@ -289,7 +289,19 @@ public class GlytoucanUtil {
 		        "10b:x-dglc-HEX-1:5\n" + 
 		        "11s:n-acetyl\n" + 
 		        "LIN\n" + 
-		        "9:10d(2+1)11n";
+		        "9:10d(2+1)11n";*/
+		
+		String glycoCTSeq = "RES\n" + 
+		        "1b:b-dglc-HEX-1:5\n" + 
+		        "2s:n-acetyl\n" + 
+		        "3s:R_CARBOXYETHYL\n" + 
+		        "4b:b-dglc-HEX-1:5\n" + 
+		        "5s:n-acetyl\n" + 
+		        "LIN\n" + 
+		        "1:1d(2+1)2n\n" + 
+		        "2:1o(3+1)3n\n" + 
+		        "3:1d(4+1)4o\n" + 
+		        "4:4d(2+1)5n";
         WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
         try {
             exporter.start(glycoCTSeq);
