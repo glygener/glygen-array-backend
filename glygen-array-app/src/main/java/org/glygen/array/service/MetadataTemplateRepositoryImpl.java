@@ -349,7 +349,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         queryBuf.append ("SELECT DISTINCT ?s \n");
         queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ( " ?s gadr:is_required ?p. \n}");
+        queryBuf.append ( " ?s <" +templatePrefix + "is_required> ?p. \n}");
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
