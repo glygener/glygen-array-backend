@@ -341,6 +341,37 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 deleteTemplate(templateURI);
             }   
         }
+        
+        // to clean up left over predicates
+        // get all description context objects and delete their statements
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <" + templatePrefix  +  "simple_description_context>. \n}");
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity sparqlEntity : results) {
+            String uri = sparqlEntity.getValue("s");
+            RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(uri), null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+        }
+        
+        queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <" + templatePrefix  +  "complex_description_context>. \n}"); 
+        results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity sparqlEntity : results) {
+            String uri = sparqlEntity.getValue("s");
+            RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(uri), null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+        }
+            
     }
 
 }
