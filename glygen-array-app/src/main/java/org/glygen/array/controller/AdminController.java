@@ -6,9 +6,6 @@ import java.sql.SQLException;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.RoleEntity;
-import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.view.Confirmation;
@@ -38,18 +35,12 @@ public class AdminController {
     
     @Autowired
     MetadataTemplateRepository templateRepository;
-    
-    @Autowired
-    UserRepository userRepository;
-    
-    
-    
+     
+
     @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation resetRepository (Principal p) {
-        // check to make sure the logged in user has the "admin" role
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
             repository.resetRepository();
             return new Confirmation("emptied the repository", HttpStatus.OK.value());

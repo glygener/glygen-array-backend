@@ -162,4 +162,15 @@ public abstract class DescriptionTemplate {
         this.mirage = mirage;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof DescriptionTemplate) { 
+            if (this.id != null && ((DescriptionTemplate) obj).getId() != null) {
+                return this.id.equals(((DescriptionTemplate) obj).getId());
+            } else if (this.uri != null && ((DescriptionTemplate) obj).getUri() != null) {
+                return this.uri.equals(((DescriptionTemplate) obj).getUri());
+            }
+        } 
+        return super.equals(obj);
+    }
 }

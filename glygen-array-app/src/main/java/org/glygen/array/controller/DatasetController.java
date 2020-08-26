@@ -827,7 +827,6 @@ public class DatasetController {
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the template exists
         String templateURI = null;
         try {
@@ -844,7 +843,6 @@ public class DatasetController {
                 if (err != null) {
                     for (ObjectError error: err.getErrors())
                         errorMessage.addError(error);
-                    return false;
                 }    
             }
         } catch (SparqlException | SQLException e1) {
@@ -852,13 +850,80 @@ public class DatasetController {
             throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
         }
         
+        if (!errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Not mirage compliant", errorMessage);
+        }
         
         return true;
     }
     
     private ErrorMessage checkMirage(MetadataCategory metadata, MetadataTemplate template) {
-        // TODO Auto-generated method stub
-        return null;
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        for (DescriptionTemplate descTemplate: template.getDescriptors()) {
+            boolean exists = false;
+            if (descTemplate.isGroup() && descTemplate.isMirage()) {
+                // check if it is provided in metadata
+                for (DescriptorGroup g: metadata.getDescriptorGroups()) {
+                    if (g.getKey().equals(descTemplate)) {
+                        exists = true;
+                        ErrorMessage error = checkMirageDescriptorGroup((DescriptorGroup)g, descTemplate);
+                        if (error != null) {
+                            for (ObjectError err: error.getErrors())
+                                errorMessage.addError(err);
+                        }  
+                    }
+                }
+                
+            } else if (descTemplate.isMirage()) {
+                for (Descriptor d: metadata.getDescriptors()) {
+                    if (d.getKey().equals(descTemplate))
+                        exists = true;
+                }
+            }
+            if (!exists) {
+                // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mirage", "NotFound"));
+            }
+        }
+        
+        if (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())
+            return null;
+        return errorMessage;
+    }
+
+    private ErrorMessage checkMirageDescriptorGroup(DescriptorGroup descGroup, DescriptionTemplate descGroupTemplate) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        for (DescriptionTemplate descTemplate: ((DescriptorGroupTemplate)descGroupTemplate).getDescriptors()) {
+            boolean exists = false;
+            for (Description d: descGroup.getDescriptors()) {
+                if (d.getKey().equals(descTemplate)) {
+                    exists = true;
+                 
+                    if (d.isGroup()) {
+                        ErrorMessage error = checkMirageDescriptorGroup((DescriptorGroup)d, descTemplate);
+                        if (error != null) {
+                            for (ObjectError err: error.getErrors())
+                                errorMessage.addError(err);
+                        } 
+                    }
+                }
+            }
+
+            if (descTemplate.isMirage() && !exists) {
+                // violation
+                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mirage", "NotFound"));
+            }
+        }
+        
+        if (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())
+            return null;
+        return errorMessage;
     }
 
     @ApiOperation(value = "List all datasets for the user")
