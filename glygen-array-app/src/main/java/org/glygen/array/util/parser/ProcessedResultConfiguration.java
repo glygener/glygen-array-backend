@@ -12,6 +12,8 @@ public class ProcessedResultConfiguration {
     Integer concentrationLevelColumnId;
     
     String resultFileType = "CFG";
+    String slideLayoutId;
+    String blockId = null;
     
     
     /**
@@ -117,5 +119,29 @@ public class ProcessedResultConfiguration {
     
     public Integer getConcentrationLevelColumnId() {
         return concentrationLevelColumnId;
+    }
+    /**
+     * @return the slideLayoutId
+     */
+    public String getSlideLayoutId() {
+        return slideLayoutId;
+    }
+    /**
+     * @param slideLayoutId the slideLayoutId to set
+     */
+    public void setSlideLayoutId(String slideLayoutId) {
+        this.slideLayoutId = slideLayoutId;
+    }
+    /**
+     * @return the blockId
+     */
+    public String getBlockId() {
+        return blockId;
+    }
+    /**
+     * @param blockId the blockId to set
+     */
+    public void setBlockId(String blockId) {
+        this.blockId = blockId;
     }
 }

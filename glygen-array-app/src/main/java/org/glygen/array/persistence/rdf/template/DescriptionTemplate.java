@@ -1,8 +1,5 @@
 package org.glygen.array.persistence.rdf.template;
 
-import org.glygen.array.persistence.rdf.metadata.Descriptor;
-import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -20,6 +17,8 @@ public abstract class DescriptionTemplate {
     Integer maxOccurrence;
     String example;
     String wikiLink;
+    Integer mandateGroup = null;
+    Boolean mirage = false;
     
     public abstract boolean isGroup();
 
@@ -133,6 +132,34 @@ public abstract class DescriptionTemplate {
      */
     public void setWikiLink(String wikiLink) {
         this.wikiLink = wikiLink;
+    }
+
+    /**
+     * @return the mandateGroup
+     */
+    public Integer getMandateGroup() {
+        return mandateGroup;
+    }
+
+    /**
+     * @param mandateGroup the mandateGroup to set
+     */
+    public void setMandateGroup(Integer mandateGroup) {
+        this.mandateGroup = mandateGroup;
+    }
+
+    /**
+     * @return the mirage
+     */
+    public Boolean isMirage() {
+        return mirage;
+    }
+
+    /**
+     * @param mirage the mirage to set
+     */
+    public void setMirage(Boolean mirage) {
+        this.mirage = mirage;
     }
 
 }

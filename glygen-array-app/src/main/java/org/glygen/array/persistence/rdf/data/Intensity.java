@@ -3,6 +3,7 @@ package org.glygen.array.persistence.rdf.data;
 import java.util.List;
 
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.Spot;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 public class Intensity {
@@ -12,7 +13,7 @@ public class Intensity {
     
     // integrates multiple measurements
     List<Measurement> measurements;
-    Feature feature;
+    Spot spot;
     
     Double rfu;
     Double stDev;
@@ -32,18 +33,7 @@ public class Intensity {
     public void setMeasurements(List<Measurement> measurements) {
         this.measurements = measurements;
     }
-    /**
-     * @return the feature
-     */
-    public Feature getFeature() {
-        return feature;
-    }
-    /**
-     * @param feature the feature to set
-     */
-    public void setFeature(Feature feature) {
-        this.feature = feature;
-    }
+    
     /**
      * @return the rfu
      */
@@ -111,5 +101,17 @@ public class Intensity {
      */
     public void setId(String id) {
         this.id = id;
+    }
+    /**
+     * @return the spot
+     */
+    public Spot getSpot() {
+        return spot;
+    }
+    /**
+     * @param spot the spot to set
+     */
+    public void setSpot(Spot spot) {
+        this.spot = spot;
     }
 }

@@ -459,7 +459,7 @@ public class DatasetController {
             File excelFile = new File(uploadDir, uploadedFileName);
             if (excelFile.exists()) {
                 UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-                ProcessedDataParser parser = new ProcessedDataParser(featureRepository, glycanRepository, linkerRepository);
+                ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
                 try {
                     Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
                     if (!resource.exists()) {
@@ -809,6 +809,58 @@ public class DatasetController {
         return metadata == null;
     }
     
+    @GetMapping("/isMirageCompliant")
+    @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Boolean checkMirageCompliance(
+            @RequestBody
+            MetadataCategory metadata, 
+            @RequestParam("type")
+            MetadataTemplateType type,
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the template exists
+        String templateURI = null;
+        try {
+            
+            if (metadata.getTemplate() != null && !metadata.getTemplate().isEmpty())
+                templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), type);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                ErrorMessage err = checkMirage (metadata, template);
+                if (err != null) {
+                    for (ObjectError error: err.getErrors())
+                        errorMessage.addError(error);
+                    return false;
+                }    
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
+        }
+        
+        
+        return true;
+    }
+    
+    private ErrorMessage checkMirage(MetadataCategory metadata, MetadataTemplate template) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @ApiOperation(value = "List all datasets for the user")
     @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})

@@ -24,10 +24,12 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.view.ErrorCodes;
@@ -42,14 +44,16 @@ public class ProcessedDataParser {
     
     final static Logger logger = LoggerFactory.getLogger("event-logger");
     
-    FeatureRepository featureRepository;
+    LayoutRepository layoutRepository;
     GlycanRepository glycanRepository;
     LinkerRepository linkerRepository;
+    FeatureRepository featureRepository;
     
     Map<String, String> sequenceErrorMap = new HashMap<String, String>();
     
-    public ProcessedDataParser(FeatureRepository f, GlycanRepository g, LinkerRepository l) {
+    public ProcessedDataParser(FeatureRepository f, LayoutRepository r, GlycanRepository g, LinkerRepository l) {
         this.featureRepository = f;
+        this.layoutRepository = r;
         this.glycanRepository = g;
         this.linkerRepository = l;
     }
@@ -183,10 +187,16 @@ public class ProcessedDataParser {
                                 error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository"));
                                 errorList.add(error); 
                             } else {
-                                intensity.setFeature(feature);
+                                List<Feature> features = new ArrayList<Feature>();
+                                features.add(feature);
+                                Spot spot = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockId(), user);
+                                intensity.setSpot(spot);
                             }
                         } else {
-                            intensity.setFeature(feature);
+                            List<Feature> features = new ArrayList<Feature>();
+                            features.add(feature);
+                            Spot spot = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockId(), user);
+                            intensity.setSpot(spot);
                         }
                     }
                 } catch (SparqlException | SQLException e) {

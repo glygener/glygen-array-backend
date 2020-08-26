@@ -6,8 +6,11 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 
 public interface LayoutRepository {
 	
@@ -60,4 +63,6 @@ public interface LayoutRepository {
     String makePublic(SlideLayout layout, UserEntity user) throws SparqlException, SQLException;
     BlockLayout getBlockLayoutByName(String name, UserEntity user, boolean loadAll)
             throws SparqlException, SQLException;
+    Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException;
+    Spot getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockId, UserEntity user) throws SparqlException, SQLException;
 }

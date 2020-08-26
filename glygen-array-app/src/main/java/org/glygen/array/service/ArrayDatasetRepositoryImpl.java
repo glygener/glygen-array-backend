@@ -113,6 +113,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Autowired
     FeatureRepository featureRepository;
     
+    @Autowired
+    LayoutRepository layoutRepository;
+    
     @Override
     public String addArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
@@ -348,9 +351,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             statements.add(f.createStatement(intensityIRI, hasRFU, rfu, graphIRI));
             if (stdev != null) statements.add(f.createStatement(intensityIRI, hasStdev, stdev, graphIRI));
             if (cv != null) statements.add(f.createStatement(intensityIRI, hasCV, cv, graphIRI));
-            if (intensity.getFeature() != null && intensity.getFeature().getUri() != null) {
-                IRI feature = f.createIRI(intensity.getFeature().getUri());
-                statements.add(f.createStatement(intensityIRI, bindingValueOf, feature, graphIRI));
+            if (intensity.getSpot() != null && intensity.getSpot().getUri() != null) {
+                IRI spot = f.createIRI(intensity.getSpot().getUri());
+                statements.add(f.createStatement(intensityIRI, bindingValueOf, spot, graphIRI));
             }
             if (intensity.getMeasurements() != null) {
                 for (Measurement measurement: intensity.getMeasurements()) {
@@ -1330,8 +1333,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 while (statements2.hasNext()) {
                     Statement st2 = statements2.next();
                     if (st2.getPredicate().equals(bindingValueOf)) {
-                        String featureURI = st2.getObject().stringValue();
-                        intensity.setFeature(featureRepository.getFeatureFromURI(featureURI, user));
+                        String spotURI = st2.getObject().stringValue();
+                        intensity.setSpot(layoutRepository.getSpotFromURI(spotURI, user));
                     } else if (st2.getPredicate().equals(hasRFU)) {
                         Value val = st2.getObject();
                         try {

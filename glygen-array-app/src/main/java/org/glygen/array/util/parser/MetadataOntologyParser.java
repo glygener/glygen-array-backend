@@ -46,7 +46,9 @@ class Config {
     int unit=8;
     int example=9;
     int wiki = 10;
-    int totalCols = 11;
+    int group = 11;
+    int mirage = 12;
+    int totalCols = 13;
 }
 
 public class MetadataOntologyParser {
@@ -210,6 +212,10 @@ public class MetadataOntologyParser {
                                     readExample(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.wiki) {
                                     readWiki(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } else if (cell.getColumnIndex() == config.group) {
+                                    readGroup(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } else if (cell.getColumnIndex() == config.mirage) {
+                                    readMirage(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else {
                                     continue;
                                 }
@@ -227,7 +233,6 @@ public class MetadataOntologyParser {
         }
         return null;
     }
-    
 
     /***
      * Reads the values for multiplicity and adds to the descriptor
@@ -305,7 +310,7 @@ public class MetadataOntologyParser {
      * @param descriptor descriptor to be modified
      * @param childDescriptor child descriptor to be modified
      * @param sheet sheet that is currently being read
-     * @param isChild boolean if it is a child or not
+     * @param level level of the descriptor: 0, 1, 2
      */
     public static void readDescription(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
@@ -357,7 +362,7 @@ public class MetadataOntologyParser {
      * @param childDescriptor child descriptor to be modified
      * @param subDescriptor child of child descriptor to be modified
      * @param sheet sheet that is currently being read
-     * @param level level of the descriptor
+     * @param level level of the descriptor: 0, 1, 2
      */
     public static void readMandatory(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell != null && !cell.getStringCellValue().isEmpty()) {
@@ -399,7 +404,7 @@ public class MetadataOntologyParser {
      * @param descriptor descriptor to be modified
      * @param childDescriptor child descriptor to be modified
      * @param sheet sheet that is currently being read
-     * @param isChild boolean if it is a child or not
+     * @param level level of the descriptor: 0, 1, 2
      */
     public static void readSelectionOrDictionary(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
@@ -448,7 +453,7 @@ public class MetadataOntologyParser {
      * @param descriptor descriptor to be modified
      * @param childDescriptor child descriptor to be modified
      * @param sheet sheet that is currently being read
-     * @param isChild boolean if it is a child or not
+     * @param level level of the descriptor: 0, 1, 2
      */
     public static void readExample(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
@@ -479,7 +484,7 @@ public class MetadataOntologyParser {
      * @param descriptor descriptor to be modified
      * @param childDescriptor child descriptor to be modified
      * @param sheet sheet that is currently being read
-     * @param isChild boolean if it is a child or not
+     * @param level level of the descriptor: 0, 1, 2
      */
     public static void readWiki(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
@@ -493,15 +498,75 @@ public class MetadataOntologyParser {
                     subDescriptor.setWikiLink(example);
                 }
             } else {
-                warningOut.println("WARNING: No value for Example provided on sheet: "
+                warningOut.println("WARNING: No value for wiki link provided on sheet: "
                         + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
                         + " column: " + (cell.getColumnIndex() + 1));
             }
         } else {
-            errorOut.println("ERROR: Invalid value for example on sheet: "
+            errorOut.println("ERROR: Invalid value for wiki link on sheet: "
                     + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
                     + " column: " + (cell.getColumnIndex() + 1));
         }
+    }
+    
+    /***
+     * Reads the values for  group and adds to the descriptor 
+     * @param cell cell to be read
+     * @param descriptor descriptor to be modified
+     * @param childDescriptor child descriptor to be modified
+     * @param sheet sheet that is currently being read
+     * @param level level of the descriptor: 0, 1, 2
+     */
+    public static void readGroup(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
+        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+            try {
+                Double group = cell.getNumericCellValue();
+                if (group != null) {
+                    if (level == 1) {
+                        childDescriptor.setGroup(group.intValue());
+                    } else if (level == 0){
+                        descriptor.setGroup(group.intValue());
+                    } else if (level == 2){
+                        subDescriptor.setGroup(group.intValue());
+                    }
+                }
+            } catch (NumberFormatException e) {
+                warningOut.println("WARNING: No value for Example provided on sheet: "
+                        + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                        + " column: " + (cell.getColumnIndex() + 1));
+            }
+        } else if (cell.getCellType() != Cell.CELL_TYPE_BLANK) {
+            errorOut.println("ERROR: Invalid value for group on sheet: "
+                    + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                    + " column: " + (cell.getColumnIndex() + 1));
+        }
+    }
+    
+    /**
+     * Reads the value of whether the descriptor is part of MIRAGE guidelines or not
+     * @param cell cell to be read
+     * @param descriptor descriptor to be modified
+     * @param childDescriptor child descriptor to be modified
+     * @param subDescripor child of a child descriptor to be modified
+     * @param sheet sheet that is currently being read
+     * @param level level of the descriptor: 0, 1, 2
+     */
+    private void readMirage(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
+            Sheet sheet, int level) {
+        if (cell != null && !cell.getStringCellValue().isEmpty()) {
+            if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                String mirageCell = cell.getRichStringCellValue().getString();
+                Boolean mirage = mirageCell.equalsIgnoreCase("y");
+                if (level == 2) {
+                    subDescriptor.setMirage(mirage);
+                } else if (level == 1) {
+                    childDescriptor.setMirage(mirage);
+                } else if (level == 0){
+                    descriptor.setMirage(mirage);
+                }
+            }
+        }
+        
     }
     
     /***
@@ -781,6 +846,8 @@ public class MetadataOntologyParser {
         IRI isRequired = f.createIRI(prefix + "is_required");
         IRI hasExample = f.createIRI(prefix + "has_example");
         IRI hasUrl = f.createIRI(prefix + "has_url");
+        IRI hasGroup = f.createIRI(prefix + "has_mandate_group");
+        IRI isMirage = f.createIRI(prefix + "is_mirage");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -790,6 +857,12 @@ public class MetadataOntologyParser {
         }
         if (description.getWikiLink() != null) {
             model.add(f.createStatement(descriptionContext, hasUrl, f.createLiteral(description.getWikiLink())));
+        }
+        if (description.getMandateGroup() != null) {
+            model.add(f.createStatement(descriptionContext, hasGroup, f.createLiteral(description.getMandateGroup())));
+        }
+        if (description.isMirage() != null) {
+            model.add(f.createStatement(descriptionContext, isMirage, f.createLiteral(description.isMirage())));
         }
         
         return uri;
@@ -836,6 +909,8 @@ public class MetadataOntologyParser {
         description.setMaxOccurrence(d.getMultiplicity().equals("n") ? Integer.MAX_VALUE : 1);
         description.setExample(d.getExample());
         description.setWikiLink(d.getWikiLink());
+        description.setMandateGroup(d.getGroup());
+        description.setMirage(d.getMirage());
         return description;
         
     }
@@ -852,6 +927,8 @@ public class MetadataOntologyParser {
         List<Descriptor> children;
         Boolean mandatory = false;
         Integer position = null;
+        Integer group = null;
+        Boolean mirage = false;
         String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
 
         /**
@@ -1033,6 +1110,34 @@ public class MetadataOntologyParser {
          */
         public void setWikiLink(String wikiLink) {
             this.wikiLink = wikiLink;
+        }
+
+        /**
+         * @return the group
+         */
+        public Integer getGroup() {
+            return group;
+        }
+
+        /**
+         * @param group the group to set
+         */
+        public void setGroup(Integer group) {
+            this.group = group;
+        }
+
+        /**
+         * @return the mirage
+         */
+        public Boolean getMirage() {
+            return mirage;
+        }
+
+        /**
+         * @param mirage the mirage to set
+         */
+        public void setMirage(Boolean mirage) {
+            this.mirage = mirage;
         }
     }
 

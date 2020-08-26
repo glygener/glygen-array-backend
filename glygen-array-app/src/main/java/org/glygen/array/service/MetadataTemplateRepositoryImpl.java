@@ -163,6 +163,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI hasUnit = f.createIRI(templatePrefix + "has_unit_of_measurement");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
+        IRI hasGroup = f.createIRI(prefix + "has_mandate_group");
+        IRI isMirage = f.createIRI(prefix + "is_mirage");
         
         // get all statements
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);
@@ -239,7 +241,12 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 description.setWikiLink(st.getObject().stringValue());
             } else if (st.getPredicate().equals(hasUnit)) {
                 ((DescriptorTemplate) description).getUnits().add(st.getObject().stringValue());
-            } 
+            } else if (st.getPredicate().equals(isMirage)) {
+                String value = st.getObject().stringValue();
+                description.setMirage(value.equalsIgnoreCase("true"));
+            } else if (st.getPredicate().equals(hasExample)) {
+                description.setExample(st.getObject().stringValue());
+            }
         }
         
         if (description.isGroup()) {
@@ -356,6 +363,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         for (SparqlEntity sparqlEntity : results) {
             String uri = sparqlEntity.getValue("s");
             RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(uri), null, null, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                System.out.println("in delete templates: statement -" + st.getPredicate());
+            }
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
         }     
     }
