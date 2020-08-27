@@ -26,6 +26,7 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
+import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
@@ -93,6 +94,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasImagePredicate = ontPrefix + "has_image";
     
     public final static String hasSampleTemplatePredicate = ontPrefix + "has_sample_template";
+    public final static String hasPrintedSlidePredicate = ontPrefix + "has_printed_slide";
     
     public final static String hasMeanPredicate = ontPrefix + "has_mean";
     public final static String hasBMeanPredicate = ontPrefix + "has_bMean";
@@ -201,14 +203,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     private String addSlide(Slide slide, List<Statement> statements, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         String slideURI = generateUniqueURI(uriPrefix + "S", graph);
-        //String imageURI = addImage(slide.getImage(), statements, graph);
-        String printerMetadataURI = generateUniqueURI(uriPrefix + "PM", graph);
-        String slideMetadataURI = generateUniqueURI(uriPrefix + "SM", graph);
         
         IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
         IRI scanOf = f.createIRI(scanOfPredicate);
         IRI printedBy = f.createIRI(printerMetadataPredicate);
         IRI hasSlideTemplate = f.createIRI(hasSlideTemplatePredicate);
+        IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
         IRI slideIRI = f.createIRI(slideURI);
         IRI graphIRI = f.createIRI(graph);
         
@@ -216,16 +216,34 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             statements.add(f.createStatement(f.createIRI(slide.getImage().getUri()), scanOf, slideIRI, graphIRI));
         }
         
-        if (slide.getLayout() != null && slide.getLayout().getUri() != null) {
-            statements.add(f.createStatement(slideIRI, hasSlideTemplate, f.createIRI(slide.getLayout().getUri()), graphIRI));
+        if (slide.getPrintedSlide() != null) {
+            PrintedSlide printedSlide = slide.getPrintedSlide();
+            String printedSlideURI = null;
+            if (printedSlide.getUri() != null) {
+                printedSlideURI = printedSlide.getUri();
+            } else if (printedSlide.getId() != null) {
+                printedSlideURI = uriPrefix + printedSlide.getId();
+            } else { // create it the first time
+                printedSlideURI = generateUniqueURI(uriPrefix + "PS", graph);
+                Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
+                Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
+                if (label != null) 
+                    statements.add(f.createStatement(f.createIRI(printedSlideURI), RDFS.LABEL, label, graphIRI));
+                if (comment != null)
+                    statements.add(f.createStatement(f.createIRI(printedSlideURI), RDFS.COMMENT, comment, graphIRI));
+                if (printedSlide.getLayout() != null && printedSlide.getLayout().getUri() != null) {
+                    statements.add(f.createStatement(slideIRI, hasSlideTemplate, f.createIRI(printedSlide.getLayout().getUri()), graphIRI));
+                }
+                if (printedSlide.getPrinter() != null && printedSlide.getPrinter().getUri() != null) {
+                    statements.add(f.createStatement(f.createIRI(printedSlideURI), printedBy, f.createIRI(printedSlide.getPrinter().getUri()), graphIRI));
+                } 
+                if (printedSlide.getMetadata() != null && printedSlide.getMetadata().getUri() != null) {
+                    statements.add(f.createStatement(f.createIRI(printedSlideURI), hasSlideMetadata, f.createIRI(printedSlide.getMetadata().getUri()), graphIRI));
+                }
+            }
+            statements.add(f.createStatement(slideIRI, hasPrintedSlide, f.createIRI(printedSlideURI), graphIRI));
         }
         
-        addMetadata(printerMetadataURI, slide.getPrinter(), statements, graph);
-        addMetadata(slideMetadataURI, slide.getMetadata(), statements, graph);
-        statements.add(f.createStatement(slideIRI, printedBy, f.createIRI(printerMetadataURI), graphIRI));
-        statements.add(f.createStatement(slideIRI, hasSlideMetadata, f.createIRI(slideMetadataURI), graphIRI));
-        
-        //TODO how to associate slide with its slide layout !!! - has_slide_layout??
         sparqlDAO.addStatements(statements, graphIRI);
         return slideURI;
     }
@@ -1287,9 +1305,27 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return getCountByUserByType(graph, dataProcessingTypePredicate);
     }
     
-    private String addImage(Image image, List<Statement> statements, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    private String addImage(Image image, List<Statement> statements, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        String imageURI = generateUniqueURI(uriPrefix + "I", graph);
+        String scannerMetadataURI = null;
+        if (image.getScanner() != null) {
+            scannerMetadataURI = image.getScanner().getUri();
+        }
+        
+        IRI graphIRI = f.createIRI(graph);
+        IRI imageIRI = f.createIRI(imageURI);
+        IRI metadataIRI = scannerMetadataURI == null ? null : f.createIRI(scannerMetadataURI);
+        IRI hasFileName = f.createIRI(hasFilePredicate);
+        IRI hasScanner = f.createIRI(scannerMetadataPredicate);
+        
+        Literal filename = image.getFileName() == null ? null : f.createLiteral(image.getFileName());
+        
+        
+        if (filename != null) statements.add(f.createStatement(imageIRI, hasFileName, filename, graphIRI));
+        if (metadataIRI != null) statements.add(f.createStatement(imageIRI, hasScanner, metadataIRI, graphIRI));
+    
+        return imageURI;
     }
     
     public ProcessedData getProcessedDataFromURI(String uriValue, UserEntity user) throws SQLException, SparqlException {

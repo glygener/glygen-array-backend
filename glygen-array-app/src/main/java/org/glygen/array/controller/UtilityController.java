@@ -409,7 +409,7 @@ public class UtilityController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public MetadataTemplate getTemplate (
-            @ApiParam(required=true, value="Name of the metadata template") 
+            @ApiParam(required=true, value="Id of the metadata template") 
             @PathVariable("id")
             String id) {
         

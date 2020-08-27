@@ -809,7 +809,7 @@ public class DatasetController {
         return metadata == null;
     }
     
-    @GetMapping("/isMirageCompliant")
+    @GetMapping("/isMirageCompliant/{id}")
     @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class)
     @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
@@ -817,8 +817,8 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Boolean checkMirageCompliance(
-            @RequestBody
-            MetadataCategory metadata, 
+            @PathVariable("id")
+            String metadataId, 
             @RequestParam("type")
             MetadataTemplateType type,
             Principal p) {
@@ -827,30 +827,57 @@ public class DatasetController {
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
+        MetadataCategory metadata = null;
+        switch (type) {
+        case SAMPLE:
+            metadata = getSample(metadataId, p);
+            break;
+        case DATAPROCESSINGSOFTWARE:
+            metadata = getDataProcessingSoftware(metadataId, p);
+            break;
+        case IMAGEANALYSISSOFTWARE:
+            metadata = getImageAnaylsisSoftware(metadataId, p);
+            break;
+        case PRINTER:
+            metadata = getPrinter(metadataId, p);
+            break;
+        case SCANNER:
+            metadata = getScanner(metadataId, p);
+            break;
+        case SLIDE:
+            metadata = getSlideMetadata(metadataId, p);
+            break;
+        default:
+            break;
+        }
+        
         // check if the template exists
         String templateURI = null;
         try {
-            
-            if (metadata.getTemplate() != null && !metadata.getTemplate().isEmpty())
-                templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), type);
+            if (metadata != null && metadata.getTemplate() != null && !metadata.getTemplate().isEmpty()) {
+                templateURI = MetadataTemplateRepository.templatePrefix + metadata.getTemplate();
+            }
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
             }
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                if (template == null) {
+                    errorMessage.addError(new ObjectError("type", "NotValid"));
+                }
                 ErrorMessage err = checkMirage (metadata, template);
                 if (err != null) {
                     for (ObjectError error: err.getErrors())
                         errorMessage.addError(error);
                 }    
             }
-        } catch (SparqlException | SQLException e1) {
+        } catch (SparqlException e1) {
             logger.error("Error retrieving template", e1);
             throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
         }
         
-        if (!errorMessage.getErrors().isEmpty()) {
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             throw new IllegalArgumentException("Not mirage compliant", errorMessage);
         }
         
@@ -883,7 +910,7 @@ public class DatasetController {
                         exists = true;
                 }
             }
-            if (!exists) {
+            if (descTemplate.isMirage() && !exists) {
                 // violation
                 errorMessage.addError(new ObjectError (descTemplate.getName() + "-mirage", "NotFound"));
             }

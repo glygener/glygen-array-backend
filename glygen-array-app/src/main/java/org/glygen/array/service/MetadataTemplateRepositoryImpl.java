@@ -102,7 +102,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         if (statements.hasNext()) {
             templateObject = new MetadataTemplate();
             templateObject.setUri(templateURI);
-            templateObject.setId(templateURI.substring(templateURI.lastIndexOf("/")+1));
+            templateObject.setId(templateURI.substring(templateURI.lastIndexOf("#")+1));
             templateObject.setDescriptors(new ArrayList<DescriptionTemplate>());
         }
         

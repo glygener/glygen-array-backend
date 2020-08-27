@@ -1,16 +1,10 @@
 package org.glygen.array.persistence.rdf.data;
 
-import org.glygen.array.persistence.rdf.SlideLayout;
-import org.glygen.array.persistence.rdf.metadata.Printer;
-import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
-
 public class Slide {
     
     String id;
     String uri;
-    SlideLayout layout;
-    SlideMetadata metadata;
-    Printer printer;
+    PrintedSlide printedSlide;
     Image image;
     
     /**
@@ -37,42 +31,7 @@ public class Slide {
     public void setUri(String uri) {
         this.uri = uri;
     }
-    /**
-     * @return the layout
-     */
-    public SlideLayout getLayout() {
-        return layout;
-    }
-    /**
-     * @param layout the layout to set
-     */
-    public void setLayout(SlideLayout layout) {
-        this.layout = layout;
-    }
-    /**
-     * @return the metadata
-     */
-    public SlideMetadata getMetadata() {
-        return metadata;
-    }
-    /**
-     * @param metadata the metadata to set
-     */
-    public void setMetadata(SlideMetadata metadata) {
-        this.metadata = metadata;
-    }
-    /**
-     * @return the printer
-     */
-    public Printer getPrinter() {
-        return printer;
-    }
-    /**
-     * @param printer the printer to set
-     */
-    public void setPrinter(Printer printer) {
-        this.printer = printer;
-    }
+    
     /**
      * @return the image
      */
@@ -84,6 +43,18 @@ public class Slide {
      */
     public void setImage(Image image) {
         this.image = image;
+    }
+    /**
+     * @return the printedSlide
+     */
+    public PrintedSlide getPrintedSlide() {
+        return printedSlide;
+    }
+    /**
+     * @param printedSlide the printedSlide to set
+     */
+    public void setPrintedSlide(PrintedSlide printedSlide) {
+        this.printedSlide = printedSlide;
     }
     
 
