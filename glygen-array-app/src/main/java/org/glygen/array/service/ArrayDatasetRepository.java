@@ -89,4 +89,5 @@ public interface ArrayDatasetRepository {
     void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException;
     
     String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
+    void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException;
 }

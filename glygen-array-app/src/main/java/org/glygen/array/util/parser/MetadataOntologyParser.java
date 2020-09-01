@@ -46,15 +46,15 @@ class Config {
     int unit=8;
     int example=9;
     int wiki = 10;
-    int group = 11;
-    int mirage = 12;
+    int group = 12;
+    int mirage = 11;
     int totalCols = 13;
 }
 
 public class MetadataOntologyParser {
      
-    static String[] allowedTypesList = new String[] {"label", "text", "selection", "dictionary", "number", "date", "Label", "Text", 
-            "Selection", "Dictionary", "Number", "Date"};
+    static String[] allowedTypesList = new String[] {"label", "text", "selection", "dictionary", "number", "date", "boolean", "Label", "Text", 
+            "Selection", "Dictionary", "Number", "Date", "Boolean"};
    
     public static PrintStream warningOut;
     public static PrintStream errorOut;
@@ -890,6 +890,8 @@ public class MetadataOntologyParser {
                 namespace.setUri("http://www.w3.org/2001/XMLSchema#double");
             } else if (d.getType().equalsIgnoreCase("Date")) {
                 namespace.setUri("http://www.w3.org/2001/XMLSchema#date");
+            } else if (d.getType().equalsIgnoreCase("Boolean")) { 
+                namespace.setUri("http://www.w3.org/2001/XMLSchema#boolean");
             } else if (d.getType().equalsIgnoreCase("selection")) {
                 if (d.getSelection() != null)
                     ((DescriptorTemplate)description).setSelectionList(Arrays.asList(d.getSelection()));

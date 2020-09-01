@@ -16,6 +16,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
@@ -1664,5 +1665,49 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException {
         MetadataCategory metadata = getMetadataByLabel(label, dataProcessingTypePredicate, user);
         return metadata == null? null : (DataProcessingSoftware) metadata;
+    }
+
+
+    @Override
+    public void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        String uri = null;
+        if (metadata.getUri() != null)
+            uri = metadata.getUri();
+        else
+            uri = uriPrefix + metadata.getId();
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI isMirage = f.createIRI(MetadataTemplateRepository.templatePrefix + "is_mirage");
+        IRI metadataIRI = f.createIRI(uri);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        
+        Literal mirage = f.createLiteral(metadata.getIsMirage());
+        
+        // check if it exists
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(metadataIRI, null, null, graphIRI);
+        if (!result.hasNext()) {
+            // does not exist
+            throw new EntityNotFoundException("metadata with the given id is not found in the repository");
+        }
+           
+        // delete isMirage predicate
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, isMirage, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        statements.add(f.createStatement(metadataIRI, isMirage, mirage, graphIRI));
+        Literal date = f.createLiteral(new Date());
+        statements.add(f.createStatement(metadataIRI, hasModifiedDate, date, graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        
     }
 }

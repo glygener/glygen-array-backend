@@ -851,6 +851,7 @@ public class DatasetController {
             break;
         }
         
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the template exists
         String templateURI = null;
         try {
@@ -870,17 +871,27 @@ public class DatasetController {
                 if (err != null) {
                     for (ObjectError error: err.getErrors())
                         errorMessage.addError(error);
+                    metadata.setIsMirage(false);
+                    // save it back to the repository
+                    datasetRepository.updateMetadataMirage(metadata, user);
                 }    
             }
-        } catch (SparqlException e1) {
+        } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
-            throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
+            throw new GlycanRepositoryException("Error retrieving or saving metadata ", e1);
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             throw new IllegalArgumentException("Not mirage compliant", errorMessage);
         }
         
+        try {
+            metadata.setIsMirage(true);
+            // save it back to the repository
+            datasetRepository.updateMetadataMirage(metadata, user);
+        } catch (SparqlException | SQLException e1) {
+            throw new GlycanRepositoryException("Error updating mirage for metadata ", e1);
+        }
         return true;
     }
     
@@ -888,6 +899,8 @@ public class DatasetController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        //TODO need to consider mandateGroups, even if both is marked as "mirage", one should satisfy the requirement
         
         for (DescriptionTemplate descTemplate: template.getDescriptors()) {
             boolean exists = false;
@@ -912,7 +925,7 @@ public class DatasetController {
             }
             if (descTemplate.isMirage() && !exists) {
                 // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mirage", "NotFound"));
+                errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
             }
         }
         
@@ -944,7 +957,7 @@ public class DatasetController {
 
             if (descTemplate.isMirage() && !exists) {
                 // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mirage", "NotFound"));
+                errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
             }
         }
         
@@ -1930,6 +1943,15 @@ public class DatasetController {
         
         try {
             datasetRepository.updateMetadata(metadata, user);
+            try {
+                // check mirage and update mirage info
+                boolean isMirage = checkMirageCompliance(metadata.getId(), type, p);
+                metadata.setIsMirage(isMirage);
+            } catch (IllegalArgumentException e) {
+                metadata.setIsMirage(false);
+                logger.error("Error checking for mirage compliance", e);
+            }
+            datasetRepository.updateMetadataMirage(metadata, user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Error updating metadata with id: " + metadata.getId());
         }

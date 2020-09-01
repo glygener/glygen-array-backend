@@ -163,8 +163,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI hasUnit = f.createIRI(templatePrefix + "has_unit_of_measurement");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
-        IRI hasGroup = f.createIRI(prefix + "has_mandate_group");
-        IRI isMirage = f.createIRI(prefix + "is_mirage");
+        IRI hasGroup = f.createIRI(templatePrefix + "has_mandate_group");
+        IRI isMirage = f.createIRI(templatePrefix + "is_mirage");
         
         // get all statements
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);
@@ -244,6 +244,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(isMirage)) {
                 String value = st.getObject().stringValue();
                 description.setMirage(value.equalsIgnoreCase("true"));
+            } else if (st.getPredicate().equals(hasGroup)) {
+                String value = st.getObject().stringValue();
+                description.setMandateGroup(Integer.parseInt(value));
             } else if (st.getPredicate().equals(hasExample)) {
                 description.setExample(st.getObject().stringValue());
             }
