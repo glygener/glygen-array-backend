@@ -65,7 +65,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		IRI graphIRI = f.createIRI(graph);
 		IRI block = f.createIRI(blockURI);
-		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
+		IRI hasBlockLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_block_layout");
 		IRI blockType = f.createIRI(ontPrefix + "Block");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
@@ -133,10 +133,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
 		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-		IRI blockLayoutType = f.createIRI(ontPrefix + "BlockLayout");
+		IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		Date date = new Date();
@@ -264,7 +264,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI slideLayoutType = f.createIRI(ontPrefix + "SlideLayout");
+		IRI slideLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "slide_layout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
@@ -334,7 +334,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
 		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		
@@ -370,7 +370,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_block ?block . ?block gadr:has_block_layout <" +  blockURI + "> . } LIMIT 1");
+        queryBuf.append ("?s gadr:has_block ?block . ?block template:has_block_layout <" +  blockURI + "> . } LIMIT 1");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
@@ -388,7 +388,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_slide ?slide . ?slide gadr:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
+        queryBuf.append ("?s gadr:has_slide ?slide . ?slide template:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
         //TODO check the object property once experiment part is done!
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
@@ -424,7 +424,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI slideLayout = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		
 		RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(slideLayout, hasBlock, null, graphIRI);
@@ -464,7 +464,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		IRI block = f.createIRI(blockURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
+		IRI hasBlockLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_block_layout");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
 		
@@ -570,7 +570,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n");
 		queryBuf.append ( "<" +  uriPrefix + blockLayoutId + "> rdfs:label ?o . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
@@ -586,7 +586,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("SELECT DISTINCT ?s \n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n");
 		queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + name.toLowerCase() + "\"\"\") \n"
 				+ "}\n");
 		return sparqlDAO.query(queryBuf.toString());
@@ -659,7 +659,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (
-					" ?s rdf:type  <http://purl.org/gadr/data#BlockLayout>. \n" +
+					" ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n" +
 							sortLine + searchPredicate +
 				    "}\n" +
 					 orderByLine + 
@@ -694,7 +694,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/data#BlockLayout> . }");
+			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/template#block_layout> . }");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			for (SparqlEntity sparqlEntity : results) {
 				String count = sparqlEntity.getValue("count");
@@ -725,7 +725,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
-		IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
 		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
@@ -864,7 +864,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n");
 		queryBuf.append ( "<" +  uriPrefix + slideLayoutId + "> rdfs:label ?o . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
@@ -880,7 +880,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		queryBuf.append ("SELECT DISTINCT ?s \n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n");
+		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n");
 		queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + name.toLowerCase() + "\"\"\") \n"
 				+ "}\n");
 		return sparqlDAO.query(queryBuf.toString());
@@ -948,7 +948,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (
-					" ?s rdf:type  <http://purl.org/gadr/data#SlideLayout>. \n" +
+					" ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n" +
 							sortLine + searchPredicate + 
 				    "}\n" +
 					 orderByLine + 
@@ -983,7 +983,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
-			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/data#SlideLayout> . }");
+			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/template#slide_layout> . }");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			for (SparqlEntity sparqlEntity : results) {
 				String count = sparqlEntity.getValue("count");
@@ -1292,7 +1292,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI blockIRI = f.createIRI(blockURI);
-		IRI hasBlockLayout = f.createIRI(ontPrefix + "has_block_layout");
+		IRI hasBlockLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_block_layout");
 		IRI blockType = f.createIRI(ontPrefix + "Block");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
@@ -1396,10 +1396,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			blockLayoutURI = generateUniqueURI(uriPrefix + "BL", userGraph);
 			IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
 			IRI blockLayoutIRI = f.createIRI(blockLayoutURI);
-			IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
+			IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 			IRI hasWidth = f.createIRI(ontPrefix + "has_width");
 			IRI hasHeight = f.createIRI(ontPrefix + "has_height");
-			IRI blockLayoutType = f.createIRI(ontPrefix + "BlockLayout");
+			IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
 			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 			Date date = new Date();
@@ -1579,7 +1579,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI slideLayout = f.createIRI(publicURI);
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI userGraphIRI = f.createIRI(graph);
-		IRI slideLayoutType = f.createIRI(ontPrefix + "SlideLayout");
+		IRI slideLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "slide_layout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
@@ -1657,9 +1657,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             queryBuf.append ("?s gadr:has_feature <" + f.getUri() + "> . \n");
         }
         if (blockURI != null) {
-            queryBuf.append ( "<" + blockURI + "> gadr:has_spot ?s .  }\n");
+            queryBuf.append ( "<" + blockURI + "> template:has_spot ?s .  }\n");
         } else if (slideLayoutURI != null) {
-            queryBuf.append ( "<" + slideLayoutURI + "> gadr:has_block ?b . ?b gadr:hasSpot ?s .  }\n");
+            queryBuf.append ( "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  }\n");
         }
             
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());

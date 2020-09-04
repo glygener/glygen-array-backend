@@ -7,7 +7,9 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.RawData;
+import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
@@ -28,6 +30,15 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
+    
+    String addSlide(Slide slide, UserEntity user) throws SparqlException, SQLException;
+    String addPrintedSlide(PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException;
+    List<PrintedSlide> getPrintedSlideByUser (UserEntity user) throws SparqlException, SQLException;
+    List<PrintedSlide> getPrintedSlideByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+    List<PrintedSlide> getPrintedSlideByUser (UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    PrintedSlide getPrintedSlideFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
+    int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException;
     
     String addSample (Sample sample, UserEntity user) throws SparqlException, SQLException; 
     List<Sample> getSampleByUser (UserEntity user) throws SparqlException, SQLException;
@@ -90,4 +101,5 @@ public interface ArrayDatasetRepository {
     
     String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
     void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException;
+    void deletePrintedSlide(String slideId, UserEntity user) throws SparqlException, SQLException;
 }

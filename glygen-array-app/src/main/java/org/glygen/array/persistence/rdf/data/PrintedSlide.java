@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.Date;
+
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
@@ -12,6 +15,13 @@ public class PrintedSlide {
     SlideLayout layout;
     SlideMetadata metadata;
     Printer printer;
+    
+    boolean isPublic = false;
+    Creator user;
+    
+    Date dateModified;
+    Date dateCreated;
+    Date dateAddedToLibrary;
     
     /**
      * @return the layout
@@ -96,5 +106,65 @@ public class PrintedSlide {
      */
     public void setDescription(String description) {
         this.description = description;
+    }
+    /**
+     * @return the isPublic
+     */
+    public boolean isPublic() {
+        return isPublic;
+    }
+    /**
+     * @param isPublic the isPublic to set
+     */
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
+    }
+    /**
+     * @return the user
+     */
+    public Creator getUser() {
+        return user;
+    }
+    /**
+     * @param user the user to set
+     */
+    public void setUser(Creator user) {
+        this.user = user;
+    }
+    /**
+     * @return the dateModified
+     */
+    public Date getDateModified() {
+        return dateModified;
+    }
+    /**
+     * @param dateModified the dateModified to set
+     */
+    public void setDateModified(Date dateModified) {
+        this.dateModified = dateModified;
+    }
+    /**
+     * @return the dateCreated
+     */
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+    /**
+     * @param dateCreated the dateCreated to set
+     */
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+    /**
+     * @return the dateAddedToLibrary
+     */
+    public Date getDateAddedToLibrary() {
+        return dateAddedToLibrary;
+    }
+    /**
+     * @param dateAddedToLibrary the dateAddedToLibrary to set
+     */
+    public void setDateAddedToLibrary(Date dateAddedToLibrary) {
+        this.dateAddedToLibrary = dateAddedToLibrary;
     }
 }

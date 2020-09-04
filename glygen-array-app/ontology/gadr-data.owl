@@ -153,6 +153,15 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_feature_ratio -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature_ratio">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/ratio_context"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_image -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image">
@@ -234,6 +243,15 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_printed_slide -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_printed_slide">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_slide"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_processed_data -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_processed_data">
@@ -309,7 +327,6 @@
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_slide_metadata">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#printed_slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
         <rdfs:comment>Associates the slide with its metadata.</rdfs:comment>
     </owl:ObjectProperty>
@@ -319,7 +336,14 @@
     <!-- http://purl.org/gadr/data/has_unit_of_measurement -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_unit_of_measurement">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/simple_description"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#simple_description_context"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
         <rdfs:comment>Assigns a unit of measurement to the description. This property is optional.</rdfs:comment>
     </owl:ObjectProperty>
@@ -373,7 +397,6 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/printed_by">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#printed_slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/printer"/>
         <rdfs:comment>Connects a slide with the printer metadata.</rdfs:comment>
     </owl:ObjectProperty>
@@ -707,7 +730,6 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_ratio">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:comment>data property to specify the ratio of a feature or the ratio of the &quot;printed molecule&quot; in a feature</rdfs:comment>
     </owl:DatatypeProperty>
@@ -1094,6 +1116,14 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
+    <!-- http://purl.org/gadr/data/printed_slide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printed_slide">
+        <rdfs:label>Printed Slide</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/data/printer -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/printer">
@@ -1127,6 +1157,14 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
 
     <owl:Class rdf:about="http://purl.org/gadr/data/publication">
         <rdfs:label>Publication</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/ratio_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/ratio_context">
+        <rdfs:label>Ratio Context</rdfs:label>
     </owl:Class>
     
 
@@ -1231,9 +1269,9 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
-    <!-- http://purl.org/gadr/template#printed_slide -->
+    <!-- http://purl.org/gadr/template#simple_description_context -->
 
-    <owl:Class rdf:about="http://purl.org/gadr/template#printed_slide"/>
+    <owl:Class rdf:about="http://purl.org/gadr/template#simple_description_context"/>
     
 
 

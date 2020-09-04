@@ -163,15 +163,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
-    <!-- http://purl.org/gadr/template#has_feature_ratio -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_feature_ratio">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/template#ratio_context"/>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://purl.org/gadr/template#has_image_analysis_software_template -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_image_analysis_software_template">
@@ -189,16 +180,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/descriptor"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#namespace"/>
         <rdfs:comment>An object property ot connect descriptor to namespace.</rdfs:comment>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_printed_slide -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_printed_slide">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/template#printed_slide"/>
-        <rdfs:comment>associates the slide in the experiment to its printed slide</rdfs:comment>
     </owl:ObjectProperty>
     
 
@@ -239,7 +220,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/template#has_slide_layout -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_slide_layout">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#printed_slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#slide_layout"/>
     </owl:ObjectProperty>
     
@@ -271,16 +251,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/metadata_category"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#template"/>
         <rdfs:comment>An object property to linkback a metadata category to its template.</rdfs:comment>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_unit -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_unit">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
-        <rdfs:comment>An object property to list units of measurement for a given simple descriptor.</rdfs:comment>
     </owl:ObjectProperty>
     
 
@@ -341,15 +311,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_mandate_group">
         <rdfs:domain rdf:resource="http://purl.org/gadr/template#description_context"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_ratio -->
-
-    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_ratio">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#ratio_context"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>
     
@@ -519,29 +480,12 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
-    <!-- http://purl.org/gadr/template#printed_slide -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#printed_slide">
-        <rdfs:comment>Printed Slide with its printer, layout and metadata</rdfs:comment>
-        <rdfs:label>Printed Slide</rdfs:label>
-    </owl:Class>
-    
-
-
     <!-- http://purl.org/gadr/template#printer_template -->
 
     <owl:Class rdf:about="http://purl.org/gadr/template#printer_template">
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
         <rdfs:comment>Template specific to Printer category.</rdfs:comment>
         <rdfs:label>Printer Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#ratio_context -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#ratio_context">
-        <rdfs:label>Ratio Context</rdfs:label>
     </owl:Class>
     
 

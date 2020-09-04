@@ -803,7 +803,7 @@ public class MetadataOntologyParser {
                 model.add(f.createStatement(descriptor, RDFS.COMMENT, f.createLiteral(description.getDescription())));
             model.add(f.createStatement(descriptionContext, hasDescriptor, descriptor));
             if (((DescriptorTemplate) description).getUnits() != null && !((DescriptorTemplate) description).getUnits().isEmpty()) {
-                IRI hasUnit = f.createIRI(prefix + "has_unit_of_measurement");
+                IRI hasUnit = f.createIRI(dataprefix + "has_unit_of_measurement");
                 for (String unit: ((DescriptorTemplate) description).getUnits()) {
                     model.add(f.createStatement(descriptionContext, hasUnit, f.createLiteral(unit)));
                 }

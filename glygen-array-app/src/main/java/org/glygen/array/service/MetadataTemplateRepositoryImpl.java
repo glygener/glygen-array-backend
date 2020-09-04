@@ -160,11 +160,12 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI isRequired = f.createIRI(templatePrefix + "is_required");
         IRI hasExample = f.createIRI(templatePrefix + "has_example");
         IRI hasUrl = f.createIRI(templatePrefix + "has_url");
-        IRI hasUnit = f.createIRI(templatePrefix + "has_unit_of_measurement");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
         IRI hasGroup = f.createIRI(templatePrefix + "has_mandate_group");
         IRI isMirage = f.createIRI(templatePrefix + "is_mirage");
+        
+        IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix + "has_unit_of_measurement");
         
         // get all statements
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);

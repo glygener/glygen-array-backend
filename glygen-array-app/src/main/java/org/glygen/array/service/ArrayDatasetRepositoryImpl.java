@@ -16,12 +16,12 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implements ArrayDatasetRepository {
     
     public final static String datasetTypePredicate = ontPrefix + "array_dataset";
+    public final static String printedSlideTypePredicate = ontPrefix + "printed_slide";
     public final static String sampleTypePredicate = ontPrefix + "sample";
     public final static String rawdataTypePredicate = ontPrefix + "raw_data";
     public final static String processedDataTypePredicate = ontPrefix + "processed_data";
@@ -69,7 +70,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     //final static String hasDescriptorPredicate = ontPrefix + "has_descriptor";
     //final static String hasDescriptorGroupPredicate = ontPrefix + "has_descriptor_group";
     public final static String describedbyPredicate = ontPrefix + "described_by";
-    public final static String namespacePredicate = ontPrefix + "has_namespace";
+    //public final static String namespacePredicate = ontPrefix + "has_namespace";
     public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
     public final static String valuePredicate = ontPrefix + "has_value";
     public final static String keyPredicate = ontPrefix + "has_key";
@@ -89,14 +90,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
     public final static String printerMetadataPredicate = ontPrefix + "printed_by";
     public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
-    public final static String hasFilePredicate = ontPrefix + "has_filename";
+    public final static String hasFilePredicate = ontPrefix + "has_file";
     public final static String scanOfPredicate = ontPrefix + "scan_of";
-    public final static String hasSlideTemplatePredicate = ontPrefix + "has_slide_template";
     public final static String hasImagePredicate = ontPrefix + "has_image";
-    
-    public final static String hasSampleTemplatePredicate = ontPrefix + "has_sample_template";
     public final static String hasPrintedSlidePredicate = ontPrefix + "has_printed_slide";
-    
     public final static String hasMeanPredicate = ontPrefix + "has_mean";
     public final static String hasBMeanPredicate = ontPrefix + "has_bMean";
     public final static String hasBMedianPredicate = ontPrefix + "has_bMedian";
@@ -106,6 +103,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasXCoordinatePredicate = ontPrefix + "has_x_coordinate";
     public final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
     public final static String hasMedianPredicate = ontPrefix + "has_median";
+    
+    // Template ontology stuff
+    public final static String hasSampleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_sample_template";
+    public final static String hasSlideTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_slide_template";
+    public final static String hasScannerleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_scanner_template";
+    public final static String hasPrinterTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_printer_template";
+    public final static String hasImageTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_image_analysis_software_template";
+    public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
+    
     
     @Autowired
     QueryHelper queryHelper;
@@ -148,6 +154,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             String sampleURI = addSample(dataset.getSample(), user);
             IRI type = f.createIRI(datasetTypePredicate);
             
+            IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+            IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+            IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+            Literal date = f.createLiteral(new Date());
+            
             statements.add(f.createStatement(arraydataset, RDF.TYPE, type, graphIRI));
             
             if (sampleURI != null) {
@@ -172,7 +183,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             if (dataset.getSlides() != null) {
                 for (Slide slide: dataset.getSlides()) {
-                    String slideURI = addSlide (slide, statements, graph);
+                    String slideURI = addSlide (slide, user);
                     if (slideURI != null) {
                         IRI slideIRI = f.createIRI(slideURI);
                         statements.add(f.createStatement(arraydataset, hasSlide, slideIRI, graphIRI));
@@ -191,6 +202,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
+            statements.add(f.createStatement(arraydataset, hasCreatedDate, date, graphIRI));
+            statements.add(f.createStatement(arraydataset, hasAddedToLibrary, date, graphIRI));
+            statements.add(f.createStatement(arraydataset, hasModifiedDate, date, graphIRI));
+            
             sparqlDAO.addStatements(statements, graphIRI);
             return datasetURI;
             
@@ -201,18 +216,25 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private String addSlide(Slide slide, List<Statement> statements, String graph) throws SparqlException {
+    @Override
+    public String addSlide(Slide slide, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            // cannot add 
+            throw new SparqlException ("The user must be provided to put data into private repository");
+        }
+        
+        // check if there is already a private graph for user
+        graph = getGraphForUser(user);
         ValueFactory f = sparqlDAO.getValueFactory();
         String slideURI = generateUniqueURI(uriPrefix + "S", graph);
         
-        IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
         IRI scanOf = f.createIRI(scanOfPredicate);
-        IRI printedBy = f.createIRI(printerMetadataPredicate);
-        IRI hasSlideTemplate = f.createIRI(hasSlideTemplatePredicate);
         IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
         IRI slideIRI = f.createIRI(slideURI);
         IRI graphIRI = f.createIRI(graph);
         
+        List<Statement> statements = new ArrayList<Statement>();
         if (slide.getImage() != null && slide.getImage().getUri() != null) {
             statements.add(f.createStatement(f.createIRI(slide.getImage().getUri()), scanOf, slideIRI, graphIRI));
         }
@@ -225,28 +247,64 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (printedSlide.getId() != null) {
                 printedSlideURI = uriPrefix + printedSlide.getId();
             } else { // create it the first time
-                printedSlideURI = generateUniqueURI(uriPrefix + "PS", graph);
-                Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
-                Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
-                if (label != null) 
-                    statements.add(f.createStatement(f.createIRI(printedSlideURI), RDFS.LABEL, label, graphIRI));
-                if (comment != null)
-                    statements.add(f.createStatement(f.createIRI(printedSlideURI), RDFS.COMMENT, comment, graphIRI));
-                if (printedSlide.getLayout() != null && printedSlide.getLayout().getUri() != null) {
-                    statements.add(f.createStatement(slideIRI, hasSlideTemplate, f.createIRI(printedSlide.getLayout().getUri()), graphIRI));
-                }
-                if (printedSlide.getPrinter() != null && printedSlide.getPrinter().getUri() != null) {
-                    statements.add(f.createStatement(f.createIRI(printedSlideURI), printedBy, f.createIRI(printedSlide.getPrinter().getUri()), graphIRI));
-                } 
-                if (printedSlide.getMetadata() != null && printedSlide.getMetadata().getUri() != null) {
-                    statements.add(f.createStatement(f.createIRI(printedSlideURI), hasSlideMetadata, f.createIRI(printedSlide.getMetadata().getUri()), graphIRI));
-                }
+                printedSlideURI = addPrintedSlide (slide.getPrintedSlide(), user);
             }
             statements.add(f.createStatement(slideIRI, hasPrintedSlide, f.createIRI(printedSlideURI), graphIRI));
         }
         
         sparqlDAO.addStatements(statements, graphIRI);
         return slideURI;
+    }
+    
+    @Override
+    public String addPrintedSlide (PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            // cannot add 
+            throw new SparqlException ("The user must be provided to put data into private repository");
+        }
+        
+        // check if there is already a private graph for user
+        graph = getGraphForUser(user);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        
+        IRI graphIRI = f.createIRI(graph);
+        String printedSlideURI = generateUniqueURI(uriPrefix + "PS", graph);
+        IRI iri = f.createIRI(printedSlideURI);
+        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
+        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
+        IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
+        IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
+        
+        IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+        IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        Literal date = f.createLiteral(new Date());
+        IRI type = f.createIRI(printedSlideTypePredicate);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        statements.add(f.createStatement(iri, RDF.TYPE, type));
+        if (label != null) 
+            statements.add(f.createStatement(iri, RDFS.LABEL, label, graphIRI));
+        if (comment != null)
+            statements.add(f.createStatement(iri, RDFS.COMMENT, comment, graphIRI));
+        if (printedSlide.getLayout() != null && printedSlide.getLayout().getUri() != null) {
+            statements.add(f.createStatement(iri, hasSlideLayout, f.createIRI(printedSlide.getLayout().getUri()), graphIRI));
+        }
+        if (printedSlide.getPrinter() != null && printedSlide.getPrinter().getUri() != null) {
+            statements.add(f.createStatement(iri, printedBy, f.createIRI(printedSlide.getPrinter().getUri()), graphIRI));
+        } 
+        if (printedSlide.getMetadata() != null && printedSlide.getMetadata().getUri() != null) {
+            statements.add(f.createStatement(iri, hasSlideMetadata, f.createIRI(printedSlide.getMetadata().getUri()), graphIRI));
+        }
+        
+        statements.add(f.createStatement(iri, hasCreatedDate, date, graphIRI));
+        statements.add(f.createStatement(iri, hasAddedToLibrary, date, graphIRI));
+        statements.add(f.createStatement(iri, hasModifiedDate, date, graphIRI));
+        
+        return printedSlideURI;
+        
     }
 
     @Override
@@ -280,7 +338,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         if (rawData.getSlide() != null) {
-            String slideURI = addSlide (rawData.getSlide(), statements, graph);
+            String slideURI = rawData.getSlide().getUri();
+            if (slideURI == null) 
+                slideURI = uriPrefix + rawData.getSlide().getId();
             statements.add(f.createStatement(raw, hasSlide, f.createIRI(slideURI), graphIRI));
         }
         for (Measurement measurement: rawData.getDataMap().keySet()) {
@@ -908,19 +968,19 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 templatePredicate = hasSampleTemplatePredicate;
             } else if (typePredicate.equals(scannerTypePredicate)) {
                 sampleObject = new ScannerMetadata();
-                templatePredicate = scannerMetadataPredicate;
+                templatePredicate = hasScannerleTemplatePredicate;
             } else if (typePredicate.equals(printerTypePredicate)) {
                 sampleObject = new Printer();
-                templatePredicate = printerMetadataPredicate;
+                templatePredicate = hasPrinterTemplatePredicate;
             } else if (typePredicate.equals(slideTemplateTypePredicate)) {
                 sampleObject = new SlideMetadata();
-                templatePredicate = slideMetadataPredicate;
+                templatePredicate = hasSlideTemplatePredicate;
             } else if (typePredicate.equals(imageAnalysisTypePredicate)) {
                 sampleObject = new ImageAnalysisSoftware();
-                templatePredicate = imageProcessingMetadataPredicate;
+                templatePredicate = hasImageTemplatePredicate;
             } else if (typePredicate.equals(dataProcessingTypePredicate)) {
                 sampleObject = new DataProcessingSoftware();
-                templatePredicate = processingSoftwareMetadataPredicate;
+                templatePredicate = hasDataprocessingTemplatePredicate;
             }
             sampleObject.setUri(uri);
             sampleObject.setId(uri.substring(uri.lastIndexOf("/")+1));
@@ -1003,7 +1063,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     Statement stPublic = statementsPublic.next();
                     if (stPublic.getPredicate().equals(hasTemplate)) {
                         uriValue = st.getObject();
-                        sampleObject.setTemplate(uriValue.stringValue());            
+                        String id = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("#")+1);
+                        sampleObject.setTemplate(id);     
+                        MetadataTemplate template = templateRepository.getTemplateFromURI(uriValue.stringValue());
+                        if (template != null)
+                            sampleObject.setTemplateType(template.getName());
                     } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
                         Value label = stPublic.getObject();
                         sampleObject.setName(label.stringValue());
@@ -1085,7 +1149,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public String addPrinter(Printer metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.PRINTER, printerMetadataPredicate, printerTypePredicate, "Pr", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTER, hasPrinterTemplatePredicate, printerTypePredicate, "Pr", user);
     }
 
 
@@ -1129,7 +1193,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public String addScannerMetadata(ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, scannerMetadataPredicate, scannerTypePredicate, "Sc", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, hasScannerleTemplatePredicate, scannerTypePredicate, "Sc", user);
     }
 
 
@@ -1173,7 +1237,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public String addSlideMetadata(SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, slideMetadataPredicate, slideTemplateTypePredicate, "Slm", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", user);
     }
 
 
@@ -1218,7 +1282,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Override
     public String addImageAnalysisSoftware(ImageAnalysisSoftware metadata, UserEntity user)
             throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, imageProcessingMetadataPredicate, imageAnalysisTypePredicate, "Im", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, hasImageTemplatePredicate, imageAnalysisTypePredicate, "Im", user);
     }
 
 
@@ -1264,7 +1328,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Override
     public String addDataProcessingSoftware(DataProcessingSoftware metadata, UserEntity user)
             throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, processingSoftwareMetadataPredicate, dataProcessingTypePredicate, "DPS", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, hasDataprocessingTemplatePredicate, dataProcessingTypePredicate, "DPS", user);
     }
 
 
@@ -1709,5 +1773,231 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         sparqlDAO.addStatements(statements, graphIRI);
         
+    }
+
+
+    @Override
+    public List<PrintedSlide> getPrintedSlideByUser(UserEntity user) throws SparqlException, SQLException {
+        return getPrintedSlideByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getPrintedSlideByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<PrintedSlide> slides = new ArrayList<>();
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        if (graph != null) {
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, printedSlideTypePredicate);
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                PrintedSlide slide = getPrintedSlideFromURI(uri, user);
+                if (slide != null)
+                    slides.add(slide);    
+            }
+        }
+        
+        return slides;
+    }
+
+
+    @Override
+    public PrintedSlide getPrintedSlideFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        PrintedSlide slideObject = new PrintedSlide();
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
+        IRI iri = f.createIRI(uri);
+        IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
+        IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
+        IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+        IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI createdBy= f.createIRI(ontPrefix + "created_by");
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(iri, null, null, graphIRI);
+        if (statements.hasNext()) {
+            slideObject.setUri(uri);
+            slideObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            if (user != null) {
+                Creator owner = new Creator ();
+                owner.setUserId(user.getUserId());
+                owner.setName(user.getUsername());
+                slideObject.setUser(owner);
+            } else {
+                slideObject.setPublic(true);
+            }
+        }
+    
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(RDFS.LABEL)) {
+                Value label = st.getObject();
+                slideObject.setName(label.stringValue());
+            } else if (st.getPredicate().equals(createdBy)) {
+                Value label = st.getObject();
+                Creator creator = new Creator();
+                creator.setName(label.stringValue());
+                slideObject.setUser(creator);
+            } else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                Value comment = st.getObject();
+                slideObject.setDescription(comment.stringValue());
+            } else if (st.getPredicate().equals(hasCreatedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideObject.setDateCreated(date);
+                }
+            } else if (st.getPredicate().equals(hasModifiedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideObject.setDateModified(date);
+                }
+            } else if (st.getPredicate().equals(hasAddedToLibrary)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    slideObject.setDateAddedToLibrary(date);
+                }
+            } else if (st.getPredicate().equals(hasSlideLayout)) {
+                Value uriValue = st.getObject();
+                String layoutURI = uriValue.stringValue();
+                String id = layoutURI.substring(layoutURI.lastIndexOf("#")+1);
+                SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, false);
+                slideObject.setLayout(layout);
+            } else if (st.getPredicate().equals(hasSlideMetadata)) {
+                Value value = st.getObject();
+                SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), user);
+                slideObject.setMetadata(slideMetadata);
+            } else if (st.getPredicate().equals(printedBy)) {
+                Value value = st.getObject();
+                Printer metadata = getPrinterFromURI(value.stringValue(), user);
+                slideObject.setPrinter(metadata);
+            } else if (st.getPredicate().equals(hasPublicURI)) {
+                // need to retrieve additional information from DEFAULT graph
+                // that means the printed slide is already public
+                slideObject.setPublic(true);  
+                Value uriValue = st.getObject();
+                String publicURI = uriValue.stringValue();
+                IRI publicIRI = f.createIRI(publicURI);
+                RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicIRI, null, null, defaultGraphIRI);
+                while (statementsPublic.hasNext()) {
+                    Statement stPublic = statementsPublic.next();
+                    if (stPublic.getPredicate().equals(hasSlideLayout)) {
+                        uriValue = st.getObject();
+                        String layoutURI = uriValue.stringValue();
+                        String id = layoutURI.substring(layoutURI.lastIndexOf("#")+1);
+                        SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, false);
+                        slideObject.setLayout(layout);   
+                    } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
+                        Value label = stPublic.getObject();
+                        slideObject.setName(label.stringValue());
+                    }  else if (stPublic.getPredicate().equals(RDFS.COMMENT)) {
+                        Value comment = stPublic.getObject();
+                        slideObject.setDescription(comment.stringValue());
+                    } else if (stPublic.getPredicate().equals(hasSlideMetadata)) {
+                        Value value = stPublic.getObject();
+                        SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), user);
+                        slideObject.setMetadata(slideMetadata);
+                    } else if (stPublic.getPredicate().equals(printedBy)) {
+                        Value value = stPublic.getObject();
+                        Printer metadata = getPrinterFromURI(value.stringValue(), user);
+                        slideObject.setPrinter(metadata);
+                    }
+                }
+            }
+        }
+        
+        return slideObject;
+    }
+
+
+    @Override
+    public int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, printedSlideTypePredicate);
+    }
+    
+    @Override
+    public void deletePrintedSlide (String slideId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            if (canDeletePrintedSlide(uriPrefix + slideId, graph)) {
+                String uri = uriPrefix + slideId;
+                ValueFactory f = sparqlDAO.getValueFactory();
+                IRI slide = f.createIRI(uri);
+                IRI graphIRI = f.createIRI(graph);
+                
+                RepositoryResult<Statement> statements = sparqlDAO.getStatements(slide, null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            } else {
+                throw new IllegalArgumentException("Cannot delete printed slide " + slideId + ". It is used in an experiment");
+            }
+        }
+        
+        
+    }
+    
+    private boolean canDeletePrintedSlide(String uri, String graph) throws SparqlException {
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("{?s gadr:has_printed_slide <" +  uri + "> } ");
+        queryBuf.append ("} LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty())
+            canDelete = false;
+        
+        return canDelete;
     }
 }
