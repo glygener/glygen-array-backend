@@ -28,7 +28,7 @@ public interface ArrayDatasetRepository {
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
-    
+    int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException;
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     
     String addSlide(Slide slide, UserEntity user) throws SparqlException, SQLException;
@@ -102,4 +102,5 @@ public interface ArrayDatasetRepository {
     String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
     void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException;
     void deletePrintedSlide(String slideId, UserEntity user) throws SparqlException, SQLException;
+    
 }

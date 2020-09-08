@@ -2,6 +2,9 @@ package org.glygen.array.persistence.rdf.data;
 
 import java.util.Date;
 
+import javax.validation.constraints.Size;
+
+import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.metadata.Printer;
@@ -86,6 +89,7 @@ public class PrintedSlide {
     /**
      * @return the name
      */
+    @Size(max=ValidationConstants.NAME_LIMIT, message="Name cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
     public String getName() {
         return name;
     }
@@ -98,6 +102,7 @@ public class PrintedSlide {
     /**
      * @return the description
      */
+    @Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
     public String getDescription() {
         return description;
     }

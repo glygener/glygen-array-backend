@@ -134,8 +134,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+		IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 		IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
@@ -268,8 +268,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+		IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
 		Date date = new Date();
 		Literal dateCreated = f.createLiteral(date);
@@ -733,8 +733,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+		IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		
@@ -1039,8 +1039,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	    ValueFactory f = sparqlDAO.getValueFactory();
         
         IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-        IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-        IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+        IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+        IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
         IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
@@ -1397,8 +1397,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
 			IRI blockLayoutIRI = f.createIRI(blockLayoutURI);
 			IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
-			IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-			IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+			IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+			IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 			IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
 			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
@@ -1582,8 +1582,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI slideLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "slide_layout");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-		IRI hasWidth = f.createIRI(ontPrefix + "has_width");
-		IRI hasHeight = f.createIRI(ontPrefix + "has_height");
+		IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
+		IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
 		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");

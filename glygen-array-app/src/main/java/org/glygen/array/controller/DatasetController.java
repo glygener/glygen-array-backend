@@ -19,6 +19,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
@@ -50,6 +51,7 @@ import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
+import org.glygen.array.view.PrintedSlideListView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,7 +207,59 @@ public class DatasetController {
         }
     }
     
-    
+    @ApiOperation(value = "Add given printed slide set for the user")
+    @RequestMapping(value="/addPrintedSlide", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added printed slide"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register slides"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addPrintedSlide (
+            @ApiParam(required=true, value="Printed slide to be added") 
+            @RequestBody PrintedSlide slide, Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        // validate first
+        if (validator != null) {
+            if  (slide.getName() != null) {
+                Set<ConstraintViolation<PrintedSlide>> violations = validator.validateValue(PrintedSlide.class, "name", slide.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (slide.getDescription() != null) {
+                Set<ConstraintViolation<PrintedSlide>> violations = validator.validateValue(PrintedSlide.class, "description", slide.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        // check to make sure, the slide layout is specified
+        if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null)) {
+            errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+        } 
+        
+        //TODO do we check to make sure there is metadata??
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
+        
+        try {
+            return datasetRepository.addPrintedSlide(slide, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printed slide cannot be added for user " + p.getName(), e);
+        }
+    }
     
     @ApiOperation(value = "Add given data processing software for the user")
     @RequestMapping(value="/addDataProcessingSoftware", method = RequestMethod.POST, 
@@ -1006,9 +1060,62 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getSampleCountByUser (user);
+            int total = datasetRepository.getArrayDatasetCountByUser(user);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all printed slides for the user")
+    @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public PrintedSlideListView listPrintedSlide (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        PrintedSlideListView result = new PrintedSlideListView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getPrintedSlideCountByUser(user);
+            
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue);
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());

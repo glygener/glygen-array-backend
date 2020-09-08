@@ -828,6 +828,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         return descriptorObject;
     }
+    
+    
 
     @Override
     public List<ArrayDataset> getArrayDatasetByUser(UserEntity user) throws SparqlException, SQLException {
@@ -865,6 +867,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         return datasets;
+    }
+    
+    @Override
+    public int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, datasetTypePredicate);
     }
 
     private String getSearchPredicate (String searchValue) {
