@@ -118,7 +118,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	/**
 	 * 
 	 * @param graph graph for the user
-	 * @param type the rdf type of the entity http://purl.org/gadr/data#Glycan, http://purl.org/gadr/data#SlideLayout,
+	 * @param type the rdf type of the entity http://purl.org/gadr/data#Glycan, http://purl.org/gadr/template#SlideLayout,
 	 * @return total number of triples with that rdf:type as the subject and date_addedToLibrary as the predicate
 	 * @throws SparqlException
 	 */

@@ -26,6 +26,8 @@ public class PrintedSlide {
     Date dateCreated;
     Date dateAddedToLibrary;
     
+    Boolean inUse = false;
+    
     /**
      * @return the layout
      */
@@ -171,5 +173,17 @@ public class PrintedSlide {
      */
     public void setDateAddedToLibrary(Date dateAddedToLibrary) {
         this.dateAddedToLibrary = dateAddedToLibrary;
+    }
+    /**
+     * @return the inUse
+     */
+    public Boolean getInUse() {
+        return inUse;
+    }
+    /**
+     * @param inUse the inUse to set
+     */
+    public void setInUse(Boolean inUse) {
+        this.inUse = inUse;
     }
 }

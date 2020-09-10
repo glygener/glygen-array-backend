@@ -242,6 +242,10 @@ public class DatasetController {
         } else {
             throw new RuntimeException("Validator cannot be found!");
         }
+        
+        if (slide.getName() == null || slide.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
         // check to make sure, the slide layout is specified
         if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null)) {
             errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
@@ -1588,6 +1592,26 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Delete given printed slide from the user's list")
+    @RequestMapping(value="/deleteprintedslide/{slideId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete slides"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deletePrintedSlide (
+            @ApiParam(required=true, value="id of the printed slide to delete") 
+            @PathVariable("slideId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deletePrintedSlide(id, user);
+            return new Confirmation("Printed slide deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete printed slide " + id, e);
+        } 
+    }
+    
     @ApiOperation(value = "Delete given sample from the user's list")
     @RequestMapping(value="/deletesample/{sampleId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
@@ -1706,6 +1730,33 @@ public class DatasetController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
         } 
+    }
+    
+    @ApiOperation(value = "Retrieve slide with the given id")
+    @RequestMapping(value="/getprintedslide/{slideId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printed Slide retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Printed slide with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public PrintedSlide getPrintedSlide (
+            @ApiParam(required=true, value="id of the printed slide to retrieve") 
+            @PathVariable("slideId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            PrintedSlide slide = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (slide == null) {
+                throw new EntityNotFoundException("Printed slide with id : " + id + " does not exist in the repository");
+            }
+            // check if it is in use
+            boolean notInUse = datasetRepository.canDeletePrintedSlide (slide.getUri(), user);
+            slide.setInUse(!notInUse);
+            return slide;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printed slide cannot be retrieved for user " + p.getName(), e);
+        }   
     }
     
     @ApiOperation(value = "Retrieve sample with the given id")
@@ -1848,6 +1899,63 @@ public class DatasetController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("DataProcessingSoftware cannot be retrieved for user " + p.getName(), e);
         }   
+    }
+    
+    @ApiOperation(value = "Update given printed slide for the user")
+    @RequestMapping(value = "/updatePrintedSlide", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slide updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update slides"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updatePrintedSlide(
+            @ApiParam(required=true, value="Printed slide with updated fields") 
+            @RequestBody PrintedSlide printedSlide, Principal p) throws SQLException {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (printedSlide.getName() != null) {
+                Set<ConstraintViolation<PrintedSlide>> violations = validator.validateValue(PrintedSlide.class, "name", printedSlide.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (printedSlide.getDescription() != null) {
+                Set<ConstraintViolation<PrintedSlide>> violations = validator.validateValue(PrintedSlide.class, "description", printedSlide.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+       
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (printedSlide.getName() == null || printedSlide.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (printedSlide.getLayout()== null || (printedSlide.getLayout().getUri() == null && printedSlide.getLayout().getId() == null)) {
+            errorMessage.addError(new ObjectError("layout", "NoEmpty"));
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
+        
+        try {
+            datasetRepository.updatePrintedSlide(printedSlide, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printed slide cannot be updated for user " + p.getName(), e);
+        }       
+        return new Confirmation("Printed slide updated successfully", HttpStatus.OK.value());
     }
     
     @ApiOperation(value = "Update given sample for the user")

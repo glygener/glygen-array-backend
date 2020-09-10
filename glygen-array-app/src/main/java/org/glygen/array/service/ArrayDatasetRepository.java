@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.RawData;
@@ -22,9 +21,7 @@ public interface ArrayDatasetRepository {
     
     String addArrayDataset (ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
-    
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user) throws SparqlException, SQLException;
-    
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
@@ -32,6 +29,8 @@ public interface ArrayDatasetRepository {
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     
     String addSlide(Slide slide, UserEntity user) throws SparqlException, SQLException;
+    String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
+    
     String addPrintedSlide(PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser (UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
@@ -39,6 +38,8 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
     int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException;
+    void deletePrintedSlide(String slideId, UserEntity user) throws SparqlException, SQLException;
+    void updatePrintedSlide (PrintedSlide slide, UserEntity user) throws SparqlException, SQLException;
     
     String addSample (Sample sample, UserEntity user) throws SparqlException, SQLException; 
     List<Sample> getSampleByUser (UserEntity user) throws SparqlException, SQLException;
@@ -95,12 +96,8 @@ public interface ArrayDatasetRepository {
     DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException;
-    
     void updateMetadata(MetadataCategory metadata, UserEntity user) throws SparqlException, SQLException;
     void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException;
-    
-    String addRawData(RawData rawData, UserEntity user) throws SparqlException, SQLException;
     void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException;
-    void deletePrintedSlide(String slideId, UserEntity user) throws SparqlException, SQLException;
-    
+    boolean canDeletePrintedSlide(String uri, UserEntity user) throws SparqlException, SQLException;
 }

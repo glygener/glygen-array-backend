@@ -1250,7 +1250,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public String addSlideMetadata(SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.SLIDE, hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", user);
     }
 
 
@@ -1979,7 +1979,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         if (graph != null) {
-            if (canDeletePrintedSlide(uriPrefix + slideId, graph)) {
+            if (canDeletePrintedSlide(uriPrefix + slideId, user)) {
                 String uri = uriPrefix + slideId;
                 ValueFactory f = sparqlDAO.getValueFactory();
                 IRI slide = f.createIRI(uri);
@@ -1995,7 +1995,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
     }
     
-    private boolean canDeletePrintedSlide(String uri, String graph) throws SparqlException {
+    @Override
+    public boolean canDeletePrintedSlide(String uri, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
         boolean canDelete = true;
         
         StringBuffer queryBuf = new StringBuffer();
@@ -2012,5 +2020,72 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             canDelete = false;
         
         return canDelete;
+    }
+
+
+    @Override
+    public void updatePrintedSlide(PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        String uri = null;
+        if (printedSlide.getUri() != null)
+            uri = printedSlide.getUri();
+        else
+            uri = uriPrefix + printedSlide.getId();
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI slideIRI = f.createIRI(uri);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        
+        IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
+        IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
+        
+        
+        // check if it exists
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(slideIRI, null, null, graphIRI);
+        if (!result.hasNext()) {
+            // does not exist
+            throw new EntityNotFoundException("printed slide with the given id is not found in the repository");
+        }
+           
+        // delete existing predicates
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, hasSlideMetadata, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, printedBy, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, hasSlideLayout, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        Literal date = f.createLiteral(new Date());
+        statements.add(f.createStatement(slideIRI, hasModifiedDate, date, graphIRI));
+        
+        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
+        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
+        
+        if (label != null) 
+            statements.add(f.createStatement(slideIRI, RDFS.LABEL, label, graphIRI));
+        if (comment != null)
+            statements.add(f.createStatement(slideIRI, RDFS.COMMENT, comment, graphIRI));
+        if (printedSlide.getLayout() != null && printedSlide.getLayout().getUri() != null) {
+            statements.add(f.createStatement(slideIRI, hasSlideLayout, f.createIRI(printedSlide.getLayout().getUri()), graphIRI));
+        }
+        if (printedSlide.getPrinter() != null && printedSlide.getPrinter().getUri() != null) {
+            statements.add(f.createStatement(slideIRI, printedBy, f.createIRI(printedSlide.getPrinter().getUri()), graphIRI));
+        } 
+        if (printedSlide.getMetadata() != null && printedSlide.getMetadata().getUri() != null) {
+            statements.add(f.createStatement(slideIRI, hasSlideMetadata, f.createIRI(printedSlide.getMetadata().getUri()), graphIRI));
+        }
+        
+        statements.add(f.createStatement(slideIRI, hasModifiedDate, date, graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
     }
 }
