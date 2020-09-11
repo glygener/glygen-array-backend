@@ -24,13 +24,14 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
-import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.persistence.rdf.template.Namespace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(value="sesameTransactionManager") 
 public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepository {
+    
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     @Autowired
     QueryHelper queryHelper;
@@ -213,8 +216,15 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                         } else if (namespaceURI.contains("date")) {
                             namespace.setName("date");
                             namespace.setUri("http://www.w3.org/2001/XMLSchema#date");
+                        } else if (namespaceURI.contains("boolean")) {
+                            namespace.setName("boolean");
+                            namespace.setUri("http://www.w3.org/2001/XMLSchema#boolean");
                         }
-                        ((DescriptorTemplate) description).setNamespace(namespace);
+                        if (description instanceof DescriptorTemplate) 
+                            ((DescriptorTemplate) description).setNamespace(namespace);
+                        else {
+                            logger.warn("descriptor group should not have a namespace: " + description.getId());
+                        }
                     }
                 }               
             } else if (st.getPredicate().equals(hasDescriptionContext)) {
