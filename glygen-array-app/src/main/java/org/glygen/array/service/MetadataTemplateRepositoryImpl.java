@@ -144,17 +144,24 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         
         // first find the type, simple_description_context vs. complex_description_context
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptionContext, RDF.TYPE, null, graphIRI);
-        if (statements.hasNext()) {
+        while (statements.hasNext()) {
             Statement st = statements.next();
             Value obj = st.getObject();
             if (obj.stringValue().contains ("simple_description_context")) {
                 description = new DescriptorTemplate();
                 ((DescriptorTemplate) description).setUnits(new ArrayList<String>());
-            } else {
+                description.setUri(uri);
+                description.setId(uri.substring(uri.lastIndexOf("#")+1));
+                break;
+            } else if (obj.stringValue().contains ("complex_description_context")){
                 description = new DescriptorGroupTemplate();
+                description.setUri(uri);
+                description.setId(uri.substring(uri.lastIndexOf("#")+1));
+                break;
             }
-            description.setUri(uri);
-            description.setId(uri.substring(uri.lastIndexOf("#")+1));
+        }
+        if (description == null) {
+            throw new SparqlException ("Error in the ontology, type is not provided correctly.");
         }
         
         IRI hasDescriptor = f.createIRI(templatePrefix + "has_descriptor");
