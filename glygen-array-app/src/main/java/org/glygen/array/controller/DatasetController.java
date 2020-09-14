@@ -307,7 +307,7 @@ public class DatasetController {
         if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null && slide.getLayout().getName() == null)) {
             errorMessage.addError(new ObjectError("slidelayout", "NoEmpty"));
         } 
-        
+
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
         // check for duplicate name
