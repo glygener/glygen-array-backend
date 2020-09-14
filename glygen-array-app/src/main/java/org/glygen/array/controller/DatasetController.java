@@ -247,9 +247,9 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
         }
         // check to make sure, the slide layout is specified
-        if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null)) {
-            errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
-        } 
+        //if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null)) {
+          //  errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+        //} 
         
         //TODO do we check to make sure there is metadata??
         
