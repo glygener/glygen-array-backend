@@ -21,6 +21,8 @@ public class SlideLayout {
 	Date dateAddedToLibrary;
 	Creator user;
 	Boolean isPublic = false;
+	
+	Boolean inUse = false;
 	/**
 	 * @return the name
 	 */

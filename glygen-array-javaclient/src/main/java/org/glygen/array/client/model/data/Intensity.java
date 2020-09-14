@@ -1,8 +1,8 @@
-package org.glygen.array.persistence.rdf.data;
+package org.glygen.array.client.model.data;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.client.model.Spot;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 public class Intensity {

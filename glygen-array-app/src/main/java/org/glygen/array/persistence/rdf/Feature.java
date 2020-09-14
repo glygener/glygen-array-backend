@@ -10,7 +10,6 @@ import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 public class Feature {
@@ -27,6 +26,8 @@ public class Feature {
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
+
+	Boolean inUse = false;
 	
 	public String getId() {
 		return id;

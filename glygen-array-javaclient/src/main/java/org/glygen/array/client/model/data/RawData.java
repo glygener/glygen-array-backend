@@ -1,17 +1,18 @@
-package org.glygen.array.persistence.rdf.data;
+package org.glygen.array.client.model.data;
 
 import java.util.Date;
 import java.util.Map;
 
-import org.glygen.array.persistence.rdf.Spot;
-import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
+import org.glygen.array.client.model.Spot;
+import org.glygen.array.client.model.metadata.ImageAnalysisSoftware;
+
 
 public class RawData {
     
     String id;
     String uri;
     
-    //Map<Measurement, Spot> dataMap;
+    Map<Measurement, Spot> dataMap;
     ImageAnalysisSoftware metadata;
     Image image;
     Slide slide;
@@ -53,16 +54,16 @@ public class RawData {
     /**
      * @return the dataMap
      */
-    //public Map<Measurement, Spot> getDataMap() {
-   //     return dataMap;
-   // }
+    public Map<Measurement, Spot> getDataMap() {
+        return dataMap;
+    }
 
     /**
      * @param dataMap the dataMap to set
      */
-   // public void setDataMap(Map<Measurement, Spot> dataMap) {
-   //     this.dataMap = dataMap;
-   // }
+    public void setDataMap(Map<Measurement, Spot> dataMap) {
+        this.dataMap = dataMap;
+    }
 
     /**
      * @return the metadata

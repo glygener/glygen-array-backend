@@ -40,6 +40,8 @@ public class Glycan {
 	Boolean isPublic = false;
 	byte[] cartoon;
 	
+	Boolean inUse = false;
+	
 	public Boolean getIsPublic() {
 		return isPublic;
 	}

@@ -18,6 +18,7 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -52,6 +53,7 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
+import org.grits.toolbox.glycanarray.om.model.StatisticalMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,16 +113,16 @@ public class DatasetController {
     @Autowired
     Validator validator;
     
-    @ApiOperation(value = "Add given array dataset for the user")
+    @ApiOperation(value = "Add given array dataset  for the user")
     @RequestMapping(value="/addDataset", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added dataset"), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added array dataset"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
             @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register datasets"),
+            @ApiResponse(code=403, message="Not enough privileges to register array datasets"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public String addArrayDataset (
+    public String addDataset (
             @ApiParam(required=true, value="Array dataset to be added") 
             @RequestBody ArrayDataset dataset, Principal p) {
         
@@ -147,9 +149,51 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        //TODO do validation on other fields such as Sample, rawdata, processeddata
+        
         if (dataset.getName() == null || dataset.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (dataset.getSample() == null || (dataset.getSample().getId() == null && dataset.getSample().getUri() == null && dataset.getSample().getName() == null)) {
+            errorMessage.addError(new ObjectError("sample", "NoEmpty"));
+        }
+        
+        // check if sample exists!
+        if (dataset.getSample() != null) {
+            try {
+                String uri = dataset.getSample().getUri();
+                if (uri == null) {
+                    if (dataset.getSample().getId() != null) {
+                        uri = ArrayDatasetRepositoryImpl.uriPrefix + dataset.getSample().getId();
+                    }
+                }
+                if (uri != null) {
+                    Sample existing = datasetRepository.getSampleFromURI(uri, user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("sample", "NotFound"));
+                    } else {
+                        dataset.setSample(existing);
+                    }
+                } else if (dataset.getSample().getName() != null) {
+                    Sample existing = datasetRepository.getSampleByLabel(dataset.getSample().getName(), user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("sample", "NotFound"));
+                    } else {
+                        dataset.setSample(existing);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the sample", e);
+            }
+        }
+        
+        // check for duplicate name
+        try {
+            ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName().trim(), user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate array dataset", e2);
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
@@ -174,13 +218,27 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addRawData (
             @ApiParam(required=true, value="Raw data set to be added") 
-            @RequestBody RawData rawData, Principal p) {
+            @RequestBody RawData rawData, 
+            @ApiParam(required=true, value="name of the array dataset (must already be in the repository) to add the raw data") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
-        // TODO - validation
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
         // check to make sure, the file is specified and exists in the uploads folder
         if (rawData.getFilename() == null) {
             errorMessage.addError(new ObjectError("filename", "NotFound"));
@@ -190,18 +248,17 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("file", "NotFound"));
             }
         }
-        // check to make sure the image is specified and image file is in uploads folder
-        // check to make sure the slidelayout (in slide) is specified and the slide layout exists
-        // check if the metadata is valid for each specified metadata
+        // TODO check to make sure the image is specified and image file is in uploads folder
+        // TODO check to make sure the slide is specified and the slide already exists
+        // TODO check if the metadata exists
         
-        
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // TODO parse the file and extract measurements
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
         
         try {
-            return datasetRepository.addRawData(rawData, user);
+            return datasetRepository.addRawData(rawData, datasetId, user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
         }
@@ -247,13 +304,109 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
         }
         // check to make sure, the slide layout is specified
-        if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null)) {
-            errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+        if (slide.getLayout() == null || (slide.getLayout().getId() == null && slide.getLayout().getUri() == null && slide.getLayout().getName() == null)) {
+            errorMessage.addError(new ObjectError("slidelayout", "NoEmpty"));
         } 
         
-        //TODO do we check to make sure there is metadata??
-        
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        // check for duplicate name
+        try {
+            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getName().trim(), user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate printedSlide", e2);
+        }
+        
+        // check if the slide layout exists
+        if (slide.getLayout() != null) {
+            try {
+                String slideLayoutId = slide.getLayout().getId();
+                if (slideLayoutId == null) {
+                    if (slide.getLayout().getUri() != null) {
+                        slideLayoutId = slide.getLayout().getUri().substring(slide.getLayout().getUri().lastIndexOf("/") + 1);
+                    }
+                }
+                if (slideLayoutId != null) {
+                    SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutId, user, false);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                    } else {
+                        slide.setLayout(existing);
+                    }
+                } else if (slide.getLayout().getName() != null) {
+                    SlideLayout existing = layoutRepository.getSlideLayoutByName(slide.getLayout().getName(), user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                    } else {
+                        slide.setLayout(existing);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the slide layout", e);
+            }
+        }
+        
+        //TODO do we check to make sure there is metadata??
+        if (slide.getMetadata() != null) {
+            try {
+                if (slide.getMetadata().getName() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataByLabel(slide.getMetadata().getName(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(slideMetadata);
+                    }
+                } else if (slide.getMetadata().getUri() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(slide.getMetadata().getUri(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(slideMetadata);
+                    }
+                } else if (slide.getMetadata().getId() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(slideMetadata);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the slide metadata", e);
+            }
+        }
+        
+        if (slide.getPrinter() != null) {
+            try {
+                if (slide.getPrinter().getName() != null) {
+                    Printer printer = datasetRepository.getPrinterByLabel(slide.getPrinter().getName(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        slide.setPrinter(printer);
+                    }
+                } else if (slide.getPrinter().getUri() != null) {
+                    Printer printer = datasetRepository.getPrinterFromURI(slide.getPrinter().getUri(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        slide.setPrinter(printer);
+                    }
+                } else if (slide.getMetadata().getId() != null) {
+                    Printer printer = datasetRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getPrinter().getId(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        slide.setPrinter(printer);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the printer", e);
+            }
+        }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
@@ -309,6 +462,16 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
         }
         
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.dataProcessingTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
         // check if the template exists
         try {
             String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.DATAPROCESSINGSOFTWARE);
@@ -326,16 +489,16 @@ public class DatasetController {
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
-            throw new GlycanRepositoryException("Error retrieving image analysis metadata template " + p.getName(), e1);
+            throw new GlycanRepositoryException("Error retrieving Data processing software metadata template " + p.getName(), e1);
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-            throw new IllegalArgumentException("Invalid Input: Not a valid image analysis metadata information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid Data processing software metadata information", errorMessage);
         
         try {
             return datasetRepository.addDataProcessingSoftware(metadata, user);
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Image Analysis metadata cannot be added for user " + p.getName(), e);
+            throw new GlycanRepositoryException("Data processing software metadata cannot be added for user " + p.getName(), e);
         }
         
     }
@@ -382,6 +545,16 @@ public class DatasetController {
         }
         if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
         }
         
         // check if the template exists
@@ -459,6 +632,16 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
         }
         
+        // check for duplicate name
+        try {
+            MetadataCategory metadata = datasetRepository.getMetadataByLabel(printer.getName().trim(), ArrayDatasetRepositoryImpl.printerTypePredicate, user);
+            if (metadata != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
         // check if the template exists
         try {
             String templateURI = templateRepository.getTemplateByName(printer.getTemplate(), MetadataTemplateType.PRINTER);
@@ -494,7 +677,7 @@ public class DatasetController {
     @RequestMapping(value = "/addDatasetFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added array dataset"), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given array dataset"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
@@ -504,61 +687,56 @@ public class DatasetController {
             @ApiParam(required=true, value="uploaded Excel with the experiment results") 
             @RequestParam("file") String uploadedFileName, 
             @ApiParam(required=true, value="name of the array dataset (must already be in the repository) to add the processed data") 
-            @RequestParam("name")
-            String datasetName, 
-            @ApiParam(required=true, value="(internal) name of the sample used in the experiment, must already be in the repository") 
-            @RequestParam("sampleName")
-            String sampleName,
-            @ApiParam(required=true, value="configuration information related to excel file") 
+            @RequestParam("arraydatasetId")
+            String datasetId,        
+            @ApiParam(required=true, value="configuration information related to the excel file") 
             @RequestBody
             ProcessedResultConfiguration config,
             Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
         if (uploadedFileName != null) {
             File excelFile = new File(uploadDir, uploadedFileName);
             if (excelFile.exists()) {
                 UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-                ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
                 try {
+                    // check if the dataset with the given id exists
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, user);
+                    if (dataset == null) {
+                        errorMessage.addError(new ObjectError("dataset", "NotFound"));
+                    }
+                    
+                    ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
+                
                     Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
                     if (!resource.exists()) {
-                        ErrorMessage errorMessage = new ErrorMessage();
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                         errorMessage.addError(new ObjectError("mapFile", "NotValid"));
                         throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
                     }
                     ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), config, user);
-                    ArrayDataset dataset = new ArrayDataset();
-                    dataset.setName(datasetName);
-                    // TODO retrieve dataset from repository and update (add processed data)
-                    // get Sample from repository
-                    Sample sample = datasetRepository.getSampleByLabel(sampleName, user);
-                    if (sample != null)
-                        dataset.setSample(sample);
-                    else {
-                        ErrorMessage errorMessage = new ErrorMessage();
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("sample", "NotFound"));
-                        throw new IllegalArgumentException("Sample cannot be found", errorMessage);
+                    
+                    if (config.getResultFileType().equalsIgnoreCase("cfg")) {
+                        processedData.setMethod(StatisticalMethod.ELIMINATE);
+                    } else {
+                        processedData.setMethod(StatisticalMethod.AVERAGE);
                     }
-                    dataset.setProcessedData(processedData);
-                    return datasetRepository.addArrayDataset(dataset, user);   
+                    
+                    //TODO move the file to the temp folder so that it is deleted with the next cleanup
+                    
+                    return datasetRepository.addProcessedData(processedData, datasetId, user);   
                 } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {
-                    ErrorMessage errorMessage = new ErrorMessage();
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                     errorMessage.addError(new ObjectError("file", "NotValid"));
                     throw new IllegalArgumentException("File cannot be parsed", errorMessage);
                 } catch (IllegalArgumentException e) {
                     throw e;
                 } 
             } else {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 throw new IllegalArgumentException("File cannot be found", errorMessage);
             }
         } else {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("file", "NotValid"));
             throw new IllegalArgumentException("File cannot be found", errorMessage);
         }
@@ -626,6 +804,16 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
         }
         
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(sample.getName().trim(), ArrayDatasetRepositoryImpl.sampleTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
         // check if the template exists
         String templateURI = null;
         try {
@@ -651,18 +839,7 @@ public class DatasetController {
             throw new GlycanRepositoryException("Error retrieving sample template " + p.getName(), e1);
         }
         
-        // check if the name is unique
-        if (sample.getName() != null && !sample.getName().trim().isEmpty()) {
-            try {
-                Sample existing = datasetRepository.getSampleByLabel(sample.getName(), user);
-                if (existing != null) {
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));
-                }
-            } catch (SparqlException | SQLException e) {
-                throw new GlycanRepositoryException("Could not query existing samples", e);
-            }
-        }
-        
+
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
         
@@ -716,6 +893,16 @@ public class DatasetController {
         }
         if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.scannerTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
         }
         
         // check if the template exists
@@ -792,6 +979,16 @@ public class DatasetController {
         }
         if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
             errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.slideTemplateTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
         }
         
         // check if the template exists

@@ -6,7 +6,6 @@ import java.util.List;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
-import org.glygen.array.config.SecurityConstants;
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.service.GlygenArrayRepository;
 
@@ -21,6 +20,8 @@ public class BlockLayout {
 	List<Spot> spots;
 	Date dateCreated;
 	Date dateModified;
+	
+	Boolean inUse = false;
 	/**
 	 * @return the name
 	 */

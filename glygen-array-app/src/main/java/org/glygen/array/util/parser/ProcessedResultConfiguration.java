@@ -11,7 +11,7 @@ public class ProcessedResultConfiguration {
     Integer featureNameColumnId;
     Integer concentrationLevelColumnId;
     
-    String resultFileType = "CFG";
+    String resultFileType = "cfg";
     String slideLayoutId;
     String blockId = null;
     

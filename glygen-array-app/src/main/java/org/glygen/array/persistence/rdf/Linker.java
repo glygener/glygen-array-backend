@@ -36,6 +36,8 @@ public abstract class Linker {
 	LinkerType type;
 	Creator user;
     Boolean isPublic = false;
+    
+    Boolean inUse = false;
 	
     public Boolean getIsPublic() {
         return isPublic;

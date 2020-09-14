@@ -25,6 +25,7 @@ public class MetadataCategory {
     Date dateAddedToLibrary;
     boolean isPublic = false;
     Boolean isMirage = false;
+    Boolean inUse = false;
     
     public MetadataCategory() {
     }

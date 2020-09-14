@@ -1,9 +1,8 @@
-package org.glygen.array.persistence.rdf.data;
+package org.glygen.array.client.model.data;
 
 import java.util.List;
 
-import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
-import org.grits.toolbox.glycanarray.om.model.StatisticalMethod;
+import org.glygen.array.client.model.metadata.DataProcessingSoftware;
 
 public class ProcessedData {
     
@@ -12,8 +11,6 @@ public class ProcessedData {
     
     List<Intensity> intensity;
     DataProcessingSoftware metadata;
-    
-    StatisticalMethod method = StatisticalMethod.ELIMINATE;
     
     /**
      * @return the intensity
@@ -62,17 +59,5 @@ public class ProcessedData {
      */
     public void setUri(String uri) {
         this.uri = uri;
-    }
-    /**
-     * @return the method
-     */
-    public StatisticalMethod getMethod() {
-        return method;
-    }
-    /**
-     * @param method the method to set
-     */
-    public void setMethod(StatisticalMethod method) {
-        this.method = method;
     }
 }
