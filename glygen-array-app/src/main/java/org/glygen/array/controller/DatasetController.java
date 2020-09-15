@@ -1317,6 +1317,19 @@ public class DatasetController {
             int total = datasetRepository.getPrintedSlideCountByUser(user);
             
             List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue);
+            // clear unnecessary fields before sending the results back
+            for (PrintedSlide slide: resultList) {
+                if (slide.getLayout() != null)
+                    slide.getLayout().setBlocks(null);
+                if (slide.getPrinter() != null) {
+                    slide.getPrinter().setDescriptorGroups(null);
+                    slide.getPrinter().setDescriptors(null);
+                }
+                if (slide.getMetadata() != null) {
+                    slide.getMetadata().setDescriptorGroups(null);
+                    slide.getMetadata().setDescriptors(null);
+                }
+            }
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
@@ -2140,9 +2153,109 @@ public class DatasetController {
         if (printedSlide.getName() == null || printedSlide.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
         }
-        if (printedSlide.getLayout()== null || (printedSlide.getLayout().getUri() == null && printedSlide.getLayout().getId() == null)) {
-            errorMessage.addError(new ObjectError("layout", "NoEmpty"));
+        
+        // check to make sure, the slide layout is specified
+        if (printedSlide.getLayout() == null || (printedSlide.getLayout().getId() == null && printedSlide.getLayout().getUri() == null && printedSlide.getLayout().getName() == null)) {
+            errorMessage.addError(new ObjectError("slidelayout", "NoEmpty"));
+        } 
+
+        // check for duplicate name
+        try {
+            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate printedSlide", e2);
         }
+        
+        // check if the slide layout exists
+        if (printedSlide.getLayout() != null) {
+            try {
+                String slideLayoutId = printedSlide.getLayout().getId();
+                if (slideLayoutId == null) {
+                    if (printedSlide.getLayout().getUri() != null) {
+                        slideLayoutId = printedSlide.getLayout().getUri().substring(printedSlide.getLayout().getUri().lastIndexOf("/") + 1);
+                    }
+                }
+                if (slideLayoutId != null) {
+                    SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutId, user, false);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                    } else {
+                        printedSlide.setLayout(existing);
+                    }
+                } else if (printedSlide.getLayout().getName() != null) {
+                    SlideLayout existing = layoutRepository.getSlideLayoutByName(printedSlide.getLayout().getName(), user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                    } else {
+                        printedSlide.setLayout(existing);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the slide layout", e);
+            }
+        }
+        
+        if (printedSlide.getMetadata() != null) {
+            try {
+                if (printedSlide.getMetadata().getName() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataByLabel(printedSlide.getMetadata().getName(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        printedSlide.setMetadata(slideMetadata);
+                    }
+                } else if (printedSlide.getMetadata().getUri() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(printedSlide.getMetadata().getUri(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        printedSlide.setMetadata(slideMetadata);
+                    }
+                } else if (printedSlide.getMetadata().getId() != null) {
+                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getMetadata().getId(), user);
+                    if (slideMetadata == null) {
+                        errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
+                    } else {
+                        printedSlide.setMetadata(slideMetadata);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the slide metadata", e);
+            }
+        }
+        
+        if (printedSlide.getPrinter() != null) {
+            try {
+                if (printedSlide.getPrinter().getName() != null) {
+                    Printer printer = datasetRepository.getPrinterByLabel(printedSlide.getPrinter().getName(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        printedSlide.setPrinter(printer);
+                    }
+                } else if (printedSlide.getPrinter().getUri() != null) {
+                    Printer printer = datasetRepository.getPrinterFromURI(printedSlide.getPrinter().getUri(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        printedSlide.setPrinter(printer);
+                    }
+                } else if (printedSlide.getMetadata().getId() != null) {
+                    Printer printer = datasetRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printer", "NotFound"));
+                    } else {
+                        printedSlide.setPrinter(printer);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the printer", e);
+            }
+        }
+        
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
