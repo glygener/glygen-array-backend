@@ -2162,7 +2162,7 @@ public class DatasetController {
         // check for duplicate name
         try {
             PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), user);
-            if (existing != null) {
+            if (existing != null && !existing.getUri().equals(printedSlide.getUri())) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
         } catch (SparqlException | SQLException e2) {
