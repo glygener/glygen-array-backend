@@ -1963,6 +1963,19 @@ public class DatasetController {
             // check if it is in use
             boolean notInUse = datasetRepository.canDeletePrintedSlide (slide.getUri(), user);
             slide.setInUse(!notInUse);
+            
+            // clear the inner objects
+            if (slide.getLayout() != null)
+                slide.getLayout().setBlocks(null);
+            if (slide.getPrinter() != null) {
+                slide.getPrinter().setDescriptorGroups(null);
+                slide.getPrinter().setDescriptors(null);
+            }
+            if (slide.getMetadata() != null) {
+                slide.getMetadata().setDescriptorGroups(null);
+                slide.getMetadata().setDescriptors(null);
+            }
+            
             return slide;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Printed slide cannot be retrieved for user " + p.getName(), e);
