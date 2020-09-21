@@ -2,21 +2,29 @@ package org.glygen.array.persistence.rdf.data;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.List;
 
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class RawData {
     
     String id;
     String uri;
     
-    //Map<Measurement, Spot> dataMap;
+    List<Measurement> measurements;
+    Map<Measurement, Spot> dataMap;
+    Map<String, String> measurementToSpotIdMap;
     ImageAnalysisSoftware metadata;
     Image image;
     Slide slide;
     
     String filename;  // name of the raw data file in uploaded file folder or any other designated data folder
+    String fileFormat; // GenePix or Proscan
+    Double powerLevel = 100.0;  // 100% or less
 
     Date dateModified;
     Date dateCreated;
@@ -49,20 +57,6 @@ public class RawData {
     public void setUri(String uri) {
         this.uri = uri;
     }
-
-    /**
-     * @return the dataMap
-     */
-    //public Map<Measurement, Spot> getDataMap() {
-   //     return dataMap;
-   // }
-
-    /**
-     * @param dataMap the dataMap to set
-     */
-   // public void setDataMap(Map<Measurement, Spot> dataMap) {
-   //     this.dataMap = dataMap;
-   // }
 
     /**
      * @return the metadata
@@ -160,6 +154,82 @@ public class RawData {
      */
     public void setDateAddedToLibrary(Date dateAddedToLibrary) {
         this.dateAddedToLibrary = dateAddedToLibrary;
+    }
+
+    /**
+     * @return the measurements
+     */
+    public List<Measurement> getMeasurements() {
+        return measurements;
+    }
+
+    /**
+     * @param measurements the measurements to set
+     */
+    public void setMeasurements(List<Measurement> measurements) {
+        this.measurements = measurements;
+    }
+
+    /**
+     * @return the measurementToSpotIdMap
+     */
+    public Map<String, String> getMeasurementToSpotIdMap() {
+        return measurementToSpotIdMap;
+    }
+
+    /**
+     * @param measurementToSpotIdMap the measurementToSpotIdMap to set
+     */
+    public void setMeasurementToSpotIdMap(Map<String, String> measurementToSpotIdMap) {
+        this.measurementToSpotIdMap = measurementToSpotIdMap;
+    }
+    
+    @JsonAnySetter
+    public void setSpot (String measurementId, String spotId) {
+        this.measurementToSpotIdMap.put(measurementId, spotId);
+    }
+
+    /**
+     * @return the fileFormat
+     */
+    public String getFileFormat() {
+        return fileFormat;
+    }
+
+    /**
+     * @param fileFormat the fileFormat to set
+     */
+    public void setFileFormat(String fileFormat) {
+        this.fileFormat = fileFormat;
+    }
+
+    /**
+     * @return the dataMap
+     */
+    @JsonIgnore
+    public Map<Measurement, Spot> getDataMap() {
+        return dataMap;
+    }
+
+    /**
+     * @param dataMap the dataMap to set
+     */
+    public void setDataMap(Map<Measurement, Spot> dataMap) {
+        this.dataMap = dataMap;
+    }
+
+    /**
+     * @return the powerLevel
+     */
+    public Double getPowerLevel() {
+        return powerLevel;
+    }
+
+    /**
+     * @param powerLevel the powerLevel to set
+     */
+    public void setPowerLevel(Double powerLevel) {
+        this.powerLevel = powerLevel;
     }
 
 }

@@ -1670,4 +1670,45 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             return getSpotFromURI(spotURI, user);
         }
     }
+    
+    @Override
+    public Spot getSpotByPosition (String slideLayoutId, String blockId, int row, int column, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        String slideLayoutURI = null;
+        if (slideLayoutId != null) {
+            slideLayoutURI = prefix + slideLayoutId;
+        }
+        String blockURI = null;
+        if (blockId != null) {
+            blockURI = prefix + blockId;
+        }
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        
+        queryBuf.append ("?s gadr:has_row \"" + row + "\"^^xsd:int . \n");  
+        queryBuf.append ("?s gadr:has_column \"" + column + "\"^^xsd:int . \n");
+        if (blockURI != null) {
+            queryBuf.append ( "<" + blockURI + "> template:has_spot ?s .  }\n");
+        } else if (slideLayoutURI != null) {
+            queryBuf.append ( "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  }\n");
+        }
+            
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String spotURI = results.get(0).getValue("s");
+            return getSpotFromURI(spotURI, user);
+        }
+    }
 }

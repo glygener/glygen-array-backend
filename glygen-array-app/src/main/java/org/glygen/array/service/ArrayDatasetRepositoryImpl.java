@@ -3,7 +3,9 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -44,6 +46,7 @@ import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.grits.toolbox.glycanarray.om.model.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -328,7 +331,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
         String rawDataURI = generateUniqueURI(uriPrefix + "R", graph);
-        String imageProcessingMetadataURI = generateUniqueURI(uriPrefix + "IPM", graph);
         
         IRI hasimageProcessingMetadata = f.createIRI(imageProcessingMetadataPredicate);
         IRI derivedFrom = f.createIRI(derivedFromPredicate);
@@ -338,8 +340,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         IRI graphIRI = f.createIRI(graph);
         IRI raw = f.createIRI(rawDataURI);
-        addMetadata (imageProcessingMetadataURI, rawData.getMetadata(), statements, graph);
-        statements.add(f.createStatement(raw, hasimageProcessingMetadata, f.createIRI(imageProcessingMetadataURI), graphIRI));
+        
+        if (rawData.getMetadata() != null) {
+            String imageProcessingMetadataURI = rawData.getMetadata().getUri();
+            statements.add(f.createStatement(raw, hasimageProcessingMetadata, f.createIRI(imageProcessingMetadataURI), graphIRI));
+        }
         if (rawData.getImage() != null) {
             String imageURI = addImage (rawData.getImage(), statements, graph);
             statements.add(f.createStatement(raw, derivedFrom, f.createIRI(imageURI), graphIRI));
@@ -347,18 +352,32 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         if (rawData.getSlide() != null) {
             String slideURI = rawData.getSlide().getUri();
-            if (slideURI == null) 
+            if (slideURI == null && rawData.getSlide().getId() != null) 
                 slideURI = uriPrefix + rawData.getSlide().getId();
+            if (slideURI == null) {
+                // has not been added yet
+                slideURI = addSlide(rawData.getSlide(), datasetId, user);
+            }
             statements.add(f.createStatement(raw, hasSlide, f.createIRI(slideURI), graphIRI));
+            for (Measurement measurement: rawData.getMeasurements()) {
+                String measurementURI = addMeasurement (measurement, statements, graph);
+                Spot spot = rawData.getDataMap().get(measurement);
+                if (spot.getUri() != null)
+                    statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
+                else {
+                    // find the spot
+                    Spot existing = layoutRepository.getSpotByPosition(slideURI.substring(slideURI.lastIndexOf("/")+1), 
+                            spot.getBlockId(), spot.getRow(), spot.getColumn(), user);
+                    if (existing != null)
+                        statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
+                    else {
+                        throw new SparqlException ("The spot cannot be located in the repository");
+                    }
+                }
+                statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
+            }
         }
-        //TODO put this back
-       /* for (Measurement measurement: rawData.getDataMap().keySet()) {
-            String measurementURI = addMeasurement (measurement, statements, graph);
-            Spot spot = rawData.getDataMap().get(measurement);
-            if (spot.getUri() != null)
-                statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
-            statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
-        }*/
+        
         if (rawData.getFilename() != null) {
             Literal fileLit = f.createLiteral(rawData.getFilename());
             statements.add(f.createStatement(raw, hasFile, fileLit, graphIRI));
@@ -780,10 +799,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, user));            
             } else if (st.getPredicate().equals(hasRawData)) {
                 Value uriValue = st.getObject();
-                datasetObject.getRawDataList().add(getRawData(uriValue.stringValue(), graph));        
+                datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), user));        
             } else if (st.getPredicate().equals(hasSlide)) {
                 Value uriValue = st.getObject();
-                datasetObject.getSlides().add(getSlide(uriValue.stringValue(), graph));            
+                datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), user));            
             } else if (st.getPredicate().equals(hasProcessedData)) {
                 Value uriValue = st.getObject();
                 datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), user));            
@@ -802,10 +821,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, null));            
                     } else if (stPublic.getPredicate().equals(hasRawData)) {
                         uriValue = st.getObject();
-                        datasetObject.getRawDataList().add(getRawData(uriValue.stringValue(), DEFAULT_GRAPH));        
+                        datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), null));        
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = st.getObject();
-                        datasetObject.getSlides().add(getSlide(uriValue.stringValue(), DEFAULT_GRAPH));            
+                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), null));            
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = st.getObject();
                         datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), null));            
@@ -1526,17 +1545,232 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private Slide getSlide(String uriValue, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    private Slide getSlideFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        Slide slideObject = null;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI slideIRI = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        
+        IRI scanOf = f.createIRI(scanOfPredicate);
+        IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideIRI, null, null, graphIRI);
+        if (statements.hasNext()) {
+            slideObject = new Slide();
+            slideObject.setUri(uri);
+            slideObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+        }
+        
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(scanOf)) {
+                Value uriValue = st.getObject();
+                slideObject.setImage(getImageFromURI(uriValue.stringValue(), user));         
+            } else if (st.getPredicate().equals(hasPrintedSlide)) {
+                Value uriValue = st.getObject();
+                slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), user));   
+            } 
+        }
+        return slideObject;
     }
 
 
-    private RawData getRawData(String uriValue, String graph) {
-        // TODO Auto-generated method stub
-        return null;
+    private Image getImageFromURI(String uri, UserEntity user) throws SparqlException, SQLException  {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        Image imageObject = null;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI imageIRI = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFileName = f.createIRI(hasFilePredicate);
+        IRI hasScanner = f.createIRI(scannerMetadataPredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(imageIRI, null, null, graphIRI);
+        if (statements.hasNext()) {
+            imageObject = new Image();
+            imageObject.setUri(uri);
+            imageObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+        }
+        
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(hasFileName)) {
+                Value value = st.getObject();
+                imageObject.setFileName(value.stringValue());    
+            } else if (st.getPredicate().equals(hasScanner)) {
+                Value uriValue = st.getObject();
+                imageObject.setScanner(getScannerMetadataFromURI(uriValue.stringValue(), user));   
+            } 
+        }
+        return imageObject;
+    }
+
+
+    private RawData getRawDataFromURI(String uri,  UserEntity user) throws SparqlException, SQLException  {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        RawData rawDataObject = null;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasimageProcessingMetadata = f.createIRI(imageProcessingMetadataPredicate);
+        IRI derivedFrom = f.createIRI(derivedFromPredicate);
+        IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI measurementOf = f.createIRI(measurementOfPredicate);
+        IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        IRI graphIRI = f.createIRI(graph);
+        IRI raw = f.createIRI(uri);
+        
+        Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
+        Map<String, String> measurementToSpotIdMap = new HashMap<String, String>();
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(raw, null, null, graphIRI);
+        if (statements.hasNext()) {
+            rawDataObject = new RawData();
+            rawDataObject.setUri(uri);
+            rawDataObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            rawDataObject.setMeasurements(new ArrayList<Measurement>());
+            rawDataObject.setDataMap(dataMap);
+            rawDataObject.setMeasurementToSpotIdMap(measurementToSpotIdMap);
+        }
+        
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(hasFile)) {
+                Value value = st.getObject();
+                rawDataObject.setFilename(value.stringValue());    
+            } else if (st.getPredicate().equals(hasimageProcessingMetadata)) {
+                Value uriValue = st.getObject();
+                rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), user));   
+            } else if (st.getPredicate().equals(derivedFrom)) {
+                Value uriValue = st.getObject();
+                rawDataObject.setImage(getImageFromURI(uriValue.stringValue(), user));
+            } else if (st.getPredicate().equals(hasSlide)) {
+                Value uriValue = st.getObject();
+                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), user));
+            } else if (st.getPredicate().equals(hasMeasurement)) {
+                Value uriValue = st.getObject();
+                Measurement measurement = getMeasurementFromURI(uriValue.stringValue(), user);
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(uriValue.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(measurementOf)) {
+                        String spotURI = st2.getObject().stringValue();
+                        Spot spot = layoutRepository.getSpotFromURI(spotURI, user);
+                        dataMap.put(measurement, spot);
+                        rawDataObject.setSpot(measurement.getId(), spot.getUri().substring(spot.getUri().lastIndexOf("/")+1));
+                    }
+                }
+                
+            }
+        }
+        return rawDataObject;
     }
     
+    private Measurement getMeasurementFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph == null) {
+           return null;
+        }
+        
+        Measurement measurementObject = null;
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI measurementIRI = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        // add intensities
+        IRI hasMean = f.createIRI(hasMeanPredicate);
+        IRI hasMedian = f.createIRI(hasMedianPredicate);
+        IRI hasMeanMinusB = f.createIRI(hasMeanMinusBPredicate);
+        IRI hasMedianMinusB = f.createIRI(hasMedianMinusBPredicate);
+        IRI hasBMean = f.createIRI(hasBMeanPredicate);
+        IRI hasBMedian = f.createIRI(hasBMedianPredicate);
+        IRI hasXCoordinate = f.createIRI(hasXCoordinatePredicate);
+        IRI hasYCoordinate = f.createIRI(hasYCoordinatePredicate);
+        IRI hasStdev = f.createIRI(stdevPredicate);
+        IRI hasDiameter = f.createIRI(hasDiameterPredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(measurementIRI, null, null, graphIRI);
+        if (statements.hasNext()) {
+            measurementObject = new Measurement();
+            measurementObject.setUri(uri);
+            measurementObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            measurementObject.setCoordinates(new Coordinate());
+        }
+        
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(hasMean)) {
+                Value value = st.getObject();
+                measurementObject.setMean(Double.parseDouble(value.stringValue()));    
+            } else if (st.getPredicate().equals(hasMedian)) {
+                Value value = st.getObject();
+                measurementObject.setMedian(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasMeanMinusB)) {
+                Value value = st.getObject();
+                measurementObject.setMeanMinusB(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasMedianMinusB)) {
+                Value value = st.getObject();
+                measurementObject.setMedianMinusB(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasBMean)) {
+                Value value = st.getObject();
+                measurementObject.setbMean(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasBMedian)) {
+                Value value = st.getObject();
+                measurementObject.setbMedian(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasXCoordinate)) {
+                Value value = st.getObject();
+                measurementObject.getCoordinates().setxCoord(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasYCoordinate)) {
+                Value value = st.getObject();
+                measurementObject.getCoordinates().setyCoord(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasStdev)) {
+                Value value = st.getObject();
+                measurementObject.setStdev(Double.parseDouble(value.stringValue()));   
+            } else if (st.getPredicate().equals(hasDiameter)) {
+                Value value = st.getObject();
+                measurementObject.getCoordinates().setDiameter(Double.parseDouble(value.stringValue()));   
+            }
+        }
+        
+        return measurementObject;
+    }
+
+
     @Override
     public void deleteArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
         // TODO Auto-generated method stub  
