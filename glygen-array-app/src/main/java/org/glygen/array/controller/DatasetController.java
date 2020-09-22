@@ -836,12 +836,12 @@ public class DatasetController {
     public String addProcessedDataFromExcel (
             @ApiParam(required=true, value="uploaded Excel with the experiment results") 
             @RequestParam("file") String uploadedFileName, 
-            @ApiParam(required=true, value="name of the array dataset (must already be in the repository) to add the processed data") 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,        
-            @ApiParam(required=true, value="configuration information related to the excel file") 
-            @RequestBody
-            ProcessedResultConfiguration config,
+            @ApiParam(required=true, value="format/version of the file") 
+            @RequestParam("fileFormat")
+            String fileFormat,
             @ApiParam(required=true, value="the name of statistical method used (eg. eliminate, average etc.") 
             @RequestParam("method")
             StatisticalMethod method,
@@ -868,7 +868,8 @@ public class DatasetController {
                         errorMessage.addError(new ObjectError("mapFile", "NotValid"));
                         throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
                     }
-                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), config, user);
+                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
+                            createConfigForVersion(fileFormat), user);
                     
                     processedData.setMethod(method);
                     
@@ -890,6 +891,24 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             throw new IllegalArgumentException("File cannot be found", errorMessage);
         }
+    }
+    
+    ProcessedResultConfiguration createConfigForVersion (String fileFormat) {
+        // decide on the configuration based on fileFormat
+        ProcessedResultConfiguration config = new ProcessedResultConfiguration();
+        if (fileFormat.equalsIgnoreCase("CFG 5.2")) {
+            config.setCvColumnId(32);
+            config.setFeatureColumnId(29);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(30);
+            config.setSheetNumber(0);
+            config.setStDevColumnId(31);
+            config.setStartRow(1);
+        } else {
+            return null;
+        }
+        return config;
+        
     }
     
     @ApiOperation(value = "Add given sample metadata for the user")

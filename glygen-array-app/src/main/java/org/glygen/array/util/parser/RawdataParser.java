@@ -58,13 +58,19 @@ public class RawdataParser {
             block.setName(b.getId());
         }
         
-        //TODO Check fileFormat to decide which parser to use
-        if (filePath.endsWith(".gpr") || filePath.endsWith(".txt")) {
+        // Check fileFormat to decide which parser to use
+        if (fileFormat != null && fileFormat.toLowerCase().contains("genepix")) {
             // process GenePix file
             FileWrapper fileWrapper = new FileWrapper (filePath, "GenePix");
             GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
         }
-        else if (filePath.endsWith(".xls") || filePath.endsWith(".xlsx")) {
+        else if (fileFormat != null && fileFormat.toLowerCase().contains("proscan")) {
+            FileWrapper fileWrapper = new FileWrapper (filePath, "Proscan");
+            GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
+        } else if (filePath.endsWith(".gpr") || filePath.endsWith(".txt")) {
+            FileWrapper fileWrapper = new FileWrapper (filePath, "GenePix");
+            GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
+        } else if (filePath.endsWith(".xls") || filePath.endsWith(".xlsx")) {
             FileWrapper fileWrapper = new FileWrapper (filePath, "Proscan");
             GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
         }

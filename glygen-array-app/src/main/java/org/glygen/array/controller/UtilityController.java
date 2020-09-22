@@ -373,6 +373,31 @@ public class UtilityController {
         }
     }
     
+    @ApiOperation(value="Retrieve supported raw data formats")
+    @RequestMapping(value="/supportedrawfileformats", method=RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    public List<String> getRawDataFileFormats(){
+        List<String> fileFormats = new ArrayList<String>();
+        fileFormats.add("GenePix Results 2");
+        fileFormats.add("GenePix Results 3");
+        fileFormats.add("GenePix Export 3");
+        fileFormats.add("GenePix ArrayIt 5.6.1");
+        fileFormats.add("GenePix ArrayIt 6.1.0");
+        fileFormats.add("Proscan");
+        return fileFormats;
+    }
+    
+    @ApiOperation(value="Retrieve supported processed data formats")
+    @RequestMapping(value="/supportedprocessedfileformats", method=RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    public List<String> getProcessedDataFileFormats(){
+        List<String> fileFormats = new ArrayList<String>();
+        fileFormats.add("CFG 5.2");
+        return fileFormats;
+    }
+    
     @ApiOperation(value = "Retrieve descriptor with the given id")
     @RequestMapping(value="/getDescriptor/{descriptorId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})

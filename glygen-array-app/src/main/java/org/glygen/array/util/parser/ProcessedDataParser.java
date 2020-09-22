@@ -59,6 +59,9 @@ public class ProcessedDataParser {
     }
     
     public ProcessedData parse (String filePath, String errorMapFilePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
+        if (config == null)
+            throw new InvalidFormatException("Configuration is not given. This version is not being supported!");
+        
         ProcessedData data = new ProcessedData();
         List<Intensity> intensities = new ArrayList<>();
         data.setIntensity(intensities);
