@@ -19,6 +19,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
@@ -354,6 +355,22 @@ public class UtilityController {
             throw errorMessage;
         }
         return unitLevels;
+    }
+    
+    @ApiOperation(value="Retrieving statistical methods")
+    @RequestMapping(value="/statisticalmethods", method=RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    public List<StatisticalMethod> getStatisticalMethods(){
+        try {
+            return templateRepository.getAllStatisticalMethods();
+        } catch (SparqlException | SQLException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Error retrieving statistical methods from the repository");
+            errorMessage.addError(new ObjectError("method", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+            errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            throw errorMessage;
+        }
     }
     
     @ApiOperation(value = "Retrieve descriptor with the given id")

@@ -3,7 +3,6 @@ package org.glygen.array.persistence.rdf.data;
 import java.util.List;
 
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
-import org.grits.toolbox.glycanarray.om.model.StatisticalMethod;
 
 public class ProcessedData {
     
@@ -13,7 +12,7 @@ public class ProcessedData {
     List<Intensity> intensity;
     DataProcessingSoftware metadata;
     
-    StatisticalMethod method = StatisticalMethod.ELIMINATE;
+    StatisticalMethod method;
     
     /**
      * @return the intensity

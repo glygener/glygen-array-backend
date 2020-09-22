@@ -24,6 +24,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
@@ -49,6 +50,38 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     SesameSparqlDAO sparqlDAO;
     
     String prefix = GlygenArrayRepositoryImpl.prefix;
+    
+    @Override
+    public List<StatisticalMethod> getAllStatisticalMethods () throws SparqlException, SQLException {
+        List<StatisticalMethod> methods = new ArrayList<StatisticalMethod>();
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data/statistic_method>. \n}");
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(GlygenArrayRepository.DEFAULT_GRAPH);
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity sparqlEntity : results) {
+            String methodURI = sparqlEntity.getValue("s");
+            StatisticalMethod method = new StatisticalMethod();
+            method.setUri(methodURI);
+            RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(methodURI), null, null, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                if (st.getPredicate().equals(RDFS.LABEL)) {
+                    method.setName(st.getObject().stringValue());
+                }
+            }
+            methods.add(method);
+        }
+        
+        return methods; 
+    }
 
     @Override
     public String getTemplateByName (String label, MetadataTemplateType type) throws SparqlException, SQLException {

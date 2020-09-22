@@ -492,7 +492,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processingSoftwareMetadata), graphIRI));
         }
         
-        Literal method = processedData.getMethod() == null ? null: f.createLiteral(processedData.getMethod().getLabel());
+        IRI method = processedData.getMethod() == null ? null: f.createIRI(processedData.getMethod().getUri());
         if (method != null) {
             statements.add(f.createStatement(processed, integratedBy, method, graphIRI));
         }

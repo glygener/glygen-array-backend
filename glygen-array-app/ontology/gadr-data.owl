@@ -355,7 +355,7 @@
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/integrated_by">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/statistic_method"/>
         <rdfs:comment>Links a statistical method with a Intensity value. The method was used to create the value out of the measurments.</rdfs:comment>
     </owl:ObjectProperty>
@@ -1279,6 +1279,35 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     <!-- http://purl.org/gadr/template#slide_layout -->
 
     <owl:Class rdf:about="http://purl.org/gadr/template#slide_layout"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/average -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/data/average">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:label>Average</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/data/eliminate -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/data/eliminate">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:label>Eliminate</rdfs:label>
+    </owl:NamedIndividual>
 </rdf:RDF>
 
 

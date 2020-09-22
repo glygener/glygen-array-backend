@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
@@ -22,5 +23,7 @@ public interface MetadataTemplateRepository {
     void deleteTemplates() throws SparqlException;
 
     MetadataTemplate getTemplateFromURI(String templateURI) throws SparqlException;
+
+    List<StatisticalMethod> getAllStatisticalMethods() throws SparqlException, SQLException;
 
 }

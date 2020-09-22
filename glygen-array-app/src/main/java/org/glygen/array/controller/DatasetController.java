@@ -23,6 +23,7 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
@@ -54,7 +55,6 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
-import org.grits.toolbox.glycanarray.om.model.StatisticalMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -842,6 +842,9 @@ public class DatasetController {
             @ApiParam(required=true, value="configuration information related to the excel file") 
             @RequestBody
             ProcessedResultConfiguration config,
+            @ApiParam(required=true, value="the name of statistical method used (eg. eliminate, average etc.") 
+            @RequestParam("method")
+            StatisticalMethod method,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -867,13 +870,10 @@ public class DatasetController {
                     }
                     ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), config, user);
                     
-                    if (config.getResultFileType().equalsIgnoreCase("cfg")) {
-                        processedData.setMethod(StatisticalMethod.ELIMINATE);
-                    } else {
-                        processedData.setMethod(StatisticalMethod.AVERAGE);
-                    }
+                    processedData.setMethod(method);
                     
                     //TODO move the file to the temp folder so that it is deleted with the next cleanup
+                    // or keep the file with the experiment data??
                     
                     return datasetRepository.addProcessedData(processedData, datasetId, user);   
                 } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {

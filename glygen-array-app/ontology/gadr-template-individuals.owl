@@ -23314,6 +23314,22 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://www.w3.org/2001/XMLSchema#token -->
 
     <owl:NamedIndividual rdf:about="http://www.w3.org/2001/XMLSchema#token"/>
+    
+    <!-- http://purl.org/gadr/data/average -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/data/average">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:label>Average</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/data/eliminate -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/data/eliminate">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:label>Eliminate</rdfs:label>
+    </owl:NamedIndividual>
 </rdf:RDF>
 
 
