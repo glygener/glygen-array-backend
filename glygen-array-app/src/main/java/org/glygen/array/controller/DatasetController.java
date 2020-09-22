@@ -842,8 +842,8 @@ public class DatasetController {
             @ApiParam(required=true, value="format/version of the file") 
             @RequestParam("fileFormat")
             String fileFormat,
-            @ApiParam(required=true, value="the name of statistical method used (eg. eliminate, average etc.") 
-            @RequestParam("method")
+            @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
+            @RequestBody
             StatisticalMethod method,
             Principal p) {
         

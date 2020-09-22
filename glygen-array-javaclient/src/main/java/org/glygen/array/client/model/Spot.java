@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -17,6 +15,7 @@ public class Spot {
 	Integer column;
 	LevelUnit concentration;
 	Integer group;
+	String blockId;
 	String uri;
 	SpotFlag flag;
 	
@@ -126,4 +125,18 @@ public class Spot {
 	public String getUri() {
 		return uri;
 	}
+
+    /**
+     * @return the blockId
+     */
+    public String getBlockId() {
+        return blockId;
+    }
+
+    /**
+     * @param blockId the blockId to set
+     */
+    public void setBlockId(String blockId) {
+        this.blockId = blockId;
+    }
 }

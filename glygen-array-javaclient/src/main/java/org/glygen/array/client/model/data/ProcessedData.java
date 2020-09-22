@@ -12,6 +12,8 @@ public class ProcessedData {
     List<Intensity> intensity;
     DataProcessingSoftware metadata;
     
+    StatisticalMethod method;
+    
     /**
      * @return the intensity
      */
@@ -59,5 +61,17 @@ public class ProcessedData {
      */
     public void setUri(String uri) {
         this.uri = uri;
+    }
+    /**
+     * @return the method
+     */
+    public StatisticalMethod getMethod() {
+        return method;
+    }
+    /**
+     * @param method the method to set
+     */
+    public void setMethod(StatisticalMethod method) {
+        this.method = method;
     }
 }
