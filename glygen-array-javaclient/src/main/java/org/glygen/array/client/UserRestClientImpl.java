@@ -3,24 +3,16 @@ package org.glygen.array.client;
 import java.util.Arrays;
 
 import org.glygen.array.client.exception.CustomClientException;
-import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.LoginRequest;
 import org.glygen.array.client.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-@Component
 public class UserRestClientImpl implements UserRestClient {
-	
-	@Autowired
-	RestTemplateBuilder builder;
 	
 	private RestTemplate restTemplate;
 	
@@ -32,30 +24,10 @@ public class UserRestClientImpl implements UserRestClient {
 	public UserRestClientImpl() {
 		this.restTemplate = new RestTemplate();
 	}
-	@Override
-	public Confirmation changePassword(String newPassword) throws CustomClientException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Confirmation addUser(User user) throws CustomClientException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String recoverUsername(String email) throws CustomClientException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Confirmation recoverPassword(String username) throws CustomClientException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public User getUser(String username) throws CustomClientException {
 		if (token == null) login(this.username, this.password);
@@ -69,6 +41,9 @@ public class UserRestClientImpl implements UserRestClient {
 		return response.getBody();
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
 	public void login(String username, String password) throws CustomClientException {
 		// login to the system and set the token
@@ -83,11 +58,20 @@ public class UserRestClientImpl implements UserRestClient {
 		HttpHeaders header = response.getHeaders();
 		this.token = header.getFirst("Authorization");
 	}
+	
+	/**
+     * {@inheritDoc}
+     */
 	@Override
 	public void setURL(String url) {
 		this.url = url;
 		
 	}
+	
+	
+	/**
+     * {@inheritDoc}
+     */
     @Override
     public String getToken() {
         return this.token;

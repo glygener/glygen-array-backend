@@ -91,7 +91,43 @@
           <plugin>
               <groupId>org.springframework.boot</groupId>
               <artifactId>spring-boot-maven-plugin</artifactId>
+              <configuration>
+                    <mainClass>org.glygen.array.client.Application</mainClass>
+                </configuration>
           </plugin>
+          <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-jar-plugin</artifactId>
+	        <executions>
+	            <execution>
+	                <goals>
+	                    <goal>jar</goal>
+	                </goals>
+	                <phase>package</phase>
+	                <configuration>
+	                    <!--to be imported on other projects-->
+	                    <classifier>app-to-import</classifier>
+	                </configuration>
+	            </execution>
+	        </executions>
+	    </plugin>
+	    <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>attach-javadocs</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+					<phase>package</phase>
+	                <configuration>
+	                    <!--to be imported on other projects-->
+	                    <classifier>javadoc</classifier>
+	                </configuration>
+				</execution>
+			</executions>
+		</plugin>
       </plugins>
   </build>
 </project>

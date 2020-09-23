@@ -3226,7 +3226,9 @@ public class GlygenArrayController {
 		 
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
         if (info == null) {
-        	String uniqueFileName = resumableFilename + System.currentTimeMillis();
+            String extension = resumableFilename.substring(resumableFilename.lastIndexOf(".")+1);
+            String fileName = resumableFilename.substring(0, resumableFilename.lastIndexOf("."));
+        	String uniqueFileName = fileName + System.currentTimeMillis() + "." +  extension;
             String resumableFilePath = new File(uploadDir, uniqueFileName).getAbsolutePath() + ".temp";
         	info = new ResumableFileInfo();
             info.resumableChunkSize = resumableChunkSize;

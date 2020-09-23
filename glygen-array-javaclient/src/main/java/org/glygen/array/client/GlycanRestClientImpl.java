@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.BlockLayout;
-import org.glygen.array.client.model.Confirmation;
 import org.glygen.array.client.model.Feature;
 import org.glygen.array.client.model.FeatureType;
 import org.glygen.array.client.model.Glycan;
@@ -26,7 +25,6 @@ import org.glygen.array.client.model.SequenceDefinedGlycan;
 import org.glygen.array.client.model.SlideLayout;
 import org.glygen.array.client.model.SmallMoleculeLinker;
 import org.glygen.array.client.model.UnknownGlycan;
-import org.glygen.array.client.model.User;
 import org.grits.toolbox.glycanarray.library.om.ArrayDesignLibrary;
 import org.grits.toolbox.glycanarray.library.om.LibraryInterface;
 import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
@@ -38,7 +36,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -47,7 +44,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
-@Component
 public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	private RestTemplate restTemplate = new RestTemplate();
@@ -62,8 +58,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 	
 	Map <String, Feature> featureCache = new HashMap<String, Feature>();
 	
+	/**
+     * {@inheritDoc}
+     */
 	@Override
-	public String addGlycan(Glycan glycan, User user) {
+	public String addGlycan(Glycan glycan) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -134,8 +133,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		this.password = password;
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
-	public String addBlockLayout(BlockLayout layout, User user) {
+	public String addBlockLayout(BlockLayout layout) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -148,8 +150,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return response.getBody();
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
-	public String addLinker(Linker linker, User user) {
+	public String addLinker(Linker linker) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -174,6 +179,9 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return null;	
 	}
 	
+	/**
+     * {@inheritDoc}
+     */
 	@Override
 	public List<LinkerClassification> getLinkerClassifications() {
 		String url = this.url + "util/getLinkerClassifications";
@@ -190,9 +198,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return null;	
 	}
 	
-
+	/**
+     * {@inheritDoc}
+     */
 	@Override
-	public String addSlideLayout(SlideLayout layout, User user) {
+	public String addSlideLayout(SlideLayout layout) {
 		if (token == null) login(this.username, this.password);
 		//set the header with token
 		HttpHeaders headers = new HttpHeaders();
@@ -227,13 +237,19 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return empty;
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
 	public void setURL(String url) {
 		this.url = url;
 	}
 
+	/**
+     * {@inheritDoc}
+     */
 	@Override
-	public String addFeature(Feature feature, User user) {
+	public String addFeature(Feature feature) {
 	    System.out.println ("Trying to add " + feature.getName());
 	    if (featureCache.get(feature.getName()) != null) {
 	        System.out.println("Feature " + feature.getName() + " has already been added");
@@ -272,8 +288,11 @@ public class GlycanRestClientImpl implements GlycanRestClient {
 		return null;
 	}
 
+	/**
+     * {@inheritDoc}
+     */
     @Override
-    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layoutName, User user) {
+    public ImportGRITSLibraryResult addFromLibrary(ArrayDesignLibrary library, Map<String, String> linkerClassificationMap, String layoutName) {
         ImportGRITSLibraryResult result = new ImportGRITSLibraryResult();
         // add Glycans
         List<org.grits.toolbox.glycanarray.library.om.feature.Glycan> glycanList = library.getFeatureLibrary().getGlycan();
@@ -357,7 +376,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 view.setName(glycan.getName());
                 view.setComment(glycan.getComment());
                 try {
-                    addGlycan(view, user);
+                    addGlycan(view);
                 } catch (HttpClientErrorException e) {
                     System.out.println("Glycan " + glycan.getId() + " cannot be added. Reason: " + e.getMessage());
                 }
@@ -387,7 +406,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 }
             }
             try {
-                addLinker(view, user);
+                addLinker(view);
             } catch (HttpClientErrorException e) {
                 System.out.println ("Linker " + linker.getId() + " cannot be added. Reason:" + e.getMessage());
             }
@@ -451,7 +470,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
                 }
             }
             try {
-                addFeature(myFeature, user);
+                addFeature(myFeature);
             } catch (HttpClientErrorException e) {
                 System.out.println("Feature " + f.getName() + " cannot be added. Reason: " + e.getMessage());
             }
@@ -467,7 +486,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
             myLayout.setSpots(getSpotsFromBlockLayout(library, blockLayout));
             
             try {
-                addBlockLayout (myLayout, user);
+                addBlockLayout (myLayout);
             } catch (HttpClientErrorException e) {
                 System.out.println("BlockLayout " + blockLayout.getId() + " cannot be added. Reason: " + e.getMessage());
             }
@@ -504,7 +523,7 @@ public class GlycanRestClientImpl implements GlycanRestClient {
             mySlideLayout.setBlocks(blocks);
             
             try {
-                addSlideLayout (mySlideLayout, user);
+                addSlideLayout (mySlideLayout);
                 result.getAddedLayouts().add(mySlideLayout);
             } catch (HttpClientErrorException e) {
                 String errorMessage = e.getResponseBodyAsString();

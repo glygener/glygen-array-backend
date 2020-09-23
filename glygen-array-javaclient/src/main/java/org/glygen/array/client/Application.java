@@ -121,21 +121,11 @@ public class Application implements CommandLineRunner {
     					view.setName(glycan.getName());
     					view.setComment(glycan.getComment());
     					try {
-    						glycanClient.addGlycan(view, user);
+    						glycanClient.addGlycan(view);
     					} catch (HttpClientErrorException e) {
     						log.info("Glycan " + glycan.getId() + " cannot be added", e);
     					}
 		        	}
-				}
-		        
-		        System.out.println("Duplicates: " + glycanClient.getDuplicates().size());
-				for(String name: glycanClient.getDuplicates()) {
-					System.out.println (name);
-				}
-				
-				System.out.println("Empty sequences: " + glycanClient.getEmpty().size());
-				for(String name: glycanClient.getEmpty()) {
-					System.out.println (name);
 				}
 	        } else if (importType.equals("Linker")) {
 		        List<Linker> linkerList = library.getFeatureLibrary().getLinker();
@@ -161,7 +151,7 @@ public class Application implements CommandLineRunner {
 		                }
 					}
 					try {
-						glycanClient.addLinker(view, user);
+						glycanClient.addLinker(view);
 					} catch (HttpClientErrorException e) {
 						log.info ("Linker " + linker.getId() + " cannot be added", e);
 					}
@@ -225,7 +215,7 @@ public class Application implements CommandLineRunner {
                         }
                     }
                     try {
-                        glycanClient.addFeature(myFeature, user);
+                        glycanClient.addFeature(myFeature);
                     } catch (HttpClientErrorException e) {
                         log.info("Feature " + f.getName() + " cannot be added", e);
                     }
@@ -242,7 +232,7 @@ public class Application implements CommandLineRunner {
 		        	myLayout.setSpots(GlycanRestClientImpl.getSpotsFromBlockLayout(library, blockLayout));
 		        	
 		        	try {
-		        		glycanClient.addBlockLayout (myLayout, user);
+		        		glycanClient.addBlockLayout (myLayout);
 					} catch (HttpClientErrorException e) {
 						log.info("BlockLayout " + blockLayout.getId() + " cannot be added", e);
 					}
@@ -279,7 +269,7 @@ public class Application implements CommandLineRunner {
 	        		mySlideLayout.setBlocks(blocks);
 	        		
 	        		try {
-		        		glycanClient.addSlideLayout (mySlideLayout, user);
+		        		glycanClient.addSlideLayout (mySlideLayout);
 					} catch (HttpClientErrorException e) {
 						log.info("SlideLayout " + slideLayout.getId() + " cannot be added", e);
 					} catch (HttpServerErrorException e) {
@@ -287,7 +277,7 @@ public class Application implements CommandLineRunner {
 					}
 				}
 	        } else if (importType.equals("All")) {
-	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, linkerClassificationMap, null, user);
+	            ImportGRITSLibraryResult result = glycanClient.addFromLibrary(library, linkerClassificationMap, null);
 	            for (org.glygen.array.client.model.SlideLayout layout: result.getAddedLayouts()) {
 	                log.info("Added: " + layout.getName());
 	            }
