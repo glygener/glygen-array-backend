@@ -105,5 +105,9 @@ public interface ArrayDatasetRepository {
     void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException;
     void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException;
     boolean canDeletePrintedSlide(String uri, UserEntity user) throws SparqlException, SQLException;
+    boolean canDeletePrintedSlide(String uri, String parentURI, UserEntity user) throws SparqlException, SQLException;
+    void deleteRawData(String rawDataId, String parentId, UserEntity user) throws SQLException, SparqlException;
+    void deleteProcessedData(String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException;
+    RawData getRawDataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
 
 }

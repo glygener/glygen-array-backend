@@ -43,6 +43,7 @@ import org.glygen.array.service.ArrayDatasetRepositoryImpl;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
@@ -203,7 +204,8 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
         
         try {
-            return datasetRepository.addArrayDataset(dataset, user);
+            String datasetId = datasetRepository.addArrayDataset(dataset, user);    
+            return datasetId;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
         }
@@ -1962,7 +1964,6 @@ public class DatasetController {
                 // violation
                 errorMessage.addError(new ObjectError (descTemplate.getName() + "-value", "NotFound"));
             }
-            
         }
         
         if (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())
@@ -1988,6 +1989,127 @@ public class DatasetController {
             return new Confirmation("Printed slide deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printed slide " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given array dataset from the user's list")
+    @RequestMapping(value="/deletedataset/{datasetId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteArrayDataset (
+            @ApiParam(required=true, value="id of the array dataset to delete") 
+            @PathVariable("datasetId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            
+            // delete the files associated with the array dataset
+            ArrayDataset dataset = getArrayDataset(id, principal);
+            if (dataset != null && dataset.getRawDataList() != null) {
+                for (RawData rawData: dataset.getRawDataList()) {
+                    if (rawData.getFilename() != null) {
+                        File rawDataFile = new File (uploadDir, id + File.separator + rawData.getFilename());
+                        if (rawDataFile.exists()) {
+                            rawDataFile.delete();
+                        }
+                    }
+                    if (rawData.getImage() != null) {
+                        File imageFile = new File (uploadDir, id + File.separator + rawData.getImage().getFileName());
+                        if (imageFile.exists()) {
+                            imageFile.delete();
+                        }
+                    }
+                }
+            }
+            
+            if (dataset == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find array dataset with the given id", errorMessage);
+            }
+            
+            datasetRepository.deleteArrayDataset(id, user);
+            return new Confirmation("array dataset deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete array dataset " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given raw data from the given array dataset")
+    @RequestMapping(value="/deleterawdata/{rawdataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="RawData deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete rawdata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteRawData (
+            @ApiParam(required=true, value="id of the rawdata to delete") 
+            @PathVariable("rawdataId") String id, 
+            @ApiParam(required=true, value="id of the array dataset this rawdata belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            
+            RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
+            //delete the files associated with the rawdata
+            if (rawData != null) {
+                if (rawData.getFilename() != null) {
+                    File rawDataFile = new File (uploadDir, id + File.separator + rawData.getFilename());
+                    if (rawDataFile.exists()) {
+                        rawDataFile.delete();
+                    }
+                }
+                if (rawData.getImage() != null) {
+                    File imageFile = new File (uploadDir, id + File.separator + rawData.getImage().getFileName());
+                    if (imageFile.exists()) {
+                        imageFile.delete();
+                    }
+                }
+            } else {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find rawData with the given id", errorMessage);
+            }
+            
+            datasetRepository.deleteRawData(id, datasetId, user);
+            return new Confirmation("Rawdata deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete rawdata " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given processed data from the given array dataset")
+    @RequestMapping(value="/deleteprocesseddata/{processeddataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="ProcessedData deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete ProcessedData"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteProcessedData (
+            @ApiParam(required=true, value="id of the ProcessedData to delete") 
+            @PathVariable("processeddataId") String id, 
+            @ApiParam(required=true, value="id of the array dataset this ProcessedData belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteProcessedData(id, datasetId, user);
+            return new Confirmation("ProcessedData deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete ProcessedData " + id, e);
         } 
     }
     
