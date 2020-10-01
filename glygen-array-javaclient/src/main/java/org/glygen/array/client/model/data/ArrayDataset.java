@@ -6,19 +6,21 @@ import java.util.List;
 import org.glygen.array.client.model.Creator;
 import org.glygen.array.client.model.metadata.Sample;
 
-
 public class ArrayDataset {
     String id;
     String uri;
     String name;
     String description;
+    List<String> keywords;
     
     Sample sample;
     List<RawData> rawDataList;
-    ProcessedData processedData;
+    List<ProcessedData> processedData;
     
-    // Should these become part of RawData only??
+    // Should this become part of RawData only??
     List<Image> images;
+    
+    // Array dataset can have slides even when there is no raw data
     List<Slide> slides;
     
     boolean isPublic = false;
@@ -109,14 +111,14 @@ public class ArrayDataset {
     /**
      * @return the processedData
      */
-    public ProcessedData getProcessedData() {
+    public List<ProcessedData> getProcessedData() {
         return processedData;
     }
 
     /**
      * @param processedData the processedData to set
      */
-    public void setProcessedData(ProcessedData processedData) {
+    public void setProcessedData(List<ProcessedData> processedData) {
         this.processedData = processedData;
     }
 
@@ -130,7 +132,7 @@ public class ArrayDataset {
     /**
      * @param images the images to set
      */
-    public void setImage(List<Image> images) {
+    public void setImages(List<Image> images) {
         this.images = images;
     }
 
@@ -216,6 +218,20 @@ public class ArrayDataset {
      */
     public void setDateAddedToLibrary(Date dateAddedToLibrary) {
         this.dateAddedToLibrary = dateAddedToLibrary;
+    }
+
+    /**
+     * @return the keywords
+     */
+    public List<String> getKeywords() {
+        return keywords;
+    }
+
+    /**
+     * @param keywords the keywords to set
+     */
+    public void setKeywords(List<String> keywords) {
+        this.keywords = keywords;
     }
 
 }

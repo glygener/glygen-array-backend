@@ -1647,19 +1647,23 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             blockURI = prefix + blockId;
         }
         
+        String whereClause = "";
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
+        
         for (Feature f: features) {
-            queryBuf.append ("?s gadr:has_feature <" + f.getUri() + "> . \n");
+            whereClause += "?s gadr:has_feature <" + f.getUri() + "> . \n";
         }
         if (blockURI != null) {
-            queryBuf.append ( "<" + blockURI + "> template:has_spot ?s .  }\n");
+            whereClause +=  "<" + blockURI + "> template:has_spot ?s .  \n";
         } else if (slideLayoutURI != null) {
-            queryBuf.append ( "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  }\n");
+            whereClause += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  \n";
+        }
+        if (!whereClause.isEmpty()) {
+            queryBuf.append ("WHERE { " + whereClause + "}");
         }
             
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
@@ -1681,28 +1685,29 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
         String slideLayoutURI = null;
         if (slideLayoutId != null) {
-            slideLayoutURI = prefix + slideLayoutId;
+            slideLayoutURI = uriPrefix + slideLayoutId;
         }
         String blockURI = null;
         if (blockId != null) {
-            blockURI = prefix + blockId;
+            blockURI = uriPrefix + blockId;
         }
         
+        String whereClause = "";
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
         
-        queryBuf.append ("?s gadr:has_row \"" + row + "\"^^xsd:int . \n");  
-        queryBuf.append ("?s gadr:has_column \"" + column + "\"^^xsd:int . \n");
+        whereClause += "?s gadr:has_row \"" + row + "\"^^xsd:int . \n"; 
+        whereClause += "?s gadr:has_column \"" + column + "\"^^xsd:int . \n";
         if (blockURI != null) {
-            queryBuf.append ( "<" + blockURI + "> template:has_spot ?s .  }\n");
+            whereClause += "<" + blockURI + "> template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
         } else if (slideLayoutURI != null) {
-            queryBuf.append ( "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  }\n");
-        }
-            
+            whereClause += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
+        }   
+        queryBuf.append ("WHERE { " + whereClause + " }");
+        
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())
             return null;

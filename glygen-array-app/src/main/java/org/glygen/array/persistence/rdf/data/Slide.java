@@ -1,11 +1,17 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.List;
+
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
+
 public class Slide {
     
     String id;
     String uri;
     PrintedSlide printedSlide;
     Image image;
+    AssayMetadata metadata;
+    List<String> blocksUsed;  // list of block ids used from this slide in the experiment
     
     /**
      * @return the id
@@ -55,6 +61,30 @@ public class Slide {
      */
     public void setPrintedSlide(PrintedSlide printedSlide) {
         this.printedSlide = printedSlide;
+    }
+    /**
+     * @return the metadata
+     */
+    public AssayMetadata getMetadata() {
+        return metadata;
+    }
+    /**
+     * @param metadata the metadata to set
+     */
+    public void setMetadata(AssayMetadata metadata) {
+        this.metadata = metadata;
+    }
+    /**
+     * @return the blocksUsed
+     */
+    public List<String> getBlocksUsed() {
+        return blocksUsed;
+    }
+    /**
+     * @param blocksUsed the blocksUsed to set
+     */
+    public void setBlocksUsed(List<String> blocksUsed) {
+        this.blocksUsed = blocksUsed;
     }
     
 

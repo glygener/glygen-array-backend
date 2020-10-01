@@ -3,7 +3,8 @@ package org.glygen.array.client.model.metadata;
 import java.util.Date;
 import java.util.List;
 
-import org.glygen.array.client.model.Creator;;
+import org.glygen.array.client.model.Creator;
+
 
 public class MetadataCategory {
     String id;
@@ -21,6 +22,28 @@ public class MetadataCategory {
     Date dateCreated;
     Date dateAddedToLibrary;
     boolean isPublic = false;
+    Boolean isMirage = false;
+    Boolean inUse = false;
+    
+    public MetadataCategory() {
+    }
+    
+    public MetadataCategory (MetadataCategory metadata) {
+        this.id = metadata.id;
+        this.uri = metadata.uri;
+        this.dateAddedToLibrary = metadata.dateAddedToLibrary;
+        this.dateCreated = metadata.dateCreated;
+        this.dateModified = metadata.dateModified;
+        this.description = metadata.description;
+        this.descriptorGroups = metadata.descriptorGroups;
+        this.descriptors = metadata.descriptors;
+        this.isPublic = metadata.isPublic;
+        this.name = metadata.name;
+        this.template = metadata.template;
+        this.user = metadata.user;
+        this.templateType = metadata.templateType;
+        this.isMirage = metadata.isMirage;
+    }
     
     /**
      * @return the descriptors
@@ -178,5 +201,17 @@ public class MetadataCategory {
      */
     public void setTemplateType(String templateType) {
         this.templateType = templateType;
+    }
+    /**
+     * @return the isMirage
+     */
+    public Boolean getIsMirage() {
+        return isMirage;
+    }
+    /**
+     * @param isMirage the isMirage to set
+     */
+    public void setIsMirage(Boolean isMirage) {
+        this.isMirage = isMirage;
     }
 }

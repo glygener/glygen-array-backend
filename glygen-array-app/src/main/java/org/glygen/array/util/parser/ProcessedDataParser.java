@@ -228,7 +228,6 @@ public class ProcessedDataParser {
             System.out.println("Errors:");
             for (ErrorMessage e: errorList) {
                 for (ObjectError o: e.getErrors()) {
-                    System.out.println(o.getDefaultMessage());
                     error.addError(o);
                 }
             }

@@ -1,18 +1,18 @@
 package org.glygen.array.util.parser;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Measurement;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.Block;
-import org.grits.toolbox.glycanarray.om.model.Coordinate;
 import org.grits.toolbox.glycanarray.om.model.FileWrapper;
 import org.grits.toolbox.glycanarray.om.model.GlycanArrayExperiment;
 import org.grits.toolbox.glycanarray.om.model.Layout;
@@ -25,7 +25,7 @@ import org.grits.toolbox.glycanarray.om.util.GlycanArrayParserUtils;
 
 public class RawdataParser {
     
-    public static Map<Measurement, Spot> parse (String filePath, String fileFormat, SlideLayout layout, Double powerLevel) throws Exception {
+    public static Map<Measurement, Spot> parse (org.glygen.array.persistence.rdf.data.FileWrapper file, SlideLayout layout, Double powerLevel) throws Exception {
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
         
@@ -53,34 +53,48 @@ public class RawdataParser {
                 spotData.setProbeLevelUnit(spot.getConcentration().getLevelUnit());
                 block.setPosition(new Well(b.getColumn(), b.getRow()));
                 layoutData.put(well, spotData);
+                int featureId = 1;
+                if (spot.getFeatures() != null && !spot.getFeatures().isEmpty()) {
+                    Feature feature = spot.getFeatures().get(0);
+                    org.grits.toolbox.glycanarray.om.model.Feature f = new org.grits.toolbox.glycanarray.om.model.Feature();
+                    f.setId(featureId ++);
+                    f.setName(feature.getName());
+                    spotData.setFeature(f);
+                }
             }
             block.setLayoutData(layoutData);
             block.setName(b.getId());
+            blocks.add(block);
         }
         
         // Check fileFormat to decide which parser to use
-        if (fileFormat != null && fileFormat.toLowerCase().contains("genepix")) {
+        if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("genepix")) {
             // process GenePix file
-            FileWrapper fileWrapper = new FileWrapper (filePath, "GenePix");
-            GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
+            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
+            try {
+                GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        else if (fileFormat != null && fileFormat.toLowerCase().contains("proscan")) {
-            FileWrapper fileWrapper = new FileWrapper (filePath, "Proscan");
+        else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
+            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
             GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
-        } else if (filePath.endsWith(".gpr") || filePath.endsWith(".txt")) {
-            FileWrapper fileWrapper = new FileWrapper (filePath, "GenePix");
+        } else if (file.getIdentifier().endsWith(".gpr") || file.getIdentifier().endsWith(".txt")) {
+            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
             GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
-        } else if (filePath.endsWith(".xls") || filePath.endsWith(".xlsx")) {
-            FileWrapper fileWrapper = new FileWrapper (filePath, "Proscan");
+        } else if (file.getIdentifier().endsWith(".xls") || file.getIdentifier().endsWith(".xlsx")) {
+            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
             GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
         }
-        
-        PowerLevel pl = new PowerLevel();
-        pl.setPowerLevel(powerLevel);
         
         for (Block block: slide.getBlocks()) {
             if (block.getMeasurementSetMap() != null) {
-                MeasurementSet set = block.getMeasurementSetMap().get(pl);
+                MeasurementSet set = null;
+                for (PowerLevel key: block.getMeasurementSetMap().keySet()) {
+                    if (key.getPowerLevel().equals(powerLevel)) 
+                        set = block.getMeasurementSetMap().get(key);
+                }
                 if (set == null)
                     break;
                 Collection<org.grits.toolbox.glycanarray.om.model.Measurement> measurements = set.getMeasurementMap().values();

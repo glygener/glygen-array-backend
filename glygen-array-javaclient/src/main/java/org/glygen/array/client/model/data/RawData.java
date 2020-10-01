@@ -8,7 +8,6 @@ import org.glygen.array.client.model.metadata.ImageAnalysisSoftware;
 
 import java.util.List;
 
-
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -24,8 +23,7 @@ public class RawData {
     Image image;
     Slide slide;
     
-    String filename;  // name of the raw data file in uploaded file folder or any other designated data folder
-    String fileFormat; // GenePix or Proscan
+    FileWrapper file;
     Double powerLevel = 100.0;  // 100% or less
 
     Date dateModified;
@@ -86,20 +84,6 @@ public class RawData {
      */
     public void setImage(Image image) {
         this.image = image;
-    }
-
-    /**
-     * @return the filename
-     */
-    public String getFilename() {
-        return filename;
-    }
-
-    /**
-     * @param filename the filename to set
-     */
-    public void setFilename(String filename) {
-        this.filename = filename;
     }
 
     /**
@@ -192,20 +176,6 @@ public class RawData {
     }
 
     /**
-     * @return the fileFormat
-     */
-    public String getFileFormat() {
-        return fileFormat;
-    }
-
-    /**
-     * @param fileFormat the fileFormat to set
-     */
-    public void setFileFormat(String fileFormat) {
-        this.fileFormat = fileFormat;
-    }
-
-    /**
      * @return the dataMap
      */
     @JsonIgnore
@@ -232,6 +202,20 @@ public class RawData {
      */
     public void setPowerLevel(Double powerLevel) {
         this.powerLevel = powerLevel;
+    }
+
+    /**
+     * @return the file
+     */
+    public FileWrapper getFile() {
+        return file;
+    }
+
+    /**
+     * @param file the file to set
+     */
+    public void setFile(FileWrapper file) {
+        this.file = file;
     }
 
 }

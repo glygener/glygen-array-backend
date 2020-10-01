@@ -104,6 +104,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#has_assay_template -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_assay_template">
+        <rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/assay"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/template#assay_template"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#has_block_layout -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_block_layout">
@@ -420,6 +430,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/data/unit_of_measurement -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/unit_of_measurement"/>
+    
+
+
+    <!-- http://purl.org/gadr/template#assay_template -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#assay_template">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
+        <rdfs:comment>Template specific to Assay metadata category</rdfs:comment>
+        <rdfs:label>Assay Template</rdfs:label>
+    </owl:Class>
     
 
 

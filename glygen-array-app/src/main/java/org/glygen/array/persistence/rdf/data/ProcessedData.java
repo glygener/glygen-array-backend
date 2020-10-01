@@ -13,6 +13,7 @@ public class ProcessedData {
     DataProcessingSoftware metadata;
     
     StatisticalMethod method;
+    FileWrapper file;
     
     /**
      * @return the intensity
@@ -73,5 +74,17 @@ public class ProcessedData {
      */
     public void setMethod(StatisticalMethod method) {
         this.method = method;
+    }
+    /**
+     * @return the file
+     */
+    public FileWrapper getFile() {
+        return file;
+    }
+    /**
+     * @param file the file to set
+     */
+    public void setFile(FileWrapper file) {
+        this.file = file;
     }
 }

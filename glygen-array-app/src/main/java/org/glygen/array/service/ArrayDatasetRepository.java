@@ -10,6 +10,7 @@ import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
@@ -22,13 +23,19 @@ public interface ArrayDatasetRepository {
     
     String addArrayDataset (ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
+    ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, boolean loadAll) throws SparqlException, SQLException;
     int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException;
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDatasetByLabel (String label, UserEntity user) throws SparqlException, SQLException;
+    ArrayDataset getArrayDatasetByLabel(String label, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
     
     String addProcessedData(ProcessedData processedData, String datasetId, UserEntity user)
             throws SparqlException, SQLException;
@@ -100,6 +107,15 @@ public interface ArrayDatasetRepository {
     DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
+    String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException;
+    List<AssayMetadata> getAssayMetadataByUser (UserEntity user) throws SparqlException, SQLException;
+    List<AssayMetadata> getAssayMetadataByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+    List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    int getAssayMetadataCountByUser(UserEntity user) throws SQLException, SparqlException;
+    AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    AssayMetadata getAssayMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException;
+    
     MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException;
     void updateMetadata(MetadataCategory metadata, UserEntity user) throws SparqlException, SQLException;
     void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException;
@@ -108,6 +124,10 @@ public interface ArrayDatasetRepository {
     boolean canDeletePrintedSlide(String uri, String parentURI, UserEntity user) throws SparqlException, SQLException;
     void deleteRawData(String rawDataId, String parentId, UserEntity user) throws SQLException, SparqlException;
     void deleteProcessedData(String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException;
-    RawData getRawDataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    
+    RawData getRawDataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    
+   
+    
 
 }

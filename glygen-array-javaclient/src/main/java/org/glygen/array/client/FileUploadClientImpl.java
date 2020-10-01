@@ -9,6 +9,7 @@ import java.util.Arrays;
 import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.LoginRequest;
 import org.glygen.array.client.model.UploadResult;
+import org.glygen.array.client.model.data.FileWrapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,7 +32,7 @@ public class FileUploadClientImpl implements FileUploadClient {
      * {@inheritDoc}
      */
     @Override
-    public String uploadFile(String filePath) throws CustomClientException {
+    public FileWrapper uploadFile(String filePath) throws CustomClientException {
         if (token == null) login(this.username, this.password);
         
         File file = new File (filePath); 
@@ -45,7 +46,7 @@ public class FileUploadClientImpl implements FileUploadClient {
             int chunkNumber = 1;
             int totalChunks = (int) Math.ceil(((double)file.length()) / ((double)sizeOfFiles));
             
-            String assignedFileName = null;
+            FileWrapper resultFile = null;
 
             //try-with-resources to ensure closing stream
             try (FileInputStream fis = new FileInputStream(file);
@@ -62,9 +63,9 @@ public class FileUploadClientImpl implements FileUploadClient {
                 }
                 if (result.getStatusCode() == HttpStatus.OK.value()) {
                     // finished uploading
-                    assignedFileName = result.getAssignedFileName();
+                    resultFile = result.getFile();
                 }
-                return assignedFileName;
+                return resultFile;
             } catch (IOException e) {
                 throw new CustomClientException ("The file cannot be uploaded: " +  e.getMessage());
             }

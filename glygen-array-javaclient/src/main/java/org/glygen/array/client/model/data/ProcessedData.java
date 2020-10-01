@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.glygen.array.client.model.metadata.DataProcessingSoftware;
 
+
 public class ProcessedData {
     
     String id;
@@ -13,6 +14,7 @@ public class ProcessedData {
     DataProcessingSoftware metadata;
     
     StatisticalMethod method;
+    FileWrapper file;
     
     /**
      * @return the intensity
@@ -73,5 +75,17 @@ public class ProcessedData {
      */
     public void setMethod(StatisticalMethod method) {
         this.method = method;
+    }
+    /**
+     * @return the file
+     */
+    public FileWrapper getFile() {
+        return file;
+    }
+    /**
+     * @param file the file to set
+     */
+    public void setFile(FileWrapper file) {
+        this.file = file;
     }
 }

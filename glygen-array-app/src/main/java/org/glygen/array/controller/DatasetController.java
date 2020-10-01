@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityNotFoundException;
@@ -19,11 +21,15 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
@@ -191,7 +197,7 @@ public class DatasetController {
         // check for duplicate name
         try {
             if (dataset.getName() != null) {
-                ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName().trim(), user);
+                ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName().trim(), false, user);
                 if (existing != null) {
                     errorMessage.addError(new ObjectError("name", "Duplicate"));
                 }
@@ -204,8 +210,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
         
         try {
-            String datasetId = datasetRepository.addArrayDataset(dataset, user);    
-            return datasetId;
+            String uri = datasetRepository.addArrayDataset(dataset, user);    
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
         }
@@ -240,7 +247,7 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the dataset with the given id exists
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
@@ -283,10 +290,13 @@ public class DatasetController {
         }
         
         // check to make sure, the file is specified and exists in the uploads folder
-        if (rawData.getFilename() == null) {
+        if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
             errorMessage.addError(new ObjectError("filename", "NotFound"));
         } else {
-            File file = new File (uploadDir, rawData.getFilename());
+            String fileFolder = uploadDir;
+            if (rawData.getFile().getFileFolder() != null)
+                fileFolder = rawData.getFile().getFileFolder();
+            File file = new File (fileFolder, rawData.getFile().getIdentifier());
             if (!file.exists()) {
                 errorMessage.addError(new ObjectError("file", "NotFound"));
             }
@@ -296,7 +306,7 @@ public class DatasetController {
                 if (!experimentFolder.exists()) {
                     experimentFolder.mkdirs();
                 }
-                File newFile = new File(experimentFolder + File.separator + rawData.getFilename());
+                File newFile = new File(experimentFolder + File.separator + rawData.getFile().getIdentifier());
                 if(file.renameTo (newFile)) { 
                          // if file copied successfully then delete the original file 
                     file.delete(); 
@@ -304,17 +314,18 @@ public class DatasetController {
                 } else { 
                     throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
                 } 
+                rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 
                 // check to make sure the image is specified and image file is in uploads folder
-                if (rawData.getImage() != null && rawData.getImage().getFileName() != null) {
+                if (rawData.getImage() != null && rawData.getImage().getFile() != null && rawData.getImage().getFile().getIdentifier() != null) {
                     // move it to the dataset folder
-                    File imageFile = new File (uploadDir, rawData.getImage().getFileName());
+                    File imageFile = new File (uploadDir, rawData.getImage().getFile().getIdentifier());
                     if (!imageFile.exists()) {
                         errorMessage.addError(new ObjectError("imageFile", "NotFound"));
                     }
                     else {
                         if(imageFile.renameTo 
-                                (new File(experimentFolder + File.separator + rawData.getImage().getFileName()))) { 
+                                (new File(experimentFolder + File.separator + rawData.getImage().getFile().getIdentifier()))) { 
                                  // if file copied successfully then delete the original file 
                             imageFile.delete(); 
                             
@@ -322,10 +333,11 @@ public class DatasetController {
                             throw new GlycanRepositoryException("Image file cannot be moved to the dataset folder");
                         } 
                     }
+                    rawData.getImage().getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 }
-                else {
-                    errorMessage.addError(new ObjectError("image", "NoEmpty"));
-                }
+                //else {   // image is not mandatory!!!
+                //    errorMessage.addError(new ObjectError("image", "NoEmpty"));
+                //}
             }
         }
         
@@ -363,7 +375,7 @@ public class DatasetController {
         
         if (rawData.getImage() != null && rawData.getImage().getScanner() == null) {
             errorMessage.addError(new ObjectError("scannerMetadata", "NoEmpty"));
-        } else {
+        } else if (rawData.getImage() != null) {
             try {
                 if (rawData.getImage().getScanner().getName() != null) {
                     ScannerMetadata metadata = datasetRepository.getScannerMetadataByLabel(rawData.getImage().getScanner().getName(), user);
@@ -392,6 +404,38 @@ public class DatasetController {
                 throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
             }
         }
+        
+        if (rawData.getSlide() != null && rawData.getSlide().getMetadata() == null) {
+            errorMessage.addError(new ObjectError("assayMetadata", "NoEmpty"));
+        } else if (rawData.getSlide() != null) {
+            try {
+                if (rawData.getSlide().getMetadata().getName() != null) {
+                    AssayMetadata metadata = datasetRepository.getAssayMetadataByLabel(rawData.getSlide().getMetadata().getName(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        rawData.getSlide().setMetadata(metadata);
+                    }
+                } else if (rawData.getImage().getScanner().getUri() != null) {
+                    AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(rawData.getSlide().getMetadata().getUri(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        rawData.getSlide().setMetadata(metadata);
+                    }
+                } else if (rawData.getImage().getScanner().getId() != null) {
+                    AssayMetadata metadata = 
+                            datasetRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getSlide().getMetadata().getId(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        rawData.getSlide().setMetadata(metadata);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the assay metadata", e);
+            }
+        }
          
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
@@ -401,10 +445,25 @@ public class DatasetController {
             try {
                 if (rawData.getSlide() != null && rawData.getSlide().getPrintedSlide() != null 
                         && rawData.getSlide().getPrintedSlide().getLayout() != null) {
-                    // need to load the full layout before parsing'
+                    // need to load the full layout before parsing
                     SlideLayout fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
-                    rawData.setDataMap(RawdataParser.parse(uploadDir + File.separator + datasetId + File.separator + rawData.getFilename(), rawData.getFileFormat(), 
-                            fullLayout, rawData.getPowerLevel()));   
+                    // parse the file
+                    Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
+                    // check blocks used and extract only those measurements
+                    if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
+                        Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
+                        for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
+                            for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                                if (entry.getValue().getBlockId() == blockId) {
+                                    filteredMap.put(entry.getKey(), entry.getValue());
+                                    break;
+                                }
+                            }
+                        }
+                        rawData.setDataMap(filteredMap); 
+                    } else {
+                        rawData.setDataMap(dataMap);
+                    }                      
                 } else {
                     errorMessage.addError(new ObjectError("slideLayout", "NoEmpty"));
                     throw new IllegalArgumentException("Invalid Input: slide layout should be there", errorMessage);
@@ -414,7 +473,9 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("parseError", e.getMessage()));
                 throw new IllegalArgumentException("Invalid Input: Not a valid raw data file", errorMessage);
             }
-            return datasetRepository.addRawData(rawData, datasetId, user);
+            String uri = datasetRepository.addRawData(rawData, datasetId, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
         }
@@ -568,7 +629,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
         
         try {
-            return datasetRepository.addPrintedSlide(slide, user);
+            String uri = datasetRepository.addPrintedSlide(slide, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Printed slide cannot be added for user " + p.getName(), e);
         }
@@ -585,7 +648,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addDataProcessingSoftware (
             @ApiParam(required=true, value="Data processing software metadata to be added") 
-            @RequestBody DataProcessingSoftware metadata, Principal p) {
+            @RequestBody DataProcessingSoftware metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -637,11 +706,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (metadata, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -652,7 +723,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid Data processing software metadata information", errorMessage);
         
         try {
-            return datasetRepository.addDataProcessingSoftware(metadata, user);
+            String uri = datasetRepository.addDataProcessingSoftware(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Data processing software metadata cannot be added for user " + p.getName(), e);
         }
@@ -670,7 +743,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addImageAnalysisSoftware (
             @ApiParam(required=true, value="Image Analysis metadata to be added") 
-            @RequestBody ImageAnalysisSoftware metadata, Principal p) {
+            @RequestBody ImageAnalysisSoftware metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -722,11 +801,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (metadata, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }   
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -737,7 +818,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid image analysis metadata information", errorMessage);
         
         try {
-            return datasetRepository.addImageAnalysisSoftware(metadata, user);
+            String uri = datasetRepository.addImageAnalysisSoftware(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Image Analysis metadata cannot be added for user " + p.getName(), e);
         }
@@ -755,7 +838,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addPrinter (
             @ApiParam(required=true, value="Printer metadata to be added") 
-            @RequestBody Printer printer, Principal p) {
+            @RequestBody Printer printer, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -807,11 +896,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (printer, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (printer, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -822,9 +913,106 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid printer information", errorMessage);
         
         try {
-            return datasetRepository.addPrinter(printer, user);
+            String uri = datasetRepository.addPrinter(printer, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Printer cannot be added for user " + p.getName(), e);
+        }
+        
+    }
+    
+    @ApiOperation(value = "Add given assay metadata for the user")
+    @RequestMapping(value="/addAssayMetadata", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added assay metadata"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register assay metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addAssayMetadata (
+            @ApiParam(required=true, value="Assay metadata to be added") 
+            @RequestBody AssayMetadata metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if (metadata.getName() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "name", metadata.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if (metadata.getDescription() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "description", metadata.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (metadata.getName() == null || metadata.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
+            errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.assayTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
+        // check if the template exists
+        try {
+            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.ASSAY);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving assay template " + p.getName(), e1);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid assay information", errorMessage);
+        
+        try {
+            String uri = datasetRepository.addAssayMetadata(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Assay metadata cannot be added for user " + p.getName(), e);
         }
         
     }
@@ -840,20 +1028,18 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addProcessedDataFromExcel (
-            @ApiParam(required=true, value="uploaded Excel with the experiment results") 
-            @RequestParam("file") String uploadedFileName, 
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,        
-            @ApiParam(required=true, value="format/version of the file") 
-            @RequestParam("fileFormat")
-            String fileFormat,
+            @ApiParam(required=true, value="processed data file details such as name, original name, folder, format") 
+            @RequestBody
+            FileWrapper file,
             @ApiParam(required=true, value="Data processing software metadata id (must already be in the repository)") 
             @RequestParam("metadataId")
             String metadataId,
             @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
-            @RequestBody
-            StatisticalMethod method,
+            @RequestParam("methodName")
+            String methodName,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -861,13 +1047,32 @@ public class DatasetController {
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
-        if (uploadedFileName != null) {
-            File excelFile = new File(uploadDir, uploadedFileName);
+        if (file != null) {
+            String folder = uploadDir;
+            if (file.getFileFolder() != null) {
+                folder = file.getFileFolder();
+            }
+            File excelFile = new File(folder, file.getIdentifier());
             if (excelFile.exists()) {
-                
                 try {
+                    // move the file to the experiment folder
+                    // create a folder for the experiment, if it does not exists, and move the file into that folder
+                    File experimentFolder = new File (uploadDir + File.separator + datasetId);
+                    if (!experimentFolder.exists()) {
+                        experimentFolder.mkdirs();
+                    }
+                    File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
+                    if(excelFile.renameTo (newFile)) { 
+                             // if file copied successfully then delete the original file 
+                        excelFile.delete(); 
+                        
+                    } else { 
+                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+                    }
+                    file.setFileFolder(uploadDir + File.separator + datasetId);
+                    
                     // check if the dataset with the given id exists
-                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, user);
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         errorMessage.addError(new ObjectError("dataset", "NotFound"));
                     }
@@ -892,16 +1097,31 @@ public class DatasetController {
                         errorMessage.addError(new ObjectError("mapFile", "NotValid"));
                         throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
                     }
-                    ProcessedData processedData = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
-                            createConfigForVersion(fileFormat), user);
+                    ProcessedData processedData = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
+                            createConfigForVersion(file.getFileFormat()), user);
                     
-                    processedData.setMethod(method);
+                    List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
+                    StatisticalMethod found = null;
+                    for (StatisticalMethod method: methods) {
+                        if (method.getName().equalsIgnoreCase(methodName)) {
+                            found = method;
+                        }
+                    }
+                    if (found == null)
+                        errorMessage.addError(new ObjectError("method", "NotValid"));
+                    else {
+                        processedData.setMethod(found);
+                    }
+                        
                     processedData.setMetadata(metadata);
+                    processedData.setFile(file);
                     
-                    //TODO move the file to the temp folder so that it is deleted with the next cleanup
-                    // or keep the file with the experiment data??
+                    if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+                        throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
                     
-                    return datasetRepository.addProcessedData(processedData, datasetId, user);   
+                    String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
+                    String id = uri.substring(uri.lastIndexOf("/")+1);
+                    return id;
                 } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {
                     errorMessage.addError(new ObjectError("file", "NotValid"));
                     throw new IllegalArgumentException("File cannot be parsed", errorMessage);
@@ -935,24 +1155,9 @@ public class DatasetController {
         return config;
         
     }
-    
-    @ApiOperation(value = "Add given sample metadata for the user")
-    @RequestMapping(value="/addSample", method = RequestMethod.POST, 
-            consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register samples"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public String addSample (
-            @ApiParam(required=true, value="Sample metadata to be added") 
-            @RequestBody Sample sample, Principal p) {
-        return addSample(sample, true, p);
-    }
         
     @ApiOperation(value = "Add given sample metadata for the user")
-    @RequestMapping(value="/addSampleNoValidation", method = RequestMethod.POST, 
+    @RequestMapping(value="/addSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
@@ -966,6 +1171,9 @@ public class DatasetController {
             @ApiParam(required=false, defaultValue = "true", value="bypass mandatory/multiplicty validation checks if set to false (not recommended)") 
             @RequestParam(name="validate", required=false, defaultValue="true")
             Boolean validate, Principal p) {   
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1038,7 +1246,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
         
         try {
-            return datasetRepository.addSample(sample, user);
+            String uri = datasetRepository.addSample(sample, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Sample cannot be added for user " + p.getName(), e);
         }
@@ -1056,7 +1266,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addScanner (
             @ApiParam(required=true, value="Scanner metadata to be added") 
-            @RequestBody ScannerMetadata metadata, Principal p) {
+            @RequestBody ScannerMetadata metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1108,11 +1324,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (metadata, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -1124,12 +1342,15 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid scanner information", errorMessage);
         
         try {
-            return datasetRepository.addScannerMetadata(metadata, user);
+            String uri = datasetRepository.addScannerMetadata(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Scanner cannot be added for user " + p.getName(), e);
         }
         
     }
+    
     
     @ApiOperation(value = "Add given slide metadata for the user")
     @RequestMapping(value="/addSlideMetadata", method = RequestMethod.POST, 
@@ -1142,7 +1363,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public String addSlideMetadata (
             @ApiParam(required=true, value="Slide metadata to be added") 
-            @RequestBody SlideMetadata metadata, Principal p) {
+            @RequestBody SlideMetadata metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1194,11 +1421,13 @@ public class DatasetController {
             else {
                 // validate mandatory/multiple etc.
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
-                ErrorMessage err = validateMetadata (metadata, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                }    
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }  
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -1209,7 +1438,9 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid slide metadata information", errorMessage);
         
         try {
-            return datasetRepository.addSlideMetadata(metadata, user);
+            String uri = datasetRepository.addSlideMetadata(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Slide metadata cannot be added for user " + p.getName(), e);
         }
@@ -1246,6 +1477,9 @@ public class DatasetController {
             break;
         case IMAGEANALYSISSOFTWARE:
             typePredicate = ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate;
+            break;
+        case ASSAY:
+            typePredicate = ArrayDatasetRepositoryImpl.assayTypePredicate;
             break;
         }
         MetadataCategory metadata = null;
@@ -1296,6 +1530,8 @@ public class DatasetController {
         case SLIDE:
             metadata = getSlideMetadata(metadataId, p);
             break;
+        case ASSAY:
+            metadata = getAssayMetadata(metadataId, p);
         default:
             break;
         }
@@ -1433,6 +1669,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
         ArrayDatasetListView result = new ArrayDatasetListView();
@@ -1457,7 +1695,7 @@ public class DatasetController {
             
             int total = datasetRepository.getArrayDatasetCountByUser(user);
             
-            List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue);
+            List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue, loadAll);
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
@@ -1598,7 +1836,7 @@ public class DatasetController {
             @ApiResponse(code=403, message="Not enough privileges"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public MetadataListResultView listImageanAlysisSoftware (
+    public MetadataListResultView listImageAnalysisSoftware (
             @ApiParam(required=true, value="offset for pagination, start from 0") 
             @RequestParam("offset") Integer offset,
             @ApiParam(required=false, value="limit of the number of items to be retrieved") 
@@ -1858,7 +2096,62 @@ public class DatasetController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve data processing software for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve slide metadata for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all assay metadata for the user")
+    @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listAssayMetadata (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        MetadataListResultView result = new MetadataListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getAssayMetadataCountByUser(user);
+            
+            List<AssayMetadata> metadataList = datasetRepository.getAssayMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve assay metadata for user. Reason: " + e.getMessage());
         }
         
         return result;
@@ -2033,14 +2326,14 @@ public class DatasetController {
             ArrayDataset dataset = getArrayDataset(id, principal);
             if (dataset != null && dataset.getRawDataList() != null) {
                 for (RawData rawData: dataset.getRawDataList()) {
-                    if (rawData.getFilename() != null) {
-                        File rawDataFile = new File (uploadDir, id + File.separator + rawData.getFilename());
+                    if (rawData.getFile() != null) {
+                        File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
                         if (rawDataFile.exists()) {
                             rawDataFile.delete();
                         }
                     }
-                    if (rawData.getImage() != null) {
-                        File imageFile = new File (uploadDir, id + File.separator + rawData.getImage().getFileName());
+                    if (rawData.getImage() != null && rawData.getImage().getFile() != null) {
+                        File imageFile = new File (rawData.getImage().getFile().getFileFolder(), rawData.getImage().getFile().getIdentifier());
                         if (imageFile.exists()) {
                             imageFile.delete();
                         }
@@ -2082,17 +2375,17 @@ public class DatasetController {
             
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             
-            RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
+            RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, user);
             //delete the files associated with the rawdata
             if (rawData != null) {
-                if (rawData.getFilename() != null) {
-                    File rawDataFile = new File (uploadDir, id + File.separator + rawData.getFilename());
+                if (rawData.getFile() != null) {
+                    File rawDataFile = new File (rawData.getFile().getFileFolder(), id + rawData.getFile().getIdentifier());
                     if (rawDataFile.exists()) {
                         rawDataFile.delete();
                     }
                 }
-                if (rawData.getImage() != null) {
-                    File imageFile = new File (uploadDir, id + File.separator + rawData.getImage().getFileName());
+                if (rawData.getImage() != null && rawData.getImage().getFile() != null) {
+                    File imageFile = new File (rawData.getImage().getFile().getFileFolder(), rawData.getImage().getFile().getIdentifier());
                     if (imageFile.exists()) {
                         imageFile.delete();
                     }
@@ -2253,6 +2546,26 @@ public class DatasetController {
             return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given assay metadata from the user's list")
+    @RequestMapping(value="/deleteassaymetadata/{assayId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete assay metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteAssayMetadata (
+            @ApiParam(required=true, value="id of the assay metadata to delete") 
+            @PathVariable("assayId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deleteMetadata(id, user);
+            return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete assay metadata " + id, e);
         } 
     }
     
@@ -2460,6 +2773,30 @@ public class DatasetController {
             return metadata;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("DataProcessingSoftware cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve assay metadata with the given id")
+    @RequestMapping(value="/getAssayMetadata/{assayId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Assay metadata with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public AssayMetadata getAssayMetadata (
+            @ApiParam(required=true, value="id of the Assay metadata to retrieve") 
+            @PathVariable("assayId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Assay metadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
     
@@ -2722,6 +3059,22 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Update given assay metadata for the user")
+    @RequestMapping(value = "/updateAssayMetadata", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="assay metadata updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update assay metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateAssayMetadata(
+            @ApiParam(required=true, value="Assay metadata with updated fields") 
+            @RequestBody DataProcessingSoftware metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.ASSAY, p);
+        
+    }
      
     private Confirmation updateMetadata (MetadataCategory metadata, MetadataTemplateType type, Principal p) {
         ErrorMessage errorMessage = new ErrorMessage();
@@ -2802,6 +3155,9 @@ public class DatasetController {
                     break;
                 case DATAPROCESSINGSOFTWARE:
                     existing = datasetRepository.getDataProcessingSoftwareByLabel(metadata.getName(), user);
+                    break;
+                case ASSAY:
+                    existing = datasetRepository.getAssayMetadataByLabel(metadata.getName(), user);
                     break;
                 }
                     

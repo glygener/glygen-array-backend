@@ -3,10 +3,19 @@ package org.glygen.array.client;
 import java.io.File;
 import java.util.Arrays;
 
+import org.glygen.array.client.exception.CustomClientException;
 import org.glygen.array.client.model.ProcessedResultConfiguration;
 import org.glygen.array.client.model.User;
 import org.glygen.array.client.model.data.ArrayDataset;
+import org.glygen.array.client.model.data.FileWrapper;
+import org.glygen.array.client.model.data.PrintedSlide;
+import org.glygen.array.client.model.data.ProcessedData;
+import org.glygen.array.client.model.data.RawData;
+import org.glygen.array.client.model.data.Slide;
 import org.glygen.array.client.model.data.StatisticalMethod;
+import org.glygen.array.client.model.metadata.AssayMetadata;
+import org.glygen.array.client.model.metadata.DataProcessingSoftware;
+import org.glygen.array.client.model.metadata.ImageAnalysisSoftware;
 import org.glygen.array.client.model.metadata.Sample;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -31,7 +40,6 @@ public class CFGDatasetApplication implements CommandLineRunner {
 
     private static final Logger log = (Logger) LoggerFactory.getLogger(Application.class);
     
-    private RestTemplate restTemplate = new RestTemplate();
     
     @Bean
     @ConfigurationProperties("glygen")
@@ -46,8 +54,11 @@ public class CFGDatasetApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         GlygenSettings settings = glygen();
+        
+        String url = settings.scheme + settings.host + settings.basePath;
         UserRestClient userClient = new UserRestClientImpl();
-        userClient.setURL(settings.scheme + settings.host + settings.basePath);
+        userClient.setURL(url);
+        
         if (args == null || args.length < 3) {
             log.error("need to pass username and password and processed file folder as arguments");
             return;
@@ -55,6 +66,7 @@ public class CFGDatasetApplication implements CommandLineRunner {
         userClient.login(args[0], args[1]);
         User user = userClient.getUser(args[0]);
         log.info("got user information:" + user.getEmail());
+        
         // read all folders in the given folder
         File dataFolder = new File (args[2]);
         if (!dataFolder.isDirectory()) {
@@ -62,88 +74,133 @@ public class CFGDatasetApplication implements CommandLineRunner {
             return;
         }
         
-        String url = settings.scheme + settings.host + settings.basePath;
+        String statisticalMethod = "Eliminate";
         
-        StatisticalMethod method = new StatisticalMethod();
-        method.setName("Eliminate");
-        method.setUri("http://purl.org/gadr/data/eliminate");
+        FileUploadClient fileClient = new FileUploadClientImpl();
+        fileClient.setURL(url);
+        fileClient.setUsername(args[0]);
+        fileClient.setPassword(args[1]);
+        
+        DatasetRestClient datasetClient = new DatasetRestClientImpl();
+        datasetClient.setURL(url);
+        datasetClient.setUsername(args[0]);
+        datasetClient.setPassword(args[1]);
+        
+        DataProcessingSoftware metadata = new DataProcessingSoftware();
+        metadata.setName("CFG Excel");
+        metadata.setDescription("CFG 5.2 Excel with Elimination");
+        metadata.setTemplate("Protein Dataprocessingsoftware");
+        
+        String metadataId = null;
+        try {
+            metadataId = datasetClient.addDataProcessingMetadata(metadata, false);
+        } catch (CustomClientException e) {
+            System.out.println ("Error adding the data processing metadata: " + e.getBody());
+            // to see if we can retrieve it
+            metadataId = datasetClient.getDataProcessingMetadataByLabel ("CFG Excel");
+        }
         
         String[] datasetFolders = dataFolder.list();
         for (String experimentName: datasetFolders) {
             File experimentFolder = new File (dataFolder + File.separator + experimentName);
             if (experimentFolder.isDirectory()) {
-                String experimentFileName = experimentFolder.list()[0];   // there should be a single file
-                String sampleName = experimentFileName.substring(0, experimentFileName.lastIndexOf(".xls"));
+                String processedDataFile = null;
+                String rawDataFile = null;
+                for (String filename: experimentFolder.list()) {
+                    if (filename.endsWith(".xls")) {
+                        processedDataFile = filename;
+                    } else if (filename.endsWith(".txt"))
+                        rawDataFile = filename;
+                }
+                
+                String sampleName = processedDataFile.substring(0, processedDataFile.lastIndexOf(".xls"));
                 Sample sample = new Sample();
                 sample.setName(sampleName);
                 sample.setTemplate("Protein Sample");
-                String sampleId = addSample(url, userClient.getToken(), sample);
-                sample.setId(sampleId);
-                // need to upload the file first!!!
+                
                 try {
-                    String dataSetID = addDataset(url, userClient.getToken(), "CFG 5.2", method, dataFolder.getName() + File.separator + experimentName + File.separator + experimentFileName, experimentName, sample);
-                    log.debug("Added dataset " + dataSetID + " for " + experimentName);
+                    // create the sample
+                    String sampleId = datasetClient.getSampleByLabel(sampleName);
+                    if (sampleId == null) {
+                        try {
+                            sampleId = datasetClient.addSample(sample, false);
+                        } catch (CustomClientException e1) {
+                            System.out.println ("Error adding the sample: " + e1.getBody());
+                        }
+                    }
+                    sample.setId(sampleId);
+                    
+                    String datasetID = null;
+                    ArrayDataset existing = datasetClient.getDatasetByLabel (experimentName);
+                    if (existing == null) {
+                        try { 
+                            // create the array dataset
+                            datasetID = datasetClient.addDataset(experimentName, sample);
+                        } catch (CustomClientException e1) {
+                            System.out.println ("Error adding the dataset: " + experimentName + "Reason: " + e1.getBody());
+                        }
+                    } else {
+                        datasetID = existing.getId();
+                    }
+                    
+                    FileWrapper file = null;
+                    FileWrapper rawFile = null;
+                    if (existing != null) {
+                        // check if we already uploaded this file
+                        for (ProcessedData data: existing.getProcessedData()) {
+                            if (data.getFile() != null) {
+                                if (data.getFile().getOriginalName().equals(processedDataFile)) {
+                                    // skip uploading
+                                    file = data.getFile();
+                                }
+                            }
+                        }
+                        if (rawDataFile != null) {
+                            for (RawData data: existing.getRawDataList()) {
+                                if (data.getFile() != null) {
+                                    if (data.getFile().getOriginalName().equals(rawDataFile)) {
+                                        // skip uploading
+                                        rawFile = data.getFile();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    /*if (file == null) {
+                        // upload the file
+                        file = fileClient.uploadFile(dataFolder.getPath() + File.separator + experimentName + File.separator + processedDataFile);
+                        file.setFileFormat("CFG 5.2");
+                        
+                        // add the processed data
+                        datasetClient.addProcessedDataFromExcel(file, statisticalMethod, datasetID, metadataId);
+                        log.debug("Added dataset " + datasetID + " for " + experimentName);
+                    }*/
+                    
+                    if (rawDataFile != null && rawFile == null) {
+                        // upload the file
+                        file = fileClient.uploadFile(dataFolder.getPath() + File.separator + experimentName + File.separator + rawDataFile);
+                        file.setFileFormat("GenePix Results 3");
+                        
+                        RawData rawData = new RawData();
+                        rawData.setFile(file);
+                        rawData.setPowerLevel(10.0);
+                        PrintedSlide printedSlide = new PrintedSlide();
+                        printedSlide.setName("CFG5.2Slide");
+                        Slide slide = new Slide();
+                        slide.setPrintedSlide(printedSlide);
+                        rawData.setSlide(slide); 
+                        AssayMetadata assayMetadata = new AssayMetadata();
+                        assayMetadata.setName("");   //TODO set the name to an existing one
+                        ImageAnalysisSoftware analyisMetadata = new ImageAnalysisSoftware();
+                        analyisMetadata.setName("CFGImageMetadata");
+                        rawData.setMetadata(analyisMetadata);
+                        slide.setMetadata(assayMetadata);
+                        datasetClient.addRawdataToDataset(rawData, datasetID);
+                    }
                 } catch (Exception e) {
-                    System.out.println("Failed: " + dataFolder.getName() + File.separator + experimentName + File.separator + experimentFileName);
+                    System.out.println("Failed: " + dataFolder.getName() + File.separator + experimentName + File.separator + processedDataFile);
                 }
             }
-        }
-    }
-        
-    private String addSample(String url, String token, Sample sample) {
-        //set the header with token
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.add("Authorization", token);
-        HttpEntity<Sample> requestEntity = new HttpEntity<Sample>(sample, headers);
-        url = url + "array/addSampleNoValidation?validate=false";
-        System.out.println("URL: " + url);
-        
-        try {
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-            return response.getBody();
-        } catch (HttpClientErrorException e) {
-            System.out.println ("Error processing the file: " + e.getMessage());
-            return null;
-        }
-    }
-
-    String addDataset(String url, String token, String fileFormat, StatisticalMethod method, String file, String experimentName, Sample sample) {
-        //set the header with token
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        headers.add("Authorization", token);
-        
-        // first add the dataset
-        ArrayDataset dataset = new ArrayDataset();
-        dataset.setName(experimentName);
-        dataset.setSample(sample);
-        HttpEntity<ArrayDataset> requestEntity = new HttpEntity<ArrayDataset>(dataset, headers);
-        url = url + "array/addDataset";
-        System.out.println("URL: " + url);
-        
-        String datasetId = null;
-        try {
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-            datasetId = response.getBody();
-        } catch (HttpClientErrorException e) {
-            System.out.println ("Error adding the array dataset: " + e.getMessage());
-            return null;
-        }
-        
-        // then add the processed data
-        
-        HttpEntity<StatisticalMethod> requestEntity2 = new HttpEntity<StatisticalMethod>(method, headers);
-        
-        url = url + "array/addDatasetFromExcel?file=" + file + "&arraydatasetId=" + datasetId + "&fileFormat=" + fileFormat;
-        System.out.println("URL: " + url);
-        
-        try {
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, requestEntity2, String.class);
-            return response.getBody();
-        } catch (HttpClientErrorException e) {
-            System.out.println ("Error processing the file: " + e.getMessage());
-            return null;
         }
     }
     

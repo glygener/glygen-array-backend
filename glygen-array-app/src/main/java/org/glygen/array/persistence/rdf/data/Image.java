@@ -6,8 +6,10 @@ public class Image {
     
     String id;
     String uri;
-    String fileName;
-    ScannerMetadata scanner;
+    FileWrapper file;
+    ScannerMetadata scanner; 
+    String description;
+    
     /**
      * @return the id
      */
@@ -33,16 +35,16 @@ public class Image {
         this.uri = uri;
     }
     /**
-     * @return the fileName
+     * @return the file
      */
-    public String getFileName() {
-        return fileName;
+    public FileWrapper getFile() {
+        return file;
     }
     /**
-     * @param fileName the fileName to set
+     * @param file the file to set
      */
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setFile(FileWrapper file) {
+        this.file = file;
     }
     /**
      * @return the scanner
@@ -55,6 +57,18 @@ public class Image {
      */
     public void setScanner(ScannerMetadata scanner) {
         this.scanner = scanner;
+    }
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

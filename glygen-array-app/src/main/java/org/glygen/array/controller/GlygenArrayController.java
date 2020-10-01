@@ -64,6 +64,7 @@ import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -318,7 +319,9 @@ public class GlygenArrayController {
             throw new IllegalArgumentException("Invalid Input: Not a valid block layout information", errorMessage);
 		
 		try {
-			return layoutRepository.addBlockLayout(layout, user);
+			String uri = layoutRepository.addBlockLayout(layout, user);
+			String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
@@ -435,7 +438,9 @@ public class GlygenArrayController {
     		        }
     		    } 
 		    }
-			return featureRepository.addFeature(feature, user);
+			String featureURI = featureRepository.addFeature(feature, user);
+			String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+			return id;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
 		}		
@@ -494,7 +499,9 @@ public class GlygenArrayController {
                     feature.setPositionMap(positionMapWithId);
                 }
             }
-			return featureRepository.addFeature(feature, user);
+			String featureURI = featureRepository.addFeature(feature, user);
+			String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+            return id;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
 		}		
@@ -1269,7 +1276,9 @@ public class GlygenArrayController {
 			throw new IllegalArgumentException("Invalid Input: Not a valid slide layout information", errorMessage);
 		
 		try {
-			return layoutRepository.addSlideLayout(layout, user);
+			String uri = layoutRepository.addSlideLayout(layout, user);
+			String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Slide layout cannot be added for user " + p.getName(), e);
 		}
@@ -2022,7 +2031,8 @@ public class GlygenArrayController {
 						}
 						
 						try {
-							addSlideLayout(slideLayout, p);
+							String id = addSlideLayout(slideLayout, p);
+							slideLayout.setId(id);
 							result.getAddedLayouts().add(createSlideLayoutView(slideLayout));
 						} catch (Exception e) {
 							if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
@@ -3227,8 +3237,7 @@ public class GlygenArrayController {
         ResumableFileInfo info = ResumableInfoStorage.getInstance().get(resumableIdentifier);
         if (info == null) {
             String extension = resumableFilename.substring(resumableFilename.lastIndexOf(".")+1);
-            String fileName = resumableFilename.substring(0, resumableFilename.lastIndexOf("."));
-        	String uniqueFileName = fileName + System.currentTimeMillis() + "." +  extension;
+        	String uniqueFileName = System.currentTimeMillis() + "." +  extension;
             String resumableFilePath = new File(uploadDir, uniqueFileName).getAbsolutePath() + ".temp";
         	info = new ResumableFileInfo();
             info.resumableChunkSize = resumableChunkSize;
@@ -3263,13 +3272,18 @@ public class GlygenArrayController {
         info.uploadedChunks.add(new ResumableFileInfo.ResumableChunkNumber(resumableChunkNumber));
         
         UploadResult result = new UploadResult();
-        result.setAssignedFileName(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1));
+        FileWrapper file = new FileWrapper();
+        file.setIdentifier(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1));
+        file.setOriginalName(resumableFilename);
+        file.setFileFolder(uploadDir);
+        result.setFile(file);
         
         if (info.checkIfUploadFinished()) { //Check if all chunks uploaded, and change filename
             ResumableInfoStorage.getInstance().remove(info);
             result.setStatusCode(HttpStatus.OK.value());
             int index = info.resumableFilePath.indexOf(".temp") == -1 ? info.resumableFilePath.length() : info.resumableFilePath.indexOf(".temp");
-            result.setAssignedFileName(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1, index));
+            file.setIdentifier(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1, index));
+            result.setFile(file);
             return result;
         } else {
         	result.setStatusCode(HttpStatus.ACCEPTED.value());

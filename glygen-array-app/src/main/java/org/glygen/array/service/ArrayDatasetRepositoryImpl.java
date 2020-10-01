@@ -20,7 +20,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
-import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
@@ -28,6 +27,7 @@ import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
@@ -35,6 +35,8 @@ import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
@@ -65,6 +67,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String slideTypePredicate = ontPrefix + "slide";
     public final static String printerTypePredicate = ontPrefix + "printer";
     public final static String scannerTypePredicate = ontPrefix + "scanner";
+    public final static String assayTypePredicate = ontPrefix + "assay";
     public final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
     public final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
     public final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";
@@ -93,6 +96,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String imageProcessingMetadataPredicate = ontPrefix + "has_image_processing_metadata";
     public final static String processingSoftwareMetadataPredicate = ontPrefix + "has_processing_software_metadata";
     public final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
+    public final static String assayMetadataPredicate = ontPrefix + "has_assay_metadata";
     public final static String printerMetadataPredicate = ontPrefix + "printed_by";
     public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
     public final static String hasFilePredicate = ontPrefix + "has_file";
@@ -109,6 +113,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
     public final static String hasMedianPredicate = ontPrefix + "has_median";
     
+    public final static String hasFileNamePredicate = ontPrefix + "has_filename";
+    public final static String hasOriginalFileNamePredicate = ontPrefix + "has_original_name";
+    public final static String hasFolderPredicate = ontPrefix + "has_folder";
+    public final static String hasFileFormatPredicate = ontPrefix + "has_file_format";
+    
     // Template ontology stuff
     public final static String hasSampleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_sample_template";
     public final static String hasSlideTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_slide_template";
@@ -116,6 +125,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasPrinterTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_printer_template";
     public final static String hasImageTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_image_analysis_software_template";
     public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
+    public final static String hasAssayTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_assay_template";
     
     
     @Autowired
@@ -180,8 +190,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             
             String datasetId = datasetURI.substring(datasetURI.lastIndexOf("/")+1);
-            if (dataset.getProcessedData() != null) {
-                addProcessedData(dataset.getProcessedData(), datasetId, user);
+            if (dataset.getProcessedData() != null &&dataset.getProcessedData().isEmpty()) {
+                for (ProcessedData processedData: dataset.getProcessedData()) {
+                    addProcessedData(processedData, datasetId, user);
+                }
             }
             
             if (dataset.getRawDataList() != null && !dataset.getRawDataList().isEmpty()) {
@@ -239,10 +251,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI slideIRI = f.createIRI(slideURI);
         IRI graphIRI = f.createIRI(graph);
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        IRI hasAssay = f.createIRI(assayMetadataPredicate);
         
         List<Statement> statements = new ArrayList<Statement>();
         if (slide.getImage() != null && slide.getImage().getUri() != null) {
             statements.add(f.createStatement(f.createIRI(slide.getImage().getUri()), scanOf, slideIRI, graphIRI));
+        }
+        
+        if (slide.getMetadata() != null && slide.getMetadata().getUri() != null) {
+            statements.add(f.createStatement(slideIRI, hasAssay, f.createIRI(slide.getMetadata().getUri()), graphIRI));
         }
         
         if (slide.getPrintedSlide() != null) {
@@ -340,6 +357,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFile = f.createIRI(hasFilePredicate);
         IRI measurementOf = f.createIRI(measurementOfPredicate);
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI graphIRI = f.createIRI(graph);
         IRI raw = f.createIRI(rawDataURI);
         
@@ -361,28 +382,40 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 slideURI = addSlide(rawData.getSlide(), datasetId, user);
             }
             statements.add(f.createStatement(raw, hasSlide, f.createIRI(slideURI), graphIRI));
-            for (Measurement measurement: rawData.getMeasurements()) {
-                String measurementURI = addMeasurement (measurement, statements, graph);
-                Spot spot = rawData.getDataMap().get(measurement);
-                if (spot.getUri() != null)
-                    statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
-                else {
-                    // find the spot
-                    Spot existing = layoutRepository.getSpotByPosition(slideURI.substring(slideURI.lastIndexOf("/")+1), 
-                            spot.getBlockId(), spot.getRow(), spot.getColumn(), user);
-                    if (existing != null)
-                        statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
+            if (rawData.getDataMap() != null) {
+                for (Measurement measurement: rawData.getDataMap().keySet()) {
+                    String measurementURI = addMeasurement (measurement, statements, graph);
+                    Spot spot = rawData.getDataMap().get(measurement);
+                    if (spot.getUri() != null)
+                        statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
                     else {
-                        throw new SparqlException ("The spot cannot be located in the repository");
+                        // find the spot
+                        Spot existing = layoutRepository.getSpotByPosition(slideURI.substring(slideURI.lastIndexOf("/")+1), 
+                                spot.getBlockId(), spot.getRow(), spot.getColumn(), user);
+                        if (existing != null)
+                            statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
+                        else {
+                            throw new SparqlException ("The spot cannot be located in the repository");
+                        }
                     }
+                    statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
                 }
-                statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
             }
         }
         
-        if (rawData.getFilename() != null) {
-            Literal fileLit = f.createLiteral(rawData.getFilename());
-            statements.add(f.createStatement(raw, hasFile, fileLit, graphIRI));
+        if (rawData.getFile() != null) {
+            String fileURI = generateUniqueURI(uriPrefix + "FILE", graph);
+            Literal fileName = f.createLiteral(rawData.getFile().getIdentifier());
+            Literal fileFolder = rawData.getFile().getFileFolder() == null ? null : f.createLiteral(rawData.getFile().getFileFolder());
+            Literal fileFormat = rawData.getFile().getFileFormat() == null ? null : f.createLiteral(rawData.getFile().getFileFormat());
+            Literal originalName = rawData.getFile().getOriginalName() == null ? null : f.createLiteral(rawData.getFile().getOriginalName());
+            IRI fileIRI = f.createIRI(fileURI);
+            statements.add(f.createStatement(raw, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            
         }
         
         IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
@@ -462,6 +495,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI integratedBy = f.createIRI(integratedByPredicate);   
         IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
         IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
         
         for (Intensity intensity: processedData.getIntensity()) {
             if (intensity == null) continue;
@@ -487,16 +525,28 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
         }
-        if (processedData.getMetadata() != null) {
-            // add metadata
-            String processingSoftwareMetadata = generateUniqueURI(uriPrefix + "PSM", graph);
-            addMetadata(processingSoftwareMetadata, processedData.getMetadata(), statements, graph);
-            statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processingSoftwareMetadata), graphIRI));
+        if (processedData.getMetadata() != null && processedData.getMetadata().getUri() != null) {
+            statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processedData.getMetadata().getUri()), graphIRI));
         }
         
         IRI method = processedData.getMethod() == null ? null: f.createIRI(processedData.getMethod().getUri());
         if (method != null) {
             statements.add(f.createStatement(processed, integratedBy, method, graphIRI));
+        }
+        
+        if (processedData.getFile() != null) {
+            String fileURI = generateUniqueURI(uriPrefix + "FILE", graph);
+            Literal fileName = f.createLiteral(processedData.getFile().getIdentifier());
+            Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
+            Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
+            Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
+            IRI fileIRI = f.createIRI(fileURI);
+            statements.add(f.createStatement(processed, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            
         }
         
         IRI arraydataset = f.createIRI(uriPrefix + datasetId);
@@ -701,6 +751,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public ArrayDataset getArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
+        return getArrayDataset(datasetId, true, user);
+    }
+    
+    @Override
+    public ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -710,11 +765,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (results.isEmpty())
             return null;
         else {
-            return getDatasetFromURI(uriPrefix + datasetId, user);
+            return getDatasetFromURI(uriPrefix + datasetId, loadAll, user);
         }
     }
-
-    private ArrayDataset getDatasetFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        
+    private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         
         ArrayDataset datasetObject = null;
         
@@ -756,6 +811,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.setIsPublic(true);
             }
             datasetObject.setRawDataList(new ArrayList<RawData>());
+            datasetObject.setProcessedData(new ArrayList<ProcessedData>());
             datasetObject.setSlides(new ArrayList<Slide>());
         }
         
@@ -801,13 +857,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, user));            
             } else if (st.getPredicate().equals(hasRawData)) {
                 Value uriValue = st.getObject();
-                datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), user));        
+                datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, user));        
             } else if (st.getPredicate().equals(hasSlide)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 Value uriValue = st.getObject();
                 datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), user));            
             } else if (st.getPredicate().equals(hasProcessedData)) {
                 Value uriValue = st.getObject();
-                datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), user));            
+                datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, user));            
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the arrray dataset is already public
@@ -823,13 +881,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, null));            
                     } else if (stPublic.getPredicate().equals(hasRawData)) {
                         uriValue = st.getObject();
-                        datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), null));        
+                        if (loadAll != null && loadAll)
+                            datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, null));        
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = st.getObject();
+                        if (loadAll != null && !loadAll)
+                            continue;
                         datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), null));            
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = st.getObject();
-                        datasetObject.setProcessedData(getProcessedDataFromURI(uriValue.stringValue(), null));            
+                        if (loadAll != null && loadAll)
+                            datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, null));            
                     }
                 }
             }
@@ -903,10 +965,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return getArrayDatasetByUser(user, offset, limit, field, order, null);
     }
 
-
     @Override
     public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException {
+        return getArrayDatasetByUser(user, offset, limit, field, order, searchValue, true);
+    }
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, boolean loadAll) throws SparqlException, SQLException {
         List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
         
         String graph = null;
@@ -920,7 +987,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
-                ArrayDataset dataset = getDatasetFromURI(uri, user);
+                ArrayDataset dataset = getDatasetFromURI(uri, loadAll, user);
                 if (dataset != null)
                     datasets.add(dataset);    
             }
@@ -1055,6 +1122,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (typePredicate.equals(dataProcessingTypePredicate)) {
                 metadataObject = new DataProcessingSoftware();
                 templatePredicate = hasDataprocessingTemplatePredicate;
+            } else if (typePredicate.equals(assayTypePredicate)) {
+                metadataObject = new AssayMetadata();
+                templatePredicate = hasAssayTemplatePredicate;
             }
             metadataObject.setUri(uri);
             metadataObject.setId(uri.substring(uri.lastIndexOf("/")+1));
@@ -1431,7 +1501,39 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return metadataList;
     }
+    
+    @Override
+    public String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.ASSAY, hasAssayTemplatePredicate, assayTypePredicate, "A", user);
+    }
 
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user) throws SparqlException, SQLException {
+       return getAssayMetadataByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getAssayMetadataByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<AssayMetadata> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, assayTypePredicate);
+        for (MetadataCategory m: list) {
+            metadataList.add(new AssayMetadata(m));
+        }
+        
+        return metadataList;
+    }
+    
     @Override
     public int getDataProcessingSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException {
         String graph = null;
@@ -1441,6 +1543,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         return getCountByUserByType(graph, dataProcessingTypePredicate);
+    }
+    
+    @Override
+    public int getAssayMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, assayTypePredicate);
     }
     
     private String addImage(Image image, List<Statement> statements, String graph) throws SparqlException {
@@ -1454,19 +1567,33 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI graphIRI = f.createIRI(graph);
         IRI imageIRI = f.createIRI(imageURI);
         IRI metadataIRI = scannerMetadataURI == null ? null : f.createIRI(scannerMetadataURI);
-        IRI hasFileName = f.createIRI(hasFilePredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
         IRI hasScanner = f.createIRI(scannerMetadataPredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         
-        Literal filename = image.getFileName() == null ? null : f.createLiteral(image.getFileName());
+        if (image.getFile() != null) {
+            String fileURI = generateUniqueURI(uriPrefix + "FILE", graph);
+            Literal fileName = f.createLiteral(image.getFile().getIdentifier());
+            Literal fileFolder = image.getFile().getFileFolder() == null ? null : f.createLiteral(image.getFile().getFileFolder());
+            Literal fileFormat = image.getFile().getFileFormat() == null ? null : f.createLiteral(image.getFile().getFileFormat());
+            Literal originalName = image.getFile().getOriginalName() == null ? null : f.createLiteral(image.getFile().getOriginalName());
+            IRI fileIRI = f.createIRI(fileURI);
+            statements.add(f.createStatement(imageIRI, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+        }
         
-        
-        if (filename != null) statements.add(f.createStatement(imageIRI, hasFileName, filename, graphIRI));
         if (metadataIRI != null) statements.add(f.createStatement(imageIRI, hasScanner, metadataIRI, graphIRI));
     
         return imageURI;
     }
     
-    public ProcessedData getProcessedDataFromURI(String uriValue, UserEntity user) throws SQLException, SparqlException {
+    public ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1487,19 +1614,30 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasIntensity = f.createIRI(hasIntensityPredicate);
         IRI bindingValueOf = f.createIRI(bindingValuePredicate);
         IRI integrates = f.createIRI(integratesPredicate);
-        IRI integratedBy = f.createIRI(integratedByPredicate);   //TODO should we add statisticalMethod to the intensity???
+        IRI integratedBy = f.createIRI(integratedByPredicate);   
         //TODO what about concentration level
         IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         
         ProcessedData processedObject = new ProcessedData();
+        processedObject.setUri(uriValue);
+        processedObject.setId(uriValue.substring(uriValue.lastIndexOf("/")+ 1));
         List<Intensity> intensities = new ArrayList<Intensity>();
         processedObject.setIntensity(intensities);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
             if (st.getPredicate().equals(hasIntensity)) {
+                if (loadAll != null && !loadAll) 
+                    continue;    // skip loading intensities
                 String intensityURI = st.getObject().stringValue();
                 Intensity intensity = new Intensity();
+                intensity.setUri(intensityURI);
+                intensity.setId(intensityURI.substring(intensityURI.lastIndexOf("/")+1));
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(intensityURI), null, null, graphIRI);
                 if (statements2.hasNext()) {
                     intensities.add(intensity);
@@ -1537,9 +1675,46 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
                                 
             } else if (st.getPredicate().equals(hasProcessingSWMetadata)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 String metadataURI = st.getObject().stringValue();
                 DataProcessingSoftware metadata = getDataProcessingSoftwareFromURI(metadataURI, user);
                 processedObject.setMetadata(metadata);
+            } else if (st.getPredicate().equals(integratedBy)) {
+                String methodURI = st.getObject().stringValue();
+                StatisticalMethod method = new StatisticalMethod();
+                method.setUri(methodURI);
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(methodURI), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(RDFS.LABEL)) {
+                        method.setName(st2.getObject().stringValue());
+                        break;
+                    }
+                }
+                processedObject.setMethod(method);
+            } else if (st.getPredicate().equals(hasFile)) {
+                Value value = st.getObject();
+                // retrieve file details
+                FileWrapper file = new FileWrapper();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasFileName)) {
+                        Value val = st2.getObject();
+                        file.setIdentifier(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFileFormat)) {
+                        Value val = st2.getObject();
+                        file.setFileFormat(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFolder)) {
+                        Value val = st2.getObject();
+                        file.setFileFolder(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                        Value val = st2.getObject();
+                        file.setOriginalName(val.stringValue());
+                    }
+                }
+                processedObject.setFile(file);    
             }
         }
         
@@ -1566,6 +1741,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         IRI scanOf = f.createIRI(scanOfPredicate);
         IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
+        IRI hasAssay = f.createIRI(assayMetadataPredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideIRI, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -1576,13 +1752,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         while (statements.hasNext()) {
             Statement st = statements.next();
-            if (st.getPredicate().equals(scanOf)) {
+            if (st.getPredicate().equals(scanOf)) { 
                 Value uriValue = st.getObject();
                 slideObject.setImage(getImageFromURI(uriValue.stringValue(), user));         
             } else if (st.getPredicate().equals(hasPrintedSlide)) {
                 Value uriValue = st.getObject();
                 slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), user));   
-            } 
+            } else if (st.getPredicate().equals(hasAssay)) {
+                Value uriValue = st.getObject();
+                slideObject.setMetadata(getAssayMetadataFromURI(uriValue.stringValue(), user));
+            }
         }
         return slideObject;
     }
@@ -1604,8 +1783,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI imageIRI = f.createIRI(uri);
         IRI graphIRI = f.createIRI(graph);
-        IRI hasFileName = f.createIRI(hasFilePredicate);
         IRI hasScanner = f.createIRI(scannerMetadataPredicate);
+        
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(imageIRI, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -1616,9 +1800,28 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         while (statements.hasNext()) {
             Statement st = statements.next();
-            if (st.getPredicate().equals(hasFileName)) {
+            if (st.getPredicate().equals(hasFile)) {
                 Value value = st.getObject();
-                imageObject.setFileName(value.stringValue());    
+                // retrieve file details
+                FileWrapper file = new FileWrapper();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasFileName)) {
+                        Value val = st2.getObject();
+                        file.setIdentifier(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFileFormat)) {
+                        Value val = st2.getObject();
+                        file.setFileFormat(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFolder)) {
+                        Value val = st2.getObject();
+                        file.setFileFolder(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                        Value val = st2.getObject();
+                        file.setOriginalName(val.stringValue());
+                    }
+                }
+                imageObject.setFile(file);    
             } else if (st.getPredicate().equals(hasScanner)) {
                 Value uriValue = st.getObject();
                 imageObject.setScanner(getScannerMetadataFromURI(uriValue.stringValue(), user));   
@@ -1628,7 +1831,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
     @Override
-    public RawData getRawDataFromURI(String uri,  UserEntity user) throws SparqlException, SQLException  {
+    public RawData getRawDataFromURI(String uri,  Boolean loadAll, UserEntity user) throws SparqlException, SQLException  {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1650,6 +1853,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         IRI graphIRI = f.createIRI(graph);
         IRI raw = f.createIRI(uri);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
         Map<String, String> measurementToSpotIdMap = new HashMap<String, String>();
@@ -1667,27 +1874,56 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Statement st = statements.next();
             if (st.getPredicate().equals(hasFile)) {
                 Value value = st.getObject();
-                rawDataObject.setFilename(value.stringValue());    
+                // retrieve file details
+                FileWrapper file = new FileWrapper();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasFileName)) {
+                        Value val = st2.getObject();
+                        file.setIdentifier(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFileFormat)) {
+                        Value val = st2.getObject();
+                        file.setFileFormat(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFolder)) {
+                        Value val = st2.getObject();
+                        file.setFileFolder(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                        Value val = st2.getObject();
+                        file.setOriginalName(val.stringValue());
+                    }
+                }
+                rawDataObject.setFile(file);    
             } else if (st.getPredicate().equals(hasimageProcessingMetadata)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 Value uriValue = st.getObject();
                 rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), user));   
             } else if (st.getPredicate().equals(derivedFrom)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 Value uriValue = st.getObject();
                 rawDataObject.setImage(getImageFromURI(uriValue.stringValue(), user));
             } else if (st.getPredicate().equals(hasSlide)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 Value uriValue = st.getObject();
                 rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), user));
             } else if (st.getPredicate().equals(hasMeasurement)) {
+                if (loadAll != null && !loadAll)
+                    continue;
                 Value uriValue = st.getObject();
                 Measurement measurement = getMeasurementFromURI(uriValue.stringValue(), user);
+                rawDataObject.getMeasurements().add(measurement);
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(uriValue.stringValue()), null, null, graphIRI);
                 while (statements2.hasNext()) {
                     Statement st2 = statements2.next();
                     if (st2.getPredicate().equals(measurementOf)) {
                         String spotURI = st2.getObject().stringValue();
-                        Spot spot = layoutRepository.getSpotFromURI(spotURI, user);
-                        dataMap.put(measurement, spot);
-                        rawDataObject.setSpot(measurement.getId(), spot.getUri().substring(spot.getUri().lastIndexOf("/")+1));
+                        // TODO do we need to full details of spot and dataMap ???
+                        //Spot spot = layoutRepository.getSpotFromURI(spotURI, user);
+                        //dataMap.put(measurement, spot);
+                        rawDataObject.setSpot(measurement.getId(), spotURI.substring(spotURI.lastIndexOf("/")+1));
                     }
                 }
                 
@@ -2097,6 +2333,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     @Override
+    public AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, user);
+    }
+    
+    @Override
     public void updateMetadata (MetadataCategory metadata, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
@@ -2186,6 +2427,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException {
         MetadataCategory metadata = getMetadataByLabel(label, dataProcessingTypePredicate, user);
         return metadata == null? null : (DataProcessingSoftware) metadata;
+    }
+    
+    @Override
+    public AssayMetadata getAssayMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, assayTypePredicate, user);
+        return metadata == null? null : (AssayMetadata) metadata;
     }
 
 
@@ -2547,9 +2794,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         sparqlDAO.addStatements(statements, graphIRI);
     }
 
-
     @Override
     public ArrayDataset getArrayDatasetByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        return getArrayDatasetByLabel(label, true, user);
+    }
+
+    @Override
+    public ArrayDataset getArrayDatasetByLabel(String label, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         ArrayDataset dataset = null;
         String graph = null;
         if (user == null)
@@ -2561,7 +2812,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             List<SparqlEntity> results = queryHelper.retrieveByLabel(label, datasetTypePredicate, graph);
             if (!results.isEmpty()) {
                 String datasetURI = results.get(0).getValue("s");
-                dataset = getDatasetFromURI(datasetURI, user);
+                dataset = getDatasetFromURI(datasetURI, loadAll, user);
             }
         }
         
@@ -2588,4 +2839,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return slide;
     }
+
+
+    
 }

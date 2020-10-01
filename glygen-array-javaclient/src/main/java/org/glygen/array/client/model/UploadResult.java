@@ -1,9 +1,11 @@
 package org.glygen.array.client.model;
 
+import org.glygen.array.client.model.data.FileWrapper;
+
 public class UploadResult {
 	
 	int statusCode;
-	String assignedFileName;
+	FileWrapper file;
 	
 	/**
 	 * this is the assigned filename (unique) for the given upload file, use this to access this file later
@@ -11,12 +13,18 @@ public class UploadResult {
 	 * @return the generated filename 
 	 */
 	public String getAssignedFileName() {
-		return assignedFileName;
+	    if (file != null)
+	        return file.getIdentifier();
+	    return null;
 	}
 	
-	public void setAssignedFileName(String assignedFileName) {
-		this.assignedFileName = assignedFileName;
-	}
+	public void setFile(FileWrapper file) {
+        this.file = file;
+    }
+	
+	public FileWrapper getFile() {
+        return file;
+    }
 	
 	public void setStatusCode(int statusCode) {
 		this.statusCode = statusCode;
