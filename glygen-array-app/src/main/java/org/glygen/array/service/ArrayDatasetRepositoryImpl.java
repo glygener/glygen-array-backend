@@ -1802,6 +1802,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Statement st = statements.next();
             if (st.getPredicate().equals(hasFile)) {
                 Value value = st.getObject();
+                if (!value.stringValue().startsWith("http")) {
+                    // ignore the file (not a valid file predicate)
+                    continue;
+                }
                 // retrieve file details
                 FileWrapper file = new FileWrapper();
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
@@ -2080,10 +2084,32 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
         }
         
+        // delete files
+        deleteFiles (processedDataURI, graph);
+        
         statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);     
     }
     
+    private void deleteFiles(String uri, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI iri = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+                
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(iri, hasFile, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getObject().stringValue().startsWith("http")) {
+                // file url
+                IRI file = f.createIRI(st.getObject().stringValue());
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, hasFile, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+            }
+        }
+    }
+
+
     @Override
     public void deleteRawData (String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException {
         String graph = null;
@@ -2163,7 +2189,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // delete the image
             RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(imageURI), null, null, graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+            deleteFiles (imageURI, graph);
         }
+        
+        deleteFiles(rawDataURI, graph);
         
         statements = sparqlDAO.getStatements(rawData, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);    
