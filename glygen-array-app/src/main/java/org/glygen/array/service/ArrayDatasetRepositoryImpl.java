@@ -1695,6 +1695,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 processedObject.setMethod(method);
             } else if (st.getPredicate().equals(hasFile)) {
                 Value value = st.getObject();
+                if (!value.stringValue().startsWith("http"))
+                    continue;
                 // retrieve file details
                 FileWrapper file = new FileWrapper();
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
@@ -1878,6 +1880,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Statement st = statements.next();
             if (st.getPredicate().equals(hasFile)) {
                 Value value = st.getObject();
+                if (!value.stringValue().startsWith("http"))
+                    continue;
                 // retrieve file details
                 FileWrapper file = new FileWrapper();
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
