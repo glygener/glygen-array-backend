@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
+import javax.naming.TimeLimitExceededException;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.xml.sax.SAXParseException;
 
@@ -80,6 +83,16 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_MEDIATYPE);
         logger.error("MediaType Problem: {}", errorMessage.toString());
         return new ResponseEntity<Object>(errorMessage, headers, status);
+    }
+    
+    @Override
+    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
+            HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
+        ErrorMessage errorMessage = new ErrorMessage("Timed out. But it is still processing. Check back the results later!");
+        errorMessage.setStatus(HttpStatus.REQUEST_TIMEOUT.value());
+        errorMessage.setErrorCode(ErrorCodes.EXPIRED);
+        logger.error("Asnychronous method timed out.", errorMessage.toString());
+        return handleExceptionInternal(ex, errorMessage, headers, HttpStatus.REQUEST_TIMEOUT, webRequest);
     }
 
     @Override
@@ -155,9 +168,9 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     			errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
     		}
         } else if (ex instanceof UploadNotFinishedException) {
-        	status = HttpStatus.NO_CONTENT;
+        	status = HttpStatus.PARTIAL_CONTENT;
         	errorMessage = new ErrorMessage (ex.getMessage());
-            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            //errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         } else if (ex instanceof EntityNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());

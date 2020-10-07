@@ -1528,7 +1528,7 @@ public class GlygenArrayController {
 			layoutRepository.deleteSlideLayout(layoutId, user);
 			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
-			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId);
+			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId, e);
 		} 
 	}
 	

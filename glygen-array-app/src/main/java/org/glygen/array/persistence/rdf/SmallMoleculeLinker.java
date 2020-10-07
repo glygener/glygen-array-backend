@@ -103,10 +103,6 @@ public class SmallMoleculeLinker extends Linker {
 		this.molecularFormula = molecularFormula;
 	}
 	
-	public String getPubChemUrl () {
-		return PubChemAPI.PUBCHEM_CID + pubChemId; 
-	}
-	
 	public LinkerClassification getClassification() {
 		return classification;
 	}

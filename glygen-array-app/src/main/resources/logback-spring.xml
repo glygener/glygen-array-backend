@@ -122,7 +122,7 @@
     <appender-ref ref="access-log-dbappender" />
   </logger>
 
-  <logger name="event-logger" level="DEBUG">
+  <logger name="event-logger" level="INFO">
     <appender-ref ref="event-log-dbappender" />
   </logger>
   

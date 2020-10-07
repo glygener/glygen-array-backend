@@ -230,6 +230,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <!-- http://purl.org/gadr/template#has_slide_layout -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_slide_layout">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/printed_slide"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/template#slide_layout"/>
     </owl:ObjectProperty>
     

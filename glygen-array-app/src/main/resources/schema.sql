@@ -1,4 +1,5 @@
 drop table IF EXISTS settings;
+drop table IF EXISTS slidelayout;
 drop table IF EXISTS verification_token;
 drop table IF EXISTS graphs;
 drop table IF EXISTS permissions;
@@ -63,6 +64,11 @@ create table IF NOT EXISTS user_roles (
 create table IF NOT EXISTS settings (
   name varchar(256),
   value varchar(256)
+);
+
+create table IF NOT EXISTS slidelayout (
+  uri varchar(256),
+  jsonvalue text
 );
 
 create table IF NOT EXISTS verification_token (

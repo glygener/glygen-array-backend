@@ -30,6 +30,7 @@ services:
       - SERVER_SERVLET_CONTEXT_PATH=${SERVER_SERVLET_CONTEXT_PATH:-/}
       - SPRING_FILE_IMAGEDIRECTORY=/images
       - SPRING_FILE_UPLOADDIRECTORY=/uploads
+      - LOGGING_LEVEL_ORG_GLYGEN=INFO
     restart: always
 
 networks:

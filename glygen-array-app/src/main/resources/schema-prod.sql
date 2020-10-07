@@ -75,6 +75,11 @@ create table IF NOT EXISTS settings (
   value varchar(256)
 );
 
+create table IF NOT EXISTS slidelayout (
+  uri varchar(256) not null PRIMARY KEY,
+  jsonvalue text
+);
+
 create table IF NOT EXISTS verification_token (
   id bigint not null PRIMARY KEY,
   userid bigint not null,

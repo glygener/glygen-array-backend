@@ -1,5 +1,6 @@
 package org.glygen.array.service;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,8 +21,10 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SlideLayoutEntity;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.dao.SlideLayoutRepository;
 import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Creator;
@@ -36,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Service
 @Transactional(value="sesameTransactionManager") 
 public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements LayoutRepository {
@@ -49,6 +55,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Autowired
 	FeatureRepository featureRepository;
 	
+	@Autowired
+	SlideLayoutRepository slideLayoutRepository;
+	
+	Map<String, SlideLayout> slideLayoutCache = new HashMap<String, SlideLayout>();
 	Map<String, BlockLayout> blockLayoutCache = new HashMap<String, BlockLayout>();
 	Map<String, Feature> featureCache = new HashMap<String, Feature>();
 	Map<Long, String> linkerCache = new HashMap<Long, String>();
@@ -69,7 +79,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI blockType = f.createIRI(ontPrefix + "Block");
 		IRI hasRow = f.createIRI(ontPrefix + "has_row");
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
-		//IRI hasSpot = f.createIRI(ontPrefix + "has_spot");
 		Literal row = f.createLiteral(b.getRow());
 		Literal column = f.createLiteral(b.getColumn());
 		
@@ -95,6 +104,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
         
         if (layoutFromRepository != null) {
+            b.setBlockLayout(layoutFromRepository);
             IRI blockLayoutIRI = f.createIRI(layoutFromRepository.getUri());
             // create Block and copy spots from Layout
             List<Statement> statements = new ArrayList<Statement>();
@@ -104,14 +114,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             statements.add(f.createStatement(block, hasColumn, column, graphIRI));
             
             sparqlDAO.addStatements(statements, graphIRI);
-         /*   // copy spots from layout
-            for (Spot s : layoutFromRepository.getSpots()) {
-                statements = new ArrayList<Statement>();
-                IRI spot = f.createIRI(s.getUri());
-                statements.add(f.createStatement(block, hasSpot, spot, graphIRI));
-                sparqlDAO.addStatements(statements, graphIRI);
-            } */
-            
         } else 
             throw new SparqlException ("Block layout cannot be found in repository");
         
@@ -299,12 +301,33 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				String blockURI = addBlock (b, user, graph);
 				if (blockURI == null)
 					continue;
+				b.setUri(blockURI);
 				IRI block = f.createIRI(blockURI);
 				statements.add(f.createStatement(slideLayout, hasBlock, block, graphIRI));
 			}
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
+		
+		// add it to the slidelayoutrepository as well
+		s.setUri(slideLayoutURI);
+		s.setId(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/") + 1));
+		s.setDateAddedToLibrary(date);
+		s.setDateCreated(date);
+		s.setDateModified(date);
+		Creator creator = new Creator();
+		creator.setName(user.getUsername());
+		creator.setUserId(user.getUserId());
+		s.setUser(creator);
+		SlideLayoutEntity slideLayoutEntity = new SlideLayoutEntity();
+		slideLayoutEntity.setUri(slideLayoutURI);
+		try {
+            slideLayoutEntity.setJsonValue(new ObjectMapper().writeValueAsString(s));
+            slideLayoutRepository.save(slideLayoutEntity);
+        } catch (JsonProcessingException e) {
+            logger.error("Could not serialize Slide layout into JSON for caching", e);
+        }
+		
 		return slideLayoutURI;
 	}
 	
@@ -388,8 +411,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_slide ?slide . ?slide template:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
-        //TODO check the object property once experiment part is done!
+        queryBuf.append ("?s gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . ?ps template:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
             canDelete = false;
@@ -424,8 +446,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI slideLayout = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasBlock = f.createIRI(ontPrefix + "has_block");
-		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		
 		RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(slideLayout, hasBlock, null, graphIRI);
 		while (statements3.hasNext()) {
@@ -433,23 +453,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			Value v = st.getObject();
 			String blockURI = v.stringValue();
 			IRI block = f.createIRI(blockURI);
-			/*RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(block, hasSpot, null, graphIRI);
-			while (statements4.hasNext()) {
-				st = statements4.next();
-				if (st.getPredicate().equals(hasConcentration)) {
-					v = st.getObject();
-					String conURI = v.stringValue();
-					IRI concentration = f.createIRI(conURI);
-					RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-					sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-				}
-			}*/
 			RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(block, null, null, graphIRI);
 			sparqlDAO.removeStatements(Iterations.asList(statements4), graphIRI);
 		}
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+		
+		// delete from SlideLayoutRepository too
+		SlideLayoutEntity entity = slideLayoutRepository.findByUri(uri);
+		if (entity != null)
+		    slideLayoutRepository.delete(entity);
 	}
 	
 	private Block getBlock (String blockURI, boolean loadAll, UserEntity user) throws SparqlException, SQLException {
@@ -1008,6 +1022,19 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         
+        // check the slideLayoutRepository first, if loadAll = true
+        if (loadAll) {
+            SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
+            if (entity != null) {
+                try {
+                    SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
+                    return s;
+                } catch (IOException e) {
+                    logger.error("Could not read slide layout from serialized value", e);
+                }
+            }
+        }
+        
         blockLayoutCache.clear();
         
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -1125,7 +1152,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		Literal label = f.createLiteral(layout.getName());
 		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription());
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-		Literal date = f.createLiteral(new Date());
+		Date today = new Date();
+		Literal date = f.createLiteral(today);
 		
 		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideLayout, RDFS.LABEL, null, graphIRI)), graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(slideLayout, RDFS.COMMENT, null, graphIRI)), graphIRI);
@@ -1138,6 +1166,19 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		statements.add(f.createStatement(slideLayout, hasModifiedDate, date, graphIRI));
 		
 		sparqlDAO.addStatements(statements, graphIRI);
+		
+		// update in SlideLayoutRepository as well
+		SlideLayoutEntity entity = slideLayoutRepository.findByUri(layout.getUri());
+		if (entity != null) {
+    		layout.setDateModified(today);
+    		try {
+                entity.setJsonValue(new ObjectMapper().writeValueAsString(layout));
+                slideLayoutCache.remove(entity.getUri());
+                slideLayoutRepository.save(entity);
+            } catch (JsonProcessingException e) {
+                logger.error("Could not update slide layout serialization", e);
+            }
+		}
 	}
 	
 	private String getSortPredicateForLayout (String field) {
@@ -1638,13 +1679,34 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         else {
             graph = getGraphForUser(user);
         }
+        
+        
         String slideLayoutURI = null;
         if (slideLayoutId != null) {
             slideLayoutURI = prefix + slideLayoutId;
         }
+        
         String blockURI = null;
         if (blockId != null) {
             blockURI = prefix + blockId;
+        }
+        
+        if (slideLayoutURI != null) {
+            // load the slide layout from cache and find the features there
+            SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
+            if (entity != null) {
+                Spot spot = findSpotInEntity (entity, features, blockId);
+                if (spot != null)
+                    return spot;
+            }
+        } else {
+            // check all slide layouts
+            List<SlideLayoutEntity> layouts = slideLayoutRepository.findAll();
+            for (SlideLayoutEntity entity: layouts) {
+                Spot spot = findSpotInEntity (entity, features, blockId);
+                if (spot != null)
+                    return spot;
+            }
         }
         
         String whereClause = "";
@@ -1675,6 +1737,65 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
     }
     
+    private Spot findSpotInEntity(SlideLayoutEntity entity, List<Feature> features, String blockId) {
+        try {
+            SlideLayout s;
+            if (slideLayoutCache.get(entity.getUri()) != null)
+                s = slideLayoutCache.get(entity.getUri());
+            else {
+                s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
+                slideLayoutCache.put(entity.getUri(), s);
+            }
+            for (Block b: s.getBlocks()) {
+                if (blockId != null && b.getId().equals(blockId)) {
+                    // check only in this block
+                    for (Spot spot: b.getBlockLayout().getSpots()) {
+                        boolean match = true;
+                        for (Feature feature: features) {
+                            boolean found = false;
+                            for (Feature f: spot.getFeatures()) {
+                                if (f.getId().equals(feature.getId())) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                                match = false;
+                        }
+                        if (match) {
+                            return spot;
+                        }
+                    }
+                    
+                } else if (blockId == null) {
+                    // check this block
+                    for (Spot spot: b.getBlockLayout().getSpots()) {
+                        boolean match = true;
+                        for (Feature feature: features) {
+                            boolean found = false;
+                            for (Feature f: spot.getFeatures()) {
+                                if (f.getId().equals(feature.getId())) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found)
+                                match = false;
+                        }
+                        if (match) {
+                            return spot;
+                        }
+                    }
+                }
+                
+            }
+        } catch (IOException e) {
+            logger.error("Could not read slide layout from serialized value", e);
+        }
+        
+        return null;
+    }
+
     @Override
     public Spot getSpotByPosition (String slideLayoutId, String blockId, int row, int column, UserEntity user) throws SparqlException, SQLException {
         String graph = null;

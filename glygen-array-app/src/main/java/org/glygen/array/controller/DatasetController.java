@@ -5,11 +5,15 @@ import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
+import javax.naming.TimeLimitExceededException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -18,6 +22,7 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.exception.UploadNotFinishedException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -70,6 +75,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,6 +85,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.context.request.async.WebAsyncTask;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -1017,6 +1026,18 @@ public class DatasetController {
         
     }
     
+    @RequestMapping(value = "/deferred", method = RequestMethod.GET)
+    public DeferredResult<ResponseEntity<?>> timeDeferred() {
+        DeferredResult<ResponseEntity<?>> result = new DeferredResult<>();
+
+        new Thread(() -> {
+            result.setResult(ResponseEntity.ok(""));
+        }, "MyThread-" + 1).start();
+
+        return result;
+    }
+
+    
     @ApiOperation(value = "Import experiment results from uploaded excel file")
     @RequestMapping(value = "/addDatasetFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
@@ -1027,7 +1048,8 @@ public class DatasetController {
             @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public String addProcessedDataFromExcel (
+    @Async("GlygenArrayAsyncExecutor")
+    public CompletableFuture<String> addProcessedDataFromExcel (
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,        
@@ -1044,7 +1066,6 @@ public class DatasetController {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
         if (file != null) {
@@ -1089,9 +1110,8 @@ public class DatasetController {
                             throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
                         }
                     }
-                    
                     ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
-                
+                    
                     Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
                     if (!resource.exists()) {
                         errorMessage.addError(new ObjectError("mapFile", "NotValid"));
@@ -1115,13 +1135,12 @@ public class DatasetController {
                         
                     processedData.setMetadata(metadata);
                     processedData.setFile(file);
-                    
                     if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
                         throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
                     
                     String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
                     String id = uri.substring(uri.lastIndexOf("/")+1);
-                    return id;
+                    return CompletableFuture.completedFuture(id);
                 } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {
                     errorMessage.addError(new ObjectError("file", "NotValid"));
                     throw new IllegalArgumentException("File cannot be parsed", errorMessage);
@@ -1132,7 +1151,8 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 throw new IllegalArgumentException("File cannot be found", errorMessage);
             }
-        } else {
+        }
+        else {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             throw new IllegalArgumentException("File cannot be found", errorMessage);
         }

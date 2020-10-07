@@ -51,6 +51,10 @@ public class ProcessedDataParser {
     
     Map<String, String> sequenceErrorMap = new HashMap<String, String>();
     
+    Map<String, String> glycanURICache = new HashMap<String, String>();
+    Map<String, Linker> linkerCache = new HashMap<String, Linker>();
+    Map<String, Feature> featureCache = new HashMap<String, Feature>();
+    
     public ProcessedDataParser(FeatureRepository f, LayoutRepository r, GlycanRepository g, LinkerRepository l) {
         this.featureRepository = f;
         this.layoutRepository = r;
@@ -154,9 +158,14 @@ public class ProcessedDataParser {
                     continue;
                 }
                 String linkerName = ExtendedGalFileParser.getLinker(featureString);
-                String glycanURI;
+                String glycanURI = glycanURICache.get(glycoCT.trim());
                 try {
-                    glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
+                    if (glycanURI == null) {
+                        glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
+                        if (glycanURI != null) {
+                            glycanURICache.put(glycoCT.trim(), glycanURI);
+                        }
+                    } 
                     if (glycanURI == null) {
                         ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
                         error.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -167,7 +176,12 @@ public class ProcessedDataParser {
                         //Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
                         Glycan glycan = new Glycan();
                         glycan.setUri(glycanURI);
-                        Linker linker = linkerRepository.getLinkerByLabel(linkerName.trim(), user);
+                        Linker linker = linkerCache.get(linkerName.trim());
+                        if (linker == null) {
+                            linker = linkerRepository.getLinkerByLabel(linkerName.trim(), user);
+                            if (linker != null)
+                                linkerCache.put(linkerName.trim(), linker);
+                        }
                         if (linker == null) {
                             // error
                             ErrorMessage error = new ErrorMessage("Linker cannot be found in the repository for row: " + row.getRowNum());
@@ -178,11 +192,28 @@ public class ProcessedDataParser {
                             errorList.add(error); 
                             continue;
                         }
-                        Feature feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                        String key = glycan.getUri() + linker.getUri();
+                        Feature feature = featureCache.get(key);
+                        if (feature == null) {
+                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                            if (feature != null)
+                                featureCache.put(key, feature);
+                        }
                         if (feature == null) {
                             // try finding as SpxxB
-                            linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
-                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                            linker = linkerCache.get(linkerName+"B");
+                            if (linker == null) {
+                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
+                                if (linker != null)
+                                    linkerCache.put(linkerName+"B", linker);
+                            }
+                            key = glycan.getUri() + linker.getUri();
+                            feature = featureCache.get(key);
+                            if (feature == null) {
+                                feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                                if (feature != null)
+                                    featureCache.put(key, feature);
+                            }
                             if (feature == null) {
                                 ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
                                 error.setErrorCode(ErrorCodes.INVALID_INPUT);
