@@ -26,7 +26,6 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Intensity;
-import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
@@ -62,13 +61,11 @@ public class ProcessedDataParser {
         this.linkerRepository = l;
     }
     
-    public ProcessedData parse (String filePath, String errorMapFilePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
+    public List<Intensity> parse (String filePath, String errorMapFilePath, ProcessedResultConfiguration config, UserEntity user) throws InvalidFormatException, IOException {
         if (config == null)
             throw new InvalidFormatException("Configuration is not given. This version is not being supported!");
         
-        ProcessedData data = new ProcessedData();
         List<Intensity> intensities = new ArrayList<>();
-        data.setIntensity(intensities);
         
         if ((config.getFeatureColumnId() == null && config.getFeatureNameColumnId() == null) || 
                 (config.getFeatureColumnId() == -1 && config.getFeatureNameColumnId() == -1))
@@ -251,7 +248,7 @@ public class ProcessedDataParser {
         }
         
         if (errorList.isEmpty())
-            return data;
+            return intensities;
         else {
             ErrorMessage error = new ErrorMessage("Errors parsing processed data excel file");
             error.setErrorCode(ErrorCodes.INVALID_INPUT);

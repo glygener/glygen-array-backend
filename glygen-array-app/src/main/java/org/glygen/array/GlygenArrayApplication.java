@@ -16,8 +16,6 @@
 
 package org.glygen.array;
 
-import java.util.concurrent.Executor;
-
 import org.glygen.array.typeahead.NamespaceHandler;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
@@ -25,17 +23,13 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.context.request.RequestContextListener;
 
 import com.ulisesbocchio.jasyptspringboot.environment.StandardEncryptableEnvironment;
 
 @SpringBootApplication
 @EnableOAuth2Sso
-@EnableAsync
-public class GlygenArrayApplication implements AsyncConfigurer {
+public class GlygenArrayApplication {
 	
 	@Bean
     public RequestContextListener requestContextListener() {
@@ -54,16 +48,4 @@ public class GlygenArrayApplication implements AsyncConfigurer {
 	public void doSomethingAfterStartup() {
 	    NamespaceHandler.loadNamespaces();
 	}
-	
-	@Bean("GlygenArrayAsyncExecutor")
-	@Override
-    public Executor getAsyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
-        executor.setMaxPoolSize(1);
-        executor.setQueueCapacity(10);
-        executor.setThreadNamePrefix("GlygenArrayExecutor-");
-        executor.initialize();
-        return executor;
-    }
 }

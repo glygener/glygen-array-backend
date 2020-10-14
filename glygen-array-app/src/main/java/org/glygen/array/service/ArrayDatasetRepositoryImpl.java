@@ -1,5 +1,6 @@
 package org.glygen.array.service;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,6 +29,8 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.FutureTask;
+import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
@@ -50,10 +53,14 @@ import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.model.Coordinate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Transactional(value="sesameTransactionManager") 
@@ -468,6 +475,96 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return measurementURI;
     }
+    
+    @Override
+    public String addIntensitiesToProcessedData (ProcessedData processedData, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            // cannot add 
+            throw new SparqlException ("The user must be provided to put data into private repository");
+        }
+        
+        // check if there is already a private graph for user
+        graph = getGraphForUser(user);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        List<Statement> statements = new ArrayList<Statement>();
+        String uri = processedData.getUri();
+        if (uri == null && processedData.getId() != null) {
+            uri = uriPrefix + processedData.getId();
+        }
+        if (uri != null) {
+            IRI processed = f.createIRI(uri);
+            IRI graphIRI = f.createIRI(graph);
+            // add intensities
+            IRI hasRFU = f.createIRI(rfuPredicate);
+            IRI hasStdev = f.createIRI(stdevPredicate);
+            IRI hasCV = f.createIRI(cvPredicate);
+            IRI hasIntensity = f.createIRI(hasIntensityPredicate);
+            IRI bindingValueOf = f.createIRI(bindingValuePredicate);
+            IRI integrates = f.createIRI(integratesPredicate); 
+            IRI hasFileName = f.createIRI(hasFileNamePredicate);
+            IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+            IRI hasFolder = f.createIRI(hasFolderPredicate);
+            IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+            IRI hasFile = f.createIRI(hasFilePredicate);
+            
+            if (processedData.getIntensity() != null) {
+                for (Intensity intensity: processedData.getIntensity()) {
+                    if (intensity == null) continue;
+                    String intensityURI = generateUniqueURI(uriPrefix + "I", graph);
+                    IRI intensityIRI = f.createIRI(intensityURI);
+                    Literal rfu = f.createLiteral(intensity.getRfu());
+                    Literal stdev = intensity.getStDev() == null ? null : f.createLiteral(intensity.getStDev());
+                    Literal cv = intensity.getPercentCV() == null ? null : f.createLiteral(intensity.getPercentCV());
+                    statements.add(f.createStatement(intensityIRI, hasRFU, rfu, graphIRI));
+                    if (stdev != null) statements.add(f.createStatement(intensityIRI, hasStdev, stdev, graphIRI));
+                    if (cv != null) statements.add(f.createStatement(intensityIRI, hasCV, cv, graphIRI));
+                    if (intensity.getSpot() != null && intensity.getSpot().getUri() != null) {
+                        IRI spot = f.createIRI(intensity.getSpot().getUri());
+                        statements.add(f.createStatement(intensityIRI, bindingValueOf, spot, graphIRI));
+                    }
+                    if (intensity.getMeasurements() != null) {
+                        for (Measurement measurement: intensity.getMeasurements()) {
+                            if (measurement.getUri() != null) {
+                                IRI measurementIRI = f.createIRI(measurement.getUri());
+                                statements.add(f.createStatement(intensityIRI, integrates, measurementIRI, graphIRI));
+                            }
+                        }
+                    }
+                    statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
+                }
+            }
+            
+            if (processedData.getFile() != null) {
+                String fileURI = null;
+                RepositoryResult<Statement> results = sparqlDAO.getStatements(processed, hasFile, null, graphIRI);
+                if (results.hasNext()) {
+                    Statement st = results.next();
+                    fileURI = st.getSubject().stringValue();
+                    
+                } else {
+                    fileURI = generateUniqueURI(uriPrefix + "FILE", graph);
+                }
+                
+                Literal fileName = f.createLiteral(processedData.getFile().getIdentifier());
+                Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
+                Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
+                Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
+                IRI fileIRI = f.createIRI(fileURI);
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(processed, hasFile, null, graphIRI)), graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(fileIRI, null, null, graphIRI)), graphIRI);
+                statements.add(f.createStatement(processed, hasFile, fileIRI, graphIRI));
+                statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+                if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+                if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+                if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            }
+            
+            sparqlDAO.addStatements(statements, graphIRI);
+        }
+        
+        return uri;
+    }
 
     @Override
     public String addProcessedData(ProcessedData processedData, String datasetId, UserEntity user) throws SparqlException, SQLException {
@@ -501,30 +598,33 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasFile = f.createIRI(hasFilePredicate);
         
-        for (Intensity intensity: processedData.getIntensity()) {
-            if (intensity == null) continue;
-            String intensityURI = generateUniqueURI(uriPrefix + "I", graph);
-            IRI intensityIRI = f.createIRI(intensityURI);
-            Literal rfu = f.createLiteral(intensity.getRfu());
-            Literal stdev = intensity.getStDev() == null ? null : f.createLiteral(intensity.getStDev());
-            Literal cv = intensity.getPercentCV() == null ? null : f.createLiteral(intensity.getPercentCV());
-            statements.add(f.createStatement(intensityIRI, hasRFU, rfu, graphIRI));
-            if (stdev != null) statements.add(f.createStatement(intensityIRI, hasStdev, stdev, graphIRI));
-            if (cv != null) statements.add(f.createStatement(intensityIRI, hasCV, cv, graphIRI));
-            if (intensity.getSpot() != null && intensity.getSpot().getUri() != null) {
-                IRI spot = f.createIRI(intensity.getSpot().getUri());
-                statements.add(f.createStatement(intensityIRI, bindingValueOf, spot, graphIRI));
-            }
-            if (intensity.getMeasurements() != null) {
-                for (Measurement measurement: intensity.getMeasurements()) {
-                    if (measurement.getUri() != null) {
-                        IRI measurementIRI = f.createIRI(measurement.getUri());
-                        statements.add(f.createStatement(intensityIRI, integrates, measurementIRI, graphIRI));
+        if (processedData.getIntensity() != null) {
+            for (Intensity intensity: processedData.getIntensity()) {
+                if (intensity == null) continue;
+                String intensityURI = generateUniqueURI(uriPrefix + "I", graph);
+                IRI intensityIRI = f.createIRI(intensityURI);
+                Literal rfu = f.createLiteral(intensity.getRfu());
+                Literal stdev = intensity.getStDev() == null ? null : f.createLiteral(intensity.getStDev());
+                Literal cv = intensity.getPercentCV() == null ? null : f.createLiteral(intensity.getPercentCV());
+                statements.add(f.createStatement(intensityIRI, hasRFU, rfu, graphIRI));
+                if (stdev != null) statements.add(f.createStatement(intensityIRI, hasStdev, stdev, graphIRI));
+                if (cv != null) statements.add(f.createStatement(intensityIRI, hasCV, cv, graphIRI));
+                if (intensity.getSpot() != null && intensity.getSpot().getUri() != null) {
+                    IRI spot = f.createIRI(intensity.getSpot().getUri());
+                    statements.add(f.createStatement(intensityIRI, bindingValueOf, spot, graphIRI));
+                }
+                if (intensity.getMeasurements() != null) {
+                    for (Measurement measurement: intensity.getMeasurements()) {
+                        if (measurement.getUri() != null) {
+                            IRI measurementIRI = f.createIRI(measurement.getUri());
+                            statements.add(f.createStatement(intensityIRI, integrates, measurementIRI, graphIRI));
+                        }
                     }
                 }
+                statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
             }
-            statements.add(f.createStatement(processed, hasIntensity, intensityIRI, graphIRI));
         }
+        
         if (processedData.getMetadata() != null && processedData.getMetadata().getUri() != null) {
             statements.add(f.createStatement(processed, hasProcessingSWMetadata, f.createIRI(processedData.getMetadata().getUri()), graphIRI));
         }
@@ -897,6 +997,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
+        getStatusFromURI (datasetObject.getUri(), datasetObject, graph);
         return datasetObject;
     }
     
@@ -1720,6 +1821,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
+        getStatusFromURI (processedObject.getUri(), processedObject, graph);
         return processedObject;
     }
 
@@ -2874,5 +2976,121 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
+    @Override
+    public void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI taskIRI = f.createIRI(uri);
+        
+        
+        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
+        IRI hasError = f.createIRI(ontPrefix + "has_error");
+        
+        // delete existing predicates
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI)), graphIRI);
+        
+        Literal status = f.createLiteral(task.getStatus().name());
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        statements.add(f.createStatement(taskIRI, hasStatus, status, graphIRI));
+        try {
+            if (task.getError() != null) {
+                String error = new ObjectMapper().writeValueAsString(task.getError());
+                Literal errorMessage = f.createLiteral(error);
+                statements.add(f.createStatement(taskIRI, hasError, errorMessage, graphIRI));
+            }
+        } catch (JsonProcessingException e) {
+            logger.error("Could not add errors for task", e);
+        }
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+    }
     
+    private void getStatusFromURI(String uri, FutureTask task, String graph) {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI taskIRI = f.createIRI(uri);
+       
+        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
+        IRI hasError = f.createIRI(ontPrefix + "has_error");
+        
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            task.setStatus(FutureTaskStatus.valueOf(st.getObject().stringValue()));
+        }
+        result = sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            String errorMessage = st.getObject().stringValue();
+            try {
+                ErrorMessage error = new ObjectMapper().readValue(errorMessage, ErrorMessage.class);
+                task.setError(error);
+            } catch (IOException e) {
+                logger.error("could not convert error message", e);
+            }
+        }
+    }
+
+
+    @Override
+    public void updateArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        String datasetURI = dataset.getUri();
+        if (datasetURI == null && dataset.getId() != null) {
+            datasetURI = uriPrefix + dataset.getId();
+        }
+        if (datasetURI != null) {
+            IRI datasetIRI = f.createIRI(datasetURI);
+            IRI hasSample = f.createIRI(ontPrefix + "has_sample");
+            IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+            List<Statement> statements = new ArrayList<Statement>();
+            
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+            
+            Literal date = f.createLiteral(new Date());
+            statements.add(f.createStatement(datasetIRI, hasModifiedDate, date, graphIRI));
+            
+            Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName());
+            Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription());
+            
+            if (label != null) 
+                statements.add(f.createStatement(datasetIRI, RDFS.LABEL, label, graphIRI));
+            if (comment != null)
+                statements.add(f.createStatement(datasetIRI, RDFS.COMMENT, comment, graphIRI));
+            
+            if (dataset.getSample() != null) {
+                String sampleURI = dataset.getSample().getUri();
+                if (sampleURI == null && dataset.getSample().getId() != null) {
+                    sampleURI = uriPrefix + dataset.getSample().getId();
+                }
+                if (sampleURI != null) {
+                    sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasSample, null, graphIRI)), graphIRI);
+                    IRI sample = f.createIRI(sampleURI);
+                    statements.add(f.createStatement(datasetIRI, hasSample, sample, graphIRI));
+                    
+                }
+            }
+            
+            sparqlDAO.addStatements(statements, graphIRI);
+        }
+    }    
 }

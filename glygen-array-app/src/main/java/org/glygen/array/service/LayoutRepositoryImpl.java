@@ -411,7 +411,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ("?s gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . ?ps template:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
+        queryBuf.append ("?s template:has_slide_layout <" +  slideURI + "> . } LIMIT 1");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty())
             canDelete = false;

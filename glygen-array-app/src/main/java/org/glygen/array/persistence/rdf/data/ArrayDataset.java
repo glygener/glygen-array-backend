@@ -9,7 +9,7 @@ import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
-public class ArrayDataset {
+public class ArrayDataset extends FutureTask{
     String id;
     String uri;
     String name;

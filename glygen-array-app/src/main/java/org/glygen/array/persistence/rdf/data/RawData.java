@@ -10,7 +10,7 @@ import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class RawData {
+public class RawData extends FutureTask {
     
     String id;
     String uri;

@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
@@ -36,6 +37,7 @@ public interface ArrayDatasetRepository {
     ArrayDataset getArrayDatasetByLabel (String label, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDatasetByLabel(String label, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    void updateArrayDataset (ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     
     String addProcessedData(ProcessedData processedData, String datasetId, UserEntity user)
             throws SparqlException, SQLException;
@@ -127,7 +129,7 @@ public interface ArrayDatasetRepository {
     
     RawData getRawDataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     
-   
-    
-
+    void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
+    String addIntensitiesToProcessedData(ProcessedData processedData, UserEntity user)
+            throws SparqlException, SQLException;
 }

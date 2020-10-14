@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 
-public class ProcessedData {
+public class ProcessedData extends FutureTask {
     
     String id;
     String uri;

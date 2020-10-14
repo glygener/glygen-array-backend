@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 
 import javax.naming.TimeLimitExceededException;
@@ -94,6 +95,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         logger.error("Asnychronous method timed out.", errorMessage.toString());
         return handleExceptionInternal(ex, errorMessage, headers, HttpStatus.REQUEST_TIMEOUT, webRequest);
     }
+    
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -144,6 +146,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     		MailSendException.class,
     		IllegalArgumentException.class, 
     		UnsupportedEncodingException.class,
+    		CompletionException.class,
     	//	GlycoVisitorException.class,
     	//	SugarImporterException.class,
     	//	SearchEngineException.class,
@@ -170,7 +173,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         } else if (ex instanceof UploadNotFinishedException) {
         	status = HttpStatus.PARTIAL_CONTENT;
         	errorMessage = new ErrorMessage (ex.getMessage());
-            //errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         } else if (ex instanceof EntityNotFoundException) {
             status = HttpStatus.NOT_FOUND;
             errorMessage = new ErrorMessage (ex.getMessage());
@@ -190,9 +193,11 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errorMessage = (ErrorMessage) ex.getCause();
             errorMessage.setErrorCode(ErrorCodes.DUPLICATE);
 //            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
-        } else if (ex instanceof IllegalArgumentException) { //|| ex instanceof UserRoleViolationException || ex instanceof SugarImporterException || ex instanceof GlycoVisitorException) {
+        } else if (ex instanceof IllegalArgumentException || (ex instanceof CompletionException && ex.getCause() !=null && ex.getCause() instanceof IllegalArgumentException)) { 
         	status = HttpStatus.BAD_REQUEST;
         	ErrorCodes code;
+        	if (ex instanceof CompletionException) 
+        	    ex = (Exception) ex.getCause();
         	if (ex instanceof IllegalArgumentException) {
         		// need to extract what kind of problem occurred and set the error code accordingly
         		String err = ((IllegalArgumentException)ex).getMessage();

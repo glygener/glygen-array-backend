@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.naming.TimeLimitExceededException;
@@ -29,6 +31,8 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
+import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -51,6 +55,7 @@ import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.ArrayDatasetRepositoryImpl;
+import org.glygen.array.service.AsyncService;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -85,6 +90,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.context.request.async.WebAsyncTask;
 
@@ -129,6 +135,9 @@ public class DatasetController {
     
     @Autowired
     Validator validator;
+    
+    @Autowired
+    AsyncService parserAsyncService;
     
     @ApiOperation(value = "Add given array dataset  for the user")
     @RequestMapping(value="/addDataset", method = RequestMethod.POST, 
@@ -1036,10 +1045,9 @@ public class DatasetController {
 
         return result;
     }
-
     
-    @ApiOperation(value = "Import experiment results from uploaded excel file")
-    @RequestMapping(value = "/addDatasetFromExcel", method=RequestMethod.POST, 
+    @ApiOperation(value = "Import processed data results from uploaded excel file")
+    @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given array dataset"), 
@@ -1048,8 +1056,7 @@ public class DatasetController {
             @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    @Async("GlygenArrayAsyncExecutor")
-    public CompletableFuture<String> addProcessedDataFromExcel (
+    public String addProcessedDataFromExcel (
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,        
@@ -1067,113 +1074,104 @@ public class DatasetController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        
-        if (file != null) {
-            String folder = uploadDir;
-            if (file.getFileFolder() != null) {
-                folder = file.getFileFolder();
+                    
+        try {
+            // check if the dataset with the given id exists
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
-            File excelFile = new File(folder, file.getIdentifier());
-            if (excelFile.exists()) {
+            // check if metadata exists!
+            DataProcessingSoftware metadata = null;
+            if (metadataId != null) {    
                 try {
-                    // move the file to the experiment folder
-                    // create a folder for the experiment, if it does not exists, and move the file into that folder
-                    File experimentFolder = new File (uploadDir + File.separator + datasetId);
-                    if (!experimentFolder.exists()) {
-                        experimentFolder.mkdirs();
+                    metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("metadata", "NotFound"));
                     }
-                    File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
-                    if(excelFile.renameTo (newFile)) { 
-                             // if file copied successfully then delete the original file 
-                        excelFile.delete(); 
-                        
-                    } else { 
-                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
-                    }
-                    file.setFileFolder(uploadDir + File.separator + datasetId);
-                    
-                    // check if the dataset with the given id exists
-                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
-                    if (dataset == null) {
-                        errorMessage.addError(new ObjectError("dataset", "NotFound"));
-                    }
-                    
-                    // check if metadata exists!
-                    DataProcessingSoftware metadata = null;
-                    if (metadataId != null) {    
-                        try {
-                            metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
-                            if (metadata == null) {
-                                errorMessage.addError(new ObjectError("metadata", "NotFound"));
-                            }
-                        } catch (SparqlException | SQLException e) {
-                            throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
-                        }
-                    }
-                    ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
-                    
-                    Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
-                    if (!resource.exists()) {
-                        errorMessage.addError(new ObjectError("mapFile", "NotValid"));
-                        throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
-                    }
-                    ProcessedData processedData = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
-                            createConfigForVersion(file.getFileFormat()), user);
-                    
-                    List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
-                    StatisticalMethod found = null;
-                    for (StatisticalMethod method: methods) {
-                        if (method.getName().equalsIgnoreCase(methodName)) {
-                            found = method;
-                        }
-                    }
-                    if (found == null)
-                        errorMessage.addError(new ObjectError("method", "NotValid"));
-                    else {
-                        processedData.setMethod(found);
-                    }
-                        
-                    processedData.setMetadata(metadata);
-                    processedData.setFile(file);
-                    if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-                        throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
-                    
-                    String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
-                    String id = uri.substring(uri.lastIndexOf("/")+1);
-                    return CompletableFuture.completedFuture(id);
-                } catch (InvalidFormatException | IOException | SparqlException | SQLException e)  {
-                    errorMessage.addError(new ObjectError("file", "NotValid"));
-                    throw new IllegalArgumentException("File cannot be parsed", errorMessage);
-                } catch (IllegalArgumentException e) {
-                    throw e;
-                } 
-            } else {
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                throw new IllegalArgumentException("File cannot be found", errorMessage);
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
+                }
             }
+            ProcessedData processedData = new ProcessedData();     
+            processedData.setMetadata(metadata);
+            List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
+            StatisticalMethod found = null;
+            for (StatisticalMethod method: methods) {
+                if (method.getName().equalsIgnoreCase(methodName)) {
+                    found = method;
+                }
+            }
+            if (found == null)
+                errorMessage.addError(new ObjectError("method", "NotValid"));
+            else {
+                processedData.setMethod(found);
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
+            }
+            
+            CompletableFuture<List<Intensity>> intensities = null;
+            try {
+                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, user);
+                intensities.whenComplete((intensity, e) -> {
+                    try {
+                        String uri = processedData.getUri();
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            processedData.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) 
+                                processedData.setError((ErrorMessage) e.getCause());
+                            
+                        } else {
+                            processedData.setIntensity(intensity);
+                            file.setFileFolder(uploadDir + File.separator + datasetId);
+                            processedData.setFile(file);
+                            datasetRepository.addIntensitiesToProcessedData(processedData, user);
+                            processedData.setStatus(FutureTaskStatus.DONE);
+                        }
+                    
+                        datasetRepository.updateStatus (uri, processedData, user);
+                    } catch (SparqlException | SQLException e1) {
+                        logger.error("Could not save the processedData", e1);
+                    } 
+                });
+                processedData.setIntensity(intensities.get(20000, TimeUnit.MILLISECONDS));
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (TimeoutException e) {
+                synchronized (this) {
+                    // save whatever we have for now for processed data and update its status to "processing"
+                    String uri = datasetRepository.addProcessedData(processedData, datasetId, user);  
+                    processedData.setUri(uri);
+                    String id = uri.substring(uri.lastIndexOf("/")+1);
+                    processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    datasetRepository.updateStatus (uri, processedData, user);
+                    return id;
+                }
+            }
+            
+            if (intensities != null && intensities.isDone()) {
+                file.setFileFolder(uploadDir + File.separator + datasetId);
+                processedData.setFile(file);
+                processedData.setIntensity(intensities.get());
+                String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
+                String id = uri.substring(uri.lastIndexOf("/")+1);
+                processedData.setStatus(FutureTaskStatus.DONE);
+                datasetRepository.updateStatus (uri, processedData, user);
+                return id;
+            } else {
+                String uri = datasetRepository.addProcessedData(processedData, datasetId, user);  
+                processedData.setUri(uri);
+                String id = uri.substring(uri.lastIndexOf("/")+1);
+                processedData.setStatus(FutureTaskStatus.PROCESSING);
+                datasetRepository.updateStatus (uri, processedData, user);
+                return id;
+            }
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Cannot add the processed data from excel file", e);
         }
-        else {
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            throw new IllegalArgumentException("File cannot be found", errorMessage);
-        }
-    }
-    
-    ProcessedResultConfiguration createConfigForVersion (String fileFormat) {
-        // decide on the configuration based on fileFormat
-        ProcessedResultConfiguration config = new ProcessedResultConfiguration();
-        if (fileFormat.equalsIgnoreCase("CFG 5.2")) {
-            config.setCvColumnId(32);
-            config.setFeatureColumnId(29);
-            config.setResultFileType("cfg");
-            config.setRfuColumnId(30);
-            config.setSheetNumber(0);
-            config.setStDevColumnId(31);
-            config.setStartRow(1);
-        } else {
-            return null;
-        }
-        return config;
-        
     }
         
     @ApiOperation(value = "Add given sample metadata for the user")
@@ -2975,6 +2973,105 @@ public class DatasetController {
             throw new GlycanRepositoryException("Printed slide cannot be updated for user " + p.getName(), e);
         }       
         return new Confirmation("Printed slide updated successfully", HttpStatus.OK.value());
+    }
+    
+    @ApiOperation(value = "Update given array dataset for the user")
+    @RequestMapping(value = "/updatearraydataset", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array dataset updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateDataset(
+            @ApiParam(required=true, value="Array dataset with updated fields. You can change name, description and sample") 
+            @RequestBody ArrayDataset dataset, Principal p) throws SQLException {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (dataset.getName() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "name", dataset.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (dataset.getDescription() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "description", dataset.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (dataset.getName() == null || dataset.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        
+        // check to make sure, the sample is specified
+        if (dataset.getSample() == null || 
+                (dataset.getSample().getId() == null && dataset.getSample().getUri() == null && dataset.getSample().getName() == null)) {
+            errorMessage.addError(new ObjectError("sample", "NoEmpty"));
+        } 
+
+        // check for duplicate name
+        try {
+            ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName(), false, user);
+            if (existing != null && !existing.getUri().equals(dataset.getUri()) && !existing.getId().equals(dataset.getId())) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate array dataset", e2);
+        }
+        
+        // check if the sample exists
+        if (dataset.getSample() != null) {
+            try {
+                String id = dataset.getSample().getId();
+                if (id == null) {
+                    if (dataset.getSample().getUri() != null) {
+                        id = dataset.getSample().getUri().substring(dataset.getSample().getUri().lastIndexOf("/") + 1);
+                    }
+                }
+                if (id != null) {
+                    Sample existing = datasetRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("sample", "NotFound"));
+                    } else {
+                        dataset.setSample(existing);
+                    }
+                } else if (dataset.getSample().getName() != null) {
+                    Sample existing = datasetRepository.getSampleByLabel(dataset.getSample().getName(), user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                    } else {
+                        dataset.setSample(existing);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the sample", e);
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
+        }
+        
+        try {
+            datasetRepository.updateArrayDataset(dataset, user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset cannot be updated for user " + p.getName(), e);
+        }       
+        return new Confirmation("Array dataset updated successfully", HttpStatus.OK.value());
     }
     
     @ApiOperation(value = "Update given sample for the user")
