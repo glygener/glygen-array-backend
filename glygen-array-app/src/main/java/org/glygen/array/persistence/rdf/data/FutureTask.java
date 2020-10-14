@@ -1,11 +1,14 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.Date;
+
 import org.glygen.array.view.ErrorMessage;
 
 public class FutureTask {
     
     FutureTaskStatus status;
     ErrorMessage error;
+    Date startDate;
     
     /**
      * @return the error
@@ -30,6 +33,18 @@ public class FutureTask {
      */
     public void setStatus(FutureTaskStatus status) {
         this.status = status;
+    }
+    /**
+     * @return the startDate
+     */
+    public Date getStartDate() {
+        return startDate;
+    }
+    /**
+     * @param startDate the startDate to set
+     */
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
 }

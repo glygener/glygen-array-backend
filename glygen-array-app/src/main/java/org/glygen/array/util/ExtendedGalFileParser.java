@@ -315,8 +315,13 @@ public class ExtendedGalFileParser {
             List<ErrorMessage> errors) {
         if (featureType == null)
             return null;
-        if (featureType.equalsIgnoreCase("control") ||
-                featureType.equalsIgnoreCase("landing light") ||
+        if (featureType.equalsIgnoreCase("landing_light")) {
+            Feature feature = new Feature();
+            feature.setName(name);
+            feature.setType(FeatureType.LANDING_LIGHT);
+            return feature;
+        }
+        else if (featureType.equalsIgnoreCase("control") ||
                 featureType.equalsIgnoreCase("negative control")) {
             // create Linker with the given name
             // create a feature with linker only
@@ -335,8 +340,6 @@ public class ExtendedGalFileParser {
             Feature feature = new Feature();
             if (featureType.equalsIgnoreCase("control"))
                 feature.setType(FeatureType.CONTROL);
-            else if (featureType.equalsIgnoreCase("landing light"))
-                feature.setType(FeatureType.LANDING_LIGHT);
             else if (featureType.equalsIgnoreCase("negative control"))
                 feature.setType(FeatureType.NEGATIVE_CONTROL);
             feature.setLinker(existing);

@@ -62,6 +62,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getSampleCountByUser(UserEntity user) throws SQLException, SparqlException;
     Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    Sample getSampleFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addPrinter (Printer metadata, UserEntity user) throws SparqlException, SQLException;
@@ -71,6 +72,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getPrinterCountByUser(UserEntity user) throws SQLException, SparqlException;
     Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    Printer getPrinterFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     Printer getPrinterByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addScannerMetadata (ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException;
@@ -80,6 +82,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getScannerMetadataCountByUser(UserEntity user) throws SQLException, SparqlException;
     ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    ScannerMetadata getScannerMetadataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     ScannerMetadata getScannerMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addSlideMetadata (SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException;
@@ -89,6 +92,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getSlideMetadataCountByUser(UserEntity user) throws SQLException, SparqlException;
     SlideMetadata getSlideMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    SlideMetadata getSlideMetadataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     SlideMetadata getSlideMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addImageAnalysisSoftware (ImageAnalysisSoftware metadata, UserEntity user) throws SparqlException, SQLException;
@@ -98,6 +102,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getImageAnalysisSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException;
     ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     ImageAnalysisSoftware getImageAnalysisSoftwarByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addDataProcessingSoftware (DataProcessingSoftware metadata, UserEntity user) throws SparqlException, SQLException;
@@ -107,6 +112,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getDataProcessingSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException;
     DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException;
@@ -116,6 +122,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getAssayMetadataCountByUser(UserEntity user) throws SQLException, SparqlException;
     AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    AssayMetadata getAssayMetadataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     AssayMetadata getAssayMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException;
@@ -132,4 +139,6 @@ public interface ArrayDatasetRepository {
     void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
     String addIntensitiesToProcessedData(ProcessedData processedData, UserEntity user)
             throws SparqlException, SQLException;
+    ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user)
+            throws SQLException, SparqlException;
 }

@@ -2,14 +2,12 @@ package org.glygen.array.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.persistence.UserEntity;
-import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.util.parser.ProcessedDataParser;

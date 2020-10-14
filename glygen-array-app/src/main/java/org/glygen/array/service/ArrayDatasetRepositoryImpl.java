@@ -954,7 +954,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             } else if (st.getPredicate().equals(hasSample)) {
                 Value uriValue = st.getObject();
-                datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, user));            
+                datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, user));            
             } else if (st.getPredicate().equals(hasRawData)) {
                 Value uriValue = st.getObject();
                 datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, user));        
@@ -978,11 +978,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     Statement stPublic = statementsPublic.next();
                     if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = st.getObject();
-                        datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, null));            
+                        datasetObject.setSample((Sample) getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, null));            
                     } else if (stPublic.getPredicate().equals(hasRawData)) {
                         uriValue = st.getObject();
-                        if (loadAll != null && loadAll)
-                            datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, null));        
+                        datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, null));        
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = st.getObject();
                         if (loadAll != null && !loadAll)
@@ -990,8 +989,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), null));            
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = st.getObject();
-                        if (loadAll != null && loadAll)
-                            datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, null));            
+                        datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, null));            
                     }
                 }
             }
@@ -1167,7 +1165,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
-                MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, user);
+                MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, true, user);
                 if (metadata != null)
                     list.add(metadata);    
             }
@@ -1176,7 +1174,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return list;
     }
 
-    private MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, UserEntity user) throws SparqlException, SQLException {
+    private MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         MetadataCategory metadataObject = null;
         
         String graph = null;
@@ -1280,6 +1278,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     metadataObject.setDateAddedToLibrary(date);
                 }
             } else if (st.getPredicate().equals(hasTemplate)) {
+                if (loadAll != null && !loadAll) 
+                    continue;
                 Value uriValue = st.getObject();
                 String templateuri = uriValue.stringValue();
                 String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
@@ -1288,6 +1288,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (template != null)
                     metadataObject.setTemplateType(template.getName());
             } else if (st.getPredicate().equals(hasDescriptor)) {
+                if (loadAll != null && !loadAll) 
+                    continue;
                 Value value = st.getObject();
                 Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
                 if (descriptor.isGroup()) {
@@ -1306,6 +1308,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 while (statementsPublic.hasNext()) {
                     Statement stPublic = statementsPublic.next();
                     if (stPublic.getPredicate().equals(hasTemplate)) {
+                        if (loadAll != null && !loadAll) 
+                            continue;
                         uriValue = st.getObject();
                         String id = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("#")+1);
                         metadataObject.setTemplate(id);     
@@ -1319,6 +1323,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         Value comment = stPublic.getObject();
                         metadataObject.setDescription(comment.stringValue());
                     } else if (stPublic.getPredicate().equals(hasDescriptor)) {
+                        if (loadAll != null && !loadAll) 
+                            continue;
                         Value value = stPublic.getObject();
                         Description descriptor = getDescriptionFromURI (value.stringValue(), DEFAULT_GRAPH);
                         if (descriptor.isGroup()) {
@@ -1694,6 +1700,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return imageURI;
     }
     
+    @Override
     public ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
@@ -1776,10 +1783,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
                                 
             } else if (st.getPredicate().equals(hasProcessingSWMetadata)) {
-                if (loadAll != null && !loadAll)
-                    continue;
                 String metadataURI = st.getObject().stringValue();
-                DataProcessingSoftware metadata = getDataProcessingSoftwareFromURI(metadataURI, user);
+                DataProcessingSoftware metadata = getDataProcessingSoftwareFromURI(metadataURI, loadAll, user);
                 processedObject.setMetadata(metadata);
             } else if (st.getPredicate().equals(integratedBy)) {
                 String methodURI = st.getObject().stringValue();
@@ -2005,10 +2010,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
                 rawDataObject.setFile(file);    
             } else if (st.getPredicate().equals(hasimageProcessingMetadata)) {
-                if (loadAll != null && !loadAll)
-                    continue;
                 Value uriValue = st.getObject();
-                rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), user));   
+                rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), loadAll, user));   
             } else if (st.getPredicate().equals(derivedFrom)) {
                 if (loadAll != null && !loadAll)
                     continue;
@@ -2418,7 +2421,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             return null;
         else {
             String uri = results.get(0).getValue("s");
-            return getMetadataCategoryFromURI(uri, typePredicate, user);
+            return getMetadataCategoryFromURI(uri, typePredicate, true, user);
         }
     }
 
@@ -2432,44 +2435,44 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, user);
+        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, true, user);
     }
 
 
     @Override
     public Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, user);
+        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, true, user);
     }
 
 
     @Override
     public ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, user);
+        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, true, user);
     }
 
 
     @Override
     public SlideMetadata getSlideMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, user);
+        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, true, user);
     }
 
 
     @Override
     public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user)
             throws SparqlException, SQLException {
-        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, user);
+        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, true, user);
     }
 
 
     @Override
     public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user)
             throws SparqlException, SQLException {
-        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, user);
+        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, true, user);
     }
     
     @Override
     public AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, user);
+        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, true, user);
     }
     
     @Override
@@ -2988,19 +2991,22 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
         IRI taskIRI = f.createIRI(uri);
-        
-        
         IRI hasStatus = f.createIRI(ontPrefix + "has_status");
         IRI hasError = f.createIRI(ontPrefix + "has_error");
+        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
         
         // delete existing predicates
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI)), graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI)), graphIRI);
+        
         
         Literal status = f.createLiteral(task.getStatus().name());
+        Literal date = f.createLiteral(new Date());
         List<Statement> statements = new ArrayList<Statement>();
         
         statements.add(f.createStatement(taskIRI, hasStatus, status, graphIRI));
+        statements.add(f.createStatement(taskIRI, hasStatusDate, date, graphIRI));
         try {
             if (task.getError() != null) {
                 String error = new ObjectMapper().writeValueAsString(task.getError());
@@ -3021,11 +3027,22 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
        
         IRI hasStatus = f.createIRI(ontPrefix + "has_status");
         IRI hasError = f.createIRI(ontPrefix + "has_error");
+        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
         
         RepositoryResult<Statement> result = sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI);
         while (result.hasNext()) {
             Statement st = result.next();
             task.setStatus(FutureTaskStatus.valueOf(st.getObject().stringValue()));
+        }
+        result = sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            if (st.getObject() instanceof Literal) {
+                Literal literal = (Literal)st.getObject();
+                XMLGregorianCalendar calendar = literal.calendarValue();
+                Date date = calendar.toGregorianCalendar().getTime();
+                task.setStartDate(date);
+            }
         }
         result = sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI);
         while (result.hasNext()) {
@@ -3092,5 +3109,53 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             sparqlDAO.addStatements(statements, graphIRI);
         }
+    }
+
+
+    @Override
+    public Sample getSampleFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public Printer getPrinterFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public ScannerMetadata getScannerMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public SlideMetadata getSlideMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public AssayMetadata getAssayMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, loadAll, user);
     }    
 }

@@ -1095,6 +1095,7 @@ public class DatasetController {
             }
             ProcessedData processedData = new ProcessedData();     
             processedData.setMetadata(metadata);
+            processedData.setFile(file);
             List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
             StatisticalMethod found = null;
             for (StatisticalMethod method: methods) {
@@ -1173,7 +1174,102 @@ public class DatasetController {
             throw new GlycanRepositoryException("Cannot add the processed data from excel file", e);
         }
     }
+    
+    @ApiOperation(value = "Update processed data with results from uploaded excel file")
+    @RequestMapping(value = "/updateProcessedDataFromExcel", method=RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given array dataset"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String updateProcessedDataFromExcel (
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
+            @RequestParam("arraydatasetId")
+            String datasetId,        
+            @ApiParam(required=true, value="processed data with an existing id/uri") 
+            @RequestBody
+            ProcessedData processedData,
+            Principal p) {
         
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        String uri = processedData.getUri();
+        if (uri == null && processedData.getId() != null) {
+            uri = GlygenArrayRepositoryImpl.uriPrefix + processedData.getId();
+            processedData.setUri(uri);
+        }
+        
+        if (uri == null) {
+            errorMessage.addError(new ObjectError("id", "NoEmpty"));
+            throw new IllegalArgumentException("Processed data should have an existing id", errorMessage);
+        }
+        
+        String id = processedData.getId();
+        if (id == null) {
+            id = uri.substring(uri.lastIndexOf("/")+1);
+        }
+        
+        FileWrapper file = processedData.getFile();
+        
+        try {
+            ProcessedData existing = datasetRepository.getProcessedDataFromURI(uri, true, user);
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+                throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
+            }
+            processedData.setFile(existing.getFile());
+            processedData.setMethod(existing.getMethod());
+            processedData.setMetadata(existing.getMetadata());
+                
+            CompletableFuture<List<Intensity>> intensities = null;
+            try {
+                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, user);
+                intensities.whenComplete((intensity, e) -> {
+                    try {
+                        String processedURI = processedData.getUri();
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            processedData.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) 
+                                processedData.setError((ErrorMessage) e.getCause());
+                            
+                        } else {
+                            processedData.setIntensity(intensity);
+                            file.setFileFolder(uploadDir + File.separator + datasetId);
+                            processedData.setFile(file);
+                            datasetRepository.addIntensitiesToProcessedData(processedData, user);
+                            processedData.setStatus(FutureTaskStatus.DONE);
+                        }
+                    
+                        datasetRepository.updateStatus (processedURI, processedData, user);
+                    } catch (SparqlException | SQLException e1) {
+                        logger.error("Could not save the processedData", e1);
+                    } 
+                });
+                processedData.setIntensity(intensities.get(20000, TimeUnit.MILLISECONDS));
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (TimeoutException e) {
+                synchronized (this) {
+                    processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    datasetRepository.updateStatus (uri, processedData, user);
+                    return id;
+                }
+            }
+                
+            return processedData.getId();
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
+        }
+        
+    }
+    
+    
     @ApiOperation(value = "Add given sample metadata for the user")
     @RequestMapping(value="/addSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
