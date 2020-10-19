@@ -1,30 +1,24 @@
 package org.glygen.array.controller;
 
 import java.io.File;
-import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.naming.TimeLimitExceededException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.exception.UploadNotFinishedException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -63,8 +57,6 @@ import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
-import org.glygen.array.util.parser.ProcessedDataParser;
-import org.glygen.array.util.parser.ProcessedResultConfiguration;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.Confirmation;
@@ -77,11 +69,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -90,9 +80,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.springframework.web.context.request.async.WebAsyncTask;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -1074,28 +1062,34 @@ public class DatasetController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-                    
+                  
+        // check if metadata exists!
+        DataProcessingSoftware metadata = null;
+        ArrayDataset dataset;
         try {
             // check if the dataset with the given id exists
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
-            // check if metadata exists!
-            DataProcessingSoftware metadata = null;
-            if (metadataId != null) {    
-                try {
-                    metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
-                    if (metadata == null) {
-                        errorMessage.addError(new ObjectError("metadata", "NotFound"));
-                    }
-                } catch (SparqlException | SQLException e) {
-                    throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
+            
+        if (metadataId != null) {    
+            try {
+                metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
+                if (metadata == null) {
+                    errorMessage.addError(new ObjectError("metadata", "NotFound"));
                 }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
             }
-            ProcessedData processedData = new ProcessedData();     
-            processedData.setMetadata(metadata);
-            processedData.setFile(file);
+        }
+        ProcessedData processedData = new ProcessedData();     
+        processedData.setMetadata(metadata);
+        processedData.setFile(file);
+        try {
             List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
             StatisticalMethod found = null;
             for (StatisticalMethod method: methods) {
@@ -1108,11 +1102,14 @@ public class DatasetController {
             else {
                 processedData.setMethod(found);
             }
-            
-            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
-            }
-            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve statistical methods from the repository", e);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Invalid Input: Not a valid processed data information", errorMessage);
+        }
+        try {
             CompletableFuture<List<Intensity>> intensities = null;
             try {
                 intensities = parserAsyncService.parseProcessDataFile(datasetId, file, user);
@@ -1171,7 +1168,7 @@ public class DatasetController {
                 return id;
             }
         } catch (Exception e) {
-            throw new GlycanRepositoryException("Cannot add the processed data from excel file", e);
+            throw new GlycanRepositoryException("Cannot add the intensities to the repository", e);
         }
     }
     
