@@ -1186,7 +1186,8 @@ public class DatasetController {
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,        
-            @ApiParam(required=true, value="processed data with an existing id/uri") 
+            @ApiParam(required=true, value="processed data with an existing id/uri. If file is provided, the new file information is used. "
+                    + "If not, existing file is used for processing") 
             @RequestBody
             ProcessedData processedData,
             Principal p) {
@@ -1219,7 +1220,9 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("id", "NotFound"));
                 throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
             }
-            processedData.setFile(existing.getFile());
+            if (file == null) { // if file is not included in update, we use existing file
+                processedData.setFile(existing.getFile());
+            }
             processedData.setMethod(existing.getMethod());
             processedData.setMetadata(existing.getMetadata());
                 
@@ -2740,6 +2743,37 @@ public class DatasetController {
             }
             
             return dataset;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset with id " + id + " cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve processed data with the given id")
+    @RequestMapping(value="/getprocesseddata/{id}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Processed data retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve the dataset"),
+            @ApiResponse(code=404, message="Processed data with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ProcessedData getProcessedData (
+            @ApiParam(required=true, value="id of the processed data to retrieve") 
+            @PathVariable("id") String id, Principal p) {
+        try {
+            if (id == null || id.isEmpty()) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("id", "NoEmpty"));
+                throw new IllegalArgumentException("id must be provided", errorMessage);
+            }
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            ProcessedData data = datasetRepository.getProcessedDataFromURI(GlygenArrayRepository.uriPrefix + id, false, user);
+            if (data == null) {
+                throw new EntityNotFoundException("Processed data with id : " + id + " does not exist in the repository");
+            }
+            
+            return data;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset with id " + id + " cannot be retrieved for user " + p.getName(), e);
         }   
