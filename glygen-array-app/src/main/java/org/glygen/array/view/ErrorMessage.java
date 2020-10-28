@@ -85,7 +85,7 @@ public class ErrorMessage extends Error {
 
 	@Override
 	public String toString() {
-		String errorsString = getMessage() + " ";
+		String errorsString = getMessage() + ";;";
 		if (errors != null) {
 			for (Iterator<ObjectError> iterator = errors.iterator(); iterator.hasNext();) {
 				ObjectError error = (ObjectError) iterator.next();
@@ -96,6 +96,21 @@ public class ErrorMessage extends Error {
 			}
 		}
 		return errorsString;
+	}
+	
+	public static ErrorMessage fromString (String message) {
+	    ErrorMessage errorMessage = new ErrorMessage();
+	    String[] first = message.split(";;");
+	    if (first.length > 1) {
+	        String[] errors = first[1].split(", ");
+    	    for (String err: errors) {
+    	        String fieldName = err.substring(err.indexOf("Error in object '") + 17, err.lastIndexOf("'"));
+    	        String defaultMessage = err.substring(err.indexOf("default message ")+16);
+    	        
+    	        errorMessage.addError(new ObjectError (fieldName, defaultMessage));
+    	    }
+	    }
+	    return errorMessage;
 	}
 
 	/**

@@ -99,6 +99,18 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (InvalidFormatException | IOException e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             throw new IllegalArgumentException("File cannot be parsed", errorMessage);
+        } catch (IllegalArgumentException e) {
+            if (e.getCause() instanceof ErrorMessage) {
+                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                    errorMessage.addError(err);
+                }
+            } else {
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+            }
+            throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
         }
     }
     

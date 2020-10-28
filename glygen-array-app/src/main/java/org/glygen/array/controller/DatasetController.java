@@ -1119,8 +1119,8 @@ public class DatasetController {
                         if (e != null) {
                             logger.error(e.getMessage(), e);
                             processedData.setStatus(FutureTaskStatus.ERROR);
-                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) 
-                                processedData.setError((ErrorMessage) e.getCause());
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                processedData.setError((ErrorMessage) e.getCause().getCause());
                             
                         } else {
                             processedData.setIntensity(intensity);
@@ -1144,19 +1144,26 @@ public class DatasetController {
                     String uri = datasetRepository.addProcessedData(processedData, datasetId, user);  
                     processedData.setUri(uri);
                     String id = uri.substring(uri.lastIndexOf("/")+1);
-                    processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    if (processedData.getError() != null)
+                        processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    else 
+                        processedData.setStatus(FutureTaskStatus.ERROR);
                     datasetRepository.updateStatus (uri, processedData, user);
                     return id;
                 }
             }
             
+            //TODO do we ever come to this ??
             if (intensities != null && intensities.isDone()) {
                 file.setFileFolder(uploadDir + File.separator + datasetId);
                 processedData.setFile(file);
                 processedData.setIntensity(intensities.get());
                 String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
                 String id = uri.substring(uri.lastIndexOf("/")+1);
-                processedData.setStatus(FutureTaskStatus.DONE);
+                if (processedData.getError() != null)
+                    processedData.setStatus(FutureTaskStatus.DONE);
+                else 
+                    processedData.setStatus(FutureTaskStatus.ERROR);
                 datasetRepository.updateStatus (uri, processedData, user);
                 return id;
             } else {
@@ -1167,6 +1174,8 @@ public class DatasetController {
                 datasetRepository.updateStatus (uri, processedData, user);
                 return id;
             }
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new GlycanRepositoryException("Cannot add the intensities to the repository", e);
         }
@@ -2775,7 +2784,7 @@ public class DatasetController {
             
             return data;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Array dataset with id " + id + " cannot be retrieved for user " + p.getName(), e);
+            throw new GlycanRepositoryException("Processed data with id " + id + " cannot be retrieved for user " + p.getName(), e);
         }   
     }
     

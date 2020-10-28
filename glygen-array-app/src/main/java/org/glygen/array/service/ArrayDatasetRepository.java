@@ -141,4 +141,5 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user)
             throws SQLException, SparqlException;
+    String makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
 }

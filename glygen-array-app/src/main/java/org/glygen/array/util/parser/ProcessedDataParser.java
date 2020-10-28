@@ -253,7 +253,7 @@ public class ProcessedDataParser {
             ErrorMessage error = new ErrorMessage("Errors parsing processed data excel file");
             error.setErrorCode(ErrorCodes.INVALID_INPUT);
             error.setStatus(HttpStatus.BAD_REQUEST.value());
-            System.out.println("Errors:");
+            
             for (ErrorMessage e: errorList) {
                 for (ObjectError o: e.getErrors()) {
                     error.addError(o);

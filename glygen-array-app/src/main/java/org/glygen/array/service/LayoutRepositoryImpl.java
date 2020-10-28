@@ -1261,70 +1261,59 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         blockLayoutCache.clear();
         
         if (existingURI == null) {
-        	// check by label if any
-        	if (layout.getName() != null && !layout.getName().isEmpty()) {
-                List <SparqlEntity> results = retrieveSlideLayoutByName(layout.getName(), null);
-                if (results.isEmpty()) {
-                	// first make other components public
-                    List<Block> publicBlocks = new ArrayList<Block>();
-                	Map<String, String> uriMapOldToNew = new HashMap<>();
-                	for (Block block: layout.getBlocks()) {
-                		BlockLayout blockLayout = block.getBlockLayout();
-                		if (uriMapOldToNew.get(blockLayout.getUri()) == null) {
-	                		// check if it already exists
-	                		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
-	                		String publicURI = null;
-	                		if (results2.isEmpty()) {
-	                		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-	                	            String uri = uriPrefix + blockLayout.getId();
-	                	            // load them
-	                	            blockLayout = blockLayoutCache.get(uri);
-	                	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-	                	                blockLayout = getBlockLayoutFromURI(uri, user);
-	                	            }
-	                	        }
-	                			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-	                			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
-	                			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
-	                		} else {
-	                			String blockLayoutURI = results.get(0).getValue("s");
-	                			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-	                			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
-	                			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
-	                		}
-                		}
-                		deleteByURI (uriPrefix + block.getId(), graph);
-                		String uri = uriMapOldToNew.get(blockLayout.getUri());
-                		BlockLayout blockL = null;
-                		if (blockLayoutCache.containsKey(uri))
-                		    blockL = blockLayoutCache.get(uri);
-                		else
-                		    blockL = getBlockLayoutFromURI(uri, null);
-                		block.setBlockLayout(blockL);
-                		String blockURI = addPublicBlock (block, graph);
-                		Block newBlock = getBlock(blockURI, true, null);
-                		publicBlocks.add(newBlock);
-                	}
-                	
-                	layout.setBlocks(publicBlocks);
-                    // make it public
-                    deleteByURI(uriPrefix + layout.getId(), graph);
-                    updateSlideLayoutInGraph(layout, graph);
-                    // need to create the linker in the public graph, link the user's version to public one
-                    return addPublicSlideLayout(layout, null, graph, user.getUsername());
-                } else {
-                    // same name linker exist in public graph
-                    // throw exception
-                    new GlycanExistsException("SlideLayout with name " + layout.getName() + " already exists in public graph");
-                }
-            }
+        	// first make other components public
+            List<Block> publicBlocks = new ArrayList<Block>();
+        	Map<String, String> uriMapOldToNew = new HashMap<>();
+        	for (Block block: layout.getBlocks()) {
+        		BlockLayout blockLayout = block.getBlockLayout();
+        		if (uriMapOldToNew.get(blockLayout.getUri()) == null) {
+            		// check if it already exists
+            		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
+            		String publicURI = null;
+            		if (results2.isEmpty()) {
+            		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+            	            String uri = uriPrefix + blockLayout.getId();
+            	            // load them
+            	            blockLayout = blockLayoutCache.get(uri);
+            	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+            	                blockLayout = getBlockLayoutFromURI(uri, user);
+            	            }
+            	        }
+            			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+            			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
+            			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
+            		} else {
+            			String blockLayoutURI = results2.get(0).getValue("s");
+            			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+            			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
+            			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
+            		}
+        		}
+        		deleteByURI (uriPrefix + block.getId(), graph);
+        		String uri = uriMapOldToNew.get(blockLayout.getUri());
+        		BlockLayout blockL = null;
+        		if (blockLayoutCache.containsKey(uri))
+        		    blockL = blockLayoutCache.get(uri);
+        		else
+        		    blockL = getBlockLayoutFromURI(uri, null);
+        		block.setBlockLayout(blockL);
+        		String blockURI = addPublicBlock (block, graph);
+        		Block newBlock = getBlock(blockURI, true, null);
+        		publicBlocks.add(newBlock);
+        	}
+        	
+        	layout.setBlocks(publicBlocks);
+            // make it public
+            deleteByURI(uriPrefix + layout.getId(), graph);
+            updateSlideLayoutInGraph(layout, graph);
+            // need to create the slidelayout in the public graph, link the user's version to public one
+            return addPublicSlideLayout(layout, null, graph, user.getUsername()); 
         } else {
             deleteByURI(uriPrefix + layout.getId(), graph);
             updateSlideLayoutInGraph(layout, graph);
             // need to link the user's version to the existing URI
             return addPublicSlideLayout(layout, existingURI, graph, user.getUsername());
         }
-		return null;
 	}
 
 	private String addPublicBlock(Block block, String graph) throws SparqlException {
