@@ -142,4 +142,6 @@ public interface ArrayDatasetRepository {
     ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user)
             throws SQLException, SparqlException;
     String makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
+    PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
 }

@@ -951,10 +951,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Value uriValue = st.getObject();
                 datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, user));        
             } else if (st.getPredicate().equals(hasSlide)) {
-                if (loadAll != null && !loadAll)
-                    continue;
                 Value uriValue = st.getObject();
-                datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), user));            
+                datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));            
             } else if (st.getPredicate().equals(hasProcessedData)) {
                 Value uriValue = st.getObject();
                 datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, user));            
@@ -976,9 +974,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.getRawDataList().add(getRawDataFromURI(uriValue.stringValue(), loadAll, null));        
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = st.getObject();
-                        if (loadAll != null && !loadAll)
-                            continue;
-                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), null));            
+                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, null));            
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = st.getObject();
                         datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, null));            
@@ -1823,7 +1819,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private Slide getSlideFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+    private Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1855,20 +1851,20 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Statement st = statements.next();
             if (st.getPredicate().equals(scanOf)) { 
                 Value uriValue = st.getObject();
-                slideObject.setImage(getImageFromURI(uriValue.stringValue(), user));         
+                slideObject.setImage(getImageFromURI(uriValue.stringValue(), loadAll, user));         
             } else if (st.getPredicate().equals(hasPrintedSlide)) {
                 Value uriValue = st.getObject();
-                slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), user));   
+                slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), loadAll, user));   
             } else if (st.getPredicate().equals(hasAssay)) {
                 Value uriValue = st.getObject();
-                slideObject.setMetadata(getAssayMetadataFromURI(uriValue.stringValue(), user));
+                slideObject.setMetadata(getAssayMetadataFromURI(uriValue.stringValue(), loadAll, user));
             }
         }
         return slideObject;
     }
 
 
-    private Image getImageFromURI(String uri, UserEntity user) throws SparqlException, SQLException  {
+    private Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException  {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1929,7 +1925,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 imageObject.setFile(file);    
             } else if (st.getPredicate().equals(hasScanner)) {
                 Value uriValue = st.getObject();
-                imageObject.setScanner(getScannerMetadataFromURI(uriValue.stringValue(), user));   
+                imageObject.setScanner(getScannerMetadataFromURI(uriValue.stringValue(), loadAll, user));   
             } 
         }
         return imageObject;
@@ -2005,15 +2001,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Value uriValue = st.getObject();
                 rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), loadAll, user));   
             } else if (st.getPredicate().equals(derivedFrom)) {
-                if (loadAll != null && !loadAll)
-                    continue;
                 Value uriValue = st.getObject();
-                rawDataObject.setImage(getImageFromURI(uriValue.stringValue(), user));
+                rawDataObject.setImage(getImageFromURI(uriValue.stringValue(), loadAll, user));
             } else if (st.getPredicate().equals(hasSlide)) {
-                if (loadAll != null && !loadAll)
-                    continue;
                 Value uriValue = st.getObject();
-                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), user));
+                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), loadAll, user));
             } else if (st.getPredicate().equals(hasMeasurement)) {
                 if (loadAll != null && !loadAll)
                     continue;
@@ -2654,6 +2646,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public PrintedSlide getPrintedSlideFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return getPrintedSlideFromURI(uri, true, user);
+    }
+        
+    @Override
+    public PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         PrintedSlide slideObject = new PrintedSlide();
         
         String graph = null;
@@ -2739,11 +2736,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 slideObject.setLayout(layout);
             } else if (st.getPredicate().equals(hasSlideMetadata)) {
                 Value value = st.getObject();
-                SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), user);
+                SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), loadAll, user);
                 slideObject.setMetadata(slideMetadata);
             } else if (st.getPredicate().equals(printedBy)) {
                 Value value = st.getObject();
-                Printer metadata = getPrinterFromURI(value.stringValue(), user);
+                Printer metadata = getPrinterFromURI(value.stringValue(), loadAll, user);
                 slideObject.setPrinter(metadata);
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
@@ -2769,11 +2766,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         slideObject.setDescription(comment.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSlideMetadata)) {
                         Value value = stPublic.getObject();
-                        SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), user);
+                        SlideMetadata slideMetadata = getSlideMetadataFromURI(value.stringValue(), loadAll, user);
                         slideObject.setMetadata(slideMetadata);
                     } else if (stPublic.getPredicate().equals(printedBy)) {
                         Value value = stPublic.getObject();
-                        Printer metadata = getPrinterFromURI(value.stringValue(), user);
+                        Printer metadata = getPrinterFromURI(value.stringValue(), loadAll, user);
                         slideObject.setPrinter(metadata);
                     }
                 }

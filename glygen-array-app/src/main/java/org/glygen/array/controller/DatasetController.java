@@ -2470,7 +2470,7 @@ public class DatasetController {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             
             // delete the files associated with the array dataset
-            ArrayDataset dataset = getArrayDataset(id, principal);
+            ArrayDataset dataset = getArrayDataset(id, false, principal);
             if (dataset != null && dataset.getRawDataList() != null) {
                 for (RawData rawData: dataset.getRawDataList()) {
                     if (rawData.getFile() != null) {
@@ -2767,10 +2767,13 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public ArrayDataset getArrayDataset (
             @ApiParam(required=true, value="id of the array dataset to retrieve") 
-            @PathVariable("datasetid") String id, Principal p) {
+            @PathVariable("datasetid") String id, 
+            @ApiParam(required=false, value="load rawdata and processed data measurements or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ArrayDataset dataset = datasetRepository.getArrayDataset(id, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(id, loadAll, user);
             if (dataset == null) {
                 throw new EntityNotFoundException("Array dataset with id : " + id + " does not exist in the repository");
             }
