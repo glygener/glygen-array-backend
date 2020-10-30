@@ -4,7 +4,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.Principal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -19,6 +21,7 @@ import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Glycan;
@@ -26,17 +29,31 @@ import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.PrintedSlide;
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
+import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
+import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
+import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.Printer;
+import org.glygen.array.persistence.rdf.metadata.Sample;
+import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
+import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
+import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.LinkerListResultView;
+import org.glygen.array.view.MetadataListResultView;
+import org.glygen.array.view.PrintedSlideListView;
 import org.glygen.array.view.SlideLayoutResultView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +117,9 @@ public class PublicGlygenArrayController {
     
     @Autowired
     UserRepository userRepository;
+    
+    @Autowired
+    ArrayDatasetRepository datasetRepository;
     
     @Autowired
     Validator validator;
@@ -449,6 +469,503 @@ public class PublicGlygenArrayController {
             result.setFilteredTotal(features.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all datasets for the user")
+    @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public ArrayDatasetListView listArrayDataset (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        ArrayDatasetListView result = new ArrayDatasetListView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getArrayDatasetCountByUser(null);
+            
+            List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, loadAll);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all printed slides for the user")
+    @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public PrintedSlideListView listPrintedSlide (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        PrintedSlideListView result = new PrintedSlideListView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getPrintedSlideCountByUser(null);
+            
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue);
+            // clear unnecessary fields before sending the results back
+            for (PrintedSlide slide: resultList) {
+                if (slide.getLayout() != null)
+                    slide.getLayout().setBlocks(null);
+                if (slide.getPrinter() != null) {
+                    slide.getPrinter().setDescriptorGroups(null);
+                    slide.getPrinter().setDescriptors(null);
+                }
+                if (slide.getMetadata() != null) {
+                    slide.getMetadata().setDescriptorGroups(null);
+                    slide.getMetadata().setDescriptors(null);
+                }
+            }
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all data processing software metadata for the user")
+    @RequestMapping(value="/listDataProcessingSoftware", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listDataProcessingSoftware (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getDataProcessingSoftwareCountByUser(null);
+            
+            List<DataProcessingSoftware> metadataList = datasetRepository.getDataProcessingSoftwareByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve data processing software for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all image analysis software metadata for the user")
+    @RequestMapping(value="/listImageAnalysisSoftware", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listImageAnalysisSoftware (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getImageAnalysisSoftwareCountByUser(null);
+            
+            List<ImageAnalysisSoftware> metadataList = datasetRepository.getImageAnalysisSoftwareByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve image analysis software for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all printer metadata for the user")
+    @RequestMapping(value="/listPrinters", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listPrinters (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getPrinterCountByUser(null);
+            
+            List<Printer> metadataList = datasetRepository.getPrinterByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve printers for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all samples for the user")
+    @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Samples retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listSamples (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getSampleCountByUser (null);
+            
+            List<Sample> metadataList = datasetRepository.getSampleByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve samples for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all scanner metadata for the user")
+    @RequestMapping(value="/listScanners", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listScanners (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getScannerMetadataCountByUser(null);
+            
+            List<ScannerMetadata> metadataList = datasetRepository.getScannerMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve scanners for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all slide metadata for the user")
+    @RequestMapping(value="/listSlideMetadata", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listSlideMetadata (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getSlideMetadataCountByUser (null);
+            
+            List<SlideMetadata> metadataList = datasetRepository.getSlideMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve slide metadata for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all assay metadata for the user")
+    @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listAssayMetadata (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getAssayMetadataCountByUser(null);
+            
+            List<AssayMetadata> metadataList = datasetRepository.getAssayMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve assay metadata for user. Reason: " + e.getMessage());
         }
         
         return result;

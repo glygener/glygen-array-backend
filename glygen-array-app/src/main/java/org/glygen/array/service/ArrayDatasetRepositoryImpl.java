@@ -492,6 +492,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
             IRI hasFile = f.createIRI(hasFilePredicate);
             
+            // Delete the existing intensities, if any
+            RepositoryResult<Statement> results = sparqlDAO.getStatements(processed, hasIntensity, null, graphIRI);
+            while (results.hasNext()) {
+                Statement st = results.next();
+                String intensityURI = st.getObject().stringValue();
+                // delete the intensity
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(intensityURI), null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+            }
+            
             if (processedData.getIntensity() != null) {
                 for (Intensity intensity: processedData.getIntensity()) {
                     if (intensity == null) continue;
@@ -521,9 +531,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             if (processedData.getFile() != null) {
                 String fileURI = null;
-                RepositoryResult<Statement> results = sparqlDAO.getStatements(processed, hasFile, null, graphIRI);
-                if (results.hasNext()) {
-                    Statement st = results.next();
+                RepositoryResult<Statement> results2 = sparqlDAO.getStatements(processed, hasFile, null, graphIRI);
+                if (results2.hasNext()) {
+                    Statement st = results2.next();
                     fileURI = st.getSubject().stringValue();
                     
                 } else {

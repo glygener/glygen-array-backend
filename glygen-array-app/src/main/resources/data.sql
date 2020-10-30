@@ -8,3 +8,4 @@ insert into user_roles values (1, 4);
 insert into user_roles values (2, 2);
 
 insert into settings (name, value) values ('token.expiration', '8640000');  
+insert into settings (name, value) values ('timeDelay', '3600');

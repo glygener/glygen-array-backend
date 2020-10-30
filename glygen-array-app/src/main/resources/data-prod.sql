@@ -6,3 +6,4 @@ insert into users (userid, username, password, enabled, firstname, lastname, ema
 insert into user_roles values (2, 2) ON CONFLICT DO NOTHING;
 
 INSERT INTO settings (name, value) SELECT 'token.expiration', '8640000' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'token.expiration'); 
+INSERT INTO settings (name, value) SELECT 'timeDelay', '3600' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'timeDelay'); 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +18,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
 import org.glygen.array.config.SesameTransactionConfig;
+import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -96,6 +100,9 @@ public class DatasetController {
     
     @Autowired
     ArrayDatasetRepository datasetRepository;
+    
+    @Autowired
+    SettingsRepository settingsRepository;
     
     @Autowired
     GlycanRepository glycanRepository;
@@ -460,7 +467,7 @@ public class DatasetController {
                         Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
                         for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
                             for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                                if (entry.getValue().getBlockId() == blockId) {
+                                if (entry.getValue().getBlockId().equals(blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
                                     break;
                                 }
@@ -1023,16 +1030,6 @@ public class DatasetController {
         
     }
     
-    @RequestMapping(value = "/deferred", method = RequestMethod.GET)
-    public DeferredResult<ResponseEntity<?>> timeDeferred() {
-        DeferredResult<ResponseEntity<?>> result = new DeferredResult<>();
-
-        new Thread(() -> {
-            result.setResult(ResponseEntity.ok(""));
-        }, "MyThread-" + 1).start();
-
-        return result;
-    }
     
     @ApiOperation(value = "Import processed data results from uploaded excel file")
     @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
@@ -1144,7 +1141,7 @@ public class DatasetController {
                     String uri = datasetRepository.addProcessedData(processedData, datasetId, user);  
                     processedData.setUri(uri);
                     String id = uri.substring(uri.lastIndexOf("/")+1);
-                    if (processedData.getError() != null)
+                    if (processedData.getError() == null)
                         processedData.setStatus(FutureTaskStatus.PROCESSING);
                     else 
                         processedData.setStatus(FutureTaskStatus.ERROR);
@@ -1160,7 +1157,7 @@ public class DatasetController {
                 processedData.setIntensity(intensities.get());
                 String uri = datasetRepository.addProcessedData(processedData, datasetId, user);   
                 String id = uri.substring(uri.lastIndexOf("/")+1);
-                if (processedData.getError() != null)
+                if (processedData.getError() == null)
                     processedData.setStatus(FutureTaskStatus.DONE);
                 else 
                     processedData.setStatus(FutureTaskStatus.ERROR);
@@ -1229,7 +1226,31 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("id", "NotFound"));
                 throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
             }
-            if (file == null) { // if file is not included in update, we use existing file
+            
+            if (existing.getStatus() == FutureTaskStatus.DONE) {
+                errorMessage.addError(new ObjectError("status", "NotAllowed"));
+                throw new IllegalArgumentException("The processing has finished already. No updates are allowed", errorMessage);
+            }
+            
+            // check the timestamp and see if enough time has passed
+            Long timeDelay = 3600L;
+            SettingEntity entity = settingsRepository.findByName("timeDelay");
+            if (entity != null) {
+                timeDelay = Long.parseLong(entity.getValue());
+            }
+           
+            Date current = new Date();
+            Date startDate = existing.getStartDate();
+            if (startDate != null) {
+                long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                if (timeDelay > diffInMillies / 1000) {
+                    // not enough time has passed, cannot restart!
+                    errorMessage.addError(new ObjectError("time", "NotValid"));
+                    throw new IllegalArgumentException("Not enough time has passed. Please wait before restarting", errorMessage);
+                }
+            }
+            
+            if (file == null) { // if file is not included in update, we use the existing file
                 processedData.setFile(existing.getFile());
             }
             processedData.setMethod(existing.getMethod());
@@ -1244,8 +1265,8 @@ public class DatasetController {
                         if (e != null) {
                             logger.error(e.getMessage(), e);
                             processedData.setStatus(FutureTaskStatus.ERROR);
-                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) 
-                                processedData.setError((ErrorMessage) e.getCause());
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                processedData.setError((ErrorMessage) e.getCause().getCause());
                             
                         } else {
                             processedData.setIntensity(intensity);
@@ -1265,7 +1286,10 @@ public class DatasetController {
                 throw e;
             } catch (TimeoutException e) {
                 synchronized (this) {
-                    processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    if (processedData.getError() == null)
+                        processedData.setStatus(FutureTaskStatus.PROCESSING);
+                    else 
+                        processedData.setStatus(FutureTaskStatus.ERROR);
                     datasetRepository.updateStatus (uri, processedData, user);
                     return id;
                 }
@@ -3443,5 +3467,34 @@ public class DatasetController {
         }
         return new Confirmation("Metadata updated successfully", HttpStatus.OK.value());
         
+    }
+    
+    @ApiOperation(value = "Make the given array dataset public")
+    @RequestMapping(value="/makearraydatasetpublic/{datasetid}", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="id of the public array dataset"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to modify the dataset"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String makeArrayDatasetPublic (
+            @ApiParam(required=true, value="id of the dataset to make pblic") 
+            @PathVariable("datasetId") String datasetId, Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
+            if (dataset == null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("datasetId", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
+            }
+            String datasetURI = datasetRepository.makePublicArrayDataset(dataset, user); 
+            return datasetURI.substring(datasetURI.lastIndexOf("/")+1);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset cannot be made public for user " + p.getName(), e);
+        } 
     }
 }

@@ -16,6 +16,8 @@ import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SettingEntity;
+import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
@@ -61,6 +63,9 @@ public class UtilityController {
     
     @Autowired
     MetadataTemplateRepository templateRepository;
+    
+    @Autowired
+    SettingsRepository settingsRepository;
 	
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -504,4 +509,17 @@ public class UtilityController {
         
         return result;
     }
+    
+    @ApiOperation(value = "Retrieve the setting for time delay before restarting asyncronous processes (in seconds)")
+    @RequestMapping(value = "/delaysetting", method = RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Return the setting (in seconds)"), 
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Long getDelaySetting() {
+        SettingEntity entity = settingsRepository.findByName("timeDelay");
+        if (entity != null) {
+            return Long.parseLong(entity.getValue());
+        }
+        return 3600L; // default setting is an hour
+    }    
 }
