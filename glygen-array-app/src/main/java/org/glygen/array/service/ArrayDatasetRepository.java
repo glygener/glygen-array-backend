@@ -2,9 +2,11 @@ package org.glygen.array.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
@@ -43,6 +45,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     String addSlide(Slide slide, String datasetId, UserEntity user) throws SparqlException, SQLException;
     String addRawData(RawData rawData, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    String addPublication (Publication publication, String datasetId, UserEntity user) throws SparqlException, SQLException;
     
     String addPrintedSlide(PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser (UserEntity user) throws SparqlException, SQLException;
@@ -135,13 +138,14 @@ public interface ArrayDatasetRepository {
     void deleteProcessedData(String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException;
     
     RawData getRawDataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    Publication getPublicationFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
     
     void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
     String addIntensitiesToProcessedData(ProcessedData processedData, UserEntity user)
             throws SparqlException, SQLException;
     ProcessedData getProcessedDataFromURI(String uriValue, Boolean loadAll, UserEntity user)
             throws SQLException, SparqlException;
-    String makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
+    CompletableFuture<String> makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
 }

@@ -204,12 +204,14 @@ public class ProcessedDataParser {
                                 if (linker != null)
                                     linkerCache.put(linkerName+"B", linker);
                             }
-                            key = glycan.getUri() + linker.getUri();
-                            feature = featureCache.get(key);
-                            if (feature == null) {
-                                feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
-                                if (feature != null)
-                                    featureCache.put(key, feature);
+                            if (linker != null) {
+                                key = glycan.getUri() + linker.getUri();
+                                feature = featureCache.get(key);
+                                if (feature == null) {
+                                    feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                                    if (feature != null)
+                                        featureCache.put(key, feature);
+                                }
                             }
                             if (feature == null) {
                                 ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");

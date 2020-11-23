@@ -316,10 +316,17 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     public void populateTemplateOntology() throws SparqlException {
         // load the model from "ontology/gadr-template-individuals.owl" and put the triples into the repository
         try {
-            InputStream inputStream = new FileInputStream(new File("ontology/gadr-template-individuals.owl"));
-            Model model = Rio.parse(inputStream, "http://purl.org/gadr/template", RDFFormat.RDFXML);
+            InputStream inputStream1 = new FileInputStream(new File("ontology/gadr-data.owl"));
+            Model model = Rio.parse(inputStream1, "http://purl.org/gadr/gadr", RDFFormat.RDFXML);
             Iterator<Statement> itr = model.iterator();
             List<Statement> statements = new ArrayList<Statement>();
+            while (itr.hasNext()) {
+                Statement st = itr.next();
+                statements.add(st);
+            }
+            InputStream inputStream = new FileInputStream(new File("ontology/gadr-template-individuals.owl"));
+            model = Rio.parse(inputStream, "http://purl.org/gadr/template", RDFFormat.RDFXML);
+            itr = model.iterator();
             while (itr.hasNext()) {
                 Statement st = itr.next();
                 statements.add(st);

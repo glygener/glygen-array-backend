@@ -106,9 +106,6 @@ public class BlockLayout {
 		return id;
 	}
 	
-	public void setURIfromId (String id) {
-		this.uri = GlygenArrayRepository.uriPrefix + id;
-	}
 	/**
 	 * @return the dateCreated
 	 */

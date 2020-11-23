@@ -18,13 +18,13 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
 import org.glygen.array.config.SesameTransactionConfig;
-import org.glygen.array.exception.GlycanExistsException;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
@@ -62,6 +62,8 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.parser.RawdataParser;
+import org.glygen.array.util.pubmed.DTOPublication;
+import org.glygen.array.util.pubmed.PubmedUtil;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
@@ -75,7 +77,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -84,7 +85,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -231,6 +231,68 @@ public class DatasetController {
         }
         
     } 
+    
+    @ApiOperation(value = "Add given publication to the dataset for the user")
+    @RequestMapping(value="/addPublication", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added publication"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add publications"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addPublication (
+            @ApiParam(required=true, value="Publication to be added.")
+            @RequestBody Publication publication, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the publication") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        // check if the details of the publication needs to be retrieved from pubmed
+        if (publication.getAuthors() == null && publication.getTitle() == null) {
+            if (publication.getPubmedId() != null) {
+                Integer pubmedId = publication.getPubmedId();
+                PubmedUtil util = new PubmedUtil();
+                try {
+                    DTOPublication pub = util.createFromPubmedId(pubmedId);
+                    publication =  UtilityController.getPublicationFrom(pub);
+                } catch (Exception e) {
+                    errorMessage.addError(new ObjectError("pubmedid", "NotValid"));
+                    
+                }
+            } else {
+                errorMessage.addError(new ObjectError("title", "NoEmpty"));
+                errorMessage.addError(new ObjectError("authors", "NoEmpty"));
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid publication/dataset information", errorMessage);
+        
+        try {
+            String uri = datasetRepository.addPublication(publication, datasetId, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("The publication cannot be added for user " + p.getName(), e);
+        }
+    }
     
     @ApiOperation(value = "Add given  rawdata set for the user")
     @RequestMapping(value="/addRawData", method = RequestMethod.POST, 
@@ -482,6 +544,7 @@ public class DatasetController {
                     throw new IllegalArgumentException("Invalid Input: slide layout should be there", errorMessage);
                 }
             } catch (Exception e) {
+                logger.error ("Exception processing the raw data file", e);
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.addError(new ObjectError("parseError", e.getMessage()));
                 throw new IllegalArgumentException("Invalid Input: Not a valid raw data file", errorMessage);
@@ -1296,6 +1359,8 @@ public class DatasetController {
             }
                 
             return processedData.getId();
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
         }
@@ -3032,7 +3097,7 @@ public class DatasetController {
         // check for duplicate name
         try {
             PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), user);
-            if (existing != null && !existing.getUri().equals(printedSlide.getUri())) {
+            if (existing != null && !existing.getUri().equals(printedSlide.getUri()) && !existing.getId().equals(printedSlide.getId())) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
         } catch (SparqlException | SQLException e2) {
@@ -3215,7 +3280,7 @@ public class DatasetController {
                 } else if (dataset.getSample().getName() != null) {
                     Sample existing = datasetRepository.getSampleByLabel(dataset.getSample().getName(), user);
                     if (existing == null) {
-                        errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
+                        errorMessage.addError(new ObjectError("sample", "NotFound"));
                     } else {
                         dataset.setSample(existing);
                     }
@@ -3473,17 +3538,17 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Make the given array dataset public")
-    @RequestMapping(value="/makearraydatasetpublic/{datasetid}", method = RequestMethod.POST, 
-            consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="id of the public array dataset"), 
+    @RequestMapping(value="/makearraydatasetpublic/{datasetid}", method = RequestMethod.POST)
+    @ApiResponses (value = {
+            @ApiResponse(code=200, message="id of the public array dataset"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges to modify the dataset"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public String makeArrayDatasetPublic (
-            @ApiParam(required=true, value="id of the dataset to make pblic") 
-            @PathVariable("datasetId") String datasetId, Principal p) {
+            @ApiParam(required=true, value="id of the dataset to make public") 
+            @PathVariable("datasetid") String datasetId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
@@ -3494,10 +3559,50 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
             }
-            String datasetURI = datasetRepository.makePublicArrayDataset(dataset, user); 
-            return datasetURI.substring(datasetURI.lastIndexOf("/")+1);
+            
+            CompletableFuture<String> datasetURI = null;
+            try {
+                // set the status to processing first
+                dataset.setStatus(FutureTaskStatus.PROCESSING);
+                datasetRepository.updateStatus (dataset.getUri(), dataset, user);
+                
+                datasetURI = datasetRepository.makePublicArrayDataset(dataset, user); 
+                datasetURI.whenComplete((uri, e) -> {
+                    try {
+                        String existingURI = dataset.getUri();
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            dataset.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                dataset.setError((ErrorMessage) e.getCause().getCause());
+                            
+                        } else {
+                            dataset.setStatus(FutureTaskStatus.DONE);
+                            dataset.setUri(uri);
+                        }
+                        datasetRepository.updateStatus (existingURI, dataset, user);
+                        
+                    } catch (SparqlException | SQLException e1) {
+                        logger.error("Could not save the processedData", e1);
+                    } 
+                });
+                datasetURI.get(20000, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                return null; // not ready yet
+            }
+            if (dataset.getStatus() == FutureTaskStatus.DONE) {
+                String uri = dataset.getUri();
+                return uri.substring(uri.lastIndexOf("/")+1);
+            } else {
+                return null; // not ready yet
+            }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be made public for user " + p.getName(), e);
-        } 
-    }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Array dataset cannot be made public for user " + p.getName(), e);
+        }
+        
+     }
 }

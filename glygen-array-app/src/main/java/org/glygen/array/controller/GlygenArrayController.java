@@ -526,9 +526,9 @@ public class GlygenArrayController {
 				}		
 			}
 			if (glycan.getDescription() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "description", glycan.getDescription());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
@@ -740,9 +740,9 @@ public class GlygenArrayController {
 				}		
 			}
 			if (glycan.getDescription() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "description", glycan.getDescription());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
@@ -1021,9 +1021,9 @@ public class GlygenArrayController {
 				}		
 			}
 			if (glycan.getDescription() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycan.getDescription());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "description", glycan.getDescription());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
@@ -1562,7 +1562,7 @@ public class GlygenArrayController {
                         if (f.getGlycans()  != null) {
                             for (Glycan g: f.getGlycans()) {
                                 if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                                    g.setCartoon(getCartoonForGlycan(g.getId()));
+                                    g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
                                 }
                             }
                         }
@@ -1575,15 +1575,18 @@ public class GlygenArrayController {
 		}
 	}
 	
-	private byte[] getCartoonForGlycan (String glycanId) {
+	private byte[] getCartoonForGlycan (String glycanId, String sequence) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
-			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
-			return IOUtils.toByteArray(resource.getInputStream());
+			if (imageFile.exists()) {
+			    InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
+			    return IOUtils.toByteArray(resource.getInputStream());
+			}
 		} catch (Exception e) {
-			logger.error("Image cannot be retrieved", e);
-			return null;
+			logger.warn("Image cannot be retrieved for glycan " + glycanId, e);
+			
 		}
+		return null;
 	}
 	
 	SlideLayout getFullLayoutFromLibrary (File libraryFile, SlideLayout layout) {
@@ -1791,7 +1794,7 @@ public class GlygenArrayController {
                     // add all new glycans and features and block layouts first
                     try {
                         for (Glycan g: importResult.getGlycanList()) {
-                            addGlycan(g, p, false);
+                            addGlycan(g, p, true);
                         }
                         for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
                             addFeature(f, p);
@@ -1947,7 +1950,7 @@ public class GlygenArrayController {
     													if (!glycanCache.contains(g)) {
     														glycanCache.add(g);
     														try {	
-    															addGlycan(g, p, false);
+    															addGlycan(g, p, true);   //don't want to register automatically!!!
     														} catch (Exception e) {
     															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
     																ErrorMessage error = (ErrorMessage) e.getCause();
@@ -2105,8 +2108,10 @@ public class GlygenArrayController {
 			if (glycan == null) {
 				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			}
-			byte[] cartoon = getCartoonForGlycan(glycanId);
-			glycan.setCartoon(cartoon);
+			if (glycan instanceof SequenceDefinedGlycan) {
+			    byte[] cartoon = getCartoonForGlycan(glycanId, ((SequenceDefinedGlycan) glycan).getSequence());
+			    glycan.setCartoon(cartoon);
+			}
 			return glycan;
 			
 			
@@ -2256,7 +2261,7 @@ public class GlygenArrayController {
                                 if (f.getGlycans()  != null) {
                                     for (Glycan g: f.getGlycans()) {
                                         if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                                            g.setCartoon(getCartoonForGlycan(g.getId()));
+                                            g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
                                         }
                                     }
                                 }
@@ -2294,7 +2299,7 @@ public class GlygenArrayController {
             if (feature.getGlycans()  != null) {
                 for (Glycan g: feature.getGlycans()) {
                     if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                        g.setCartoon(getCartoonForGlycan(g.getId()));
+                        g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
                     }
                 }
             }
@@ -2512,7 +2517,7 @@ public class GlygenArrayController {
     			            if (f.getGlycans()  != null) {
     		                    for (Glycan g: f.getGlycans()) {
     		                        if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-    		                            g.setCartoon(getCartoonForGlycan(g.getId()));
+    		                            g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
     		                        }
     		                    }
     		                }
@@ -2580,7 +2585,7 @@ public class GlygenArrayController {
 			    if (f.getGlycans()  != null) {
 			        for (Glycan g: f.getGlycans()) {
 			            if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-			                g.setCartoon(getCartoonForGlycan(g.getId()));
+			                g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
 			            }
 			        }
 			    }
@@ -2637,7 +2642,7 @@ public class GlygenArrayController {
 			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
 			for (Glycan glycan : glycans) {
 			    if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-			        glycan.setCartoon(getCartoonForGlycan(glycan.getId()));
+			        glycan.setCartoon(getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence()));
 			    }
 			}
 			
@@ -2768,7 +2773,7 @@ public class GlygenArrayController {
                                         if (f.getGlycans()  != null) {
                                             for (Glycan g: f.getGlycans()) {
                                                 if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                                                    g.setCartoon(getCartoonForGlycan(g.getId()));
+                                                    g.setCartoon(getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence()));
                                                 }
                                             }
                                         }
@@ -2915,6 +2920,7 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
             }
             String layoutURI = layoutRepository.makePublic (layout, user); 
+            //TODO what to do with glycan images???
             return layoutURI.substring(layoutURI.lastIndexOf("/")+1);
         } catch (GlycanExistsException e) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -3048,9 +3054,9 @@ public class GlygenArrayController {
 				}		
 			}
 			if (glycanView.getDescription() != null) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "comment", glycanView.getDescription().trim());
+				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "description", glycanView.getDescription().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (glycanView.getInternalId() != null && !glycanView.getInternalId().isEmpty()) {
@@ -3126,6 +3132,12 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
 				}		
 			}
+			if (linkerView.getDescription() != null) {
+                Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linkerView.getDescription().trim());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -3135,6 +3147,7 @@ public class GlygenArrayController {
 			Linker linker= new SmallMoleculeLinker();
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
 			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
+			linker.setDescription(linkerView.getDescription() != null ? linkerView.getDescription().trim() : linkerView.getDescription());
 			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);	
 			
 			Linker local = null;

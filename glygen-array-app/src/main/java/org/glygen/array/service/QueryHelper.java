@@ -105,7 +105,7 @@ public class QueryHelper {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append (
@@ -124,7 +124,7 @@ public class QueryHelper {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
@@ -135,14 +135,14 @@ public class QueryHelper {
         return sparqlDAO.query(queryBuf.toString());
     }
     
-    public List<SparqlEntity> retrieveById(String id, String graph) throws SparqlException, SQLException {
+    public List<SparqlEntity> retrieveById(String uri, String graph) throws SparqlException, SQLException {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?d \n");
-        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ( "<" +  GlygenArrayRepository.uriPrefix + id + "> gadr:has_date_addedtolibrary ?d . }\n");
+        queryBuf.append ( "<" +  uri + "> gadr:has_date_addedtolibrary ?d . }\n");
         return sparqlDAO.query(queryBuf.toString());
     }
    
@@ -179,7 +179,7 @@ public class QueryHelper {
        StringBuffer queryBuf = new StringBuffer();
        queryBuf.append (prefix + "\n");
        queryBuf.append ("SELECT DISTINCT ?s \n");
-       queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+       //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
        queryBuf.append ("FROM <" + graph + ">\n");
        queryBuf.append ("WHERE {\n");
        queryBuf.append ("?s gadr:has_molecule  <" +  glycanURI + "> . } LIMIT 1");

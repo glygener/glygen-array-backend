@@ -18,6 +18,7 @@ public abstract class DescriptionTemplate {
     String example;
     String wikiLink;
     Integer mandateGroup = null;
+    Boolean xorMandate = true;
     Boolean mirage = false;
     
     public abstract boolean isGroup();
@@ -172,5 +173,19 @@ public abstract class DescriptionTemplate {
             }
         } 
         return super.equals(obj);
+    }
+
+    /**
+     * @return the xorMandate
+     */
+    public Boolean getXorMandate() {
+        return xorMandate;
+    }
+
+    /**
+     * @param xorMandate the xorMandate to set
+     */
+    public void setXorMandate(Boolean xorMandate) {
+        this.xorMandate = xorMandate;
     }
 }

@@ -137,23 +137,26 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     public Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException {
         // make sure the glycan belongs to this user
 	    String graph = null;
-        if (user == null)
+	    String uriPre = uriPrefix;
+        if (user == null) {
             graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
         else {
             graph = getGraphForUser(user);
         }
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?d \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
-        queryBuf.append ( "<" +  uriPrefix + featureId + "> gadr:has_date_addedtolibrary ?d . }\n");
+        queryBuf.append ( "<" +  uriPre + featureId + "> gadr:has_date_addedtolibrary ?d . }\n");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())
             return null;
         else {
-            return getFeatureFromURI(uriPrefix + featureId, user);
+            return getFeatureFromURI(uriPre + featureId, user);
         }
     }
 	
@@ -221,7 +224,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?s \n");
-			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+			//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append ( 
@@ -328,7 +331,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	    StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ("?s gadr:has_spot ?spot . ?spot gadr:has_feature <" +  featureURI + "> . } LIMIT 1");
@@ -458,7 +461,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	public String addPublicFeature(Feature feature) throws SparqlException {
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI featureType = f.createIRI(featureTypePredicate);
-		String featureURI = generateUniqueURI(uriPrefix + "F");
+		String featureURI = generateUniqueURI(uriPrefixPublic + "F");
 		IRI feat = f.createIRI(featureURI);
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
@@ -496,9 +499,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
 				String glycanId = feature.getPositionMap().get(position);
-				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
+				IRI glycanIRI = f.createIRI(uriPrefixPublic + glycanId);
 				Literal pos = f.createLiteral(position);
-				String positionContextURI = generateUniqueURI(uriPrefix + "PC");
+				String positionContextURI = generateUniqueURI(uriPrefixPublic + "PC");
 				IRI positionContext = f.createIRI(positionContextURI);
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
@@ -519,19 +522,40 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         else {
             graph = getGraphForUser(user);
         }
+        
+        String fromString = "FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n";
+        String whereClause = "WHERE {";
+        String where = " { " + 
+                "                   ?f gadr:has_molecule <" + glycan.getUri() +"> . \n" +
+                "                   ?f gadr:has_linker <" + linker.getUri() + "> . \n";
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH)) {
+            // check if the user's private graph has this glycan
+            fromString += "FROM <" + graph + ">\n";
+            where += "              ?f gadr:has_date_addedtolibrary ?d .\n }";
+            where += "  UNION { ?f gadr:has_date_addedtolibrary ?d .\n"
+                    + " ?f gadr:has_public_uri ?pf . \n" 
+                    + " ?pf gadr:has_molecule <" + glycan.getUri() +"> . "
+                    + " ?pf gadr:has_linker <" + linker.getUri() + "> . \n}";
+            
+        } else {
+            where += "}";
+        }
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?f \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
-        queryBuf.append ( "?f gadr:has_molecule <" + glycan.getUri() + "> . ?f gadr:has_linker <" + linker.getUri() + "> . }\n");
-            
+        queryBuf.append ("SELECT DISTINCT ?f\n");
+        queryBuf.append (fromString);
+        queryBuf.append (whereClause + where + 
+                "               }\n" );
+        
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())
             return null;
         else {
             String featureURI = results.get(0).getValue("f");
+            if (featureURI.contains("public")) {
+                // retrieve from the public graph
+                return getFeatureFromURI(featureURI, null);
+            }
             return getFeatureFromURI(featureURI, user);
         }
     }

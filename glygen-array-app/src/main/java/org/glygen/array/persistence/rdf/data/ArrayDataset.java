@@ -7,6 +7,7 @@ import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
 public class ArrayDataset extends FutureTask{
@@ -19,10 +20,9 @@ public class ArrayDataset extends FutureTask{
     Sample sample;
     List<RawData> rawDataList;
     List<ProcessedData> processedData;
-    
-    // Should these become part of RawData only??
     List<Image> images;
     List<Slide> slides;
+    List<Publication> publications;
     
     boolean isPublic = false;
     Creator user;
@@ -235,6 +235,33 @@ public class ArrayDataset extends FutureTask{
      */
     public void setKeywords(List<String> keywords) {
         this.keywords = keywords;
+    }
+    
+    @Override
+    public FutureTaskStatus getStatus() {
+        if (this.processedData != null) {
+            for (ProcessedData p: this.processedData) {
+                if (p.getStatus() == FutureTaskStatus.PROCESSING)
+                    return FutureTaskStatus.PROCESSING;
+                if (p.getStatus() == FutureTaskStatus.ERROR)
+                    return FutureTaskStatus.PROCESSING;
+            }
+        }
+        return super.getStatus();
+    }
+
+    /**
+     * @return the publications
+     */
+    public List<Publication> getPublications() {
+        return publications;
+    }
+
+    /**
+     * @param publications the publications to set
+     */
+    public void setPublications(List<Publication> publications) {
+        this.publications = publications;
     }
 
 }

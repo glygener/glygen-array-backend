@@ -55,6 +55,18 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasModifiedDatePredicate = ontPrefix + "has_date_modified";
 	final static String hasPublicURIPredicate = ontPrefix + "has_public_uri";
 	final static String hasTypePredicate = ontPrefix + "has_type";
+	final static String hasPublication = ontPrefix + "has_publication";
+    
+    final static String hasTitlePredicate = ontPrefix + "has_title";
+    final static String hasAuthorPredicate = ontPrefix + "has_author_list";
+    final static String hasYearPredicate = ontPrefix + "has_year";
+    final static String hasVolumePredicate = ontPrefix + "has_volume";
+    final static String hasJournalPredicate = ontPrefix + "has_journal";
+    final static String hasNumberPredicate = ontPrefix + "has_number";
+    final static String hasStartPagePredicate = ontPrefix + "has_start_page";
+    final static String hasEndPagePredicate = ontPrefix + "has_end_page";
+    final static String hasDOIPredicate = ontPrefix + "has_doi";
+    final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
 	
 	
 	/**
@@ -128,7 +140,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
-			queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+			//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 			queryBuf.append ("FROM <" + graph + ">\n");
 			queryBuf.append ("WHERE {\n");
 			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
@@ -161,7 +173,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         if (graph != null) {
             queryBuf.append ("FROM <" + graph + ">\n");
         }

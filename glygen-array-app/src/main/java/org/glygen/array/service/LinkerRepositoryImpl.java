@@ -55,18 +55,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String opensRingPredicate = ontPrefix + "opens_ring";
 	final static String linkerTypePredicate = ontPrefix + "Linker";
 	final static String hasURLPredicate = ontPrefix + "has_url";
-	final static String hasPublication = ontPrefix + "has_publication";
-	
-	final static String hasTitlePredicate = ontPrefix + "has_title";
-	final static String hasAuthorPredicate = ontPrefix + "has_author_list";
-	final static String hasYearPredicate = ontPrefix + "has_year";
-	final static String hasVolumePredicate = ontPrefix + "has_volume";
-	final static String hasJournalPredicate = ontPrefix + "has_journal";
-	final static String hasNumberPredicate = ontPrefix + "has_number";
-	final static String hasStartPagePredicate = ontPrefix + "has_start_page";
-	final static String hasEndPagePredicate = ontPrefix + "has_end_page";
-	final static String hasDOIPredicate = ontPrefix + "has_doi";
-	final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
 	final static String createdByPredicate = ontPrefix + "created_by";
 	
 	@Override
@@ -95,6 +83,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 	
 	private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException {
+	    String uriPre = uriPrefix;
+	    if (graph.equals(DEFAULT_GRAPH)) {
+	        uriPre = uriPrefixPublic;
+	    }
 	    ValueFactory f = sparqlDAO.getValueFactory();
 	    
 	    IRI linker = f.createIRI(uri);
@@ -115,7 +107,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	    if (l.getPublications() != null) {
 	        for (Publication pub : l.getPublications()) {
 	            List<Statement> statements = new ArrayList<Statement>();
-	            String publicationURI = generateUniqueURI(uriPrefix + "P", graph);
+	            String publicationURI = generateUniqueURI(uriPre + "P", graph);
 	            IRI publication = f.createIRI(publicationURI);
 	            Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
 	            Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
@@ -476,17 +468,34 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public void deleteLinker(String linkerId, UserEntity user) throws SQLException, SparqlException {
 		String graph = null;
-        if (user == null)
+		String uriPre = uriPrefix;
+        if (user == null) {
             graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
         else {
             graph = getGraphForUser(user);
         }
 		if (graph != null) {
-		    if (canDelete(uriPrefix + linkerId, graph)) {
+		    if (canDelete(uriPre + linkerId, graph)) {
     			// check to see if the given linkerId is in this graph
-    			Linker existing = getLinkerFromURI (uriPrefix + linkerId, user);
+    			Linker existing = getLinkerFromURI (uriPre + linkerId, user);
     			if (existing != null) {
-    				deleteByURI (uriPrefix + linkerId, graph);
+    			    //delete publications first, then delete the linker
+    			    ValueFactory f = sparqlDAO.getValueFactory();
+    		        IRI linker = f.createIRI(uriPre + linkerId);
+    		        IRI graphIRI = f.createIRI(graph);
+    		        IRI hasPub = f.createIRI(hasPublication);
+    		        RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, hasPub, null, graphIRI);
+    		        while (statements.hasNext()) {
+    		            Statement st = statements.next();
+    		            Value v = st.getObject();
+    		            String publicationURI = v.stringValue();
+    		            IRI pub = f.createIRI(publicationURI);
+    		            RepositoryResult<Statement> statements1 = sparqlDAO.getStatements(pub, null, null, graphIRI);
+    		            sparqlDAO.removeStatements(Iterations.asList(statements1), graphIRI); 
+    		        }
+    				deleteByURI (uriPre + linkerId, graph);
     				return;
     			}
 		    } else {
@@ -501,7 +510,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ("?s gadr:has_linker  <" +  linkerURI + "> . } LIMIT 1");
@@ -540,10 +549,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.size() == 0) 
 			return null;
 		
-		SparqlEntity result = results.get(0);
-		String linkerURI = result.getValue("s");
-		
-		return linkerURI;
+		return results.get(0).getValue("s");
 	}
 	
 	@Override
@@ -558,7 +564,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?d \n");
-		queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+		//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
 		queryBuf.append ( "<" +  uriPrefix + linkerId + "> gadr:has_date_addedtolibrary ?d . }\n");
@@ -584,8 +590,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.isEmpty())
 			return null;
 		else {
-			String linkerURI = results.get(0).getValue("s");
-			return getLinkerFromURI(linkerURI, user);
+		    String linkerURI = results.get(0).getValue("s");
+		    if (linkerURI.contains("public")) {
+		        return getLinkerFromURI(linkerURI, null);
+		    }
+		    return getLinkerFromURI(linkerURI, user);
 		}
 	}
 	
@@ -691,7 +700,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
             queryBuf.append ("SELECT DISTINCT ?s \n");
-            queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
             queryBuf.append ("FROM <" + graph + ">\n");
             queryBuf.append ("WHERE {\n");
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d .\n" +
@@ -1164,7 +1173,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     	boolean existing = (publicURI != null);
         ValueFactory f = sparqlDAO.getValueFactory();
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefix + "L", userGraph);
+            publicURI = generateUniqueURI(uriPrefixPublic + "L", userGraph);
         } 
         IRI local = f.createIRI(linker.getUri());
         IRI publicLinker = f.createIRI(publicURI);

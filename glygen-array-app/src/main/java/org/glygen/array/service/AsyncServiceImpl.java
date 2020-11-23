@@ -13,6 +13,8 @@ import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
 import org.glygen.array.view.ErrorMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -24,6 +26,8 @@ import org.springframework.validation.ObjectError;
 
 @Service
 public class AsyncServiceImpl implements AsyncService {
+    
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     @Value("${spring.file.uploaddirectory}")
     String uploadDir;
@@ -110,6 +114,7 @@ public class AsyncServiceImpl implements AsyncService {
             throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
         } catch (Exception e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
+            logger.error("Error parsing the processed data file", e);
             throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
         }
     }

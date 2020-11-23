@@ -308,16 +308,19 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	@Override
 	public void deleteGlycan(String glycanId, UserEntity user) throws SQLException, SparqlException {
 		String graph = null;
-        if (user == null)
+		String uriPre = uriPrefix;
+        if (user == null) {
             graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
         else
             graph = getGraphForUser(user);
 		if (graph != null) {
-		    if (canDelete(uriPrefix + glycanId, graph)) {
+		    if (canDelete(uriPre + glycanId, graph)) {
     			// check to see if the given glycanId is in this graph
-    			Glycan existing = getGlycanFromURI (uriPrefix + glycanId, user);
+    			Glycan existing = getGlycanFromURI (uriPre + glycanId, user);
     			if (existing != null) {
-    				deleteGlycanByURI (uriPrefix + glycanId, graph);
+    				deleteGlycanByURI (uriPre + glycanId, graph);
     				return;
     			}
 		    } else {
@@ -379,15 +382,17 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	public Glycan getGlycanById(String glycanId, UserEntity user) throws SparqlException, SQLException {
 		// make sure the glycan belongs to this user
 	    String graph = null;
-        if (user == null)
+	    String uriPre = uriPrefix;
+        if (user == null) {
             graph = DEFAULT_GRAPH;
-        else
+            uriPre = uriPrefixPublic;
+        } else
             graph = getGraphForUser(user);
-		List<SparqlEntity> results = queryHelper.retrieveById(glycanId, graph);
+		List<SparqlEntity> results = queryHelper.retrieveById(uriPre + glycanId, graph);
 		if (results.isEmpty())
 			return null;
 		else {
-			return getGlycanFromURI(uriPrefix + glycanId, user);
+			return getGlycanFromURI(uriPre + glycanId, user);
 		}
 	}
 	
@@ -418,13 +423,14 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (results.isEmpty())
 			return null;
 		else {
-			String glycanURI = results.get(0).getValue("s");
-			return getGlycanFromURI(glycanURI, user);
+		    String glycanURI = results.get(0).getValue("s");
+		    if (glycanURI.contains("public")) {
+		        return getGlycanFromURI(glycanURI, null);
+		    }
+		    return getGlycanFromURI(glycanURI, user);
 		}
 	}
-	
-	
-	
+		
 	/**
 	 * {@inheritDoc}
 	 */
@@ -846,7 +852,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph, String creator) throws SparqlException {
     	boolean existing = publicURI != null;
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefix, userGraph) + "GAR";  
+            publicURI = generateUniqueURI(uriPrefixPublic, userGraph) + "GAR";  
         } 
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -923,7 +929,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                }
 	            } 
 	            // add sequence and glytoucanid if any
-	            String seqURI = generateUniqueURI(uriPrefix + "Seq", userGraph);
+	            String seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
 	            IRI sequence = f.createIRI(seqURI);
 	            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
 	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());

@@ -97,6 +97,9 @@ public class RawdataParser {
                 }
                 if (set == null)
                     break;
+                if (set.getMeasurementMap() == null) {
+                    continue;
+                }
                 Collection<org.grits.toolbox.glycanarray.om.model.Measurement> measurements = set.getMeasurementMap().values();
                 for (org.grits.toolbox.glycanarray.om.model.Measurement measurement: measurements) {
                     List<SpotData> dataList = measurement.getData();
