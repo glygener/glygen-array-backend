@@ -847,6 +847,7 @@ public class MetadataOntologyParser {
         IRI hasExample = f.createIRI(prefix + "has_example");
         IRI hasUrl = f.createIRI(prefix + "has_url");
         IRI hasGroup = f.createIRI(prefix + "has_mandate_group");
+        IRI isXor = f.createIRI(prefix + "is_xor");
         IRI isMirage = f.createIRI(prefix + "is_mirage");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
@@ -863,6 +864,9 @@ public class MetadataOntologyParser {
         }
         if (description.isMirage() != null) {
             model.add(f.createStatement(descriptionContext, isMirage, f.createLiteral(description.isMirage())));
+        }
+        if (description.getXorMandate() != null) {
+            model.add(f.createStatement(descriptionContext, isXor, f.createLiteral(description.getXorMandate())));
         }
         
         return uri;
