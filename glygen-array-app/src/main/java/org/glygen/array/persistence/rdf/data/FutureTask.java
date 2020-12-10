@@ -6,7 +6,7 @@ import org.glygen.array.view.ErrorMessage;
 
 public class FutureTask {
     
-    FutureTaskStatus status;
+    FutureTaskStatus status = FutureTaskStatus.DONE;
     ErrorMessage error;
     Date startDate;
     

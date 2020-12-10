@@ -45,6 +45,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	
 	@Autowired
 	LinkerRepository linkerRepository;
+	
+	Map<String, Feature> featureCache = new HashMap<String, Feature>();
 
 	@Override
 	public String addFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
@@ -317,6 +319,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     					}
     				}
     				deleteByURI (uriPrefix + featureId, graph);
+    				featureCache.remove(uriPrefix + featureId);
     				return;
     			}
 		    } else {
@@ -345,6 +348,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 
 	@Override
 	public Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException {
+	    // check the cache first
+	    if (featureCache.get(featureURI) != null)
+	        return featureCache.get(featureURI);
+	    
 		Feature featureObject = null;
 		String graph = null;
         if (user == null)
@@ -356,6 +363,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI feature = f.createIRI(featureURI);
 		IRI graphIRI = f.createIRI(graph);
+		IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
 		IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -364,6 +372,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
+		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
@@ -446,19 +455,75 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				if (position != null && glycanInContext != null) {
 					positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
 				}
+			} else if (st.getPredicate().equals(hasPublicURI)) {
+			    Value value = st.getObject();
+			    String publicURI = value.stringValue();
+			    IRI publicFeature = f.createIRI(publicURI);
+                RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicFeature, null, null, defaultGraphIRI);
+                while (statementsPublic.hasNext()) {
+                    Statement stPublic = statementsPublic.next();
+                    if (stPublic.getPredicate().equals(RDFS.LABEL)) {
+                        Value label = stPublic.getObject();
+                        featureObject.setName(label.stringValue());
+                    } else if (stPublic.getPredicate().equals(hasFeatureType)) {
+                        value = stPublic.getObject();
+                        if (value != null) {
+                            FeatureType type = FeatureType.valueOf(value.stringValue());
+                            featureObject.setType(type);
+                        }
+                    } else if (stPublic.getPredicate().equals(hasLinker)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String linkerURI = value.stringValue();
+                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                            featureObject.setLinker(linker);
+                        }
+                    } else if (stPublic.getPredicate().equals(hasMolecule)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String glycanURI = value.stringValue();
+                            Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                            glycans.add(glycan);
+                        }
+                    } else if (stPublic.getPredicate().equals(hasPositionContext)) {
+                        Value positionContext = stPublic.getObject();
+                        String contextURI = positionContext.stringValue();
+                        IRI ctx = f.createIRI(contextURI);
+                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
+                        Integer position = null;
+                        Glycan glycanInContext = null;
+                        while (statements2.hasNext()) {
+                            Statement st2 = statements2.next();
+                            if (st2.getPredicate().equals(hasPosition)) {
+                                value = st2.getObject();
+                                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                                    position = Integer.parseInt(value.stringValue());
+                                }   
+                            } else if (st2.getPredicate().equals(hasMolecule)) {
+                                Value val = st2.getObject();
+                                glycanInContext = glycanRepository.getGlycanFromURI(val.stringValue(), user);
+                            }  
+                        }
+                        if (position != null && glycanInContext != null) {
+                            positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
+                        }
+                    }
+                }
 			}
 		}
 		
+		featureCache.put(featureURI, featureObject);
 		return featureObject;
 	}
 	
 	/**
 	 * difference from addFeature is that this assumes linkers and glycans are already made public and Feature object
 	 * contains their corresponding public URIs 
+	 * @throws SQLException 
 	 * 
 	 */
 	@Override
-	public String addPublicFeature(Feature feature) throws SparqlException {
+	public String addPublicFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI featureType = f.createIRI(featureTypePredicate);
 		String featureURI = generateUniqueURI(uriPrefixPublic + "F");
@@ -510,6 +575,25 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
+		
+		// create a link from the local one -> has_public_uri -> public one
+		String userGraph = getGraphForUser(user);
+        
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        Literal dateCreated = feature.getDateAddedToLibrary() == null ? date : f.createLiteral(feature.getDateAddedToLibrary());
+        
+        IRI userGraphIRI = f.createIRI(userGraph);
+        IRI local = f.createIRI(feature.getUri());
+        
+        // link local one to public uri
+        List<Statement> statements2 = new ArrayList<Statement>();
+        statements2.add(f.createStatement(local, hasPublicURI, feat, userGraphIRI));
+        statements2.add(f.createStatement(local, hasModifiedDate, date, userGraphIRI));
+        statements2.add(f.createStatement(local, hasCreatedDate, dateCreated, userGraphIRI));
+        statements2.add(f.createStatement(local, RDF.TYPE, featureType, userGraphIRI));
+        statements2.add(f.createStatement(local, hasFeatureType, type, userGraphIRI));
+        sparqlDAO.addStatements(statements2, userGraphIRI);
+        
 		return featureURI;
 	}
 
@@ -532,10 +616,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             // check if the user's private graph has this glycan
             fromString += "FROM <" + graph + ">\n";
             where += "              ?f gadr:has_date_addedtolibrary ?d .\n }";
-            where += "  UNION { ?f gadr:has_date_addedtolibrary ?d .\n"
-                    + " ?f gadr:has_public_uri ?pf . \n" 
-                    + " ?pf gadr:has_molecule <" + glycan.getUri() +"> . "
-                    + " ?pf gadr:has_linker <" + linker.getUri() + "> . \n}";
+            where += "  UNION { ?f gadr:has_date_addedtolibrary ?d .\n" 
+                    + " ?f gadr:has_public_uri ?pf . ?pf gadr:has_molecule <" + glycan.getUri() +"> . "
+                    + " ?f gadr:has_public_uri ?pf . ?pf gadr:has_linker <" + linker.getUri() + "> . \n}";
             
         } else {
             where += "}";
@@ -558,5 +641,27 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             }
             return getFeatureFromURI(featureURI, user);
         }
+    }
+    
+    @Override
+    public String getPublicFeatureId(String featureId, UserEntity user) throws SQLException, SparqlException {
+        String publicId = null;
+        String graph = getGraphForUser(user);
+        
+        String featureURI = uriPrefix + featureId;
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI userGraphIRI = f.createIRI(graph);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI feature = f.createIRI(featureURI);
+        
+        RepositoryResult<Statement> results = sparqlDAO.getStatements(feature, hasPublicURI, null, userGraphIRI);
+        while (results.hasNext()) {
+            Statement st = results.next();
+            String publicURI = st.getObject().stringValue();
+            publicId = publicURI.substring(publicURI.lastIndexOf("/")+1);
+        }
+        
+        return publicId;
     }
 }

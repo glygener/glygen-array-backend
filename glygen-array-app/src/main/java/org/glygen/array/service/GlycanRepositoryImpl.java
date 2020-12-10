@@ -371,11 +371,14 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		List<SparqlEntity> results = queryHelper.findGlycanInGraphBySequence(sequence, graph);
 		if (results.size() == 0) 
 			return null;
+		for (SparqlEntity result: results) {
+		    String glycanURI = result.getValue("s");
+		    // return the non-public one
+		    if (!glycanURI.contains("public"))
+		        return glycanURI;
+		}
 		
-		SparqlEntity result = results.get(0);
-		String glycanURI = result.getValue("s");
-		
-		return glycanURI;
+		return null;
 	}
 	
 	@Override

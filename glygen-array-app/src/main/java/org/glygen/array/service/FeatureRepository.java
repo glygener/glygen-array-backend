@@ -20,6 +20,7 @@ public interface FeatureRepository {
     List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException;
-	String addPublicFeature(Feature feature) throws SparqlException; 
 	Feature getFeatureByGlycanLinker (Glycan glycan, Linker linker, UserEntity user) throws SparqlException, SQLException;
+    String addPublicFeature(Feature feature, UserEntity user) throws SparqlException, SQLException;
+    String getPublicFeatureId(String featureId, UserEntity user) throws SQLException, SparqlException;
 }

@@ -12,7 +12,7 @@ public class Intensity {
     
     // integrates multiple measurements
     List<Measurement> measurements;
-    Spot spot;
+    List<Spot> spots;
     
     Double rfu;
     Double stDev;
@@ -102,15 +102,15 @@ public class Intensity {
         this.id = id;
     }
     /**
-     * @return the spot
+     * @return the spots
      */
-    public Spot getSpot() {
-        return spot;
+    public List<Spot> getSpots() {
+        return spots;
     }
     /**
-     * @param spot the spot to set
+     * @param spots the spots to set
      */
-    public void setSpot(Spot spot) {
-        this.spot = spot;
+    public void setSpots(List<Spot> spots) {
+        this.spots = spots;
     }
 }

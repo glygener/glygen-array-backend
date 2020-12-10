@@ -139,6 +139,8 @@ public interface ArrayDatasetRepository {
     
     RawData getRawDataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     Publication getPublicationFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
+    void deletePublication(String publicationId, String datasetId, UserEntity user)
+            throws SparqlException, SQLException;
     
     void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
     String addIntensitiesToProcessedData(ProcessedData processedData, UserEntity user)
@@ -148,4 +150,6 @@ public interface ArrayDatasetRepository {
     CompletableFuture<String> makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    
+    
 }

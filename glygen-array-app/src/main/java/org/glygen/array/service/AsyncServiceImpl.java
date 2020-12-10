@@ -2,12 +2,15 @@ package org.glygen.array.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.glygen.array.exception.GlycanRepositoryException;
+import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.util.parser.ProcessedDataParser;
@@ -86,11 +89,21 @@ public class AsyncServiceImpl implements AsyncService {
                     
                     Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
                     if (!resource.exists()) {
-                        errorMessage.addError(new ObjectError("mapFile", "NotValid"));
+                        errorMessage.addError(new ObjectError("mapFile", "NotFound"));
                         throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
                     }
-                    intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
-                            createConfigForVersion(file.getFileFormat()), user);
+                    try {
+                        ProcessedResultConfiguration config = createConfigForVersion(file.getFileFormat(), user);
+                        if (config == null) {
+                            errorMessage.addError(new ObjectError ("format", "NotValid"));
+                            throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
+                        }
+                        intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
+                                config, user);
+                    } catch (SparqlException | SQLException e) {
+                        errorMessage.addError(new ObjectError ("format", "NotValid"));
+                        throw new IllegalArgumentException("Config for the given format cannot be found", errorMessage);
+                    }
                     return CompletableFuture.completedFuture(intensities);
                 } else {
                     errorMessage.addError(new ObjectError("file", "NotValid"));
@@ -119,10 +132,10 @@ public class AsyncServiceImpl implements AsyncService {
         }
     }
     
-    ProcessedResultConfiguration createConfigForVersion (String fileFormat) {
+    ProcessedResultConfiguration createConfigForVersion (String fileFormat, UserEntity user) throws SparqlException, SQLException {
         // decide on the configuration based on fileFormat
         ProcessedResultConfiguration config = new ProcessedResultConfiguration();
-        if (fileFormat.equalsIgnoreCase("CFG 5.2")) {
+        if (fileFormat.equalsIgnoreCase("CFG_V5.2")) {
             config.setCvColumnId(32);
             config.setFeatureColumnId(29);
             config.setResultFileType("cfg");
@@ -130,6 +143,13 @@ public class AsyncServiceImpl implements AsyncService {
             config.setSheetNumber(0);
             config.setStDevColumnId(31);
             config.setStartRow(1);
+            // find the slidelayoutid (format name --> slide layout name)
+            SlideLayout layout = layoutRepository.getSlideLayoutByName(fileFormat, user);
+            if (layout != null) {
+                config.setSlideLayoutId(layout.getId());
+            } else {
+                return null;
+            }
         } else {
             return null;
         }

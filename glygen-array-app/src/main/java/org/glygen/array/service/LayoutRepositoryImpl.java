@@ -326,6 +326,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         } catch (JsonProcessingException e) {
             logger.error("Could not serialize Slide layout into JSON for caching", e);
         }
+		slideLayoutCache.put(slideLayoutURI, s);
 		
 		return slideLayoutURI;
 	}
@@ -697,18 +698,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI blockLayout = f.createIRI(blockLayoutURI);
 		IRI graphIRI = f.createIRI(graph);
+		IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
-		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
-		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
-		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
-		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
-		IRI hasRow = f.createIRI(ontPrefix + "has_row");
-		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
 		IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
 		IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+		
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(blockLayout, null, null, graphIRI);
 		if (statements.hasNext()) {
@@ -750,61 +747,37 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				} else if ((loadAll == null || loadAll) && st.getPredicate().equals(hasSpot)) {
 					Value v = st.getObject();
 					String spotURI = v.stringValue();
-					Spot s = new Spot();
-					s.setUri(spotURI);
-					IRI spot = f.createIRI(spotURI);
-					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
-					List<Feature> features = new ArrayList<Feature>();
-					s.setFeatures(features);
-					while (statements2.hasNext()) {
-						Statement st2 = statements2.next();
-						if (st2.getPredicate().equals(hasRow)) {
-							v = st2.getObject();
-							s.setRow(Integer.parseInt(v.stringValue()));
-						} else if (st2.getPredicate().equals(hasColumn)) {
-							v = st2.getObject();
-							s.setColumn(Integer.parseInt(v.stringValue()));
-						} else if (st2.getPredicate().equals(hasGroup)) {
-							v = st2.getObject();
-							s.setGroup(Integer.parseInt(v.stringValue()));
-						} else if (st2.getPredicate().equals(hasConcentration)) {
-							LevelUnit c = new LevelUnit();
-							v = st2.getObject();
-							String conURI = v.stringValue();
-							IRI concentration = f.createIRI(conURI);
-							RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-							while (statements3.hasNext()) {
-								Statement st3 = statements3.next();
-								if (st3.getPredicate().equals(hasConcentrationValue)) {
-									v = st3.getObject();
-									c.setConcentration(Double.parseDouble(v.stringValue()));
-								} else if (st3.getPredicate().equals(hasConcentrationUnit)) {
-									v = st3.getObject();
-									c.setLevelUnit(UnitOfLevels.lookUp(v.stringValue()));
-								}
-							}
-							s.setConcentration(c);
-						} else if (st2.getPredicate().equals(hasFeature)) {
-							v = st2.getObject();
-							String featureURI = v.stringValue();
-							Feature feat = null;
-							if (featureCache.containsKey(featureURI)) {
-							    feat = featureCache.get(featureURI);
-							} else {
-							    feat = featureRepository.getFeatureFromURI(featureURI, user);
-							    featureCache.put(featureURI, feat);
-							}
-							if (feat == null) {
-								throw new SparqlException("Feature with given uri " + featureURI + " cannot be found!");
-							}
-							features.add(feat);
-						}
-					}
-					if (!features.isEmpty())
+					Spot s = getSpotFromURI(spotURI, user);
+					if (s != null)
 					    spots.add(s);
+				} else if (st.getPredicate().equals(hasPublicURI)) {
+				    String publicURI = st.getObject().stringValue();
+				    IRI publicBlockLayout = f.createIRI(publicURI);
+				    RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicBlockLayout, null, null, defaultGraphIRI);
+				    while (statementsPublic.hasNext()) {
+				        Statement stPublic = statementsPublic.next();
+				        if (stPublic.getPredicate().equals(RDFS.LABEL)) {
+		                    Value v = stPublic.getObject();
+		                    blockLayoutObject.setName(v.stringValue());
+		                } else if (stPublic.getPredicate().equals(RDFS.COMMENT)) {
+		                    Value v = stPublic.getObject();
+		                    blockLayoutObject.setDescription(v.stringValue());
+		                } else if (stPublic.getPredicate().equals(hasWidth)) {
+		                    Value v = stPublic.getObject();
+		                    if (v != null) blockLayoutObject.setWidth(Integer.parseInt(v.stringValue()));
+		                } else if (stPublic.getPredicate().equals(hasHeight)) {
+		                    Value v = stPublic.getObject();
+		                    if (v != null) blockLayoutObject.setHeight(Integer.parseInt(v.stringValue()));
+		                } else if ((loadAll == null || loadAll) && stPublic.getPredicate().equals(hasSpot)) {
+		                    Value v = stPublic.getObject();
+		                    String spotURI = v.stringValue();
+		                    Spot s = getSpotFromURI(spotURI, user);
+		                    if (s != null)
+		                        spots.add(s);
+		                }
+				    }
 				}
 			}
-			
 			blockLayoutObject.setSpots(spots);
 		}
 		
@@ -1020,6 +993,22 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		    slideLayoutObject.setBlocks(blocks); // extractFromStatements will add to this list as necessary
 			extractFromStatements (statements, slideLayoutObject, loadAll, user);
 		}
+		
+		// put it in the cache, if loadAll is true
+		if (loadAll) {
+		    slideLayoutCache.put(slideLayoutObject.getUri(), slideLayoutObject);
+		    SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
+            if (entity == null) {
+    		    entity = new SlideLayoutEntity();
+    		    entity.setUri(slideLayoutURI);
+    	        try {
+    	            entity.setJsonValue(new ObjectMapper().writeValueAsString(slideLayoutObject));
+    	            slideLayoutRepository.save(entity);
+    	        } catch (JsonProcessingException e) {
+    	            logger.error("Could not serialize Slide layout into JSON for caching", e);
+    	        }
+            }
+		}
 		return slideLayoutObject;
 	}
 	
@@ -1089,6 +1078,26 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 slideLayoutObject.setIsPublic(true);
                 Value uriValue = st.getObject();
                 String publicLayoutURI = uriValue.stringValue();
+                
+                // check the slideLayoutRepository first, if loadAll = true
+                if (loadAll) {
+                    SlideLayoutEntity entity = slideLayoutRepository.findByUri(publicLayoutURI);
+                    if (entity != null) {
+                        try {
+                            SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
+                            slideLayoutObject.getBlocks().addAll(s.getBlocks());
+                            slideLayoutObject.setName(s.getName());
+                            slideLayoutObject.setDescription(s.getDescription());
+                            slideLayoutObject.setWidth(s.getWidth());
+                            slideLayoutObject.setHeight(s.getHeight());
+                            slideLayoutObject.setUser(s.getUser());
+                            return;
+                        } catch (IOException e) {
+                            logger.error("Could not read slide layout from serialized value", e);
+                        }
+                    }
+                }
+                
                 IRI publicLayout = f.createIRI(publicLayoutURI);
                 RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicLayout, null, null, defaultGraphIRI);
                 extractFromStatements (statementsPublic, slideLayoutObject, loadAll, null);
@@ -1206,7 +1215,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 
 	@Override
-	public String makePublic(SlideLayout layout, UserEntity user) throws SparqlException, SQLException {
+	public String makePublic(SlideLayout layout, UserEntity user, Map<String, String> uriMapOldToNew) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
         String existingURI = null;
         
@@ -1221,15 +1230,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         Map<String, Feature > processedFeatures = new HashMap<>();
         blockLayoutCache.clear();
         slideLayoutCache.clear();
-        // delete from SlideLayoutRepository too
-        SlideLayoutEntity entity = slideLayoutRepository.findByUri(layout.getUri());
-        if (entity != null)
-            slideLayoutRepository.delete(entity);
         
         if (existingURI == null) {
         	// first make other components public
             List<Block> publicBlocks = new ArrayList<Block>();
-        	Map<String, String> uriMapOldToNew = new HashMap<>();
         	for (Block block: layout.getBlocks()) {
         		BlockLayout blockLayout = block.getBlockLayout();
         		if (uriMapOldToNew.get(blockLayout.getUri()) == null) {
@@ -1272,9 +1276,15 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             // make it public
             deleteByURI(uriPrefix + layout.getId(), graph);
             updateSlideLayoutInGraph(layout, graph);
+            
+            // delete from SlideLayoutRepository too
+            SlideLayoutEntity entity = slideLayoutRepository.findByUri(layout.getUri());
+            if (entity != null)
+                slideLayoutRepository.delete(entity);
             // need to create the slidelayout in the public graph, link the user's version to public one
             return addPublicSlideLayout(layout, null, graph, user.getUsername()); 
         } else {
+            //TODO this part seems unnecessary?? why should we delete again and create again in the private one
             deleteByURI(uriPrefix + layout.getId(), graph);
             updateSlideLayoutInGraph(layout, graph);
             // need to link the user's version to the existing URI
@@ -1364,7 +1374,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         }
     				}
     				// make feature public
-    				featureURI = featureRepository.addPublicFeature (feature);
+    				featureURI = featureRepository.addPublicFeature (feature, user);
     				Feature newFeature = featureRepository.getFeatureFromURI(featureURI, null);
     				publicFeatures.add(newFeature);
     				processedFeatures.put(previous, newFeature);
@@ -1382,6 +1392,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
 		String userGraph = getGraphForUser(user);
+		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
+        IRI createdBy = f.createIRI(ontPrefix + "created_by");
+        Literal owner = f.createLiteral(user.getUsername());
+        Date date = new Date();
+        Literal dateModified = f.createLiteral(date);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
+        Literal dateCreated = blockLayout.getDateCreated() == null ? f.createLiteral(date) : f.createLiteral(blockLayout.getDateCreated());
 		
 		if (blockLayoutURI == null) {
 			blockLayoutURI = generateUniqueURI(uriPrefixPublic + "BL", userGraph);
@@ -1390,12 +1410,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 			IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
 			IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
-			IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
-			IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
-			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-			Date date = new Date();
-			Literal dateCreated = f.createLiteral(date);
-		
+			
 			Literal blockLayoutLabel = f.createLiteral(blockLayout.getName().trim());
 			Literal blockLayoutComment = blockLayout.getDescription() == null ? null: f.createLiteral(blockLayout.getDescription().trim());
 			Literal blockLayoutWidth = blockLayout.getWidth() == null ? null : f.createLiteral(blockLayout.getWidth());
@@ -1406,7 +1421,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(blockLayoutIRI, RDFS.LABEL, blockLayoutLabel, publicGraphIRI));
 			if (blockLayoutComment != null) statements.add(f.createStatement(blockLayoutIRI, RDFS.COMMENT, blockLayoutComment, publicGraphIRI));
 			statements.add(f.createStatement(blockLayoutIRI, hasCreatedDate, dateCreated, publicGraphIRI));
-			statements.add(f.createStatement(blockLayoutIRI, hasModifiedDate, dateCreated, publicGraphIRI));
+			statements.add(f.createStatement(blockLayoutIRI, hasModifiedDate, dateModified, publicGraphIRI));
 			if (blockLayoutWidth != null) statements.add(f.createStatement(blockLayoutIRI, hasWidth, blockLayoutWidth, publicGraphIRI));
 			if (blockLayoutHeight != null) statements.add(f.createStatement(blockLayoutIRI, hasHeight, blockLayoutHeight, publicGraphIRI));
 			
@@ -1419,6 +1434,18 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 			sparqlDAO.addStatements(statements, publicGraphIRI);
 		}
+	
+		IRI userGraphIRI = f.createIRI(userGraph);
+		IRI local = f.createIRI(blockLayout.getUri());
+		IRI publicBlockLayout = f.createIRI(blockLayoutURI);
+		
+		// link local one to public uri
+        List<Statement> statements2 = new ArrayList<Statement>();
+        statements2.add(f.createStatement(local, hasPublicURI, publicBlockLayout, userGraphIRI));
+        statements2.add(f.createStatement(local, hasModifiedDate, dateModified, userGraphIRI));
+        statements2.add(f.createStatement(local, hasCreatedDate, dateCreated, userGraphIRI));
+        statements2.add(f.createStatement(local, RDF.TYPE, blockLayoutType, userGraphIRI));
+        sparqlDAO.addStatements(statements2, userGraphIRI);
 		
 		return blockLayoutURI;
 	}
@@ -1445,6 +1472,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		IRI hasRatio = f.createIRI (hasRatioPredicate);
         IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
+        IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
 		List<Feature> features = new ArrayList<Feature>();
 		s.setFeatures(features);
@@ -1507,6 +1535,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     s.setRatio(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), ratio);
                 }
             } 
+		}
+		
+		// find its blockLayoutId
+		RepositoryResult<Statement> statements = sparqlDAO.getStatements(null, hasSpot, spot, graphIRI);
+		while (statements.hasNext()) {
+            Statement st = statements.next();
+            String blockLayoutURI = st.getSubject().stringValue();
+            s.setBlockLayoutId(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1));
 		}
 		return s;
 	}
@@ -1617,11 +1653,30 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         statements2.add(f.createStatement(local, hasAddedToLibrary, dateAdded, userGraphIRI));
         statements2.add(f.createStatement(local, RDF.TYPE, slideLayoutType, userGraphIRI));
         sparqlDAO.addStatements(statements2, userGraphIRI);
+        
+        
+        // add it to the slidelayoutrepository as well
+        s.setUri(publicURI);
+        s.setId(publicURI.substring(publicURI.lastIndexOf("/") + 1));
+        s.setDateAddedToLibrary(date);
+        s.setDateCreated(date);
+        s.setDateModified(date);
+        Creator creator = new Creator();
+        creator.setName(username);
+        s.setUser(creator);
+        SlideLayoutEntity slideLayoutEntity = new SlideLayoutEntity();
+        slideLayoutEntity.setUri(publicURI);
+        try {
+            slideLayoutEntity.setJsonValue(new ObjectMapper().writeValueAsString(s));
+            slideLayoutRepository.save(slideLayoutEntity);
+        } catch (JsonProcessingException e) {
+            logger.error("Could not serialize Slide layout into JSON for caching", e);
+        }
 		return publicURI;
 	}
 
     @Override
-    public Spot getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockId,
+    public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockLayoutId,
             UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
@@ -1638,28 +1693,28 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             slideLayoutURI = uriPre + slideLayoutId;
         }
         
-        String blockURI = null;
-        if (blockId != null) {
-            blockURI = uriPre + blockId;
+        String blockLayoutURI = null;
+        if (blockLayoutId != null) {
+            blockLayoutURI = uriPre + blockLayoutId;
         }
         
         if (slideLayoutURI != null) {
             // load the slide layout from cache and find the features there
             SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity != null) {
-                Spot spot = findSpotInEntity (entity, features, blockId);
-                if (spot != null)
-                    return spot;
+                List<Spot> spots = findSpotInEntity (entity, features, blockLayoutId);
+                if (spots != null &&  !spots.isEmpty())
+                    return spots;
             }
-        } else {
+        } /*else {
             // check all slide layouts
             List<SlideLayoutEntity> layouts = slideLayoutRepository.findAll();
             for (SlideLayoutEntity entity: layouts) {
-                Spot spot = findSpotInEntity (entity, features, blockId);
-                if (spot != null)
-                    return spot;
+                List<Spot> spots  = findSpotInEntity (entity, features, blockLayoutId);
+                if (spots != null &&  !spots.isEmpty())
+                    return spots;
             }
-        }
+        }*/
         
         String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
      
@@ -1668,10 +1723,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         for (Feature f: features) {
             where += "?s gadr:has_feature <" + f.getUri() + "> . \n";
         }
-        if (blockURI != null) {
-            where +=  "<" + blockURI + "> template:has_spot ?s .  \n";
+        if (blockLayoutURI != null) {
+            where +=  "<" + blockLayoutURI + "> template:has_spot ?s .  \n";
         } else if (slideLayoutURI != null) {
-            where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  \n";
+            where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
         }
         where += "}";
         
@@ -1684,10 +1739,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 where += "?f"+ i + " gadr:has_public_uri <" + f.getUri() + "> . \n"; 
                 i++;
             }
-            if (blockURI != null) {
-                where +=  "<" + blockURI + "> template:has_spot ?s .  \n";
+            if (blockLayoutURI != null) {
+                where +=  "<" + blockLayoutURI + "> gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
             } else if (slideLayoutURI != null) {
-                where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_spot ?s .  \n";
+                where += "<" + slideLayoutURI + "> gadr:has_public_uri ?ps . ?ps gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
             }
             where += "}";
         } 
@@ -1704,15 +1759,21 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (results.isEmpty())
             return null;
         else {
-            String spotURI = results.get(0).getValue("s");
-            if (spotURI.contains("public") ) {
-                return getSpotFromURI(spotURI, null);
+            List<Spot> spots = new ArrayList<Spot>();
+            for (SparqlEntity result: results) {
+                String spotURI = result.getValue("s");
+                if (graph.equals(DEFAULT_GRAPH) && spotURI.contains("public") ) {
+                    spots.add(getSpotFromURI(spotURI, null));
+                }
+                else if (!spotURI.contains("public")) {
+                    spots.add(getSpotFromURI(spotURI, user));
+                }
             }
-            return getSpotFromURI(spotURI, user);
+            return spots;
         }
     }
     
-    private Spot findSpotInEntity(SlideLayoutEntity entity, List<Feature> features, String blockId) {
+    private List<Spot> findSpotInEntity(SlideLayoutEntity entity, List<Feature> features, String blockId) {
         try {
             SlideLayout s;
             if (slideLayoutCache.get(entity.getUri()) != null)
@@ -1721,49 +1782,52 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
                 slideLayoutCache.put(entity.getUri(), s);
             }
-            for (Block b: s.getBlocks()) {
-                if (blockId != null && b.getId().equals(blockId)) {
-                    // check only in this block
-                    for (Spot spot: b.getBlockLayout().getSpots()) {
-                        boolean match = true;
-                        for (Feature feature: features) {
-                            boolean found = false;
-                            for (Feature f: spot.getFeatures()) {
-                                if (f.getId().equals(feature.getId())) {
-                                    found = true;
-                                    break;
+            List<Spot> spots = new ArrayList<>();
+            if (s.getBlocks() != null) {
+                for (Block b: s.getBlocks()) {
+                    if (blockId != null && b.getBlockLayout().getId().equals(blockId)) {
+                        // check only in this block
+                        for (Spot spot: b.getBlockLayout().getSpots()) {
+                            boolean match = true;
+                            for (Feature feature: features) {
+                                boolean found = false;
+                                for (Feature f: spot.getFeatures()) {
+                                    if (f.getId().equals(feature.getId())) {
+                                        found = true;
+                                        break;
+                                    }
                                 }
+                                if (!found)
+                                    match = false;
                             }
-                            if (!found)
-                                match = false;
+                            if (match) {
+                                spots.add(spot);
+                            }
                         }
-                        if (match) {
-                            return spot;
-                        }
-                    }
-                    
-                } else if (blockId == null) {
-                    // check this block
-                    for (Spot spot: b.getBlockLayout().getSpots()) {
-                        boolean match = true;
-                        for (Feature feature: features) {
-                            boolean found = false;
-                            for (Feature f: spot.getFeatures()) {
-                                if (f.getId().equals(feature.getId())) {
-                                    found = true;
-                                    break;
+                        
+                    } else if (blockId == null) {
+                        // check this block
+                        for (Spot spot: b.getBlockLayout().getSpots()) {
+                            boolean match = true;
+                            for (Feature feature: features) {
+                                boolean found = false;
+                                for (Feature f: spot.getFeatures()) {
+                                    if (f.getId().equals(feature.getId())) {
+                                        found = true;
+                                        break;
+                                    }
                                 }
+                                if (!found)
+                                    match = false;
                             }
-                            if (!found)
-                                match = false;
-                        }
-                        if (match) {
-                            return spot;
+                            if (match) {
+                                spots.add(spot);
+                            }
                         }
                     }
                 }
-                
             }
+            return spots;
         } catch (IOException e) {
             logger.error("Could not read slide layout from serialized value", e);
         }
@@ -1772,7 +1836,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
     @Override
-    public Spot getSpotByPosition (String slideLayoutId, String blockId, int row, int column, UserEntity user) throws SparqlException, SQLException {
+    public Spot getSpotByPosition (String slideLayoutId, String blockLayoutId, int row, int column, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -1786,17 +1850,35 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (slideLayoutId != null) {
             slideLayoutURI = uriPre + slideLayoutId;
         }
-        String blockURI = null;
-        if (blockId != null) {
-            blockURI = uriPre + blockId;
+        String blockLayoutURI = null;
+        if (blockLayoutId != null) {
+            blockLayoutURI = uriPre + blockLayoutId;
         }
+        
+        if (slideLayoutURI != null) {
+            // load the slide layout from cache and find the spots there
+            SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
+            if (entity != null) {
+                Spot spot = findSpotInEntity (entity, row, column, blockLayoutId);
+                if (spot != null)
+                    return spot;
+            }
+        } /*else {
+            // check all slide layouts
+            List<SlideLayoutEntity> layouts = slideLayoutRepository.findAll();
+            for (SlideLayoutEntity entity: layouts) {
+                Spot spot = findSpotInEntity (entity, row, column, blockLayoutId);
+                if (spot != null)
+                    return spot;
+            }
+        }*/
         
         String whereClause = "{";
         String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
         whereClause += "?s gadr:has_row \"" + row + "\"^^xsd:int . \n"; 
         whereClause += "?s gadr:has_column \"" + column + "\"^^xsd:int . \n";
-        if (blockURI != null) {
-            whereClause += "<" + blockURI + "> template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
+        if (blockLayoutURI != null) {
+            whereClause += "<" + blockLayoutURI + "> template:has_spot ?s .  \n";
         } else if (slideLayoutURI != null) {
             whereClause += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
         }   
@@ -1806,8 +1888,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             whereClause += " UNION {";
             whereClause += "?s gadr:has_row \"" + row + "\"^^xsd:int . \n"; 
             whereClause += "?s gadr:has_column \"" + column + "\"^^xsd:int . \n";
-            if (blockURI != null) {
-                whereClause += "<" + blockURI + ">  template:has_block_layout ?bl . ?bl gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
+            if (blockLayoutURI != null) {
+                whereClause += "<" + blockLayoutURI + ">  gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
             } else if (slideLayoutURI != null) {
                 whereClause += "<" + slideLayoutURI + "> gadr:has_public_uri ?ps . ?ps gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
             } 
@@ -1831,5 +1913,60 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             }
             return getSpotFromURI(spotURI, user);
         }
+    }
+
+    private Spot findSpotInEntity(SlideLayoutEntity entity, int row, int column, String blockLayoutId) {
+        try {
+            SlideLayout s;
+            if (slideLayoutCache.get(entity.getUri()) != null)
+                s = slideLayoutCache.get(entity.getUri());
+            else {
+                s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
+                slideLayoutCache.put(entity.getUri(), s);
+            }
+            for (Block b: s.getBlocks()) {
+                if (blockLayoutId != null && b.getBlockLayout().getId().equals(blockLayoutId)) {
+                    // check only in this block
+                    for (Spot spot: b.getBlockLayout().getSpots()) {
+                        if (spot.getRow() == row && spot.getColumn() == column)
+                            return spot;
+                    }
+                    
+                } else if (blockLayoutId == null) {
+                    // check this block
+                    for (Spot spot: b.getBlockLayout().getSpots()) {
+                        if (spot.getRow() == row && spot.getColumn() == column)
+                            return spot;
+                    }
+                }
+                
+            }
+        } catch (IOException e) {
+            logger.error("Could not read slide layout from serialized value", e);
+        }
+        
+        return null;
+    }
+
+    @Override
+    public String getPublicBlockLayoutId(String blockLayoutId, UserEntity user) throws SQLException, SparqlException {
+        String publicId = null;
+        String graph = getGraphForUser(user);
+        
+        String blockLayoutURI = uriPrefix + blockLayoutId;
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI userGraphIRI = f.createIRI(graph);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI blockLayout = f.createIRI(blockLayoutURI);
+        
+        RepositoryResult<Statement> results = sparqlDAO.getStatements(blockLayout, hasPublicURI, null, userGraphIRI);
+        while (results.hasNext()) {
+            Statement st = results.next();
+            String publicURI = st.getObject().stringValue();
+            publicId = publicURI.substring(publicURI.lastIndexOf("/")+1);
+        }
+        
+        return publicId;
     }
 }

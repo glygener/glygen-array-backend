@@ -13,7 +13,7 @@ public class ProcessedResultConfiguration {
     
     String resultFileType = "cfg";
     String slideLayoutId;
-    String blockId = null;
+    String blockLayoutId = null;
     
     
     /**
@@ -135,13 +135,13 @@ public class ProcessedResultConfiguration {
     /**
      * @return the blockId
      */
-    public String getBlockId() {
-        return blockId;
+    public String getBlockLayoutId() {
+        return blockLayoutId;
     }
     /**
      * @param blockId the blockId to set
      */
-    public void setBlockId(String blockId) {
-        this.blockId = blockId;
+    public void setBlockLayoutId(String blockId) {
+        this.blockLayoutId = blockId;
     }
 }

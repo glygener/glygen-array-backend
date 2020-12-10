@@ -65,6 +65,7 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -1551,7 +1552,10 @@ public class GlygenArrayController {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId, user, loadAll);
 			if (layout == null) {
-				throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
+			    // check if it is from public graph
+			    layout = layoutRepository.getBlockLayoutById(layoutId, null, loadAll);
+			    if (layout == null) 
+			        throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
 			}
 			
 			if (loadAll && layout.getSpots() != null) {        
@@ -2656,6 +2660,82 @@ public class GlygenArrayController {
 		return result;
 	}
 	
+	@ApiOperation(value = "List all glycans for the user and the public ones")
+    @RequestMapping(value="/listAllGlycans", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to list glycans"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public GlycanListResultView listAllGlycans (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        GlycanListResultView result = new GlycanListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = glycanRepository.getGlycanCountByUser (user);
+            List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
+            List<Glycan> totalResultList = new ArrayList<>();
+            totalResultList.addAll(glycans);
+            
+            int totalPublic = glycanRepository.getGlycanCountByUser (null);
+            
+            List<Glycan> publicResultList = glycanRepository.getGlycanByUser(null, offset, limit, field, order, searchValue);
+            for (Glycan g1: publicResultList) {
+                boolean duplicate = false;
+                for (Glycan g2: glycans) {
+                    if (g1.getName().equals(g2.getName())) {
+                        duplicate = true;
+                    }
+                }
+                if (!duplicate) {
+                    totalResultList.add(g1);
+                } 
+            }
+            
+            for (Glycan glycan : totalResultList) {
+                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+                    glycan.setCartoon(getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence()));
+                }
+            }
+            
+            result.setRows(totalResultList);
+            result.setTotal(total+totalPublic);
+            result.setFilteredTotal(totalResultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+	
 	@ApiOperation(value = "List all linkers for the user")
 	@RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
@@ -2697,17 +2777,87 @@ public class GlygenArrayController {
 			}
 			
 			int total = linkerRepository.getLinkerCountByUser (user);
-			
 			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
-			result.setRows(linkers);
-			result.setTotal(total);
-			result.setFilteredTotal(linkers.size());
+            List<Linker> totalResultList = new ArrayList<>();
+            totalResultList.addAll(linkers);
+            
+            int totalPublic = linkerRepository.getLinkerCountByUser (null);
+            
+            List<Linker> publicResultList = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue);
+            for (Linker g1: publicResultList) {
+                boolean duplicate = false;
+                for (Linker g2: linkers) {
+                    if (g1.getName().equals(g2.getName())) {
+                        duplicate = true;
+                    }
+                }
+                if (!duplicate) {
+                    totalResultList.add(g1);
+                } 
+            }
+			
+			result.setRows(totalResultList);
+			result.setTotal(total+totalPublic);
+			result.setFilteredTotal(totalResultList.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
 		}
 		
 		return result;
 	}
+	
+	@ApiOperation(value = "List all linkers for the user")
+    @RequestMapping(value="/listAllLinkers", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to list linkers"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public LinkerListResultView listAllLinkers (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        LinkerListResultView result = new LinkerListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = linkerRepository.getLinkerCountByUser (user);
+            
+            List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
+            result.setRows(linkers);
+            result.setTotal(total);
+            result.setFilteredTotal(linkers.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
 	
 	@ApiOperation(value = "List all slide layouts for the user")
 	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
@@ -2919,7 +3069,7 @@ public class GlygenArrayController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
             }
-            String layoutURI = layoutRepository.makePublic (layout, user); 
+            String layoutURI = layoutRepository.makePublic (layout, user, new HashMap<String, String>()); 
             //TODO what to do with glycan images???
             return layoutURI.substring(layoutURI.lastIndexOf("/")+1);
         } catch (GlycanExistsException e) {

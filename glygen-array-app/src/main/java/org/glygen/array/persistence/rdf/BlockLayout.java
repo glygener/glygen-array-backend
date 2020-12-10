@@ -7,7 +7,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
-import org.glygen.array.service.GlygenArrayRepository;
 
 
 public class BlockLayout {

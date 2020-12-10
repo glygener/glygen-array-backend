@@ -2,6 +2,7 @@ package org.glygen.array.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
@@ -60,11 +61,13 @@ public interface LayoutRepository {
 	BlockLayout getBlockLayoutFromURI(String blockLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
             Boolean loadAll, Integer order, String searchValue) throws SparqlException, SQLException;
-    String makePublic(SlideLayout layout, UserEntity user) throws SparqlException, SQLException;
     BlockLayout getBlockLayoutByName(String name, UserEntity user, boolean loadAll)
             throws SparqlException, SQLException;
     Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException;
-    Spot getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockId, UserEntity user) throws SparqlException, SQLException;
+    List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockId, UserEntity user) throws SparqlException, SQLException;
     Spot getSpotByPosition(String slideLayoutId, String blockId, int row, int column, UserEntity user)
             throws SparqlException, SQLException;
+    String makePublic(SlideLayout layout, UserEntity user, Map<String, String> spotIdMap)
+            throws SparqlException, SQLException;
+    String getPublicBlockLayoutId(String blockLayoutId, UserEntity user) throws SQLException, SparqlException;
 }

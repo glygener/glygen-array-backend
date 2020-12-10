@@ -29,6 +29,7 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
@@ -260,9 +261,19 @@ public class DatasetController {
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
+            // check for duplicates
+            if (dataset.getPublications() != null) {
+                for (Publication pub: dataset.getPublications()) {
+                    if (pub.getPubmedId() != null && pub.getPubmedId().equals(publication.getPubmedId())) {
+                        // duplicate
+                        errorMessage.addError(new ObjectError("pubmedid", "Duplicate"));
+                    }
+                }
+            }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
         }
+        
         
         // check if the details of the publication needs to be retrieved from pubmed
         if (publication.getAuthors() == null && publication.getTitle() == null) {
@@ -529,7 +540,7 @@ public class DatasetController {
                         Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
                         for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
                             for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                                if (entry.getValue().getBlockId().equals(blockId)) {
+                                if (entry.getValue().getBlockLayoutId().equals(blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
                                     break;
                                 }
@@ -1752,8 +1763,8 @@ public class DatasetController {
         // check if the template exists
         String templateURI = null;
         try {
-            if (metadata != null && metadata.getTemplate() != null && !metadata.getTemplate().isEmpty()) {
-                templateURI = MetadataTemplateRepository.templatePrefix + metadata.getTemplate();
+            if (metadata != null && metadata.getTemplateType() != null && !metadata.getTemplateType().isEmpty()) {
+                templateURI = MetadataTemplateRepository.templatePrefix + metadata.getTemplateType();
             }
             if (templateURI == null) {
                 errorMessage.addError(new ObjectError("type", "NotValid"));
@@ -1763,15 +1774,16 @@ public class DatasetController {
                 MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (template == null) {
                     errorMessage.addError(new ObjectError("type", "NotValid"));
-                }
+                } else {
                 ErrorMessage err = checkMirage (metadata, template);
-                if (err != null) {
-                    for (ObjectError error: err.getErrors())
-                        errorMessage.addError(error);
-                    metadata.setIsMirage(false);
-                    // save it back to the repository
-                    datasetRepository.updateMetadataMirage(metadata, user);
-                }    
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                        metadata.setIsMirage(false);
+                        // save it back to the repository
+                        datasetRepository.updateMetadataMirage(metadata, user);
+                    }   
+                }
             }
         } catch (SparqlException | SQLException e1) {
             logger.error("Error retrieving template", e1);
@@ -1978,7 +1990,90 @@ public class DatasetController {
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve printed slides for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all printed slides for the user and the public ones")
+    @RequestMapping(value="/listAllPrintedSlide", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public PrintedSlideListView listAllPrintedSlides (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        PrintedSlideListView result = new PrintedSlideListView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getPrintedSlideCountByUser(user);
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue);
+            List<PrintedSlide> totalResultList = new ArrayList<PrintedSlide>();
+            totalResultList.addAll(resultList);
+            
+            int totalPublic = datasetRepository.getPrintedSlideCountByUser(null);
+            
+            List<PrintedSlide> publicResultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue);
+            for (PrintedSlide slide: publicResultList) {
+                boolean duplicate = false;
+                for (PrintedSlide slide2: resultList) {
+                    if (slide.getName().equals(slide2.getName())) {
+                        duplicate = true;
+                    }
+                }
+                if (!duplicate) {
+                    totalResultList.add(slide);
+                } 
+            }
+            
+            // clear unnecessary fields before sending the results back
+            for (PrintedSlide slide: totalResultList) {
+                if (slide.getLayout() != null)
+                    slide.getLayout().setBlocks(null);
+                if (slide.getPrinter() != null) {
+                    slide.getPrinter().setDescriptorGroups(null);
+                    slide.getPrinter().setDescriptors(null);
+                }
+                if (slide.getMetadata() != null) {
+                    slide.getMetadata().setDescriptorGroups(null);
+                    slide.getMetadata().setDescriptors(null);
+                }
+            }
+            result.setRows(totalResultList);
+            result.setTotal(total+totalPublic);
+            result.setFilteredTotal(totalResultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve printed slides. Reason: " + e.getMessage());
         }
         
         return result;
@@ -2638,6 +2733,30 @@ public class DatasetController {
             return new Confirmation("ProcessedData deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete ProcessedData " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given publication from the given array dataset")
+    @RequestMapping(value="/deletepublication/{publicationid}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="ProcessedData deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete ProcessedData"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deletePublication (
+            @ApiParam(required=true, value="id of the publication to delete") 
+            @PathVariable("publicationid") String id, 
+            @ApiParam(required=true, value="id of the array dataset this ProcessedData belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            datasetRepository.deletePublication(id, datasetId, user);
+            return new Confirmation("Publication deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete publication " + id, e);
         } 
     }
     
@@ -3551,32 +3670,87 @@ public class DatasetController {
             @PathVariable("datasetid") String datasetId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
-            if (dataset == null) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            ArrayDataset existing = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (existing == null) {
                 errorMessage.addError(new ObjectError("datasetId", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
+            } else {
+                // check if the array dataset is ready to be made public
+                if (existing.getStatus() != FutureTaskStatus.DONE) {
+                    // check if enough time has passed to restart processing
+                    // check the timestamp and see if enough time has passed
+                    Long timeDelay = 3600L;
+                    SettingEntity entity = settingsRepository.findByName("timeDelay");
+                    if (entity != null) {
+                        timeDelay = Long.parseLong(entity.getValue());
+                    }
+                   
+                    Date current = new Date();
+                    Date startDate = existing.getStartDate();
+                    if (startDate != null) {
+                        long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                        if (timeDelay > diffInMillies / 1000) {
+                            // not enough time has passed, cannot restart!
+                            // it is already being made public, do not allow it again
+                            errorMessage.addError(new ObjectError("status", "NotDone"));
+                            errorMessage.addError(new ObjectError("time", "NotValid"));
+                            throw new IllegalArgumentException("Not enough time has passed. Please wait before restarting", errorMessage);
+                        }
+                    }
+                    
+                }
+                if (existing.getRawDataList() == null || existing.getRawDataList().isEmpty()) {
+                    // cannot make public without raw data
+                    errorMessage.addError(new ObjectError("rawData", "NotFound"));
+                }
+                if (existing.getProcessedData() == null || existing.getProcessedData().isEmpty()) {
+                    // cannot make public without processed data
+                    errorMessage.addError(new ObjectError("processedData", "NotFound"));
+                } 
+                if (existing.getRawDataList() != null) {
+                    for (RawData rawData: existing.getRawDataList()) {
+                        if (rawData.getStatus() != FutureTaskStatus.DONE) {
+                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                        }
+                    }
+                }
+                if (existing.getProcessedData() != null) {
+                    for (ProcessedData processedData: existing.getProcessedData()) {
+                        if (processedData.getStatus() != FutureTaskStatus.DONE) {
+                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                        }
+                    }
+                }
+                if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                    throw new IllegalArgumentException("Cannot make public now!", errorMessage); 
+                }
             }
             
+            
             CompletableFuture<String> datasetURI = null;
+            FutureTask task = new FutureTask();
+            task.setStatus(FutureTaskStatus.PROCESSING);
             try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
                 // set the status to processing first
                 dataset.setStatus(FutureTaskStatus.PROCESSING);
                 datasetRepository.updateStatus (dataset.getUri(), dataset, user);
-                
                 datasetURI = datasetRepository.makePublicArrayDataset(dataset, user); 
                 datasetURI.whenComplete((uri, e) -> {
                     try {
                         String existingURI = dataset.getUri();
                         if (e != null) {
+                            task.setStatus(FutureTaskStatus.ERROR);
                             logger.error(e.getMessage(), e);
                             dataset.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 dataset.setError((ErrorMessage) e.getCause().getCause());
                             
                         } else {
+                            task.setStatus(FutureTaskStatus.DONE);
                             dataset.setStatus(FutureTaskStatus.DONE);
                             dataset.setUri(uri);
                         }
@@ -3586,12 +3760,12 @@ public class DatasetController {
                         logger.error("Could not save the processedData", e1);
                     } 
                 });
-                datasetURI.get(20000, TimeUnit.MILLISECONDS);
+                datasetURI.get(10000, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 return null; // not ready yet
             }
-            if (dataset.getStatus() == FutureTaskStatus.DONE) {
-                String uri = dataset.getUri();
+            if (task.getStatus() == FutureTaskStatus.DONE) {
+                String uri = datasetURI.get();
                 return uri.substring(uri.lastIndexOf("/")+1);
             } else {
                 return null; // not ready yet

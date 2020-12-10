@@ -17,7 +17,7 @@ public class Spot {
 	Integer column;
 	LevelUnit concentration;
 	Integer group;
-	String blockId;
+	String blockLayoutId;
 	String uri;
 	SpotFlag flag;
 	
@@ -131,16 +131,16 @@ public class Spot {
 	}
 
     /**
-     * @return the blockId
+     * @return the blockLayoutId
      */
-    public String getBlockId() {
-        return blockId;
+    public String getBlockLayoutId() {
+        return blockLayoutId;
     }
 
     /**
-     * @param blockId the blockId to set
+     * @param blockId the blockLayoutId to set
      */
-    public void setBlockId(String blockId) {
-        this.blockId = blockId;
+    public void setBlockLayoutId(String blockId) {
+        this.blockLayoutId = blockId;
     }
 }

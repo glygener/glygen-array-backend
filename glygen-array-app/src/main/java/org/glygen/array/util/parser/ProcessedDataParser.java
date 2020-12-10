@@ -222,14 +222,24 @@ public class ProcessedDataParser {
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
                                 features.add(feature);
-                                Spot spot = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockId(), user);
-                                intensity.setSpot(spot);
+                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockLayoutId(), user);
+                                if (spots != null) {
+                                    for (Spot spot: spots) {
+                                        spot.setBlockLayoutId(config.getBlockLayoutId());
+                                    }
+                                }
+                                intensity.setSpots(spots);
                             }
                         } else {
                             List<Feature> features = new ArrayList<Feature>();
                             features.add(feature);
-                            Spot spot = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockId(), user);
-                            intensity.setSpot(spot);
+                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockLayoutId(), user);
+                            if (spots != null) {
+                                for (Spot spot: spots) {
+                                    spot.setBlockLayoutId(config.getBlockLayoutId());
+                                }
+                            }
+                            intensity.setSpots(spots);
                         }
                     }
                 } catch (SparqlException | SQLException e) {

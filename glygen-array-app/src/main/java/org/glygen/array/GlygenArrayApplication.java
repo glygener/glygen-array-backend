@@ -46,6 +46,6 @@ public class GlygenArrayApplication {
 	
 	@EventListener(ApplicationReadyEvent.class)
 	public void doSomethingAfterStartup() {
-	    NamespaceHandler.loadNamespaces();
+	    //NamespaceHandler.loadNamespaces();
 	}
 }

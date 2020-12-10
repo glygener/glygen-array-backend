@@ -16,8 +16,11 @@ import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.SettingEntity;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
+import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
@@ -35,6 +38,7 @@ import org.glygen.array.util.pubmed.DTOPublicationAuthor;
 import org.glygen.array.util.pubmed.PubmedUtil;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.User;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
@@ -43,11 +47,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.ApiOperation;
@@ -66,6 +76,9 @@ public class UtilityController {
     
     @Autowired
     SettingsRepository settingsRepository;
+    
+    @Autowired
+    UserRepository userRepository;
 	
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -399,7 +412,7 @@ public class UtilityController {
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public List<String> getProcessedDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
-        fileFormats.add("CFG 5.2");
+        fileFormats.add("CFG_V5.2");
         return fileFormats;
     }
     
@@ -521,5 +534,32 @@ public class UtilityController {
             return Long.parseLong(entity.getValue());
         }
         return 3600L; // default setting is an hour
-    }    
+    } 
+    
+    public @ResponseBody User getUser (
+            @ApiParam(required=true, value="login name of the user")
+            @PathVariable("userName")
+            String userName) {
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(userName);    
+        if (user == null) 
+            throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
+        
+        User userView = new User();
+        if (user.getPublicFlag() != null && user.getPublicFlag()) {
+            userView.setAffiliation(user.getAffiliation());
+            userView.setAffiliationWebsite(user.getAffiliationWebsite());
+            userView.setFirstName(user.getFirstName());
+            userView.setLastName(user.getLastName());
+            userView.setUserName(user.getUsername());
+            userView.setUserType(user.getLoginType().name());
+        } else { //TODO check which info should be displayed for a non-public user
+            userView.setFirstName(user.getFirstName());
+            userView.setLastName(user.getLastName());
+            userView.setUserName(user.getUsername());
+            userView.setUserType(user.getLoginType().name());
+        }
+        
+        return userView;
+    }
 }
