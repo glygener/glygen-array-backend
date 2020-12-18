@@ -15,6 +15,7 @@ public abstract class DescriptionTemplate {
     String description;
     Boolean mandatory;
     Integer maxOccurrence;
+    Integer order;
     String example;
     String wikiLink;
     Integer mandateGroup = null;
@@ -187,5 +188,19 @@ public abstract class DescriptionTemplate {
      */
     public void setXorMandate(Boolean xorMandate) {
         this.xorMandate = xorMandate;
+    }
+
+    /**
+     * @return the order
+     */
+    public Integer getOrder() {
+        return order;
+    }
+
+    /**
+     * @param order the order to set
+     */
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 }

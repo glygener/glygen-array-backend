@@ -330,7 +330,7 @@ public class ExtendedGalFileParser {
             Linker existing = findLinkerInList (linker, linkerList);
             if (existing == null) {
                 ErrorMessage error = new ErrorMessage();
-                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setErrorCode(ErrorCodes.PARSE_ERROR);
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                 error.addError(new ObjectError("linker "+name, "NotFound"));
                 if (!error.getErrors().isEmpty())
@@ -353,7 +353,7 @@ public class ExtendedGalFileParser {
             Linker existing = findLinkerInList (linker, linkerList);
             if (existing == null) {
                 ErrorMessage error = new ErrorMessage();
-                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setErrorCode(ErrorCodes.PARSE_ERROR);
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                 error.addError(new ObjectError("linker "+name, "NotFound"));
                 if (!error.getErrors().isEmpty())
@@ -379,7 +379,7 @@ public class ExtendedGalFileParser {
                     ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                 } catch (Exception e) {
                     ErrorMessage error = new ErrorMessage();
-                    error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    error.setErrorCode(ErrorCodes.PARSE_ERROR);
                     error.setStatus(HttpStatus.BAD_REQUEST.value());
                     error.addError(new ObjectError("sequence " + name, e.getMessage()));
                     if (!error.getErrors().isEmpty())
@@ -424,7 +424,7 @@ public class ExtendedGalFileParser {
         } else {
             // error in file format, the types should have been one of the previous ones
             ErrorMessage error = new ErrorMessage();
-            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+            error.setErrorCode(ErrorCodes.PARSE_ERROR);
             error.setStatus(HttpStatus.BAD_REQUEST.value());
             error.addError(new ObjectError("file ", "NotValid - featureType is not correct"));
             if (!error.getErrors().isEmpty())

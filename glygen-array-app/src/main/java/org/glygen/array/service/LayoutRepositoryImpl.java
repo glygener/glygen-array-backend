@@ -1736,7 +1736,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             int i=0;
             for (Feature f: features) {
                 where += "?s gadr:has_feature ?f" + i + " . \n";
-                where += "?f"+ i + " gadr:has_public_uri <" + f.getUri() + "> . \n"; 
+                where += "<" + f.getUri() + "> gadr:has_public_uri ?f"+ i  +". \n"; 
+               
                 i++;
             }
             if (blockLayoutURI != null) {

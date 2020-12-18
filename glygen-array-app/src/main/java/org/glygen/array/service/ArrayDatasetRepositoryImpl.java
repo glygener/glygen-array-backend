@@ -3252,14 +3252,37 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             datasetURI = uriPre + dataset.getId();
         }
         if (datasetURI != null) {
-            IRI datasetIRI = f.createIRI(datasetURI);
+            String publicURI = null;
+            
             IRI hasSample = f.createIRI(ontPrefix + "has_sample");
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+            IRI hasPub = f.createIRI(hasPublication);
+            IRI datasetIRI = f.createIRI(datasetURI);
+            IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
+            
+            // check if the dataset is made public by checking the has_public_uri predicate
+            IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+            RepositoryResult<Statement> results = sparqlDAO.getStatements(datasetIRI, hasPublicURI, null, graphIRI);
+            if (results.hasNext()) {
+                Statement st = results.next();
+                publicURI = st.getObject().stringValue();
+            }
+            results.close();
+            
+            IRI publicIRI = publicURI == null ? null : f.createIRI(publicURI);
+            
             List<Statement> statements = new ArrayList<Statement>();
+            List<Statement> publicStatements = new ArrayList<Statement>();
             
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+            
+            if (publicIRI != null) {
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.LABEL, null, publicGraphIRI)), publicGraphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.COMMENT, null, publicGraphIRI)), publicGraphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, hasModifiedDate, null, publicGraphIRI)), publicGraphIRI);
+            }
             
             Literal date = f.createLiteral(new Date());
             statements.add(f.createStatement(datasetIRI, hasModifiedDate, date, graphIRI));
@@ -3267,12 +3290,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName());
             Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription());
             
-            if (label != null) 
+            if (label != null) {
                 statements.add(f.createStatement(datasetIRI, RDFS.LABEL, label, graphIRI));
-            if (comment != null)
+                publicStatements.add(f.createStatement(publicIRI, RDFS.LABEL, label, publicGraphIRI));
+            }
+            if (comment != null) {
                 statements.add(f.createStatement(datasetIRI, RDFS.COMMENT, comment, graphIRI));
+                publicStatements.add(f.createStatement(publicIRI, RDFS.COMMENT, comment, publicGraphIRI));
+            }
             
-            if (dataset.getSample() != null) {
+            if (dataset.getSample() != null && publicIRI == null) { // do not allow changing the sample if the dataset is public
                 String sampleURI = dataset.getSample().getUri();
                 if (sampleURI == null && dataset.getSample().getId() != null) {
                     sampleURI = uriPre + dataset.getSample().getId();
@@ -3281,11 +3308,38 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasSample, null, graphIRI)), graphIRI);
                     IRI sample = f.createIRI(sampleURI);
                     statements.add(f.createStatement(datasetIRI, hasSample, sample, graphIRI));
-                    
+                }
+            }
+            if (dataset.getPublications() != null) {
+                RepositoryResult<Statement> results2 = null;
+                // get existing publications
+                if (publicIRI == null) {
+                    results2 = sparqlDAO.getStatements(datasetIRI, hasPub, null, graphIRI);
+                }
+                else {
+                    // get from public graph
+                    results2 = sparqlDAO.getStatements(publicIRI, hasPub, null, publicGraphIRI);
+                }
+                while (results2.hasNext()) {
+                    Statement st = results2.next();
+                    String pub = st.getObject().stringValue();
+                    if (publicIRI == null) {
+                        deletePublication(pub.substring(pub.lastIndexOf("/")+1), dataset.getId(), user);
+                    } else {
+                        deletePublication(pub.substring(pub.lastIndexOf("/")+1), publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+                for (Publication pub: dataset.getPublications()) {
+                    if (publicIRI == null) {
+                        addPublication(pub, dataset.getId(), user);
+                    } else {
+                        addPublication(pub, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
                 }
             }
             
             sparqlDAO.addStatements(statements, graphIRI);
+            sparqlDAO.addStatements(publicStatements, publicGraphIRI);
         }
     }
 

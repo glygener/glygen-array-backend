@@ -518,7 +518,7 @@ public class MetadataOntologyParser {
      * @param level level of the descriptor: 0, 1, 2
      */
     public static void readGroup(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
-        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {  // assume xor group
             try {
                 Double group = cell.getNumericCellValue();
                 if (group != null) {
@@ -531,14 +531,58 @@ public class MetadataOntologyParser {
                     }
                 }
             } catch (NumberFormatException e) {
-                warningOut.println("WARNING: No value for Example provided on sheet: "
+                warningOut.println("WARNING: Invalid value for group on sheet: "
                         + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
                         + " column: " + (cell.getColumnIndex() + 1));
             }
-        } else if (cell.getCellType() != Cell.CELL_TYPE_BLANK) {
-            errorOut.println("ERROR: Invalid value for group on sheet: "
-                    + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
-                    + " column: " + (cell.getColumnIndex() + 1));
+        } else if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+            // first letter "O" or "X"
+            String groupInfo = cell.getStringCellValue().trim();
+            if (!(groupInfo.startsWith("O") || groupInfo.startsWith("X") || groupInfo.startsWith("o") || groupInfo.startsWith("x"))) {
+                errorOut.println("ERROR: Invalid value for group on sheet: "
+                        + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                        + " column: " + (cell.getColumnIndex() + 1));
+            } else {
+                if (groupInfo.startsWith("O") || groupInfo.startsWith("o")) {
+                    try {
+                        String numberString = groupInfo.substring(1);
+                        Integer group = Integer.parseInt(numberString);
+                        if (level == 1) {
+                            childDescriptor.setXor(false);
+                            childDescriptor.setGroup(group.intValue());
+                        } else if (level == 0){
+                            descriptor.setGroup(group.intValue());
+                            descriptor.setXor(false);
+                        } else if (level == 2){
+                            subDescriptor.setGroup(group.intValue());
+                            subDescriptor.setXor(false);
+                        }
+                    } catch (NumberFormatException e) {
+                        warningOut.println("WARNING: Invalid value for group on sheet: "
+                                + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                                + " column: " + (cell.getColumnIndex() + 1));
+                    }
+                } else { // else it is xor and that is the default 
+                    try {
+                        String numberString = groupInfo.substring(1);
+                        Integer group = Integer.parseInt(numberString);
+                        if (level == 1) {
+                            childDescriptor.setXor(true);
+                            childDescriptor.setGroup(group.intValue());
+                        } else if (level == 0){
+                            descriptor.setGroup(group.intValue());
+                            descriptor.setXor(true);
+                        } else if (level == 2){
+                            subDescriptor.setGroup(group.intValue());
+                            subDescriptor.setXor(true);
+                        }
+                    } catch (NumberFormatException e) {
+                        warningOut.println("WARNING: Invalid value for group on sheet: "
+                                + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                                + " column: " + (cell.getColumnIndex() + 1));
+                    }
+                }
+            }
         }
     }
     
@@ -713,8 +757,10 @@ public class MetadataOntologyParser {
             metadataTemplate.setName(sheetName + " " + firstLetter + rest.toLowerCase());
             metadataTemplate.setType (mType);
             List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
+            int i=0;
             for (Descriptor d: mp.get(sheetName)) {
                 DescriptionTemplate description = createDescription(d);
+                description.setOrder(i++);
                 descriptors.add(description);
             }
             metadataTemplate.setDescriptors(descriptors);
@@ -878,8 +924,11 @@ public class MetadataOntologyParser {
             // top level descriptor group
             description = new DescriptorGroupTemplate();
             List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
+            int i=0;
             for (Descriptor child: d.getChildren()) {
-                descriptors.add(createDescription(child));
+                DescriptionTemplate childTemplate = createDescription(child);
+                childTemplate.setOrder(i++);
+                descriptors.add(childTemplate);
             }
             ((DescriptorGroupTemplate)description).setDescriptors(descriptors);
         } else {
@@ -916,6 +965,7 @@ public class MetadataOntologyParser {
         description.setExample(d.getExample());
         description.setWikiLink(d.getWikiLink());
         description.setMandateGroup(d.getGroup());
+        description.setXorMandate(d.getXor());
         description.setMirage(d.getMirage());
         return description;
         
@@ -934,6 +984,7 @@ public class MetadataOntologyParser {
         Boolean mandatory = false;
         Integer position = null;
         Integer group = null;
+        Boolean xor = true;  // default
         Boolean mirage = false;
         String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
 
@@ -1144,6 +1195,20 @@ public class MetadataOntologyParser {
          */
         public void setMirage(Boolean mirage) {
             this.mirage = mirage;
+        }
+
+        /**
+         * @return the xor
+         */
+        public Boolean getXor() {
+            return xor;
+        }
+
+        /**
+         * @param xor the xor to set
+         */
+        public void setXor(Boolean xor) {
+            this.xor = xor;
         }
     }
 

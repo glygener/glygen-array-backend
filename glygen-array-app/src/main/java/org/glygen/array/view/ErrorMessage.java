@@ -85,13 +85,13 @@ public class ErrorMessage extends Error {
 
 	@Override
 	public String toString() {
-		String errorsString = getMessage() + ";;";
+		String errorsString = getMessage() + ";;" + getErrorCode().toString() + ";;" + getStatusCode() + ";;";
 		if (errors != null) {
 			for (Iterator<ObjectError> iterator = errors.iterator(); iterator.hasNext();) {
 				ObjectError error = (ObjectError) iterator.next();
 				errorsString += error.toString() ;
 				if (iterator.hasNext()) {
-					errorsString += ", ";
+					errorsString += "||";
 				}
 			}
 		}
@@ -99,15 +99,31 @@ public class ErrorMessage extends Error {
 	}
 	
 	public static ErrorMessage fromString (String message) {
-	    ErrorMessage errorMessage = new ErrorMessage();
 	    String[] first = message.split(";;");
-	    if (first.length > 1) {
-	        String[] errors = first[1].split(", ");
+	    ErrorMessage errorMessage;
+	    if (first.length > 2) {
+	        errorMessage = new ErrorMessage(first[0]);
+	        errorMessage.setErrorCode(ErrorCodes.valueOf(first[1]));
+	        try {
+	            errorMessage.setStatus(Integer.parseInt(first[2]));
+	        } catch (NumberFormatException e) {
+	            errorMessage.setStatus(org.springframework.http.HttpStatus.BAD_REQUEST.value());    
+	        }
+	    }
+	    else {
+	        errorMessage = new ErrorMessage();
+	        errorMessage.setStatus(org.springframework.http.HttpStatus.BAD_REQUEST.value());    
+	    }
+	    if (first.length > 3) {
+	        String[] errors = first[3].split("||");
     	    for (String err: errors) {
-    	        String fieldName = err.substring(err.indexOf("Error in object '") + 17, err.lastIndexOf("'"));
-    	        String defaultMessage = err.substring(err.indexOf("default message ")+16);
-    	        
-    	        errorMessage.addError(new ObjectError (fieldName, defaultMessage));
+    	        String fieldName = err.substring(err.indexOf("Error in object '") + 17, err.indexOf("':"));
+    	        String codesString = err.substring(err.indexOf("codes [")+7, err.indexOf("]; arguments ["));
+    	        String[] codes = codesString.isEmpty() ? null: codesString.split(",");
+    	        String argumentString = err.substring(err.indexOf("]; arguments [")+14, err.indexOf("]; default message ["));
+    	        String[] arguments = argumentString.isEmpty() ? null : argumentString.split(",");
+    	        String defaultMessage = err.substring(err.indexOf("]; default message [")+20);
+    	        errorMessage.addError(new ObjectError (fieldName, codes, arguments, defaultMessage));
     	    }
 	    }
 	    return errorMessage;

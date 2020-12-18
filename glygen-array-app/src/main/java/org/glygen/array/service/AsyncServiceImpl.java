@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -11,10 +12,13 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Intensity;
+import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
+import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.view.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +158,30 @@ public class AsyncServiceImpl implements AsyncService {
             return null;
         }
         return config;
+        
+    }
+
+    @Override
+    @Async("GlygenArrayAsyncExecutor")
+    public CompletableFuture<Map<Measurement, Spot>> parseRawDataFile(FileWrapper file, SlideLayout layout,
+            Double powerLevel) {
+        Map<Measurement, Spot> dataMap;
+        try {
+            dataMap = RawdataParser.parse(file, layout, powerLevel);
+            return CompletableFuture.completedFuture(dataMap);
+        } catch (Exception e) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            if (e.getCause() instanceof ErrorMessage) {
+                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                    errorMessage.addError(err);
+                }
+            } else {
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+            }
+            logger.error("Error parsing the raw data file", e);
+            throw new IllegalArgumentException("File is not a valid file", errorMessage);
+        }
         
     }
 

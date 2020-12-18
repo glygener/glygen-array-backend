@@ -375,6 +375,8 @@ public class DatasetController {
             }
         }
         
+        File file = null;
+        File imageFile = null;
         // check to make sure, the file is specified and exists in the uploads folder
         if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
             errorMessage.addError(new ObjectError("filename", "NotFound"));
@@ -382,7 +384,7 @@ public class DatasetController {
             String fileFolder = uploadDir;
             if (rawData.getFile().getFileFolder() != null)
                 fileFolder = rawData.getFile().getFileFolder();
-            File file = new File (fileFolder, rawData.getFile().getIdentifier());
+            file = new File (fileFolder, rawData.getFile().getIdentifier());
             if (!file.exists()) {
                 errorMessage.addError(new ObjectError("file", "NotFound"));
             }
@@ -393,11 +395,7 @@ public class DatasetController {
                     experimentFolder.mkdirs();
                 }
                 File newFile = new File(experimentFolder + File.separator + rawData.getFile().getIdentifier());
-                if(file.renameTo (newFile)) { 
-                         // if file copied successfully then delete the original file 
-                    file.delete(); 
-                    
-                } else { 
+                if (!file.renameTo (newFile)) { 
                     throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
                 } 
                 rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
@@ -405,25 +403,18 @@ public class DatasetController {
                 // check to make sure the image is specified and image file is in uploads folder
                 if (rawData.getImage() != null && rawData.getImage().getFile() != null && rawData.getImage().getFile().getIdentifier() != null) {
                     // move it to the dataset folder
-                    File imageFile = new File (uploadDir, rawData.getImage().getFile().getIdentifier());
+                    imageFile = new File (uploadDir, rawData.getImage().getFile().getIdentifier());
                     if (!imageFile.exists()) {
                         errorMessage.addError(new ObjectError("imageFile", "NotFound"));
                     }
                     else {
-                        if(imageFile.renameTo 
+                        if(!imageFile.renameTo 
                                 (new File(experimentFolder + File.separator + rawData.getImage().getFile().getIdentifier()))) { 
-                                 // if file copied successfully then delete the original file 
-                            imageFile.delete(); 
-                            
-                        } else { 
                             throw new GlycanRepositoryException("Image file cannot be moved to the dataset folder");
                         } 
                     }
                     rawData.getImage().getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 }
-                //else {   // image is not mandatory!!!
-                //    errorMessage.addError(new ObjectError("image", "NoEmpty"));
-                //}
             }
         }
         
@@ -526,46 +517,78 @@ public class DatasetController {
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
         
+        
         try {
-            // parse the file and extract measurements
+            CompletableFuture<Map<Measurement, Spot>> dataMap = null;
             try {
-                if (rawData.getSlide() != null && rawData.getSlide().getPrintedSlide() != null 
-                        && rawData.getSlide().getPrintedSlide().getLayout() != null) {
-                    // need to load the full layout before parsing
-                    SlideLayout fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
-                    // parse the file
-                    Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
-                    // check blocks used and extract only those measurements
-                    if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
-                        Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
-                        for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
-                            for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                                if (entry.getValue().getBlockLayoutId().equals(blockId)) {
-                                    filteredMap.put(entry.getKey(), entry.getValue());
-                                    break;
+                // need to load the full layout before parsing
+                SlideLayout fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
+                dataMap = parserAsyncService.parseRawDataFile(rawData.getFile(), fullLayout, rawData.getPowerLevel());
+                dataMap.whenComplete((measurements, e) -> {
+                    try {
+                        String uri = rawData.getUri();
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            rawData.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                rawData.setError((ErrorMessage) e.getCause().getCause());
+                        } else {
+                            // check blocks used and extract only those measurements
+                            if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
+                                Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
+                                for (Map.Entry<Measurement, Spot> entry: measurements.entrySet()) {
+                                    for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                                        if (entry.getValue().getBlockLayoutId().equals(blockId)) {
+                                            filteredMap.put(entry.getKey(), entry.getValue());
+                                            break;
+                                        }
+                                    }
                                 }
-                            }
+                                rawData.setDataMap(filteredMap); 
+                            } else {
+                                rawData.setDataMap(measurements);
+                            }     
                         }
-                        rawData.setDataMap(filteredMap); 
-                    } else {
-                        rawData.setDataMap(dataMap);
-                    }                      
-                } else {
-                    errorMessage.addError(new ObjectError("slideLayout", "NoEmpty"));
-                    throw new IllegalArgumentException("Invalid Input: slide layout should be there", errorMessage);
+                        datasetRepository.updateStatus (uri, rawData, user);
+                    } catch (SparqlException | SQLException ex) {
+                        throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
+                    } 
+                });
+                dataMap.get(2000, TimeUnit.MILLISECONDS);
+            } catch (IllegalArgumentException e) {
+                throw e;
+            } catch (TimeoutException e) {
+                synchronized (this) {
+                    // save whatever we have for now for processed data and update its status to "processing"
+                    String uri = datasetRepository.addRawData(rawData, datasetId, user);  
+                    rawData.setUri(uri);
+                    String id = uri.substring(uri.lastIndexOf("/")+1);
+                    if (rawData.getError() == null)
+                        rawData.setStatus(FutureTaskStatus.PROCESSING);
+                    else 
+                        rawData.setStatus(FutureTaskStatus.ERROR);
+                    datasetRepository.updateStatus (uri, rawData, user);
+                    // delete files (they should already be moved to the experiment folder)
+                    if (file != null) file.delete();
+                    if (imageFile != null) imageFile.delete();
+                    return id;
                 }
-            } catch (Exception e) {
-                logger.error ("Exception processing the raw data file", e);
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                errorMessage.addError(new ObjectError("parseError", e.getMessage()));
-                throw new IllegalArgumentException("Invalid Input: Not a valid raw data file", errorMessage);
             }
-            String uri = datasetRepository.addRawData(rawData, datasetId, user);
+            
+            String uri = datasetRepository.addRawData(rawData, datasetId, user);  
+            rawData.setUri(uri);
             String id = uri.substring(uri.lastIndexOf("/")+1);
+            rawData.setStatus(FutureTaskStatus.PROCESSING);
+            datasetRepository.updateStatus (uri, rawData, user);
             return id;
+            
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Cannot add the raw data measurements to the repository", e);
         }
+        
+        
     }
     
     @ApiOperation(value = "Add given printed slide set for the user")
@@ -2753,8 +2776,35 @@ public class DatasetController {
             Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deletePublication(id, datasetId, user);
-            return new Confirmation("Publication deleted successfully", HttpStatus.OK.value());
+            
+            ArrayDataset dataset = getArrayDataset(datasetId, false, principal);
+            if (dataset != null && dataset.getPublications() != null) {
+                boolean found = false;
+                for (Publication pub: dataset.getPublications()) {
+                    if (pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefix+id) || pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefixPublic+id)) {
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("publicationId", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Given array dataset does not have a publication with the given id", errorMessage);
+                }
+                else {
+                    datasetRepository.deletePublication(id, datasetId, user);
+                    return new Confirmation("Publication deleted successfully", HttpStatus.OK.value());
+                }
+            }
+            else {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("datasetId", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find array dataset with the given id", errorMessage);
+            }
+            
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete publication " + id, e);
         } 
@@ -3392,7 +3442,11 @@ public class DatasetController {
                 if (id != null) {
                     Sample existing = datasetRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
                     if (existing == null) {
-                        errorMessage.addError(new ObjectError("sample", "NotFound"));
+                        // check the public data
+                        existing = datasetRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + id, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("sample", "NotFound"));
+                        }
                     } else {
                         dataset.setSample(existing);
                     }

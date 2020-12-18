@@ -71,11 +71,7 @@ public class RawdataParser {
         if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("genepix")) {
             // process GenePix file
             FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
-            try {
-                GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
         }
         else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
             FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");

@@ -13,6 +13,7 @@ public abstract class Description {
     String uri;
     String id;
     DescriptionTemplate key;
+    Integer order = -1;
     
     public abstract boolean isGroup();
     
@@ -52,6 +53,17 @@ public abstract class Description {
     public void setKey(DescriptionTemplate key) {
         this.key = key;
     }
-    
+    /**
+     * @return the order
+     */
+    public Integer getOrder() {
+        return order;
+    }
+    /**
+     * @param order the order to set
+     */
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
     
 }

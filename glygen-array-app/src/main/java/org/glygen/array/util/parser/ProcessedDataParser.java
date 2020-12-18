@@ -132,7 +132,8 @@ public class ProcessedDataParser {
                 // parse sequence and find the glycan with the given sequence
                 // parse linker and find the linker with the given name
                 // find the feature with given glycan and linker
-                String glycoCT = parseSequence (featureString, errorList);
+                List<ErrorMessage> parserErrors = new ArrayList<ErrorMessage>();
+                String glycoCT = parseSequence (featureString, parserErrors);
                 if (glycoCT == null) {
                     // check errorMapFile
                     String modified = sequenceErrorMap.get(featureString.trim());
@@ -142,15 +143,37 @@ public class ProcessedDataParser {
                             glycoCT = modified;
                         }
                         else {
-                            glycoCT = parseSequence (modified, errorList);
+                            glycoCT = parseSequence (modified, parserErrors);
                         }
                         if (glycoCT == null) {
                             // add to error list
                             appendErrorMapFile(errorMapFilePath, featureString.trim());
+                            ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
+                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setStatus(HttpStatus.BAD_REQUEST.value());
+                            String[] codes = {row.getRowNum()+""};
+                            error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be translated to an existing glycan in the repository"));
+                            for (ErrorMessage err: parserErrors) {
+                                for (ObjectError o: err.getErrors()) {
+                                    error.addError(o);
+                                }
+                            }
+                            errorList.add(error);
                         }
                     } else if (modified == null){
                         // add to error list
                         appendErrorMapFile(errorMapFilePath, featureString.trim());
+                        ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
+                        error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        error.setStatus(HttpStatus.BAD_REQUEST.value());
+                        String[] codes = {row.getRowNum()+""};
+                        error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be translated to an existing glycan in the repository"));
+                        for (ErrorMessage err: parserErrors) {
+                            for (ObjectError o: err.getErrors()) {
+                                error.addError(o);
+                            }
+                        }
+                        errorList.add(error);
                     }
                     continue;
                 }
@@ -167,7 +190,8 @@ public class ProcessedDataParser {
                         ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
                         error.setErrorCode(ErrorCodes.INVALID_INPUT);
                         error.setStatus(HttpStatus.BAD_REQUEST.value());
-                        error.addError(new ObjectError("sequence", "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + "-glycoCT: " + glycoCT + " cannot be found in the repository"));
+                        String[] codes = {row.getRowNum()+""};
+                        error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be found in the repository"));
                         errorList.add(error);
                     } else {
                         //Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
@@ -184,8 +208,8 @@ public class ProcessedDataParser {
                             ErrorMessage error = new ErrorMessage("Linker cannot be found in the repository for row: " + row.getRowNum());
                             error.setErrorCode(ErrorCodes.INVALID_INPUT);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
-                            
-                            error.addError(new ObjectError("linker", "Row " + row.getRowNum() + ": linker " + linkerName + " cannot be found in the repository"));
+                            String[] codes = {row.getRowNum()+""};
+                            error.addError(new ObjectError("linker", codes, null, "Row " + row.getRowNum() + ": linker " + linkerName + " cannot be found in the repository"));
                             errorList.add(error); 
                             continue;
                         }
@@ -217,7 +241,8 @@ public class ProcessedDataParser {
                                 ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
                                 error.setErrorCode(ErrorCodes.INVALID_INPUT);
                                 error.setStatus(HttpStatus.BAD_REQUEST.value());
-                                error.addError(new ObjectError("feature", "Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository"));
+                                String[] codes = {row.getRowNum()+""};
+                                error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository"));
                                 errorList.add(error); 
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
@@ -244,7 +269,7 @@ public class ProcessedDataParser {
                     }
                 } catch (SparqlException | SQLException e) {
                     ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());
-                    error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    error.setErrorCode(ErrorCodes.PARSE_ERROR);
                     error.setStatus(HttpStatus.BAD_REQUEST.value());
                     error.addError(new ObjectError("feature", e.getMessage()));
                     errorList.add(error); 
@@ -263,7 +288,7 @@ public class ProcessedDataParser {
             return intensities;
         else {
             ErrorMessage error = new ErrorMessage("Errors parsing processed data excel file");
-            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+            error.setErrorCode(ErrorCodes.PARSE_ERROR);
             error.setStatus(HttpStatus.BAD_REQUEST.value());
             
             for (ErrorMessage e: errorList) {
@@ -271,7 +296,7 @@ public class ProcessedDataParser {
                     error.addError(o);
                 }
             }
-            throw new IllegalArgumentException(error);
+            throw new IllegalArgumentException(error.getMessage(), error);
         }
     }
     
@@ -307,7 +332,9 @@ public class ProcessedDataParser {
             String glycoCT = parser.translateSequence(glycanSequence);
             return glycoCT;
         } catch (Exception e) {
-            logger.error("Sequence parse error", e);
+            ErrorMessage parseError = new ErrorMessage(e.getMessage());
+            parseError.addError(new ObjectError("sequence", "Error parsing " + sequence + ". Reason: " + e.getMessage()));
+            errors.add(parseError);
         }
         return null;
     }
