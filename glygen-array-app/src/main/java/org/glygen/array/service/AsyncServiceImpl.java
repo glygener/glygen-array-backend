@@ -160,29 +160,4 @@ public class AsyncServiceImpl implements AsyncService {
         return config;
         
     }
-
-    @Override
-    @Async("GlygenArrayAsyncExecutor")
-    public CompletableFuture<Map<Measurement, Spot>> parseRawDataFile(FileWrapper file, SlideLayout layout,
-            Double powerLevel) {
-        Map<Measurement, Spot> dataMap;
-        try {
-            dataMap = RawdataParser.parse(file, layout, powerLevel);
-            return CompletableFuture.completedFuture(dataMap);
-        } catch (Exception e) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            if (e.getCause() instanceof ErrorMessage) {
-                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
-                    errorMessage.addError(err);
-                }
-            } else {
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-            }
-            logger.error("Error parsing the raw data file", e);
-            throw new IllegalArgumentException("File is not a valid file", errorMessage);
-        }
-        
-    }
-
 }

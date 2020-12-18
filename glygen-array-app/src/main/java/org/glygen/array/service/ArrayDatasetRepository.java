@@ -150,6 +150,8 @@ public interface ArrayDatasetRepository {
     CompletableFuture<String> makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    CompletableFuture<String> addMeasurementsToRawData(RawData rawData, UserEntity user)
+            throws SparqlException, SQLException;
     
     
 }

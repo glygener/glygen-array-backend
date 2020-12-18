@@ -2110,7 +2110,10 @@ public class GlygenArrayController {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			Glycan glycan = glycanRepository.getGlycanById(glycanId, user);
 			if (glycan == null) {
-				throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
+			    glycan = glycanRepository.getGlycanById(glycanId, null);
+			    if (glycan == null) {
+			        throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
+			    }
 			}
 			if (glycan instanceof SequenceDefinedGlycan) {
 			    byte[] cartoon = getCartoonForGlycan(glycanId, ((SequenceDefinedGlycan) glycan).getSequence());
@@ -2219,7 +2222,10 @@ public class GlygenArrayController {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			Linker linker = linkerRepository.getLinkerById(linkerId, user);
 			if (linker == null) {
-				throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
+			    linker = linkerRepository.getLinkerById(linkerId, null);
+			    if (linker == null) {
+			        throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
+			    }
 			}
 			
 			return linker;
@@ -2250,7 +2256,11 @@ public class GlygenArrayController {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 			SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, user, loadAll);
 			if (layout == null) {
-				throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
+			    // check the public repository
+			    layout = layoutRepository.getSlideLayoutById(layoutId, null, loadAll);
+			    if (layout == null) {
+			        throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
+			    }
 			}
 			
 			if (loadAll && layout.getBlocks() != null) {
@@ -2297,7 +2307,10 @@ public class GlygenArrayController {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
             org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId, user);
             if (feature == null) {
-                throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
+                feature = featureRepository.getFeatureById(featureId, null);
+                if (feature == null) {
+                    throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
+                }
             }
             
             if (feature.getGlycans()  != null) {

@@ -404,7 +404,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             
             statements.add(f.createStatement(raw, hasSlide, f.createIRI(slideURI), graphIRI));
-            if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
+            /*if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
                 for (Measurement measurement: rawData.getDataMap().keySet()) {
                     String measurementURI = addMeasurement (measurement, statements, graph);
                     Spot spot = rawData.getDataMap().get(measurement);
@@ -429,7 +429,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     }
                     statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
                 }
-            } 
+            } */
         }
         
         if (rawData.getFile() != null) {
@@ -498,6 +498,68 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (ycoordinate != null) statements.add(f.createStatement(measurementIRI, hasYCoordinate, ycoordinate, graphIRI));
         
         return measurementURI;
+    }
+    
+    @Async("GlygenArrayAsyncExecutor")
+    @Override
+    public CompletableFuture<String> addMeasurementsToRawData (RawData rawData, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            uriPre = uriPrefixPublic;
+            graph = DEFAULT_GRAPH;
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        List<Statement> statements = new ArrayList<Statement>();
+        String uri = rawData.getUri();
+        if (uri == null && rawData.getId() != null) {
+            uri = uriPre + rawData.getId();
+        }
+        if (uri != null) {
+            IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
+            IRI measurementOf = f.createIRI(measurementOfPredicate);
+            IRI graphIRI = f.createIRI(graph);
+            IRI raw = f.createIRI(uri);
+            if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
+                for (Measurement measurement: rawData.getDataMap().keySet()) {
+                    String measurementURI = addMeasurement (measurement, statements, graph);
+                    Spot spot = rawData.getDataMap().get(measurement);
+                    if (spot.getUri() != null)
+                        statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
+                    else {
+                        // find the spot
+                        if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null)
+                            throw new SparqlException ("The slide layout should be provided");
+                        
+                        String slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getId();
+                        if (slideLayoutId == null) {
+                            slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getUri().substring(
+                                    rawData.getSlide().getPrintedSlide().getLayout().getUri().lastIndexOf("/")+1);
+                        }
+                        
+                        Spot existing;
+                        if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic())
+                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
+                                spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), null);
+                        else 
+                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
+                                    spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), user);
+                        if (existing != null)
+                            statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
+                        else {
+                            throw new SparqlException ("The spot cannot be located in the repository");
+                        }
+                    }
+                    statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
+                }
+            }
+            sparqlDAO.addStatements(statements, graphIRI);
+        }
+        
+        return CompletableFuture.completedFuture(uri);
     }
     
     @Override
@@ -2156,6 +2218,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 
             }
         }
+        getStatusFromURI (rawDataObject.getUri(), rawDataObject, graph);
         return rawDataObject;
     }
     
@@ -3151,8 +3214,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (label != null) {
             List<SparqlEntity> results = queryHelper.retrieveByLabel(label, printedSlideTypePredicate, graph);
             if (!results.isEmpty()) {
+                for (SparqlEntity result: results) {
+                    String uri = result.getValue("s");
+                    if (!uri.contains("public")) {
+                        return getPrintedSlideFromURI(uri, user);
+                    }
+                }
+                
                 String uri = results.get(0).getValue("s");
-                slide = getPrintedSlideFromURI(uri, user);
+                if (uri.contains("public"))
+                    return getPrintedSlideFromURI(uri, null);
             }
         }
         

@@ -519,50 +519,62 @@ public class DatasetController {
         
         
         try {
-            CompletableFuture<Map<Measurement, Spot>> dataMap = null;
+            // save whatever we have for now for raw data and update its status to "processing"
+            String uri = datasetRepository.addRawData(rawData, datasetId, user);  
+            rawData.setUri(uri);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            if (rawData.getError() == null)
+                rawData.setStatus(FutureTaskStatus.PROCESSING);
+            else 
+                rawData.setStatus(FutureTaskStatus.ERROR);
+            datasetRepository.updateStatus (uri, rawData, user);
+            
+            CompletableFuture<String> rawDataURI = null;
             try {
                 // need to load the full layout before parsing
-                SlideLayout fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
-                dataMap = parserAsyncService.parseRawDataFile(rawData.getFile(), fullLayout, rawData.getPowerLevel());
-                dataMap.whenComplete((measurements, e) -> {
+                SlideLayout fullLayout = null;
+                if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic()) {
+                    fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), null);
+                } else {
+                    fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
+                }
+                Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
+                // check blocks used and extract only those measurements
+                if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
+                    Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
+                    for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
+                        for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                            if (entry.getValue().getBlockLayoutId().equals(blockId)) {
+                                filteredMap.put(entry.getKey(), entry.getValue());
+                                break;
+                            }
+                        }
+                    }
+                    rawData.setDataMap(filteredMap); 
+                } else {
+                    rawData.setDataMap(dataMap);
+                }
+                rawDataURI = datasetRepository.addMeasurementsToRawData(rawData, user);
+                rawDataURI.whenComplete((uriString, e) -> {
                     try {
-                        String uri = rawData.getUri();
                         if (e != null) {
                             logger.error(e.getMessage(), e);
                             rawData.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 rawData.setError((ErrorMessage) e.getCause().getCause());
                         } else {
-                            // check blocks used and extract only those measurements
-                            if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
-                                Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
-                                for (Map.Entry<Measurement, Spot> entry: measurements.entrySet()) {
-                                    for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                                        if (entry.getValue().getBlockLayoutId().equals(blockId)) {
-                                            filteredMap.put(entry.getKey(), entry.getValue());
-                                            break;
-                                        }
-                                    }
-                                }
-                                rawData.setDataMap(filteredMap); 
-                            } else {
-                                rawData.setDataMap(measurements);
-                            }     
+                            rawData.setStatus(FutureTaskStatus.DONE);    
                         }
-                        datasetRepository.updateStatus (uri, rawData, user);
+                        datasetRepository.updateStatus (uriString, rawData, user);
                     } catch (SparqlException | SQLException ex) {
                         throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
                     } 
                 });
-                dataMap.get(2000, TimeUnit.MILLISECONDS);
+                rawDataURI.get(2000, TimeUnit.MILLISECONDS);
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (TimeoutException e) {
                 synchronized (this) {
-                    // save whatever we have for now for processed data and update its status to "processing"
-                    String uri = datasetRepository.addRawData(rawData, datasetId, user);  
-                    rawData.setUri(uri);
-                    String id = uri.substring(uri.lastIndexOf("/")+1);
                     if (rawData.getError() == null)
                         rawData.setStatus(FutureTaskStatus.PROCESSING);
                     else 
@@ -575,9 +587,9 @@ public class DatasetController {
                 }
             }
             
-            String uri = datasetRepository.addRawData(rawData, datasetId, user);  
+            uri = datasetRepository.addRawData(rawData, datasetId, user);  
             rawData.setUri(uri);
-            String id = uri.substring(uri.lastIndexOf("/")+1);
+            id = uri.substring(uri.lastIndexOf("/")+1);
             rawData.setStatus(FutureTaskStatus.PROCESSING);
             datasetRepository.updateStatus (uri, rawData, user);
             return id;
