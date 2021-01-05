@@ -87,6 +87,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String describedbyPredicate = ontPrefix + "described_by";
     //public final static String namespacePredicate = ontPrefix + "has_namespace";
     public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
+    public final static String orderPredicate = ontPrefix + "has_order";
     public final static String valuePredicate = ontPrefix + "has_value";
     public final static String keyPredicate = ontPrefix + "has_key";
     public final static String rfuPredicate = ontPrefix + "has_rfu";
@@ -911,6 +912,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasKey = f.createIRI(keyPredicate);
         IRI type = f.createIRI(complexDescriptionTypePredicate);
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
+        IRI hasOrder = f.createIRI(orderPredicate);
+        
+        Literal order = descriptorGroup.getOrder() == null ? null : f.createLiteral(descriptorGroup.getOrder());
         
         if (descriptorGroup.getKey().getUri() == null) {
             // try to get the uri from id
@@ -930,6 +934,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         statements.add(f.createStatement(descrGroup, RDF.TYPE, type, graphIRI)); 
         statements.add(f.createStatement(descrGroup, hasKey, templateIRI, graphIRI));
+        if (order != null) statements.add(f.createStatement(descrGroup, hasOrder, order, graphIRI));
         
         for (Description descriptor: descriptorGroup.getDescriptors()) {
             if (descriptor == null) {
@@ -962,8 +967,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasValue = f.createIRI(valuePredicate);
         IRI hasKey = f.createIRI(keyPredicate);
         IRI hasUnit = f.createIRI(unitPredicate);
+        IRI hasOrder = f.createIRI(orderPredicate);
         
         Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
+        Literal order = descriptor.getOrder() == null ? null : f.createLiteral(descriptor.getOrder());
         
         if (descriptor.getKey().getUri() == null) {
             // try to get the uri from id
@@ -985,6 +992,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
         statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
         if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
+        if (order != null) statements.add(f.createStatement(descr, hasOrder, order, graphIRI));
         
         return descrURI;     
     }
@@ -1186,6 +1194,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasKey = f.createIRI(keyPredicate);
         IRI hasUnit = f.createIRI(unitPredicate);
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
+        IRI hasOrder = f.createIRI(orderPredicate);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -1193,8 +1202,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 String value = st.getObject().stringValue();
                 if (value.contains("simple")) {
                     descriptorObject = new Descriptor();
+                    descriptorObject.setUri(uri);
+                    descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
                 } else if (value.contains("complex")) {
                     descriptorObject = new DescriptorGroup();
+                    descriptorObject.setUri(uri);
+                    descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
                 }
             } else if (st.getPredicate().equals(hasKey)) {
                 // retrieve descriptorTemplate from template repository
@@ -1214,7 +1227,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     descriptorGroupList.add(d);
                 else 
                     descriptorList.add(d);
-            } 
+            } else if (st.getPredicate().equals(hasOrder)) {
+                String val = st.getObject().stringValue();
+                try {
+                    descriptorObject.setOrder(Integer.parseInt(val));
+                } catch (NumberFormatException e) {
+                    logger.warn("order is not valid for " + descriptorObject.getUri(), e);
+                }
+            }
         }
         descriptorObject.setUri(uri);
         descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));

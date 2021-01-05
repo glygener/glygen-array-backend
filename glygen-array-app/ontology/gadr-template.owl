@@ -327,6 +327,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#has_order -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_order">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/template#description_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#has_width -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_width">

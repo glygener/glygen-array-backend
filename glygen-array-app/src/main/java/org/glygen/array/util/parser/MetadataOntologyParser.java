@@ -757,7 +757,7 @@ public class MetadataOntologyParser {
             metadataTemplate.setName(sheetName + " " + firstLetter + rest.toLowerCase());
             metadataTemplate.setType (mType);
             List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
-            int i=0;
+            int i=1;
             for (Descriptor d: mp.get(sheetName)) {
                 DescriptionTemplate description = createDescription(d);
                 description.setOrder(i++);
@@ -895,6 +895,7 @@ public class MetadataOntologyParser {
         IRI hasGroup = f.createIRI(prefix + "has_mandate_group");
         IRI isXor = f.createIRI(prefix + "is_xor");
         IRI isMirage = f.createIRI(prefix + "is_mirage");
+        IRI hasOrder = f.createIRI(prefix + "has_order");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -914,6 +915,9 @@ public class MetadataOntologyParser {
         if (description.getXorMandate() != null) {
             model.add(f.createStatement(descriptionContext, isXor, f.createLiteral(description.getXorMandate())));
         }
+        if (description.getOrder() != null) {
+            model.add(f.createStatement(descriptionContext, hasOrder, f.createLiteral(description.getOrder())));
+        }
         
         return uri;
     }
@@ -924,7 +928,7 @@ public class MetadataOntologyParser {
             // top level descriptor group
             description = new DescriptorGroupTemplate();
             List<DescriptionTemplate> descriptors = new ArrayList<DescriptionTemplate>();
-            int i=0;
+            int i=1;
             for (Descriptor child: d.getChildren()) {
                 DescriptionTemplate childTemplate = createDescription(child);
                 childTemplate.setOrder(i++);

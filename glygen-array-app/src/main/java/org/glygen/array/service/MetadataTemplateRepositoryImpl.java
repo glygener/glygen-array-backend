@@ -208,6 +208,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI hasGroup = f.createIRI(templatePrefix + "has_mandate_group");
         IRI isMirage = f.createIRI(templatePrefix + "is_mirage");
         IRI isXor = f.createIRI(templatePrefix + "is_xor");
+        IRI hasOrder = f.createIRI(templatePrefix + "has_order");
         
         IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix + "has_unit_of_measurement");
         
@@ -304,6 +305,13 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(isXor)) {
                 String value = st.getObject().stringValue();
                 description.setXorMandate(value.equalsIgnoreCase("true"));
+            } else if (st.getPredicate().equals(hasOrder)) {
+                String value = st.getObject().stringValue();
+                try {
+                    description.setOrder(Integer.parseInt(value));
+                } catch (NumberFormatException e) {
+                    logger.warn("order is invalid", e);
+                }
             }
         }
         
