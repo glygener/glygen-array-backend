@@ -3452,6 +3452,7 @@ public class GlygenArrayController {
         file.setIdentifier(info.resumableFilePath.substring(info.resumableFilePath.lastIndexOf(File.separator) + 1));
         file.setOriginalName(resumableFilename);
         file.setFileFolder(uploadDir);
+        file.setFileSize(read);
         result.setFile(file);
         
         if (info.checkIfUploadFinished()) { //Check if all chunks uploaded, and change filename

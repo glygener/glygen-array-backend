@@ -1,6 +1,7 @@
 package org.glygen.array.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -399,6 +400,7 @@ public class DatasetController {
                     throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
                 } 
                 rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
+                rawData.getFile().setFileSize(newFile.length());
                 
                 // check to make sure the image is specified and image file is in uploads folder
                 if (rawData.getImage() != null && rawData.getImage().getFile() != null && rawData.getImage().getFile().getIdentifier() != null) {
@@ -414,6 +416,7 @@ public class DatasetController {
                         } 
                     }
                     rawData.getImage().getFile().setFileFolder(uploadDir + File.separator + datasetId);
+                    rawData.getImage().getFile().setFileSize(newFile.length());
                 }
             }
         }
@@ -538,21 +541,26 @@ public class DatasetController {
                 } else {
                     fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
                 }
-                Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
-                // check blocks used and extract only those measurements
-                if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
-                    Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
-                    for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
-                        for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                            if (entry.getValue().getBlockLayoutId().equals(blockId)) {
-                                filteredMap.put(entry.getKey(), entry.getValue());
-                                break;
+                try {
+                    Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
+                    // check blocks used and extract only those measurements
+                    if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
+                        Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
+                        for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
+                            for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                                if (entry.getValue().getBlockLayoutId().equals(blockId)) {
+                                    filteredMap.put(entry.getKey(), entry.getValue());
+                                    break;
+                                }
                             }
                         }
+                        rawData.setDataMap(filteredMap); 
+                    } else {
+                        rawData.setDataMap(dataMap);
                     }
-                    rawData.setDataMap(filteredMap); 
-                } else {
-                    rawData.setDataMap(dataMap);
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", e.getMessage()));
+                    throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                 }
                 rawDataURI = datasetRepository.addMeasurementsToRawData(rawData, user);
                 rawDataURI.whenComplete((uriString, e) -> {
@@ -572,6 +580,10 @@ public class DatasetController {
                 });
                 rawDataURI.get(2000, TimeUnit.MILLISECONDS);
             } catch (IllegalArgumentException e) {
+                rawData.setStatus(FutureTaskStatus.ERROR);
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
+                    rawData.setError((ErrorMessage) e.getCause());
+                datasetRepository.updateStatus (uri, rawData, user);
                 throw e;
             } catch (TimeoutException e) {
                 synchronized (this) {
@@ -596,11 +608,11 @@ public class DatasetController {
             
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new GlycanRepositoryException("Cannot add the raw data measurements to the repository", e);
         }
-        
-        
     }
     
     @ApiOperation(value = "Add given printed slide set for the user")

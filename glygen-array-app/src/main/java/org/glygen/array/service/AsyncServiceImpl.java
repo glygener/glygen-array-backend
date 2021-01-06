@@ -88,6 +88,7 @@ public class AsyncServiceImpl implements AsyncService {
                         throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
                     }
                     file.setFileFolder(uploadDir + File.separator + datasetId);
+                    file.setFileSize(newFile.length());
                     
                     ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
                     

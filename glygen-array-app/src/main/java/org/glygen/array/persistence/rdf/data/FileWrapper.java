@@ -6,6 +6,8 @@ public class FileWrapper {
     String originalName;
     String fileFolder;
     String fileFormat;
+    Long fileSize;
+    
     /**
      * @return the identifier
      */
@@ -53,6 +55,18 @@ public class FileWrapper {
      */
     public void setFileFormat(String fileFormat) {
         this.fileFormat = fileFormat;
+    }
+    /**
+     * @return the fileSize
+     */
+    public Long getFileSize() {
+        return fileSize;
+    }
+    /**
+     * @param fileSize the fileSize to set
+     */
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
     }
     
     

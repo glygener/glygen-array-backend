@@ -125,6 +125,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasOriginalFileNamePredicate = ontPrefix + "has_original_name";
     public final static String hasFolderPredicate = ontPrefix + "has_folder";
     public final static String hasFileFormatPredicate = ontPrefix + "has_file_format";
+    public final static String hasSizePredicate = ontPrefix + "has_size";
     
     // Template ontology stuff
     public final static String hasSampleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_sample_template";
@@ -381,6 +382,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
         IRI arraydataset = f.createIRI(uriPre + datasetId);
         IRI hasImage = f.createIRI(hasImagePredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         if (rawData.getMetadata() != null) {
             String imageProcessingMetadataURI = rawData.getMetadata().getUri();
@@ -439,13 +441,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal fileFolder = rawData.getFile().getFileFolder() == null ? null : f.createLiteral(rawData.getFile().getFileFolder());
             Literal fileFormat = rawData.getFile().getFileFormat() == null ? null : f.createLiteral(rawData.getFile().getFileFormat());
             Literal originalName = rawData.getFile().getOriginalName() == null ? null : f.createLiteral(rawData.getFile().getOriginalName());
+            Literal size = rawData.getFile().getFileSize() == null ? null : f.createLiteral(rawData.getFile().getFileSize());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(raw, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
             if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
-            
+            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
         }
         
         
@@ -595,6 +598,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasFolder = f.createIRI(hasFolderPredicate);
             IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
             IRI hasFile = f.createIRI(hasFilePredicate);
+            IRI hasSize = f.createIRI(hasSizePredicate);
             
             // Delete the existing intensities, if any
             RepositoryResult<Statement> results = sparqlDAO.getStatements(processed, hasIntensity, null, graphIRI);
@@ -663,6 +667,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
                 Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
                 Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
+                Literal size = processedData.getFile().getFileSize() == null ? null : f.createLiteral(processedData.getFile().getFileSize());
                 IRI fileIRI = f.createIRI(fileURI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(processed, hasFile, null, graphIRI)), graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(fileIRI, null, null, graphIRI)), graphIRI);
@@ -671,6 +676,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
                 if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
                 if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+                if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
             }
             
             sparqlDAO.addStatements(statements, graphIRI);
@@ -711,6 +717,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         if (processedData.getIntensity() != null) {
             for (Intensity intensity: processedData.getIntensity()) {
@@ -770,12 +777,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
             Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
             Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
+            Literal size = processedData.getFile().getFileSize() == null ? null : f.createLiteral(processedData.getFile().getFileSize());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(processed, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
             if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
             
         }
         
@@ -1880,6 +1889,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         if (image.getFile() != null) {
             String fileURI = generateUniqueURI(uriPre + "FILE", graph);
@@ -1887,12 +1897,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal fileFolder = image.getFile().getFileFolder() == null ? null : f.createLiteral(image.getFile().getFileFolder());
             Literal fileFormat = image.getFile().getFileFormat() == null ? null : f.createLiteral(image.getFile().getFileFormat());
             Literal originalName = image.getFile().getOriginalName() == null ? null : f.createLiteral(image.getFile().getOriginalName());
+            Literal size = image.getFile().getFileSize() == null ? null : f.createLiteral(image.getFile().getFileSize());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(imageIRI, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
             if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
         }
         
         if (metadataIRI != null) statements.add(f.createStatement(imageIRI, hasScanner, metadataIRI, graphIRI));
@@ -1930,6 +1942,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         ProcessedData processedObject = new ProcessedData();
         processedObject.setUri(uriValue);
@@ -2021,6 +2034,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (st2.getPredicate().equals(hasOriginalFileName)) {
                         Value val = st2.getObject();
                         file.setOriginalName(val.stringValue());
+                    }  else if (st2.getPredicate().equals(hasSize)) {
+                        Value val = st2.getObject();
+                        try {
+                            file.setFileSize(Long.parseLong(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.warn ("file size is not valid");
+                        }
                     }
                 }
                 processedObject.setFile(file);    
@@ -2100,6 +2120,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(imageIRI, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -2133,6 +2154,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (st2.getPredicate().equals(hasOriginalFileName)) {
                         Value val = st2.getObject();
                         file.setOriginalName(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasSize)) {
+                        Value val = st2.getObject();
+                        try {
+                            file.setFileSize(Long.parseLong(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.warn ("file size is not valid");
+                        }
                     }
                 }
                 imageObject.setFile(file);    
@@ -2171,6 +2199,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
         Map<String, String> measurementToSpotIdMap = new HashMap<String, String>();
@@ -2207,6 +2236,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (st2.getPredicate().equals(hasOriginalFileName)) {
                         Value val = st2.getObject();
                         file.setOriginalName(val.stringValue());
+                    }  else if (st2.getPredicate().equals(hasSize)) {
+                        Value val = st2.getObject();
+                        try {
+                            file.setFileSize(Long.parseLong(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.warn ("file size is not valid");
+                        }
                     }
                 }
                 rawDataObject.setFile(file);    

@@ -1,6 +1,7 @@
 package org.glygen.array.util.parser;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -72,8 +73,7 @@ public class RawdataParser {
             // process GenePix file
             FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
             GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
-        }
-        else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
+        } else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
             FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
             GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
         } else if (file.getIdentifier().endsWith(".gpr") || file.getIdentifier().endsWith(".txt")) {
@@ -82,6 +82,9 @@ public class RawdataParser {
         } else if (file.getIdentifier().endsWith(".xls") || file.getIdentifier().endsWith(".xlsx")) {
             FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
             GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
+        } else {
+            // format unknown
+            throw new IOException ("file format is not supported: " + file.getFileFormat());
         }
         
         for (Block block: slide.getBlocks()) {

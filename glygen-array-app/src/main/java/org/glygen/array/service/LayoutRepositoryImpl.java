@@ -1763,10 +1763,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             List<Spot> spots = new ArrayList<Spot>();
             for (SparqlEntity result: results) {
                 String spotURI = result.getValue("s");
-                if (graph.equals(DEFAULT_GRAPH) && spotURI.contains("public") ) {
+                if (spotURI.contains("public") ) {
                     spots.add(getSpotFromURI(spotURI, null));
                 }
-                else if (!spotURI.contains("public")) {
+                else {
                     spots.add(getSpotFromURI(spotURI, user));
                 }
             }
