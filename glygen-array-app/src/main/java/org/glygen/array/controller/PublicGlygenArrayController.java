@@ -474,7 +474,7 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all datasets for the user")
+    @ApiOperation(value = "List all public datasets")
     @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
@@ -518,6 +518,72 @@ public class PublicGlygenArrayController {
             int total = datasetRepository.getArrayDatasetCountByUser(null);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, loadAll);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all public datasets submitted by the given user")
+    @RequestMapping(value="/listArrayDatasetByUser", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public ArrayDatasetListView listArrayDatasetByUser (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+            @ApiParam(required=true, value="user name") 
+            @RequestParam("user") String username) {
+        ArrayDatasetListView result = new ArrayDatasetListView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = datasetRepository.getArrayDatasetCountByUser(null);
+            List<ArrayDataset> totalList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, false);
+            List<ArrayDataset> resultList = new ArrayList<ArrayDataset>();
+            // filter by owner and retrieve only those with the given username
+            for (ArrayDataset dataset: totalList) {
+                if (dataset.getUser() != null && username.equals(dataset.getUser().getName())) {
+                    if (loadAll) {
+                        resultList.add(datasetRepository.getArrayDataset(dataset.getId(), null));
+                    } else {
+                        resultList.add(dataset);
+                    }
+                }
+            }
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());

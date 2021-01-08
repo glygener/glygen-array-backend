@@ -777,6 +777,11 @@ public class MetadataOntologyParser {
         if (commonTemplate != null) {
             for (MetadataTemplate template: templates) {
                 if (!template.getName().startsWith("Common")) {
+                    int commonSize = commonTemplate.getDescriptors().size();
+                    //advance the order to be able to put the common descriptors to the beginning
+                    for (DescriptionTemplate d: template.getDescriptors()) {
+                        d.setOrder(commonSize + d.getOrder());
+                    }
                     template.getDescriptors().addAll(commonTemplate.getDescriptors());
                 }
             }

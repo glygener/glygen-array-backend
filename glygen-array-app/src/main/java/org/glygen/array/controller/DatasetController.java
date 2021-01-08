@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -2499,6 +2500,27 @@ public class DatasetController {
             int total = datasetRepository.getAssayMetadataCountByUser(user);
             
             List<AssayMetadata> metadataList = datasetRepository.getAssayMetadataByUser(user, offset, limit, field, order, searchValue);
+            // reset orders to 0 for optional ones
+            for (AssayMetadata metadata: metadataList) {
+                List<Description> allMandatory = new ArrayList<Description>();
+                for (Descriptor d: metadata.getDescriptors()) {
+                    if (d.getKey().isMandatory())
+                        allMandatory.add(d);
+                    else 
+                        d.setOrder(0);
+                }
+                for (DescriptorGroup dg: metadata.getDescriptorGroups()) {
+                    if (dg.getKey().isMandatory())
+                        allMandatory.add(dg);
+                    else 
+                        dg.setOrder (0);
+                }
+                Collections.sort(allMandatory);
+                int i=1;
+                for (Description d: allMandatory) {
+                    d.setOrder(i++);
+                }
+            }
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
