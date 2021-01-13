@@ -9,7 +9,7 @@ public class Slide {
     String id;
     String uri;
     PrintedSlide printedSlide;
-    Image image;
+    List<Image> images;
     AssayMetadata metadata;
     List<String> blocksUsed;  // list of block ids used from this slide in the experiment
     
@@ -39,16 +39,16 @@ public class Slide {
     }
     
     /**
-     * @return the image
+     * @return the images
      */
-    public Image getImage() {
-        return image;
+    public List<Image> getImages() {
+        return images;
     }
     /**
-     * @param image the image to set
+     * @param image the images to set
      */
-    public void setImage(Image image) {
-        this.image = image;
+    public void setImages(List<Image> image) {
+        this.images = image;
     }
     /**
      * @return the printedSlide
@@ -86,6 +86,4 @@ public class Slide {
     public void setBlocksUsed(List<String> blocksUsed) {
         this.blocksUsed = blocksUsed;
     }
-    
-
 }

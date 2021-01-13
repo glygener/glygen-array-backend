@@ -19,9 +19,8 @@ public class RawData extends FutureTask {
     Map<Measurement, Spot> dataMap;
     Map<String, String> measurementToSpotIdMap;
     ImageAnalysisSoftware metadata;
-    Image image;
+    List<ProcessedData> processedDataList;
     Slide slide;
-    
     FileWrapper file;
     Double powerLevel = 100.0;  // 100% or less
 
@@ -69,34 +68,6 @@ public class RawData extends FutureTask {
      */
     public void setMetadata(ImageAnalysisSoftware metadata) {
         this.metadata = metadata;
-    }
-
-    /**
-     * @return the image
-     */
-    public Image getImage() {
-        return image;
-    }
-
-    /**
-     * @param image the image to set
-     */
-    public void setImage(Image image) {
-        this.image = image;
-    }
-
-    /**
-     * @return the slide
-     */
-    public Slide getSlide() {
-        return slide;
-    }
-
-    /**
-     * @param slide the slide to set
-     */
-    public void setSlide(Slide slide) {
-        this.slide = slide;
     }
 
     /**
@@ -215,6 +186,34 @@ public class RawData extends FutureTask {
      */
     public void setFile(FileWrapper file) {
         this.file = file;
+    }
+
+    /**
+     * @return the processedDataList
+     */
+    public List<ProcessedData> getProcessedDataList() {
+        return processedDataList;
+    }
+
+    /**
+     * @param processedDataList the processedDataList to set
+     */
+    public void setProcessedDataList(List<ProcessedData> processedDataList) {
+        this.processedDataList = processedDataList;
+    }
+
+    /**
+     * @return the slide
+     */
+    public Slide getSlide() {
+        return slide;
+    }
+
+    /**
+     * @param slide the slide to set
+     */
+    public void setSlide(Slide slide) {
+        this.slide = slide;
     }
 
 }

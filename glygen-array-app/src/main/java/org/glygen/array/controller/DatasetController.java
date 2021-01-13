@@ -33,11 +33,13 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
+import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
+import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
@@ -307,6 +309,288 @@ public class DatasetController {
         }
     }
     
+    @ApiOperation(value = "Add given slide to the dataset for the user")
+    @RequestMapping(value="/addSlide", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addSlide (
+            @ApiParam(required=true, value="Slide to be added. Slide"
+                    + " should have an existing printedSlide (specified by name or uri or id), "
+                    + "it should have an Image (specified with filename (already uploaded) and an existing Scanner metadata (by name, uri or id)), "
+                    + "it should have a filename (already uploaded), file format and a power level, "
+                    + "and it should have an existing ImageAnalysisSoftwareMetadata (specified by name, id or uri" 
+                    + " image should have rawData (file already uploaded and with its metadata) and "
+                    + "rawData should have processedData (file already uploaded and with metadata")
+            @RequestBody Slide slide, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the slide") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        if (slide.getMetadata() == null) {
+            errorMessage.addError(new ObjectError("assatMetadata", "NoEmpty"));
+        } else  {
+            try {
+                if (slide.getMetadata().getName() != null) {
+                    AssayMetadata metadata = datasetRepository.getAssayMetadataByLabel(slide.getMetadata().getName(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(metadata);
+                    }
+                } else if (slide.getMetadata().getUri() != null) {
+                    AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(slide.getMetadata().getUri(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(metadata);
+                    }
+                } else if (slide.getMetadata().getId() != null) {
+                    AssayMetadata metadata = 
+                            datasetRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
+                    if (metadata == null) {
+                        errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
+                    } else {
+                        slide.setMetadata(metadata);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the assay metadata", e);
+            }
+        }
+        
+        if (slide.getPrintedSlide() == null) {
+            errorMessage.addError(new ObjectError("printedSlide", "NoEmpty"));
+        } else {
+            // check if the printed slide exists
+            try {
+                String printedSlideId = slide.getPrintedSlide().getId();
+                if (printedSlideId == null) {
+                    if (slide.getPrintedSlide().getUri() != null) {
+                        printedSlideId = slide.getPrintedSlide().getUri().substring(
+                                slide.getPrintedSlide().getUri().lastIndexOf("/") + 1);
+                    }
+                }
+                if (printedSlideId != null) {
+                    PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + printedSlideId, user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                    } else {
+                        slide.setPrintedSlide(existing);
+                    }
+                } else if (slide.getPrintedSlide().getName() != null) {
+                    PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getPrintedSlide().getName(), user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                    } else {
+                        slide.setPrintedSlide(existing);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the printed slide", e);
+            }
+        }
+        
+        if (slide.getImages() == null || slide.getImages().isEmpty()) {
+            errorMessage.addError(new ObjectError("images", "NoEmpty"));
+        } else {
+            // create a folder for the experiment, if it does not exists, and move the file into that folder
+            File experimentFolder = new File (uploadDir + File.separator + datasetId);
+            if (!experimentFolder.exists()) {
+                experimentFolder.mkdirs();
+            }
+            for (Image image: slide.getImages()) {
+                // check to make sure the image is specified and image file is in uploads folder
+                if (image.getFile() != null && image.getFile().getIdentifier() != null) {
+                    // move it to the dataset folder
+                    File imageFile = new File (uploadDir, image.getFile().getIdentifier());
+                    if (!imageFile.exists()) {
+                        errorMessage.addError(new ObjectError("imageFile", "NotFound"));
+                    }
+                    else {
+                        if(!imageFile.renameTo 
+                                (new File(experimentFolder + File.separator + image.getFile().getIdentifier()))) { 
+                            throw new GlycanRepositoryException("Image file cannot be moved to the dataset folder");
+                        } 
+                    }
+                    image.getFile().setFileFolder(uploadDir + File.separator + datasetId);
+                    image.getFile().setFileSize(imageFile.length());
+                } else {
+                    errorMessage.addError(new ObjectError("imageFile", "NoEmpty"));
+                }
+                // check the metadata
+                if (image.getScanner() == null) {
+                    errorMessage.addError(new ObjectError("scannerMetadata", "NoEmpty"));
+                } else {
+                    try {
+                        if (image.getScanner().getName() != null) {
+                            ScannerMetadata metadata = datasetRepository.getScannerMetadataByLabel(image.getScanner().getName(), user);
+                            if (metadata == null) {
+                                errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
+                            } else {
+                                image.setScanner(metadata);
+                            }
+                        } else if (image.getScanner().getUri() != null) {
+                            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(image.getScanner().getUri(), user);
+                            if (metadata == null) {
+                                errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
+                            } else {
+                                image.setScanner(metadata);
+                            }
+                        } else if (image.getScanner().getId() != null) {
+                            ScannerMetadata metadata = 
+                                    datasetRepository.getScannerMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getScanner().getId(), user);
+                            if (metadata == null) {
+                                errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
+                            } else {
+                                image.setScanner(metadata);
+                            }
+                        }
+                    } catch (SQLException | SparqlException e) {
+                        throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
+                    }
+                }
+                // check the rawData
+                if (image.getRawData() == null) {
+                    errorMessage.addError(new ObjectError("rawData", "NoEmpty"));
+                } else {
+                    // set the slide for rawData
+                    image.getRawData().setSlide(slide);
+                
+                    // check the file for rawData
+                    if (image.getRawData().getFile() == null || image.getRawData().getFile().getIdentifier() == null) {
+                        errorMessage.addError(new ObjectError("rawData filename", "NotFound"));
+                    } 
+                    
+                    if (image.getRawData().getMetadata() == null) {
+                        errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
+                    } else {
+                        try {
+                            if (image.getRawData().getMetadata().getName() != null) {
+                                ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwarByLabel(image.getRawData().getMetadata().getName(), user);
+                                if (metadata == null) {
+                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                } else {
+                                    image.getRawData().setMetadata(metadata);
+                                }
+                            } else if (image.getRawData().getMetadata().getUri() != null) {
+                                ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(image.getRawData().getMetadata().getUri(), user);
+                                if (metadata == null) {
+                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                } else {
+                                    image.getRawData().setMetadata(metadata);
+                                }
+                            } else if (image.getRawData().getMetadata().getId() != null) {
+                                ImageAnalysisSoftware metadata = 
+                                        datasetRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getRawData().getMetadata().getId(), user);
+                                if (metadata == null) {
+                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                } else {
+                                    image.getRawData().setMetadata(metadata);
+                                }
+                            }
+                        } catch (SQLException | SparqlException e) {
+                            throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
+                        }
+                    }
+                    
+                    if (image.getRawData().getProcessedDataList() == null || image.getRawData().getProcessedDataList().isEmpty()) {
+                        errorMessage.addError(new ObjectError("processedData", "NoEmpty"));
+                    } else {
+                        for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
+                            if (processedData.getMetadata() == null) {
+                                errorMessage.addError(new ObjectError("dataProcessingSoftware", "NoEmpty"));
+                            } else {
+                                try {
+                                    if (processedData.getMetadata().getName() != null) {
+                                        DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareByLabel(processedData.getMetadata().getName(), user);
+                                        if (metadata == null) {
+                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                        } else {
+                                            processedData.setMetadata(metadata);
+                                        }
+                                    } else if (processedData.getMetadata().getUri() != null) {
+                                        DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(processedData.getMetadata().getUri(), user);
+                                        if (metadata == null) {
+                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                        } else {
+                                            processedData.setMetadata(metadata);
+                                        }
+                                    } else if (processedData.getMetadata().getId() != null) {
+                                        DataProcessingSoftware metadata = 
+                                                datasetRepository.getDataProcessingSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getMetadata().getId(), user);
+                                        if (metadata == null) {
+                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                        } else {
+                                            processedData.setMetadata(metadata);
+                                        }
+                                    }
+                                } catch (SQLException | SparqlException e) {
+                                    throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
+                                }
+                            }
+                            if (processedData.getFile() == null || processedData.getFile().getIdentifier() == null) {
+                                errorMessage.addError(new ObjectError("processedData file", "NotFound"));
+                            } 
+                            
+                            if (processedData.getMethod() == null) {
+                                errorMessage.addError(new ObjectError("method", "NoEmpty"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
+        
+        
+        // save the slide 
+        try {
+            // save the rawData and the processed data first
+            for (Image image: slide.getImages()) {
+                for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
+                    String uri = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata().getId(), 
+                            processedData.getMethod().getName(), p);
+                    processedData.setUri(uri);
+                }
+                
+                String uri = addRawData(image.getRawData(), datasetId, p);
+                image.getRawData().setUri(uri);
+            }
+            
+            String slideURI = datasetRepository.addSlide(slide, datasetId, user);
+            if (slideURI != null) {
+                return slideURI.substring(slideURI.lastIndexOf("/") + 1);
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException ("Cannot save the slide to the repository", e);
+        }
+        
+        return null;
+    }
+    
     @ApiOperation(value = "Add given  rawdata set for the user")
     @RequestMapping(value="/addRawData", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
@@ -346,9 +630,6 @@ public class DatasetController {
         if (rawData.getSlide() == null || rawData.getSlide().getPrintedSlide() == null) {
             errorMessage.addError(new ObjectError("slide", "NoEmpty"));
         } else {
-            if (rawData.getImage() != null) {
-                rawData.getSlide().setImage(rawData.getImage());
-            }
             try {
                 String printedSlideId = rawData.getSlide().getPrintedSlide().getId();
                 if (printedSlideId == null) {
@@ -378,7 +659,6 @@ public class DatasetController {
         }
         
         File file = null;
-        File imageFile = null;
         // check to make sure, the file is specified and exists in the uploads folder
         if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
             errorMessage.addError(new ObjectError("filename", "NotFound"));
@@ -402,23 +682,6 @@ public class DatasetController {
                 } 
                 rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 rawData.getFile().setFileSize(newFile.length());
-                
-                // check to make sure the image is specified and image file is in uploads folder
-                if (rawData.getImage() != null && rawData.getImage().getFile() != null && rawData.getImage().getFile().getIdentifier() != null) {
-                    // move it to the dataset folder
-                    imageFile = new File (uploadDir, rawData.getImage().getFile().getIdentifier());
-                    if (!imageFile.exists()) {
-                        errorMessage.addError(new ObjectError("imageFile", "NotFound"));
-                    }
-                    else {
-                        if(!imageFile.renameTo 
-                                (new File(experimentFolder + File.separator + rawData.getImage().getFile().getIdentifier()))) { 
-                            throw new GlycanRepositoryException("Image file cannot be moved to the dataset folder");
-                        } 
-                    }
-                    rawData.getImage().getFile().setFileFolder(uploadDir + File.separator + datasetId);
-                    rawData.getImage().getFile().setFileSize(newFile.length());
-                }
             }
         }
         
@@ -454,38 +717,6 @@ public class DatasetController {
             }
         }
         
-        if (rawData.getImage() != null && rawData.getImage().getScanner() == null) {
-            errorMessage.addError(new ObjectError("scannerMetadata", "NoEmpty"));
-        } else if (rawData.getImage() != null) {
-            try {
-                if (rawData.getImage().getScanner().getName() != null) {
-                    ScannerMetadata metadata = datasetRepository.getScannerMetadataByLabel(rawData.getImage().getScanner().getName(), user);
-                    if (metadata == null) {
-                        errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
-                    } else {
-                        rawData.getImage().setScanner(metadata);
-                    }
-                } else if (rawData.getImage().getScanner().getUri() != null) {
-                    ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(rawData.getImage().getScanner().getUri(), user);
-                    if (metadata == null) {
-                        errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
-                    } else {
-                        rawData.getImage().setScanner(metadata);
-                    }
-                } else if (rawData.getImage().getScanner().getId() != null) {
-                    ScannerMetadata metadata = 
-                            datasetRepository.getScannerMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getImage().getScanner().getId(), user);
-                    if (metadata == null) {
-                        errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
-                    } else {
-                        rawData.getImage().setScanner(metadata);
-                    }
-                }
-            } catch (SQLException | SparqlException e) {
-                throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
-            }
-        }
-        
         if (rawData.getSlide() != null && rawData.getSlide().getMetadata() == null) {
             errorMessage.addError(new ObjectError("assayMetadata", "NoEmpty"));
         } else if (rawData.getSlide() != null) {
@@ -497,14 +728,14 @@ public class DatasetController {
                     } else {
                         rawData.getSlide().setMetadata(metadata);
                     }
-                } else if (rawData.getImage().getScanner().getUri() != null) {
+                } else if (rawData.getSlide().getMetadata().getUri() != null) {
                     AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(rawData.getSlide().getMetadata().getUri(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
                         rawData.getSlide().setMetadata(metadata);
                     }
-                } else if (rawData.getImage().getScanner().getId() != null) {
+                } else if (rawData.getSlide().getMetadata().getId() != null) {
                     AssayMetadata metadata = 
                             datasetRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getSlide().getMetadata().getId(), user);
                     if (metadata == null) {
@@ -515,6 +746,39 @@ public class DatasetController {
                 }
             } catch (SQLException | SparqlException e) {
                 throw new GlycanRepositoryException("Error checking for the existince of the assay metadata", e);
+            }
+        }
+        
+        if (rawData.getProcessedDataList() == null || rawData.getProcessedDataList().isEmpty()) {
+            errorMessage.addError(new ObjectError("processedData", "NoEmpty"));
+        } else {
+            try {
+                List<ProcessedData> retrievedList = new ArrayList<ProcessedData>();
+                // check if the processed data already exists
+                for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                    if (processedData.getUri() != null) {
+                        ProcessedData existing = datasetRepository.getProcessedDataFromURI(processedData.getUri(), false, user);
+                        if (existing == null) {
+                            String[] codes = {processedData.getUri()};
+                            errorMessage.addError(new ObjectError("processedData", codes, null, "NotFound"));
+                        } else {
+                            retrievedList.add(existing);
+                        }
+                    } else if (processedData.getId() != null) {
+                        ProcessedData existing = datasetRepository.getProcessedDataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getId(), false, user);
+                        if (existing == null) {
+                            String[] codes = {processedData.getId()};
+                            errorMessage.addError(new ObjectError("processedData", codes, null, "NotFound"));
+                        } else {
+                            retrievedList.add(existing);
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("processedData", "NotFound"));
+                    }
+                }
+                rawData.setProcessedDataList(retrievedList);
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the processed data", e);
             }
         }
          
@@ -595,7 +859,6 @@ public class DatasetController {
                     datasetRepository.updateStatus (uri, rawData, user);
                     // delete files (they should already be moved to the experiment folder)
                     if (file != null) file.delete();
-                    if (imageFile != null) imageFile.delete();
                     return id;
                 }
             }
@@ -2707,13 +2970,32 @@ public class DatasetController {
                         if (rawDataFile.exists()) {
                             rawDataFile.delete();
                         }
-                    }
-                    if (rawData.getImage() != null && rawData.getImage().getFile() != null) {
-                        File imageFile = new File (rawData.getImage().getFile().getFileFolder(), rawData.getImage().getFile().getIdentifier());
-                        if (imageFile.exists()) {
-                            imageFile.delete();
+                    } 
+                    if (rawData.getProcessedDataList() != null) {
+                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                            if (processedData.getFile() != null) {
+                                File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                if (dataFile.exists()) {
+                                    dataFile.delete();
+                                }
+                            }
                         }
                     }
+                }
+            }
+            if (dataset != null && dataset.getSlides() != null) {
+                for (Slide slide: dataset.getSlides()) {
+                    if (slide.getImages() != null) {
+                        for (Image image: slide.getImages()) {
+                            if (image.getFile() != null) {
+                                File imageFile = new File (image.getFile().getFileFolder(), image.getFile().getIdentifier());
+                                if (imageFile.exists()) {
+                                    imageFile.delete();
+                                }
+                            }
+                        }
+                    }
+                        
                 }
             }
             
@@ -2759,11 +3041,16 @@ public class DatasetController {
                     if (rawDataFile.exists()) {
                         rawDataFile.delete();
                     }
-                }
-                if (rawData.getImage() != null && rawData.getImage().getFile() != null) {
-                    File imageFile = new File (rawData.getImage().getFile().getFileFolder(), rawData.getImage().getFile().getIdentifier());
-                    if (imageFile.exists()) {
-                        imageFile.delete();
+                    if (rawData.getProcessedDataList() != null) {
+                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                            if (processedData.getFile() != null) {
+                                File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                if (dataFile.exists()) {
+                                    dataFile.delete();
+                                }
+                            }
+                            deleteProcessedData(processedData.getId(), datasetId, principal);
+                        }
                     }
                 }
             } else {
