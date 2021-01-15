@@ -1453,7 +1453,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException {
 		String graph = null;
-        if (user == null)
+		if (spotURI.contains("public"))
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);

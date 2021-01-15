@@ -475,21 +475,21 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                         value = stPublic.getObject();
                         if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
                             String linkerURI = value.stringValue();
-                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, null);
                             featureObject.setLinker(linker);
                         }
                     } else if (stPublic.getPredicate().equals(hasMolecule)) {
                         value = stPublic.getObject();
                         if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
                             String glycanURI = value.stringValue();
-                            Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                            Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, null);
                             glycans.add(glycan);
                         }
                     } else if (stPublic.getPredicate().equals(hasPositionContext)) {
                         Value positionContext = stPublic.getObject();
                         String contextURI = positionContext.stringValue();
                         IRI ctx = f.createIRI(contextURI);
-                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
+                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, defaultGraphIRI);
                         Integer position = null;
                         Glycan glycanInContext = null;
                         while (statements2.hasNext()) {
@@ -501,7 +501,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                 }   
                             } else if (st2.getPredicate().equals(hasMolecule)) {
                                 Value val = st2.getObject();
-                                glycanInContext = glycanRepository.getGlycanFromURI(val.stringValue(), user);
+                                glycanInContext = glycanRepository.getGlycanFromURI(val.stringValue(), null);
                             }  
                         }
                         if (position != null && glycanInContext != null) {
@@ -510,6 +510,17 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     }
                 }
 			}
+		}
+		
+		// for the private graph retrievals, only keep the non-public ones
+		if (user != null) {
+		    List<Glycan> finalGlycans = new ArrayList<Glycan>();
+		    for (Glycan glycan: featureObject.getGlycans()) {
+		        if (glycan.getUri().contains("public"))
+		             continue;
+		        finalGlycans.add(glycan);
+		    }
+		    featureObject.setGlycans(finalGlycans);
 		}
 		
 		featureCache.put(featureURI, featureObject);

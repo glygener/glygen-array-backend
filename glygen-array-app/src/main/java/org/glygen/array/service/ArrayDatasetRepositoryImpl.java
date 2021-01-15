@@ -467,6 +467,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
+        // TODO should we create this predicate ???
         statements.add(f.createStatement(arraydataset, hasRawData, raw, graphIRI));
         sparqlDAO.addStatements(statements, graphIRI);
         return rawDataURI;
@@ -803,8 +804,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
         }
         
-        IRI arraydataset = f.createIRI(uriPre + datasetId);
-        statements.add(f.createStatement(arraydataset, hasProcessedData, processed, graphIRI));
+        // don't link the to dataset, it should be linked to the raw data
+        //IRI arraydataset = f.createIRI(uriPre + datasetId);
+        //statements.add(f.createStatement(arraydataset, hasProcessedData, processed, graphIRI));
         sparqlDAO.addStatements(statements, graphIRI);
         return processedURI;
     }
@@ -3076,7 +3078,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Value uriValue = st.getObject();
                 String layoutURI = uriValue.stringValue();
                 String id = layoutURI.substring(layoutURI.lastIndexOf("/")+1);
-                SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, false);
+                SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, loadAll);
                 slideObject.setLayout(layout);
             } else if (st.getPredicate().equals(hasSlideMetadata)) {
                 Value value = st.getObject();
