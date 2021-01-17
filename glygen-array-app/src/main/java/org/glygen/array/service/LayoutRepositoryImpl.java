@@ -1456,7 +1456,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (spotURI.contains("public"))
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
 		Spot s = new Spot();
 		s.setUri(spotURI);
