@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -25,6 +26,10 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
+import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
+import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.metadata.Descriptor;
+import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
@@ -455,6 +460,24 @@ public class UtilityController {
         List<MetadataTemplate> templates;
         try {
             templates = templateRepository.getTemplateByType(type);
+            // if it is an assay template, reset the order
+            if (type == MetadataTemplateType.ASSAY) {
+                // reset orders to 0 for optional ones
+                for (MetadataTemplate metadata: templates) {
+                    List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
+                    for (DescriptionTemplate d: metadata.getDescriptors()) {
+                        if (d.isMandatory())
+                            allMandatory.add(d);
+                        else 
+                            d.setOrder(0);
+                    }
+                    Collections.sort(allMandatory);
+                    int i=1;
+                    for (DescriptionTemplate d: allMandatory) {
+                        d.setOrder(i++);
+                    }
+                }
+            }
         } catch (SparqlException | SQLException e) {
             logger.error("Error retrieving templates for type\" + type", e);
             throw new GlycanRepositoryException("Error retrieving templates for type" + type, e);
@@ -478,6 +501,23 @@ public class UtilityController {
         try {
             String uri = MetadataTemplateRepository.templatePrefix + id;
             MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
+            // if it is an assay template, reset the order
+            if (metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
+                // reset orders to 0 for optional ones
+                List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
+                for (DescriptionTemplate d: metadataTemplate.getDescriptors()) {
+                    if (d.isMandatory())
+                        allMandatory.add(d);
+                    else 
+                        d.setOrder(0);
+                }
+                Collections.sort(allMandatory);
+                int i=1;
+                for (DescriptionTemplate d: allMandatory) {
+                    d.setOrder(i++);
+                }
+               
+            }
             return metadataTemplate;
         } catch (SparqlException e) {
             logger.error("Error retrieving templates for type\" + type", e);

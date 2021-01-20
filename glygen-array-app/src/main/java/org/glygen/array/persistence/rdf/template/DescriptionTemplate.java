@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
       @JsonSubTypes.Type(value = DescriptorTemplate.class),
       @JsonSubTypes.Type(value = DescriptorGroupTemplate.class)})
-public abstract class DescriptionTemplate {
+public abstract class DescriptionTemplate implements Comparable<DescriptionTemplate>{
     
     String uri;
     String id;
@@ -202,5 +202,10 @@ public abstract class DescriptionTemplate {
      */
     public void setOrder(Integer order) {
         this.order = order;
+    }
+    
+    @Override
+    public int compareTo(DescriptionTemplate o) {
+        return this.order.compareTo(o.order);
     }
 }
