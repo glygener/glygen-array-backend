@@ -940,7 +940,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
         IRI hasOrder = f.createIRI(orderPredicate);
         
-        Literal order = descriptorGroup.getOrder() == null ? null : f.createLiteral(descriptorGroup.getOrder());
+        Literal order = descriptorGroup.getOrder() == null || descriptorGroup.getOrder() == -1 ? null : f.createLiteral(descriptorGroup.getOrder());
         
         if (descriptorGroup.getKey().getUri() == null) {
             // try to get the uri from id
@@ -956,6 +956,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         DescriptionTemplate descTemplate = templateRepository.getDescriptionFromURI(descriptorGroup.getKey().getUri());
         if (descTemplate == null) {
             throw new SparqlException ("Descriptor template " + descriptorGroup.getKey().getId() + " does not exist in the repository");
+        }
+        
+        if (order == null) {
+            if (descTemplate.getOrder() != null) {
+                order = f.createLiteral(descTemplate.getOrder());
+            }
         }
         
         statements.add(f.createStatement(descrGroup, RDF.TYPE, type, graphIRI)); 
@@ -996,7 +1002,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasOrder = f.createIRI(orderPredicate);
         
         Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
-        Literal order = descriptor.getOrder() == null ? null : f.createLiteral(descriptor.getOrder());
+        Literal order = descriptor.getOrder() == null || descriptor.getOrder() == -1 ? null : f.createLiteral(descriptor.getOrder());
         
         if (descriptor.getKey().getUri() == null) {
             // try to get the uri from id
@@ -1010,6 +1016,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         DescriptionTemplate descTemplate = templateRepository.getDescriptionFromURI(descriptor.getKey().getUri());
         if (descTemplate == null) {
             throw new SparqlException ("Descriptor template " + descriptor.getKey().getId() + " does not exist in the repository");
+        }
+        
+        if (order == null) {
+            if (descTemplate.getOrder() != null) {
+                order = f.createLiteral(descTemplate.getOrder());
+            }
         }
         
         IRI descriptorTemplateIRI = f.createIRI(descriptor.getKey().getUri());

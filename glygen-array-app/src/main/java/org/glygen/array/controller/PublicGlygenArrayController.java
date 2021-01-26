@@ -1107,5 +1107,176 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("Feature cannot be retrieved for user " , e);
         }
     }
+    
+    @ApiOperation(value = "Retrieve dataset with the given id")
+    @RequestMapping(value="/getarraydataset/{datasetid}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset retrieved successfully"), 
+            @ApiResponse(code=404, message="Dataset with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ArrayDataset getArrayDataset (
+            @ApiParam(required=true, value="id of the array dataset to retrieve") 
+            @PathVariable("datasetid") String id, 
+            @ApiParam(required=false, value="load rawdata and processed data measurements or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll) {
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(id, loadAll, null);
+            if (dataset == null) {
+                throw new EntityNotFoundException("Array dataset with id : " + id + " does not exist in the repository");
+            }
+            
+            return dataset;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset with id " + id + " cannot be retrieved", e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve sample with the given id")
+    @RequestMapping(value="/getsample/{sampleId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
+            @ApiResponse(code=404, message="Sample with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Sample getSample (
+            @ApiParam(required=true, value="id of the sample to retrieve") 
+            @PathVariable("sampleId") String id) {
+        try {
+            Sample sample = datasetRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (sample == null) {
+                throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
+            }
+            return sample;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Sample cannot be retrieved", e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve printer with the given id")
+    @RequestMapping(value="/getPrinter/{printerId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer retrieved successfully"), 
+            @ApiResponse(code=404, message="Printer with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Printer getPrinter (
+            @ApiParam(required=true, value="id of the printer to retrieve") 
+            @PathVariable("printerId") String id) {
+        try {
+            Printer metadata = datasetRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printer cannot be retrieved", e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve scanner with the given id")
+    @RequestMapping(value="/getScanner/{scannerId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner retrieved successfully"), 
+            @ApiResponse(code=404, message="ScannerMetadata with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ScannerMetadata getScanner (
+            @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
+            @PathVariable("scannerId") String id) {
+        try {
+            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("ScannerMetadata cannot be retrieved", e);
+        }   
+    }
+    @ApiOperation(value = "Retrieve SlideMetadata with the given id")
+    @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="SlideMetadata retrieved successfully"), 
+            @ApiResponse(code=404, message="Printer with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public SlideMetadata getSlideMetadata (
+            @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
+            @PathVariable("slideId") String id) {
+        try {
+            SlideMetadata metadata = datasetRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("SlideMetadata cannot be retrieved" , e);
+        }   
+    }
+    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id")
+    @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="ImageAnalysisSoftware retrieved successfully"), 
+            @ApiResponse(code=404, message="ImageAnalysisSoftware with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ImageAnalysisSoftware getImageAnaylsisSoftware (
+            @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
+            @PathVariable("imagesoftwareId") String id) {
+        try {
+            ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("ImageAnalysisSoftware cannot be retrieved", e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id")
+    @RequestMapping(value="/getDataProcessingSoftware/{dataprocessingId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware retrieved successfully"), 
+            @ApiResponse(code=404, message="DataProcessingSoftware with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public DataProcessingSoftware getDataProcessingSoftware (
+            @ApiParam(required=true, value="id of the DataProcessingSoftware to retrieve") 
+            @PathVariable("dataprocessingId") String id) {
+        try {
+            
+            DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("DataProcessingSoftware cannot be retrieved", e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve assay metadata with the given id")
+    @RequestMapping(value="/getAssayMetadata/{assayId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
+            @ApiResponse(code=404, message="Assay metadata with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public AssayMetadata getAssayMetadata (
+            @ApiParam(required=true, value="id of the Assay metadata to retrieve") 
+            @PathVariable("assayId") String id) {
+        try {
+            
+            AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Assay metadata cannot be retrieved", e);
+        }   
+    }
 
 }
