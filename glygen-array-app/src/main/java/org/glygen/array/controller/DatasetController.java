@@ -550,8 +550,19 @@ public class DatasetController {
                                 }
                             }
                             if (processedData.getFile() == null || processedData.getFile().getIdentifier() == null) {
-                                errorMessage.addError(new ObjectError("processedData file", "NotFound"));
-                            } 
+                                errorMessage.addError(new ObjectError("processedData file", "NoEmpty"));
+                            }  else {
+                                // check for the existence of the file
+                                File excelFile = new File(uploadDir, processedData.getFile().getIdentifier());
+                                if (!excelFile.exists()) {
+                                    errorMessage.addError(new ObjectError("processedData file", "NotFound"));
+                                } else {
+                                    // check for the fileFormat
+                                    if (processedData.getFile().getFileFormat() == null) {
+                                        errorMessage.addError(new ObjectError("processedData fileformat", "NoEmpty"));
+                                    }
+                                }
+                            }
                             
                             if (processedData.getMethod() == null) {
                                 errorMessage.addError(new ObjectError("method", "NoEmpty"));
@@ -563,7 +574,7 @@ public class DatasetController {
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-            throw new IllegalArgumentException("Invalid Input: Not a valid raw data information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid slide information", errorMessage);
         
         
         // save the slide 

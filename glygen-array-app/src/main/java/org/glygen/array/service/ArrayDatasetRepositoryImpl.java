@@ -889,7 +889,24 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (sample, MetadataTemplateType.SAMPLE, hasSampleTemplatePredicate, sampleTypePredicate, "SA", user);
+        String sampleURI =  addMetadataCategory (sample, MetadataTemplateType.SAMPLE, hasSampleTemplatePredicate, sampleTypePredicate, "SA", user);
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        Literal internalId = sample.getInternalId() == null ? null : f.createLiteral(sample.getInternalId());
+        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        if (internalId != null) {
+            List<Statement> statements = new ArrayList<Statement>();
+            statements.add(f.createStatement(f.createIRI(sampleURI), hasInternalId, internalId, graphIRI));
+            sparqlDAO.addStatements(statements, graphIRI);
+        }
+        return sampleURI;
     }
     
     /**
@@ -1420,6 +1437,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
         IRI hasDescriptor = f.createIRI(describedbyPredicate);
+        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
         
         String templatePredicate = null;
         IRI hasTemplate = null;
@@ -1518,6 +1536,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
                 } else {
                     metadataObject.getDescriptors().add((Descriptor) descriptor);
+                }
+            } else if (st.getPredicate().equals(hasInternalId)) {
+                if (metadataObject instanceof Sample) {
+                    ((Sample) metadataObject).setInternalId(st.getObject().stringValue());
                 }
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
@@ -2314,9 +2336,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasimageProcessingMetadata)) {
                 Value uriValue = st.getObject();
                 rawDataObject.setMetadata(getImageAnalysisSoftwareFromURI(uriValue.stringValue(), loadAll, user));   
-            } else if (st.getPredicate().equals(hasSlide)) {
+            /*} else if (st.getPredicate().equals(hasSlide)) {
                 Value uriValue = st.getObject();
-                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), loadAll, user));
+                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), loadAll, user));*/
             } else if (st.getPredicate().equals(hasMeasurement)) {
                 if (loadAll != null && !loadAll)
                     continue;

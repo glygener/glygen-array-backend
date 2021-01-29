@@ -922,6 +922,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     	                            glyToucanHash = glyToucanId;
     	                            glyToucanId = null;
     	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
+    	                        } else { // in case it returns an id immediately, it does not happen though
+    	                            ((SequenceDefinedGlycan) glycan).setGlytoucanId(glyToucanId);
     	                        }
 	                        }
 	                    } else {
