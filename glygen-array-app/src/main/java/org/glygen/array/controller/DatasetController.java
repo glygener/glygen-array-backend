@@ -582,13 +582,13 @@ public class DatasetController {
             // save the rawData and the processed data first
             for (Image image: slide.getImages()) {
                 for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
-                    String uri = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata().getId(), 
+                    String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata().getId(), 
                             processedData.getMethod().getName(), p);
-                    processedData.setUri(uri);
+                    processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                 }
                 
-                String uri = addRawData(image.getRawData(), datasetId, p);
-                image.getRawData().setUri(uri);
+                String id = addRawData(image.getRawData(), datasetId, p);
+                image.getRawData().setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
             }
             
             String slideURI = datasetRepository.addSlide(slide, datasetId, user);
@@ -4079,14 +4079,19 @@ public class DatasetController {
                     }
                     
                 }
-                if (existing.getRawDataList() == null || existing.getRawDataList().isEmpty()) {
+                if (existing.getSlides() == null || existing.getSlides().isEmpty()) {
+                    errorMessage.addError(new ObjectError("slide", "NotFound"));
+                }
+                
+                /*if (existing.getRawDataList() == null || existing.getRawDataList().isEmpty()) {
                     // cannot make public without raw data
                     errorMessage.addError(new ObjectError("rawData", "NotFound"));
                 }
                 if (existing.getProcessedData() == null || existing.getProcessedData().isEmpty()) {
                     // cannot make public without processed data
                     errorMessage.addError(new ObjectError("processedData", "NotFound"));
-                } 
+                } */
+                
                 if (existing.getRawDataList() != null) {
                     for (RawData rawData: existing.getRawDataList()) {
                         if (rawData.getStatus() != FutureTaskStatus.DONE) {
