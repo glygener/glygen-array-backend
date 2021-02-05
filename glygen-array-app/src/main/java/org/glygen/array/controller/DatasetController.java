@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +51,7 @@ import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
+import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
@@ -65,6 +65,7 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -123,6 +124,9 @@ public class DatasetController {
     
     @Autowired
     MetadataTemplateRepository templateRepository;
+    
+    @Autowired
+    MetadataRepository metadataRepository;
     
     @Autowired
     UserRepository userRepository;
@@ -193,14 +197,14 @@ public class DatasetController {
                     }
                 }
                 if (uri != null) {
-                    Sample existing = datasetRepository.getSampleFromURI(uri, user);
+                    Sample existing = metadataRepository.getSampleFromURI(uri, user);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("sample", "NotFound"));
                     } else {
                         dataset.setSample(existing);
                     }
                 } else if (dataset.getSample().getName() != null) {
-                    Sample existing = datasetRepository.getSampleByLabel(dataset.getSample().getName(), user);
+                    Sample existing = metadataRepository.getSampleByLabel(dataset.getSample().getName(), user);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("sample", "NotFound"));
                     } else {
@@ -352,14 +356,14 @@ public class DatasetController {
         } else  {
             try {
                 if (slide.getMetadata().getName() != null) {
-                    AssayMetadata metadata = datasetRepository.getAssayMetadataByLabel(slide.getMetadata().getName(), user);
+                    AssayMetadata metadata = metadataRepository.getAssayMetadataByLabel(slide.getMetadata().getName(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
                         slide.setMetadata(metadata);
                     }
                 } else if (slide.getMetadata().getUri() != null) {
-                    AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(slide.getMetadata().getUri(), user);
+                    AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(slide.getMetadata().getUri(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
@@ -367,7 +371,7 @@ public class DatasetController {
                     }
                 } else if (slide.getMetadata().getId() != null) {
                     AssayMetadata metadata = 
-                            datasetRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
+                            metadataRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
@@ -444,14 +448,14 @@ public class DatasetController {
                 } else {
                     try {
                         if (image.getScanner().getName() != null) {
-                            ScannerMetadata metadata = datasetRepository.getScannerMetadataByLabel(image.getScanner().getName(), user);
+                            ScannerMetadata metadata = metadataRepository.getScannerMetadataByLabel(image.getScanner().getName(), user);
                             if (metadata == null) {
                                 errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
                             } else {
                                 image.setScanner(metadata);
                             }
                         } else if (image.getScanner().getUri() != null) {
-                            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(image.getScanner().getUri(), user);
+                            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(image.getScanner().getUri(), user);
                             if (metadata == null) {
                                 errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
                             } else {
@@ -459,7 +463,7 @@ public class DatasetController {
                             }
                         } else if (image.getScanner().getId() != null) {
                             ScannerMetadata metadata = 
-                                    datasetRepository.getScannerMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getScanner().getId(), user);
+                                    metadataRepository.getScannerMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getScanner().getId(), user);
                             if (metadata == null) {
                                 errorMessage.addError(new ObjectError("scannerMetadata", "NotFound"));
                             } else {
@@ -487,14 +491,14 @@ public class DatasetController {
                     } else {
                         try {
                             if (image.getRawData().getMetadata().getName() != null) {
-                                ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwarByLabel(image.getRawData().getMetadata().getName(), user);
+                                ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwarByLabel(image.getRawData().getMetadata().getName(), user);
                                 if (metadata == null) {
                                     errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                                 } else {
                                     image.getRawData().setMetadata(metadata);
                                 }
                             } else if (image.getRawData().getMetadata().getUri() != null) {
-                                ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(image.getRawData().getMetadata().getUri(), user);
+                                ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(image.getRawData().getMetadata().getUri(), user);
                                 if (metadata == null) {
                                     errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                                 } else {
@@ -502,7 +506,7 @@ public class DatasetController {
                                 }
                             } else if (image.getRawData().getMetadata().getId() != null) {
                                 ImageAnalysisSoftware metadata = 
-                                        datasetRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getRawData().getMetadata().getId(), user);
+                                        metadataRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getRawData().getMetadata().getId(), user);
                                 if (metadata == null) {
                                     errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                                 } else {
@@ -523,14 +527,14 @@ public class DatasetController {
                             } else {
                                 try {
                                     if (processedData.getMetadata().getName() != null) {
-                                        DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareByLabel(processedData.getMetadata().getName(), user);
+                                        DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareByLabel(processedData.getMetadata().getName(), user);
                                         if (metadata == null) {
                                             errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
                                         } else {
                                             processedData.setMetadata(metadata);
                                         }
                                     } else if (processedData.getMetadata().getUri() != null) {
-                                        DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(processedData.getMetadata().getUri(), user);
+                                        DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(processedData.getMetadata().getUri(), user);
                                         if (metadata == null) {
                                             errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
                                         } else {
@@ -538,7 +542,7 @@ public class DatasetController {
                                         }
                                     } else if (processedData.getMetadata().getId() != null) {
                                         DataProcessingSoftware metadata = 
-                                                datasetRepository.getDataProcessingSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getMetadata().getId(), user);
+                                                metadataRepository.getDataProcessingSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getMetadata().getId(), user);
                                         if (metadata == null) {
                                             errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
                                         } else {
@@ -701,14 +705,14 @@ public class DatasetController {
         } else {
             try {
                 if (rawData.getMetadata().getName() != null) {
-                    ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwarByLabel(rawData.getMetadata().getName(), user);
+                    ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwarByLabel(rawData.getMetadata().getName(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                     } else {
                         rawData.setMetadata(metadata);
                     }
                 } else if (rawData.getMetadata().getUri() != null) {
-                    ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(rawData.getMetadata().getUri(), user);
+                    ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(rawData.getMetadata().getUri(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                     } else {
@@ -716,7 +720,7 @@ public class DatasetController {
                     }
                 } else if (rawData.getMetadata().getId() != null) {
                     ImageAnalysisSoftware metadata = 
-                            datasetRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getMetadata().getId(), user);
+                            metadataRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getMetadata().getId(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
                     } else {
@@ -733,14 +737,14 @@ public class DatasetController {
         } else if (rawData.getSlide() != null) {
             try {
                 if (rawData.getSlide().getMetadata().getName() != null) {
-                    AssayMetadata metadata = datasetRepository.getAssayMetadataByLabel(rawData.getSlide().getMetadata().getName(), user);
+                    AssayMetadata metadata = metadataRepository.getAssayMetadataByLabel(rawData.getSlide().getMetadata().getName(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
                         rawData.getSlide().setMetadata(metadata);
                     }
                 } else if (rawData.getSlide().getMetadata().getUri() != null) {
-                    AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(rawData.getSlide().getMetadata().getUri(), user);
+                    AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(rawData.getSlide().getMetadata().getUri(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
@@ -748,7 +752,7 @@ public class DatasetController {
                     }
                 } else if (rawData.getSlide().getMetadata().getId() != null) {
                     AssayMetadata metadata = 
-                            datasetRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getSlide().getMetadata().getId(), user);
+                            metadataRepository.getAssayMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getSlide().getMetadata().getId(), user);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("assayMetadata", "NotFound"));
                     } else {
@@ -874,11 +878,11 @@ public class DatasetController {
                 }
             }
             
-            uri = datasetRepository.addRawData(rawData, datasetId, user);  
-            rawData.setUri(uri);
-            id = uri.substring(uri.lastIndexOf("/")+1);
-            rawData.setStatus(FutureTaskStatus.PROCESSING);
-            datasetRepository.updateStatus (uri, rawData, user);
+            //uri = datasetRepository.addRawData(rawData, datasetId, user);  
+            //rawData.setUri(uri);
+           // id = uri.substring(uri.lastIndexOf("/")+1);
+            //rawData.setStatus(FutureTaskStatus.PROCESSING);
+            //datasetRepository.updateStatus (uri, rawData, user);
             return id;
             
         } catch (SparqlException | SQLException e) {
@@ -979,21 +983,21 @@ public class DatasetController {
         if (slide.getMetadata() != null) {
             try {
                 if (slide.getMetadata().getName() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataByLabel(slide.getMetadata().getName(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataByLabel(slide.getMetadata().getName(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         slide.setMetadata(slideMetadata);
                     }
                 } else if (slide.getMetadata().getUri() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(slide.getMetadata().getUri(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(slide.getMetadata().getUri(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         slide.setMetadata(slideMetadata);
                     }
                 } else if (slide.getMetadata().getId() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getMetadata().getId(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
@@ -1008,21 +1012,21 @@ public class DatasetController {
         if (slide.getPrinter() != null) {
             try {
                 if (slide.getPrinter().getName() != null) {
-                    Printer printer = datasetRepository.getPrinterByLabel(slide.getPrinter().getName(), user);
+                    Printer printer = metadataRepository.getPrinterByLabel(slide.getPrinter().getName(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         slide.setPrinter(printer);
                     }
                 } else if (slide.getPrinter().getUri() != null) {
-                    Printer printer = datasetRepository.getPrinterFromURI(slide.getPrinter().getUri(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(slide.getPrinter().getUri(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         slide.setPrinter(printer);
                     }
                 } else if (slide.getMetadata().getId() != null) {
-                    Printer printer = datasetRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getPrinter().getId(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getPrinter().getId(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
@@ -1098,7 +1102,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.dataProcessingTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.dataProcessingTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1132,7 +1136,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid Data processing software metadata information", errorMessage);
         
         try {
-            String uri = datasetRepository.addDataProcessingSoftware(metadata, user);
+            String uri = metadataRepository.addDataProcessingSoftware(metadata, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1193,7 +1197,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.imageAnalysisTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1227,7 +1231,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid image analysis metadata information", errorMessage);
         
         try {
-            String uri = datasetRepository.addImageAnalysisSoftware(metadata, user);
+            String uri = metadataRepository.addImageAnalysisSoftware(metadata, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1288,7 +1292,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory metadata = datasetRepository.getMetadataByLabel(printer.getName().trim(), ArrayDatasetRepositoryImpl.printerTypePredicate, user);
+            MetadataCategory metadata = metadataRepository.getMetadataByLabel(printer.getName().trim(), ArrayDatasetRepositoryImpl.printerTypePredicate, user);
             if (metadata != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1322,7 +1326,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid printer information", errorMessage);
         
         try {
-            String uri = datasetRepository.addPrinter(printer, user);
+            String uri = metadataRepository.addPrinter(printer, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1383,7 +1387,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.assayTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.assayTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1417,7 +1421,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid assay information", errorMessage);
         
         try {
-            String uri = datasetRepository.addAssayMetadata(metadata, user);
+            String uri = metadataRepository.addAssayMetadata(metadata, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1426,6 +1430,99 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Add given spot metadata for the user")
+    @RequestMapping(value="/addSpotMetadata", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added spot metadata"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register spot metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addSpotMetadata (
+            @ApiParam(required=true, value="Spot metadata to be added") 
+            @RequestBody SpotMetadata metadata, 
+            @RequestParam(name="validate", required=false, defaultValue="true")
+            Boolean validate,
+            Principal p) {
+        
+        if (validate == null)
+            validate = true;
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if (metadata.getName() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "name", metadata.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if (metadata.getDescription() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "description", metadata.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (metadata.getName() == null || metadata.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (metadata.getTemplate() == null || metadata.getTemplate().isEmpty()) {
+            errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, user);
+            if (existing != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
+        // check if the template exists
+        try {
+            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), MetadataTemplateType.SPOT);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (metadata, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving assay template " + p.getName(), e1);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid assay information", errorMessage);
+        
+        try {
+            String uri = metadataRepository.addSpotMetadata(metadata, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Spot metadata cannot be added for user " + p.getName(), e);
+        }
+    }
     
     @ApiOperation(value = "Import processed data results from uploaded excel file")
     @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
@@ -1471,7 +1568,7 @@ public class DatasetController {
             
         if (metadataId != null) {    
             try {
-                metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
+                metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, user);
                 if (metadata == null) {
                     errorMessage.addError(new ObjectError("metadata", "NotFound"));
                 }
@@ -1753,7 +1850,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(sample.getName().trim(), ArrayDatasetRepositoryImpl.sampleTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(sample.getName().trim(), ArrayDatasetRepositoryImpl.sampleTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1791,7 +1888,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid sample information", errorMessage);
         
         try {
-            String uri = datasetRepository.addSample(sample, user);
+            String uri = metadataRepository.addSample(sample, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1852,7 +1949,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.scannerTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.scannerTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1887,7 +1984,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid scanner information", errorMessage);
         
         try {
-            String uri = datasetRepository.addScannerMetadata(metadata, user);
+            String uri = metadataRepository.addScannerMetadata(metadata, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -1949,7 +2046,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            MetadataCategory existing = datasetRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.slideTemplateTypePredicate, user);
+            MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName().trim(), ArrayDatasetRepositoryImpl.slideTemplateTypePredicate, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -1983,7 +2080,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid slide metadata information", errorMessage);
         
         try {
-            String uri = datasetRepository.addSlideMetadata(metadata, user);
+            String uri = metadataRepository.addSlideMetadata(metadata, user);
             String id = uri.substring(uri.lastIndexOf("/")+1);
             return id;
         } catch (SparqlException | SQLException e) {
@@ -2026,10 +2123,13 @@ public class DatasetController {
         case ASSAY:
             typePredicate = ArrayDatasetRepositoryImpl.assayTypePredicate;
             break;
+        case SPOT:
+            typePredicate = ArrayDatasetRepositoryImpl.spotMetadataTypePredicate;
+            break;
         }
         MetadataCategory metadata = null;
         try {
-            metadata = datasetRepository.getMetadataByLabel(name.trim(), typePredicate, user);
+            metadata = metadataRepository.getMetadataByLabel(name.trim(), typePredicate, user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve metadata by name", e);
         }
@@ -2103,7 +2203,7 @@ public class DatasetController {
                             errorMessage.addError(error);
                         metadata.setIsMirage(false);
                         // save it back to the repository
-                        datasetRepository.updateMetadataMirage(metadata, user);
+                        metadataRepository.updateMetadataMirage(metadata, user);
                     }   
                 }
             }
@@ -2119,7 +2219,7 @@ public class DatasetController {
         try {
             metadata.setIsMirage(true);
             // save it back to the repository
-            datasetRepository.updateMetadataMirage(metadata, user);
+            metadataRepository.updateMetadataMirage(metadata, user);
         } catch (SparqlException | SQLException e1) {
             throw new GlycanRepositoryException("Error updating mirage for metadata ", e1);
         }
@@ -2441,9 +2541,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getDataProcessingSoftwareCountByUser(user);
+            int total = metadataRepository.getDataProcessingSoftwareCountByUser(user);
             
-            List<DataProcessingSoftware> metadataList = datasetRepository.getDataProcessingSoftwareByUser(user, offset, limit, field, order, searchValue);
+            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2496,9 +2596,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getImageAnalysisSoftwareCountByUser(user);
+            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(user);
             
-            List<ImageAnalysisSoftware> metadataList = datasetRepository.getImageAnalysisSoftwareByUser(user, offset, limit, field, order, searchValue);
+            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2551,9 +2651,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrinterCountByUser(user);
+            int total = metadataRepository.getPrinterCountByUser(user);
             
-            List<Printer> metadataList = datasetRepository.getPrinterByUser(user, offset, limit, field, order, searchValue);
+            List<Printer> metadataList = metadataRepository.getPrinterByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2606,9 +2706,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getSampleCountByUser (user);
+            int total = metadataRepository.getSampleCountByUser (user);
             
-            List<Sample> metadataList = datasetRepository.getSampleByUser(user, offset, limit, field, order, searchValue);
+            List<Sample> metadataList = metadataRepository.getSampleByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2661,9 +2761,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getScannerMetadataCountByUser(user);
+            int total = metadataRepository.getScannerMetadataCountByUser(user);
             
-            List<ScannerMetadata> metadataList = datasetRepository.getScannerMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2716,9 +2816,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getSlideMetadataCountByUser (user);
+            int total = metadataRepository.getSlideMetadataCountByUser (user);
             
-            List<SlideMetadata> metadataList = datasetRepository.getSlideMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2771,9 +2871,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getAssayMetadataCountByUser(user);
+            int total = metadataRepository.getAssayMetadataCountByUser(user);
             
-            List<AssayMetadata> metadataList = datasetRepository.getAssayMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(user, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2781,6 +2881,61 @@ public class DatasetController {
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve assay metadata for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all spot metadata for the user")
+    @RequestMapping(value="/listSpotMetadata", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Spot metadata list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listSpotMetadata (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+        MetadataListResultView result = new MetadataListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = metadataRepository.getSpotMetadataCountByUser(user);
+            
+            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve spot metadata for user. Reason: " + e.getMessage());
         }
         
         return result;
@@ -3146,7 +3301,7 @@ public class DatasetController {
             @PathVariable("sampleId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Sample deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete sample " + id, e);
@@ -3166,7 +3321,7 @@ public class DatasetController {
             @PathVariable("imageAnaysisMetadataId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Image analysis software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete image analysis software " + id, e);
@@ -3186,7 +3341,7 @@ public class DatasetController {
             @PathVariable("sampleId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Slide metadata deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete slide metadata " + id, e);
@@ -3206,7 +3361,7 @@ public class DatasetController {
             @PathVariable("dataProcessingMetadataId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Data processing software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete data processing software " + id, e);
@@ -3226,7 +3381,7 @@ public class DatasetController {
             @PathVariable("scannerId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Scanner deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete scanner " + id, e);
@@ -3246,7 +3401,7 @@ public class DatasetController {
             @PathVariable("printerId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
@@ -3266,10 +3421,30 @@ public class DatasetController {
             @PathVariable("assayId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deleteMetadata(id, user);
+            metadataRepository.deleteMetadata(id, user);
             return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete assay metadata " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete given spot metadata from the user's list")
+    @RequestMapping(value="/deletespotmetadata/{spotMetadataId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete spot metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteSpotMetadata (
+            @ApiParam(required=true, value="id of the spot metadata to delete") 
+            @PathVariable("spotMetadataId") String id, Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            metadataRepository.deleteMetadata(id, user);
+            return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete spot metadata " + id, e);
         } 
     }
     
@@ -3386,7 +3561,7 @@ public class DatasetController {
             @PathVariable("sampleId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            Sample sample = datasetRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (sample == null) {
                 throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
             }
@@ -3410,7 +3585,7 @@ public class DatasetController {
             @PathVariable("printerId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            Printer metadata = datasetRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
             }
@@ -3434,7 +3609,7 @@ public class DatasetController {
             @PathVariable("scannerId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
             }
@@ -3457,7 +3632,7 @@ public class DatasetController {
             @PathVariable("slideId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            SlideMetadata metadata = datasetRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
             }
@@ -3480,7 +3655,7 @@ public class DatasetController {
             @PathVariable("imagesoftwareId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
             }
@@ -3504,7 +3679,7 @@ public class DatasetController {
             @PathVariable("dataprocessingId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
             }
@@ -3528,13 +3703,37 @@ public class DatasetController {
             @PathVariable("assayId") String id, Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
             if (metadata == null) {
                 throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Assay metadata cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    @ApiOperation(value = "Retrieve spot metadata with the given id")
+    @RequestMapping(value="/getSpotMetadata/{spotMetadataId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Spot metadata with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public SpotMetadata getSpotMetadata (
+            @ApiParam(required=true, value="id of the Spot metadata to retrieve") 
+            @PathVariable("spotMetadataId") String id, Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            SpotMetadata metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Spot metadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Spot metadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
     
@@ -3628,21 +3827,21 @@ public class DatasetController {
         if (printedSlide.getMetadata() != null) {
             try {
                 if (printedSlide.getMetadata().getName() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataByLabel(printedSlide.getMetadata().getName(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataByLabel(printedSlide.getMetadata().getName(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         printedSlide.setMetadata(slideMetadata);
                     }
                 } else if (printedSlide.getMetadata().getUri() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(printedSlide.getMetadata().getUri(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(printedSlide.getMetadata().getUri(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         printedSlide.setMetadata(slideMetadata);
                     }
                 } else if (printedSlide.getMetadata().getId() != null) {
-                    SlideMetadata slideMetadata = datasetRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getMetadata().getId(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getMetadata().getId(), user);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
@@ -3657,21 +3856,21 @@ public class DatasetController {
         if (printedSlide.getPrinter() != null) {
             try {
                 if (printedSlide.getPrinter().getName() != null) {
-                    Printer printer = datasetRepository.getPrinterByLabel(printedSlide.getPrinter().getName(), user);
+                    Printer printer = metadataRepository.getPrinterByLabel(printedSlide.getPrinter().getName(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         printedSlide.setPrinter(printer);
                     }
                 } else if (printedSlide.getPrinter().getUri() != null) {
-                    Printer printer = datasetRepository.getPrinterFromURI(printedSlide.getPrinter().getUri(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(printedSlide.getPrinter().getUri(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         printedSlide.setPrinter(printer);
                     }
                 } else if (printedSlide.getMetadata().getId() != null) {
-                    Printer printer = datasetRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
@@ -3763,10 +3962,10 @@ public class DatasetController {
                     }
                 }
                 if (id != null) {
-                    Sample existing = datasetRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
+                    Sample existing = metadataRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
                     if (existing == null) {
                         // check the public data
-                        existing = datasetRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + id, null);
+                        existing = metadataRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + id, null);
                         if (existing == null) {
                             errorMessage.addError(new ObjectError("sample", "NotFound"));
                         }
@@ -3774,7 +3973,7 @@ public class DatasetController {
                         dataset.setSample(existing);
                     }
                 } else if (dataset.getSample().getName() != null) {
-                    Sample existing = datasetRepository.getSampleByLabel(dataset.getSample().getName(), user);
+                    Sample existing = metadataRepository.getSampleByLabel(dataset.getSample().getName(), user);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("sample", "NotFound"));
                     } else {
@@ -3912,8 +4111,25 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateAssayMetadata(
             @ApiParam(required=true, value="Assay metadata with updated fields") 
-            @RequestBody DataProcessingSoftware metadata, Principal p) throws SQLException {
+            @RequestBody AssayMetadata metadata, Principal p) throws SQLException {
         return updateMetadata(metadata, MetadataTemplateType.ASSAY, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given spot metadata for the user")
+    @RequestMapping(value = "/updateSpotMetadata", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="assay metadata updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update spot metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateSpotMetadata(
+            @ApiParam(required=true, value="Spot metadata with updated fields") 
+            @RequestBody SpotMetadata metadata, Principal p) throws SQLException {
+        return updateMetadata(metadata, MetadataTemplateType.SPOT, p);
         
     }
      
@@ -3980,25 +4196,28 @@ public class DatasetController {
                 MetadataCategory existing = null;
                 switch (type) {
                 case SAMPLE:
-                    existing = datasetRepository.getSampleByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getSampleByLabel(metadata.getName(), user);
                     break;
                 case PRINTER:
-                    existing = datasetRepository.getPrinterByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getPrinterByLabel(metadata.getName(), user);
                     break;
                 case SCANNER:
-                    existing = datasetRepository.getScannerMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getScannerMetadataByLabel(metadata.getName(), user);
                     break;
                 case SLIDE:
-                    existing = datasetRepository.getSlideMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getSlideMetadataByLabel(metadata.getName(), user);
                     break;
                 case IMAGEANALYSISSOFTWARE:
-                    existing = datasetRepository.getImageAnalysisSoftwarByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getImageAnalysisSoftwarByLabel(metadata.getName(), user);
                     break;
                 case DATAPROCESSINGSOFTWARE:
-                    existing = datasetRepository.getDataProcessingSoftwareByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getDataProcessingSoftwareByLabel(metadata.getName(), user);
                     break;
                 case ASSAY:
-                    existing = datasetRepository.getAssayMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getAssayMetadataByLabel(metadata.getName(), user);
+                    break;
+                case SPOT:
+                    existing = metadataRepository.getSpotMetadataByLabel(metadata.getName(), user);
                     break;
                 }
                     
@@ -4016,7 +4235,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid metadata information", errorMessage);
         
         try {
-            datasetRepository.updateMetadata(metadata, user);
+            metadataRepository.updateMetadata(metadata, user);
             try {
                 // check mirage and update mirage info
                 boolean isMirage = checkMirageCompliance(metadata.getId(), type, p);
@@ -4025,7 +4244,7 @@ public class DatasetController {
                 metadata.setIsMirage(false);
                 logger.error("Error checking for mirage compliance", e);
             }
-            datasetRepository.updateMetadataMirage(metadata, user);
+            metadataRepository.updateMetadataMirage(metadata, user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Error updating metadata with id: " + metadata.getId());
         }
@@ -4049,14 +4268,14 @@ public class DatasetController {
         try {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            ArrayDataset existing = datasetRepository.getArrayDataset(datasetId, false, user);
-            if (existing == null) {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
                 errorMessage.addError(new ObjectError("datasetId", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
             } else {
                 // check if the array dataset is ready to be made public
-                if (existing.getStatus() != FutureTaskStatus.DONE) {
+                if (dataset.getStatus() == FutureTaskStatus.PROCESSING) {
                     // check if enough time has passed to restart processing
                     // check the timestamp and see if enough time has passed
                     Long timeDelay = 3600L;
@@ -4066,7 +4285,7 @@ public class DatasetController {
                     }
                    
                     Date current = new Date();
-                    Date startDate = existing.getStartDate();
+                    Date startDate = dataset.getStartDate();
                     if (startDate != null) {
                         long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
                         if (timeDelay > diffInMillies / 1000) {
@@ -4079,7 +4298,7 @@ public class DatasetController {
                     }
                     
                 }
-                if (existing.getSlides() == null || existing.getSlides().isEmpty()) {
+                if (dataset.getSlides() == null || dataset.getSlides().isEmpty()) {
                     errorMessage.addError(new ObjectError("slide", "NotFound"));
                 }
                 
@@ -4092,20 +4311,21 @@ public class DatasetController {
                     errorMessage.addError(new ObjectError("processedData", "NotFound"));
                 } */
                 
-                if (existing.getRawDataList() != null) {
-                    for (RawData rawData: existing.getRawDataList()) {
+                if (dataset.getRawDataList() != null) {
+                    for (RawData rawData: dataset.getRawDataList()) {
                         if (rawData.getStatus() != FutureTaskStatus.DONE) {
                             errorMessage.addError(new ObjectError("rawData", "NotDone"));
                         }
-                    }
-                }
-                if (existing.getProcessedData() != null) {
-                    for (ProcessedData processedData: existing.getProcessedData()) {
-                        if (processedData.getStatus() != FutureTaskStatus.DONE) {
-                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                        if (!rawData.getProcessedDataList().isEmpty()) {
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                if (processedData.getStatus() != FutureTaskStatus.DONE) {
+                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                }
+                            }
                         }
                     }
                 }
+                
                 if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                     throw new IllegalArgumentException("Cannot make public now!", errorMessage); 
                 }
@@ -4116,7 +4336,7 @@ public class DatasetController {
             FutureTask task = new FutureTask();
             task.setStatus(FutureTaskStatus.PROCESSING);
             try {
-                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
+                //ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
                 // set the status to processing first
                 dataset.setStatus(FutureTaskStatus.PROCESSING);
                 datasetRepository.updateStatus (dataset.getUri(), dataset, user);

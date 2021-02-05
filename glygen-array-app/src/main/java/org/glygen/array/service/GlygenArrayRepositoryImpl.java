@@ -1,13 +1,16 @@
 package org.glygen.array.service;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.PrivateGraphEntity;
@@ -67,6 +70,43 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     final static String hasEndPagePredicate = ontPrefix + "has_end_page";
     final static String hasDOIPredicate = ontPrefix + "has_doi";
     final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
+    
+    
+    public final static String sampleTypePredicate = ontPrefix + "sample";
+   
+    public final static String slideTypePredicate = ontPrefix + "slide";
+    public final static String printerTypePredicate = ontPrefix + "printer";
+    public final static String scannerTypePredicate = ontPrefix + "scanner";
+    public final static String assayTypePredicate = ontPrefix + "assay";
+    public final static String spotMetadataTypePredicate = ontPrefix + "spot_metadata";
+    public final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
+    public final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
+    public final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";
+    public final static String simpleDescriptionTypePredicate = ontPrefix + "simple_description";
+    public final static String complexDescriptionTypePredicate = ontPrefix + "complex_description";
+    
+    public final static String imageProcessingMetadataPredicate = ontPrefix + "has_image_processing_metadata";
+    public final static String processingSoftwareMetadataPredicate = ontPrefix + "has_processing_software_metadata";
+    public final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
+    public final static String assayMetadataPredicate = ontPrefix + "has_assay_metadata";
+    public final static String printerMetadataPredicate = ontPrefix + "printed_by";
+    public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
+    
+    public final static String orderPredicate = ontPrefix + "has_order";
+    public final static String valuePredicate = ontPrefix + "has_value";
+    public final static String keyPredicate = ontPrefix + "has_key";
+    public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
+    public final static String describedbyPredicate = ontPrefix + "described_by";
+    
+    // Template ontology stuff
+    public final static String hasSampleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_sample_template";
+    public final static String hasSlideTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_slide_template";
+    public final static String hasScannerleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_scanner_template";
+    public final static String hasPrinterTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_printer_template";
+    public final static String hasImageTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_image_analysis_software_template";
+    public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
+    public final static String hasAssayTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_assay_template";
+    public final static String hasSpotMetadataTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_spot_template";
 	
 	
 	/**
@@ -221,5 +261,98 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     @Override
     public void resetRepository() throws SQLException {
         sparqlDAO.deleteAll();   
+    }
+    
+    protected String getSearchPredicate (String searchValue) {
+        String predicates = "";
+        
+        predicates += "?s rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        
+        int numberOfValues = 3;
+        String filterClause = "filter (";
+        for (int i=1; i < numberOfValues; i++) {
+            filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
+            if (i + 1 < numberOfValues)
+                filterClause += " || ";
+        }
+        filterClause += ")\n";
+            
+        predicates += filterClause;
+        return predicates;
+    }
+    
+    protected String getSortPredicate(String field) {
+        if (field == null || field.equalsIgnoreCase("name")) 
+            return "rdfs:label";
+        else if (field.equalsIgnoreCase("comment")) 
+            return "rdfs:comment";
+        else if (field.equalsIgnoreCase("dateModified"))
+            return "gadr:has_date_modified";
+        else if (field.equalsIgnoreCase("dateAddedToLibrary"))
+            return "gadr:has_date_addedtolibrary";
+        else if (field.equalsIgnoreCase("dateCreated"))
+            return "gadr:has_date_created";
+        else if (field.equalsIgnoreCase("id"))
+            return null;
+        return null;
+    }
+
+    protected List<SparqlEntity> retrieveByTypeAndUser(int offset, int limit, String field, int order, String searchValue,
+            String graph, String type) throws SparqlException {
+        String sortPredicate = getSortPredicate (field);
+        
+        String searchPredicate = "";
+        if (searchValue != null && !searchValue.isEmpty())
+            searchPredicate = getSearchPredicate(searchValue);
+        
+        String sortLine = "";
+        if (sortPredicate != null)
+            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+        String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+      //  queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (
+                " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                " ?s rdf:type <" + type + "> . \n" +
+                        sortLine + searchPredicate + 
+                "}\n" +
+                 orderByLine + 
+                ((limit == -1) ? " " : " LIMIT " + limit) +
+                " OFFSET " + offset);
+        
+        return sparqlDAO.query(queryBuf.toString());
+    }
+    
+    protected String addGenericInfo (String name, String description, Date createdDate, List<Statement> statements, String prefix, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        String uriPre = uriPrefix;
+        if (graph.equals (DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+        // add to user's local repository
+        String uri = generateUniqueURI(uriPre + prefix, graph);
+        IRI iri = f.createIRI(uri);
+        Literal date = f.createLiteral(new Date());
+        IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+        IRI graphIRI = f.createIRI(graph);
+        Literal label = name == null ? null : f.createLiteral(name);
+        Literal comment = description == null ? null : f.createLiteral(description);
+        IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        Literal createdDateLit = f.createLiteral(createdDate);
+        
+        statements.add(f.createStatement(iri, hasCreatedDate, date, graphIRI));
+        if (label != null) statements.add(f.createStatement(iri, RDFS.LABEL, label, graphIRI));
+        
+        if (comment != null) statements.add(f.createStatement(iri, RDFS.COMMENT, comment, graphIRI));
+        statements.add(f.createStatement(iri, hasAddedToLibrary, createdDateLit, graphIRI));
+        statements.add(f.createStatement(iri, hasModifiedDate, date, graphIRI));
+        
+        return uri;
     }
 }

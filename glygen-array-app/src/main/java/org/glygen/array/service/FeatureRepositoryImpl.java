@@ -249,18 +249,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		return features;
 	}
-
-	private String getSortPredicate(String field) {
-	    if (field == null || field.equalsIgnoreCase("name")) 
-            return "rdfs:label";
-        else if (field.equalsIgnoreCase("dateModified"))
-            return "gadr:has_date_modified";
-        else if (field.equalsIgnoreCase("type"))
-            return "gadr:has_type";
-        else if (field.equalsIgnoreCase("id"))
-            return null;
-        return null;
-    }
 	
 	public String getSearchPredicate (String searchValue) {
         String predicates = "";
@@ -354,11 +342,19 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	    
 		Feature featureObject = null;
 		String graph = null;
-        if (user == null)
+		if (featureURI.contains("public"))
+            graph = DEFAULT_GRAPH;
+        else {
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
+        }
+        /*if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
-        }
+        }*/
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI feature = f.createIRI(featureURI);
@@ -513,7 +509,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		
 		// for the private graph retrievals, only keep the non-public ones
-		if (user != null) {
+		if (user != null && !graph.equals(DEFAULT_GRAPH) && featureObject != null) {
 		    List<Glycan> finalGlycans = new ArrayList<Glycan>();
 		    for (Glycan glycan: featureObject.getGlycans()) {
 		        if (glycan.getUri().contains("public"))

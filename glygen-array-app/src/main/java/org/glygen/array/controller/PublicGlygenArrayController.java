@@ -30,7 +30,12 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.Image;
+import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
+import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.persistence.rdf.data.Slide;
+import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
@@ -45,12 +50,14 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
+import org.glygen.array.view.IntensityDataResultView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
@@ -120,6 +127,9 @@ public class PublicGlygenArrayController {
     
     @Autowired
     ArrayDatasetRepository datasetRepository;
+    
+    @Autowired
+    MetadataRepository metadataRepository;
     
     @Autowired
     Validator validator;
@@ -698,9 +708,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getDataProcessingSoftwareCountByUser(null);
+            int total = metadataRepository.getDataProcessingSoftwareCountByUser(null);
             
-            List<DataProcessingSoftware> metadataList = datasetRepository.getDataProcessingSoftwareByUser(null, offset, limit, field, order, searchValue);
+            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -752,9 +762,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getImageAnalysisSoftwareCountByUser(null);
+            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(null);
             
-            List<ImageAnalysisSoftware> metadataList = datasetRepository.getImageAnalysisSoftwareByUser(null, offset, limit, field, order, searchValue);
+            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -806,9 +816,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrinterCountByUser(null);
+            int total = metadataRepository.getPrinterCountByUser(null);
             
-            List<Printer> metadataList = datasetRepository.getPrinterByUser(null, offset, limit, field, order, searchValue);
+            List<Printer> metadataList = metadataRepository.getPrinterByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -860,9 +870,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getSampleCountByUser (null);
+            int total = metadataRepository.getSampleCountByUser (null);
             
-            List<Sample> metadataList = datasetRepository.getSampleByUser(null, offset, limit, field, order, searchValue);
+            List<Sample> metadataList = metadataRepository.getSampleByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -914,9 +924,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getScannerMetadataCountByUser(null);
+            int total = metadataRepository.getScannerMetadataCountByUser(null);
             
-            List<ScannerMetadata> metadataList = datasetRepository.getScannerMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -968,9 +978,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getSlideMetadataCountByUser (null);
+            int total = metadataRepository.getSlideMetadataCountByUser (null);
             
-            List<SlideMetadata> metadataList = datasetRepository.getSlideMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -1022,9 +1032,9 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getAssayMetadataCountByUser(null);
+            int total = metadataRepository.getAssayMetadataCountByUser(null);
             
-            List<AssayMetadata> metadataList = datasetRepository.getAssayMetadataByUser(null, offset, limit, field, order, searchValue);
+            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -1143,7 +1153,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the sample to retrieve") 
             @PathVariable("sampleId") String id) {
         try {
-            Sample sample = datasetRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (sample == null) {
                 throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
             }
@@ -1164,7 +1174,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the printer to retrieve") 
             @PathVariable("printerId") String id) {
         try {
-            Printer metadata = datasetRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
             }
@@ -1185,7 +1195,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
             @PathVariable("scannerId") String id) {
         try {
-            ScannerMetadata metadata = datasetRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
             }
@@ -1205,7 +1215,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
             @PathVariable("slideId") String id) {
         try {
-            SlideMetadata metadata = datasetRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
             }
@@ -1225,7 +1235,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
             @PathVariable("imagesoftwareId") String id) {
         try {
-            ImageAnalysisSoftware metadata = datasetRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
             }
@@ -1247,7 +1257,7 @@ public class PublicGlygenArrayController {
             @PathVariable("dataprocessingId") String id) {
         try {
             
-            DataProcessingSoftware metadata = datasetRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
             }
@@ -1269,7 +1279,7 @@ public class PublicGlygenArrayController {
             @PathVariable("assayId") String id) {
         try {
             
-            AssayMetadata metadata = datasetRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
             if (metadata == null) {
                 throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
             }
@@ -1277,6 +1287,105 @@ public class PublicGlygenArrayController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Assay metadata cannot be retrieved", e);
         }   
+    }
+    
+    
+    @ApiOperation(value = "List all features with intensities for the given processed data")
+    @RequestMapping(value="/listIntensityData", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Intensities retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public IntensityDataResultView listIntensityData (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+            @ApiParam(required=true, value="id of the processed data from which the intensities should be retrieved") 
+            @RequestParam(value="processedDataId", required=false)
+            String processedDataId, 
+            @RequestParam(value="datasetId", required=false)
+            @ApiParam(required=true, value="id of the dataset for which the intensities should be retrieved")
+            String datasetId) {
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            
+            IntensityDataResultView result = new IntensityDataResultView();
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, null);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            }
+            else {
+                ProcessedData existing = null;
+                for (Slide slide: dataset.getSlides()) {
+                    for (Image image: slide.getImages()) {
+                        for (ProcessedData p: image.getRawData().getProcessedDataList()) {
+                            if (p.getId().equals(processedDataId)) {
+                                existing = p;
+                            }
+                        }
+                    }
+                    
+                }
+                if (existing == null) {
+                    // check it in the arraydataset's list
+                    for (ProcessedData p: dataset.getProcessedData()) {
+                        if (p.getId().equals(processedDataId)) {
+                            existing = p;
+                        }
+                    }
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("image", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                    }
+                }
+                if (existing != null){      
+                    int total = datasetRepository.getIntensityDataListCount(processedDataId, null);
+                    // need to retrieve the intensities
+                    List<IntensityData> dataList = datasetRepository.getIntensityDataList(processedDataId, null, offset, limit, field, order, searchValue);
+                    result.setRows(dataList);
+                    result.setFilteredTotal(dataList.size());
+                    result.setTotal(total);
+                    return result;
+                }
+            }
+            
+            if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Error in the arguments", errorMessage);
+            }
+            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Assay metadata cannot be retrieved", e);
+        }  
+        
+        return null;
+        
     }
 
 }

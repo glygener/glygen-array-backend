@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.validation.constraints.Min;
 
+import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -20,6 +21,8 @@ public class Spot {
 	String blockLayoutId;
 	String uri;
 	SpotFlag flag;
+	
+	SpotMetadata metadata;
 	
 	Map<String, Double> ratioMap = new HashMap<>(); // featureId to ratio in percentages
 	Map<Feature, Double> featureRatioMap = new HashMap<Feature, Double>();
@@ -142,5 +145,19 @@ public class Spot {
      */
     public void setBlockLayoutId(String blockId) {
         this.blockLayoutId = blockId;
+    }
+
+    /**
+     * @return the metadata
+     */
+    public SpotMetadata getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * @param metadata the metadata to set
+     */
+    public void setMetadata(SpotMetadata metadata) {
+        this.metadata = metadata;
     }
 }

@@ -53,7 +53,7 @@ class Config {
 
 public class MetadataOntologyParser {
      
-    static String[] allowedTypesList = new String[] {"label", "text", "selection", "dictionary", "number", "date", "boolean", "Label", "Text", 
+    static String[] allowedTypesList = new String[] {"longtext", "text", "selection", "dictionary", "number", "date", "boolean", "Longtext", "LongText", "Text", 
             "Selection", "Dictionary", "Number", "Date", "Boolean"};
    
     public static PrintStream warningOut;
@@ -876,7 +876,11 @@ public class MetadataOntologyParser {
                         model.add(f.createStatement(namespaceIRI, hasFile, f.createLiteral(namespace.getFilename())));
                 } else {
                     // just add the object property
-                    model.add(f.createStatement(descriptor, hasNamespace, f.createIRI(namespace.getUri())));
+                    if (namespace.getUri() == null) {
+                        errorOut.append("no uri for namespace " + namespace.getName() + " for descriptor " + description.getName());
+                    } else {
+                        model.add(f.createStatement(descriptor, hasNamespace, f.createIRI(namespace.getUri())));
+                    }
                 }
             }
             
@@ -944,9 +948,9 @@ public class MetadataOntologyParser {
             description = new DescriptorTemplate();
             Namespace namespace = new Namespace();
             namespace.setName(d.getType());
-            if (d.getType().equalsIgnoreCase("label")) {
+            if (d.getType().equalsIgnoreCase("text")) {
                 namespace.setUri("http://www.w3.org/2001/XMLSchema#token");
-            } else if (d.getType().equalsIgnoreCase("text")) {
+            } else if (d.getType().equalsIgnoreCase("longtext")) {
                 namespace.setUri("http://www.w3.org/2001/XMLSchema#string");
             } else if (d.getType().equalsIgnoreCase("Number")) {
                 namespace.setUri("http://www.w3.org/2001/XMLSchema#double");

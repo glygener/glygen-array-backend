@@ -57,6 +57,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Autowired
 	SlideLayoutRepository slideLayoutRepository;
 	
+	@Autowired
+    MetadataRepository metadataRepository;
+	
 	Map<String, SlideLayout> slideLayoutCache = new HashMap<String, SlideLayout>();
 	Map<String, BlockLayout> blockLayoutCache = new HashMap<String, BlockLayout>();
 	Map<String, Feature> featureCache = new HashMap<String, Feature>();
@@ -66,6 +69,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	final static String hasRatioPredicate = ontPrefix + "has_ratio";
 	final static String hasRatioContextPredicate = ontPrefix + "has_feature_ratio";
+	final static String hasSpotMetadataPredicate = ontPrefix + "has_spot_metadata";
 	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
 
@@ -183,6 +187,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasRow = f.createIRI(ontPrefix + "has_row");
         IRI hasColumn = f.createIRI(ontPrefix + "has_column");
         IRI spotType = f.createIRI(ontPrefix + "Spot");
+        IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
 	    List<Statement> statements = new ArrayList<Statement>();
         String spotURI = generateUniqueURI(uriPrefix + "S", graph);
         IRI spot = f.createIRI(spotURI);
@@ -243,8 +248,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             }
         }
         
-        
-        
+        if (s.getMetadata() != null && s.getMetadata().getUri() != null) {
+            statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(s.getMetadata().getUri()), graphIRI));
+        }
         
         return spotURI;
 	}
@@ -1476,6 +1482,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasRatio = f.createIRI (hasRatioPredicate);
         IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
         IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
+        IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
+        
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(spot, null, null, graphIRI);
 		List<Feature> features = new ArrayList<Feature>();
 		s.setFeatures(features);
@@ -1537,7 +1545,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 if (ratio != null && featureInContext != null) {
                     s.setRatio(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), ratio);
                 }
-            } 
+            } else if (st2.getPredicate().equals(hasSpotMetadata)) {
+                Value uriValue = st2.getObject();
+                s.setMetadata(metadataRepository.getSpotMetadataFromURI(uriValue.stringValue(), true, user));
+            }
 		}
 		
 		// find its blockLayoutId
