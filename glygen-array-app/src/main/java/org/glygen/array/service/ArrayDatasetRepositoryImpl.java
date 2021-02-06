@@ -2797,8 +2797,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     " ?intensity gadr:binding_value_of ?spot . \n" +
                     " ?spot gadr:has_feature ?feature . \n" +
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
-                    " ?intensity gadr:has_stdev ?stdev . \n" + 
-                    " ?intensity gadr:has_cv ?cv . \n}");
+                    " }");
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
             for (SparqlEntity sparqlEntity : results) {
                 String count = sparqlEntity.getValue("count");
@@ -2851,7 +2850,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     " ?spot gadr:has_feature ?feature . \n" +
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
                     " ?intensity gadr:has_stdev ?stdev . \n" + 
-                    " ?intensity gadr:has_cv ?cv . \n" + 
+                    " OPTIONAL { ?intensity gadr:has_cv ?cv .} \n" + 
                             sortLine + searchPredicate + 
                     "}\n" +
                      orderByLine + 
