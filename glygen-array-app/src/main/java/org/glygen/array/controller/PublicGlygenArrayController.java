@@ -1345,9 +1345,11 @@ public class PublicGlygenArrayController {
                 ProcessedData existing = null;
                 for (Slide slide: dataset.getSlides()) {
                     for (Image image: slide.getImages()) {
-                        for (ProcessedData p: image.getRawData().getProcessedDataList()) {
-                            if (p.getId().equals(processedDataId)) {
-                                existing = p;
+                        if (image.getRawData() != null) {
+                            for (ProcessedData p: image.getRawData().getProcessedDataList()) {
+                                if (p.getId().equals(processedDataId)) {
+                                    existing = p;
+                                }
                             }
                         }
                     }
@@ -1361,7 +1363,7 @@ public class PublicGlygenArrayController {
                         }
                     }
                     if (existing == null) {
-                        errorMessage.addError(new ObjectError("image", "NotFound"));
+                        errorMessage.addError(new ObjectError("processedData", "NotFound"));
                         errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     }
                 }

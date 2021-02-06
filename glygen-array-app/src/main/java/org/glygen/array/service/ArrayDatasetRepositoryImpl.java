@@ -336,7 +336,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
     /**
-     * adds the raw data to the repository but measurements are not added here. you need to call {@link addMeasurementsToRawData} to add those
+     * adds the raw data to the repository but measurements are not added here. you need to call {@link addMeasurementsToRawData} to add those.
+     * It also assumes, processed data were already added into the repository
      */
     @Override
     public String addRawData(RawData rawData, String datasetId, UserEntity user) throws SparqlException, SQLException {
@@ -2427,7 +2428,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     scanner = new ScannerMetadata();
                     scanner.setUri(scannerPublicURI);
                     image.setScanner(scanner);
-                    
+                    // clear out the uri so that it will be added again in the public graph
+                    image.setUri(null);
+                    image.setId(null);
                     RawData rawData = image.getRawData();
                     // make its metadata public 
                     ImageAnalysisSoftware metadata = rawData.getMetadata();
