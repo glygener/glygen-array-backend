@@ -256,25 +256,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
-    <!-- http://purl.org/gadr/template#has_spot_metadata -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_spot_metadata">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/template#spot_metadata"/>
-    </owl:ObjectProperty>
-    
-
-
-    <!-- http://purl.org/gadr/template#has_spot_template -->
-
-    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_spot_template">
-        <rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/template#spot_metadata"/>
-        <rdfs:range rdf:resource="http://purl.org/gadr/template#spot_template"/>
-    </owl:ObjectProperty>
-    
-
-
     <!-- http://purl.org/gadr/template#has_template -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_template">
@@ -594,26 +575,6 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
         <rdfs:comment>Template specific to Slide category.</rdfs:comment>
         <rdfs:label>Slide Template</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#spot_metadata -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#spot_metadata">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
-        <rdfs:comment>metadata on spot conditions</rdfs:comment>
-        <rdfs:label>Spot Metadata</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/template#spot_template -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/template#spot_template">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
-        <rdfs:comment>Template specific to Spot metadata category</rdfs:comment>
-        <rdfs:label>Spot Template</rdfs:label>
     </owl:Class>
     
 
