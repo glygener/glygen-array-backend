@@ -1019,7 +1019,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     
     /**
-     * raw data must have been added already ???    
+     * raw data must have been added already 
+     *    
      * @param image
      * @param datasetId
      * @param statements
@@ -1080,8 +1081,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasImage = f.createIRI(hasImagePredicate);
             String rawDataURI = image.getRawData().getUri();
             if (rawDataURI == null) {
-                rawDataURI = addRawData(image.getRawData(), datasetId, user);
-                image.getRawData().setUri(rawDataURI);
+                throw new SparqlException ("Raw data should have been added already");
             }
             IRI raw = f.createIRI(rawDataURI);
             statements.add(f.createStatement(raw, derivedFrom, imageIRI, graphIRI));
@@ -1398,6 +1398,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI processedFrom = f.createIRI(processedFromPredicate);
+        IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
         Map<String, String> measurementToSpotIdMap = new HashMap<String, String>();
@@ -1466,12 +1467,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         dataMap.put(measurement, spot);
                         rawDataObject.setSpot(measurement.getId(), spotURI.substring(spotURI.lastIndexOf("/")+1));
                     }
-                }
-                
-            }
+                } 
+            } 
         }
         
-        // retrieve the rawData
+        // retrieve the processedData
         statements = sparqlDAO.getStatements(null, processedFrom, raw, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -2539,6 +2539,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 processedData.setUri(processedDataURI);
                             }
                             String rawDataURI = addRawData(rawData, datasetId, null);
+                            rawData.setSlide(slide);
                             addMeasurementsToRawData(rawData, null);
                             rawData.setUri(rawDataURI);
                         } else {

@@ -590,7 +590,7 @@ public class DatasetController {
                             processedData.getMethod().getName(), p);
                     processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                 }
-                
+                image.getRawData().setSlide(slide);
                 String id = addRawData(image.getRawData(), datasetId, p);
                 image.getRawData().setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
             }
@@ -606,26 +606,10 @@ public class DatasetController {
         return null;
     }
     
-    @ApiOperation(value = "Add given  rawdata set for the user")
-    @RequestMapping(value="/addRawData", method = RequestMethod.POST, 
-            consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added rawdata set"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
     public String addRawData (
-            @ApiParam(required=true, value="Raw data set to be added. RawData should have a slide, "
-                    + " and slide should have an existing printedSlide (specified by name or uri or id), "
-                    + "it should have an Image (specified with filename (already uploaded) and an existing Scanner metadata (by name, uri or id)), "
-                    + "it should have a filename (already uploaded), file format and a power level, "
-                    + "and it should have an existing ImageAnalysisSoftwareMetadata (specified by name, id or uri")
-            @RequestBody RawData rawData, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the raw data") 
-            @RequestParam("arraydatasetId")
-            String datasetId,  
-            Principal p) {
+           RawData rawData, 
+           String datasetId,  
+           Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
