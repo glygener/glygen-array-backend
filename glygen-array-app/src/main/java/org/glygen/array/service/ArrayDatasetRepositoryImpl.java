@@ -1237,14 +1237,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     private Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
-        if (user == null)
+        if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
         
         Slide slideObject = null;
@@ -1288,14 +1287,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     private Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException  {
         String graph = null;
-        if (user == null)
+        if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
         
         Image imageObject = null;
@@ -1483,16 +1481,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     private Measurement getMeasurementFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        
         String graph = null;
-        if (user == null)
+        if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
         
         Measurement measurementObject = null;
@@ -2397,6 +2393,27 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 }
                             }
                         }
+                        if (rawData.getProcessedDataList() != null) {
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                List<Feature> modifiedFeatures = new ArrayList<>();
+                                if (processedData.getIntensity() != null) {
+                                    for (Intensity intensity: processedData.getIntensity()) {
+                                        for (Spot spot: intensity.getSpots()) {
+                                            spot.setUri(null);
+                                            //fix its blocklayoutid
+                                            spot.setBlockLayoutId(layoutRepository.getPublicBlockLayoutId(spot.getBlockLayoutId(), user));
+                                            // fix its features
+                                            for (Feature f: spot.getFeatures()) {
+                                                if (!modifiedFeatures.contains(f)) {
+                                                    f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
+                                                    modifiedFeatures.add(f);
+                                                }
+                                            }
+                                        } 
+                                    }
+                                }
+                            }
+                        }
                     }
                     
                     // make printed slide metadata public
@@ -2443,31 +2460,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     }
                     
                     // make processed data public
-                    for (ProcessedData processedData: dataset.getProcessedData()) {
+                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
                         DataProcessingSoftware dataPRocessingMetadata = processedData.getMetadata();
-                        if (metadata != null) {
-                            String publicURI = makeMetadataPublic(metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, 
+                        if (dataPRocessingMetadata != null) {
+                            String publicURI = makeMetadataPublic(dataPRocessingMetadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, 
                                     hasDataprocessingTemplatePredicate, dataProcessingTypePredicate, "DPM", graph);
                             dataPRocessingMetadata = new DataProcessingSoftware();
                             dataPRocessingMetadata.setUri(publicURI);
                             processedData.setMetadata(dataPRocessingMetadata);
-                            List<Feature> modifiedFeatures = new ArrayList<>();
-                            if (processedData.getIntensity() != null) {
-                                for (Intensity intensity: processedData.getIntensity()) {
-                                    for (Spot spot: intensity.getSpots()) {
-                                        spot.setUri(null);
-                                        //fix its blocklayoutid
-                                        spot.setBlockLayoutId(layoutRepository.getPublicBlockLayoutId(spot.getBlockLayoutId(), user));
-                                        // fix its features
-                                        for (Feature f: spot.getFeatures()) {
-                                            if (!modifiedFeatures.contains(f)) {
-                                                f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
-                                                modifiedFeatures.add(f);
-                                            }
-                                        }
-                                    } 
-                                }
-                            }
+                            
                         }
                     }
                 }
@@ -2538,13 +2539,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 String processedDataURI = addProcessedData(processedData, datasetId, null);
                                 processedData.setUri(processedDataURI);
                             }
-                            String rawDataURI = addRawData(rawData, datasetId, null);
-                            rawData.setSlide(slide);
-                            addMeasurementsToRawData(rawData, null);
-                            rawData.setUri(rawDataURI);
                         } else {
                             logger.warn("Processed data is not found for rawData: " + rawData.getUri());
                         }
+                        String rawDataURI = addRawData(rawData, datasetId, null);
+                        rawData.setSlide(slide);
+                        rawData.setUri(rawDataURI);
+                        addMeasurementsToRawData(rawData, null);
                     }
                 }
                 addSlide(slide, datasetId, null);
@@ -2850,7 +2851,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     " ?intensity gadr:binding_value_of ?spot . \n" +
                     " ?spot gadr:has_feature ?feature . \n" +
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
-                    " ?intensity gadr:has_stdev ?stdev . \n" + 
+                    " OPTIONAL {?intensity gadr:has_stdev ?stdev . } \n" + 
                     " OPTIONAL { ?intensity gadr:has_cv ?cv .} \n" + 
                             sortLine + searchPredicate + 
                     "}\n" +
@@ -2871,8 +2872,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 intensity.setId(intensityURI.substring(intensityURI.lastIndexOf("/")+1));
                 try {
                     intensity.setRfu(Double.parseDouble(rfu));
-                    if (cv != null) intensity.setPercentCV(Double.parseDouble(cv));
-                    if (stdev != null) intensity.setStDev(Double.parseDouble(stdev));
+                    if (cv != null && !cv.isEmpty()) intensity.setPercentCV(Double.parseDouble(cv));
+                    if (stdev != null && !stdev.isEmpty()) intensity.setStDev(Double.parseDouble(stdev));
                 } catch (NumberFormatException e) {
                     logger.error("this number(rfu/stdev/cv) should be a double in the repository!", e);
                 } 
