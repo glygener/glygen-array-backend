@@ -4346,7 +4346,7 @@ public class DatasetController {
                         logger.error("Could not save the processedData", e1);
                     } 
                 });
-                datasetURI.get(10000, TimeUnit.MILLISECONDS);
+                datasetURI.get(2000, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 return null; // not ready yet
             }
