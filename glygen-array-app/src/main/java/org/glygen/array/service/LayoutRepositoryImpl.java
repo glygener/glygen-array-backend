@@ -248,8 +248,13 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             }
         }
         
-        if (s.getMetadata() != null && s.getMetadata().getUri() != null) {
-            statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(s.getMetadata().getUri()), graphIRI));
+        if (s.getMetadata() != null) {
+            if (s.getMetadata().getUri() != null) {
+                statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(s.getMetadata().getUri()), graphIRI));
+            } else {
+                String metadataURI = metadataRepository.addSpotMetadataValue(s.getMetadata(), user);
+                statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(metadataURI), graphIRI));
+            }
         }
         
         return spotURI;
@@ -1547,7 +1552,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 }
             } else if (st2.getPredicate().equals(hasSpotMetadata)) {
                 Value uriValue = st2.getObject();
-                s.setMetadata(metadataRepository.getSpotMetadataFromURI(uriValue.stringValue(), true, user));
+                s.setMetadata(metadataRepository.getSpotMetadataValueFromURI(uriValue.stringValue(), true, user));
             }
 		}
 		
@@ -1561,7 +1566,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return s;
 	}
 
-	private String addPublicSpot(Spot s) throws SparqlException {
+	private String addPublicSpot(Spot s) throws SparqlException, SQLException {
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 		String spotURI = generateUniqueURI(uriPrefixPublic + "S");
@@ -1577,6 +1582,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasColumn = f.createIRI(ontPrefix + "has_column");
 		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+		IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		statements.add(f.createStatement(spot, RDF.TYPE, spotType, graphIRI));
@@ -1607,6 +1613,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));		
 			} 
 		}
+		
+		if (s.getMetadata() != null) {
+            if (s.getMetadata().getUri() != null) {
+                statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(s.getMetadata().getUri()), graphIRI));
+            } else {
+                String metadataURI = metadataRepository.addSpotMetadataValue(s.getMetadata(), null);
+                statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(metadataURI), graphIRI));
+            }
+        }
+		
 		sparqlDAO.addStatements(statements, graphIRI);
 		return spotURI;
 	}

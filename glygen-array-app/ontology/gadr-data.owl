@@ -374,6 +374,22 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_spot_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_spot_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot_metadata"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot_metadata_value"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_unit_of_measurement -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_unit_of_measurement">
@@ -1352,6 +1368,24 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     <owl:Class rdf:about="http://purl.org/gadr/data/spot">
         <rdfs:comment>Each block on a glycan array slide consists of multiple spot on which the glycans are fixed. Usual that is a round shaped place on the slide. Each spot has coordinates and a diameter.</rdfs:comment>
         <rdfs:label>Spot</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/spot_metadata -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/spot_metadata">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:label>Spot Metadata</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/spot_metadata_value -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/spot_metadata_value">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:label>Spot Metadata Value</rdfs:label>
     </owl:Class>
     
 

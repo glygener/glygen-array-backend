@@ -123,6 +123,13 @@ public interface MetadataRepository {
             String typePredicate, String prefix, UserEntity user) throws SparqlException, SQLException;
 
     void deleteMetadataById(String metadataId, String graph) throws SparqlException;
+
+    SpotMetadata getSpotMetadataValueFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+
+    SpotMetadata getSpotMetadataValueFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
+
+    String addSpotMetadataValue(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException;
     
 
 }

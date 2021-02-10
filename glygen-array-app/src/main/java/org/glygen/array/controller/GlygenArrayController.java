@@ -313,6 +313,9 @@ public class GlygenArrayController {
                         }
 		            }
 		        }
+		    /*    if (s.getMetadata() == null) {
+		            errorMessage.addError(new ObjectError("spot metadata", "NoEmpty"));
+		        }*/ //TODO think about what to do with CFG data and include this check
 		    }
 		}
 		

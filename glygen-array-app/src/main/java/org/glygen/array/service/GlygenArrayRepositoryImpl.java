@@ -79,6 +79,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String scannerTypePredicate = ontPrefix + "scanner";
     public final static String assayTypePredicate = ontPrefix + "assay";
     public final static String spotMetadataTypePredicate = ontPrefix + "spot_metadata";
+    public final static String spotMetadataValueTypePredicate = ontPrefix + "spot_metadata_value";
     public final static String slideTemplateTypePredicate = ontPrefix + "slide_metadata";
     public final static String imageAnalysisTypePredicate = ontPrefix + "image_analysis_software";
     public final static String dataProcessingTypePredicate = ontPrefix + "data_processing_software";

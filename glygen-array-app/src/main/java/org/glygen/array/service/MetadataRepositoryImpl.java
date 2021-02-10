@@ -1193,6 +1193,11 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     public String addSpotMetadata(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
         return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, "Spm", user);
     }
+    
+    @Override
+    public String addSpotMetadataValue(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, "Spm", user);
+    }
 
 
     @Override
@@ -1243,6 +1248,20 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     public SpotMetadata getSpotMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException {
         return (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, loadAll, user);
+    }
+    
+    @Override
+    public SpotMetadata getSpotMetadataValueFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+       return getSpotMetadataFromURI(uri, true, user);
+    }
+
+
+    @Override
+    public SpotMetadata getSpotMetadataValueFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        SpotMetadata metadata = (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, loadAll, user);
+        metadata.setIsTemplate(false);
+        return metadata;
     }
 
 
