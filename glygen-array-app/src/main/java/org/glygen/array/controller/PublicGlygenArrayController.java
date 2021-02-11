@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +20,9 @@ import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
@@ -35,7 +34,6 @@ import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.Slide;
-import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
@@ -223,12 +221,15 @@ public class PublicGlygenArrayController {
     private byte[] getCartoonForGlycan (String glycanId) {
         try {
             File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
-            InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
-            return IOUtils.toByteArray(resource.getInputStream());
-        } catch (IOException e) {
-            logger.error("Image cannot be retrieved", e);
-            return null;
+            if (imageFile.exists()) {
+                InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
+                return IOUtils.toByteArray(resource.getInputStream());
+            }
+        } catch (Exception e) {
+            logger.warn("Image cannot be retrieved for glycan " + glycanId, e);
+            
         }
+        return null;
     }
     
     @ApiOperation(value = "Retrieve glycan with the given id")
@@ -1371,6 +1372,44 @@ public class PublicGlygenArrayController {
                     int total = datasetRepository.getIntensityDataListCount(processedDataId, null);
                     // need to retrieve the intensities
                     List<IntensityData> dataList = datasetRepository.getIntensityDataList(processedDataId, null, offset, limit, field, order, searchValue);
+                    
+                    // populate the cartoon images
+                    for (IntensityData data: dataList) {
+                        Feature feature = data.getFeature();
+                        if (feature != null) {
+                            for (Glycan glycan: feature.getGlycans()) {
+                                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+                                    byte[] image = getCartoonForGlycan(glycan.getId());
+                                    if (image == null) {
+                                        // try to create one
+                                        BufferedImage t_image = null;
+                                        try {
+                                            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                                                    org.eurocarbdb.application.glycanbuilder.Glycan.
+                                                    fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
+                                            t_image = glycanWorkspace.getGlycanRenderer()
+                                                .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+                                        } catch (Exception e) {
+                                            logger.error ("Glycan image cannot be generated", e);
+                                        }
+                                        if (t_image != null) {
+                                            String filename = glycan.getId() + ".png";
+                                            //save the image into a file
+                                            logger.debug("Adding image to " + imageLocation);
+                                            File imageFile = new File(imageLocation + File.separator + filename);
+                                            try {
+                                                ImageIO.write(t_image, "png", imageFile);
+                                            } catch (IOException e) {
+                                                logger.error ("Glycan image cannot be written", e);
+                                            }
+                                        }
+                                        image = getCartoonForGlycan(glycan.getId());
+                                    }
+                                    glycan.setCartoon(image);
+                                }
+                            }
+                        }
+                    }
                     result.setRows(dataList);
                     result.setFilteredTotal(dataList.size());
                     result.setTotal(total);
@@ -1383,11 +1422,10 @@ public class PublicGlygenArrayController {
             }
             
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Assay metadata cannot be retrieved", e);
+            throw new GlycanRepositoryException("intentisity data cannot be retrieved", e);
         }  
         
         return null;
         
     }
-
 }
