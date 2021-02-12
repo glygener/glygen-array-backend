@@ -193,8 +193,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 break;
             }
         }
-        if (description == null) {
-            throw new SparqlException ("Error in the ontology, type is not provided correctly.");
+        if (description == null) { // there is a mismatch in the ontology
+            return null;
         }
         
         IRI hasDescriptor = f.createIRI(templatePrefix + "has_descriptor");
