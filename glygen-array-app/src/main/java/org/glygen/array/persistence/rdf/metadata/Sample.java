@@ -23,4 +23,5 @@ public class Sample extends MetadataCategory {
     public String getInternalId() {
         return internalId;
     }
+    
 }

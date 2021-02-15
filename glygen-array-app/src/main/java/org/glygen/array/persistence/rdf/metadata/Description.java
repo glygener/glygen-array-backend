@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class Description implements Comparable<Description>{
     String uri;
     String id;
+    String name;
     DescriptionTemplate key;
     Integer order = -1;
     
@@ -69,6 +70,20 @@ public abstract class Description implements Comparable<Description>{
     @Override
     public int compareTo(Description o) {
         return this.order.compareTo(o.order);
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setName(String name) {
+        this.name = name;
     }
     
 }

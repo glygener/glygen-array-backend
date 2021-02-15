@@ -2161,6 +2161,9 @@ public class DatasetController {
             break;
         case ASSAY:
             metadata = getAssayMetadata(metadataId, p);
+        case SPOT:
+            metadata = getSpotMetadata(metadataId, p);
+            break;
         default:
             break;
         }

@@ -214,7 +214,8 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 order = f.createLiteral(descTemplate.getOrder());
             }
         }
-        
+        Literal name = f.createLiteral(descTemplate.getName());
+        statements.add(f.createStatement(descrGroup, RDFS.LABEL, name, graphIRI));
         statements.add(f.createStatement(descrGroup, RDF.TYPE, type, graphIRI)); 
         statements.add(f.createStatement(descrGroup, hasKey, templateIRI, graphIRI));
         if (order != null) statements.add(f.createStatement(descrGroup, hasOrder, order, graphIRI));
@@ -277,7 +278,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         
         IRI descriptorTemplateIRI = f.createIRI(descriptor.getKey().getUri());
         Literal dValue = f.createLiteral(descriptor.getValue());
+        Literal name = f.createLiteral(descTemplate.getName());
         statements.add(f.createStatement(descr, RDF.TYPE, f.createIRI(simpleDescriptionTypePredicate), graphIRI));
+        statements.add(f.createStatement(descr, RDFS.LABEL, name, graphIRI));
         statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
         statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
         if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
@@ -487,11 +490,15 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                     descriptorObject.setUri(uri);
                     descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
                 }
+            } else if (st.getPredicate().equals(RDFS.LABEL)) {
+                String value = st.getObject().stringValue();
+                descriptorObject.setName(value);
             } else if (st.getPredicate().equals(hasKey)) {
                 // retrieve descriptorTemplate from template repository
                 String tempURI = st.getObject().stringValue();
                 DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
                 descriptorObject.setKey(key);
+                descriptorObject.setName(key.getName());
             } else if (st.getPredicate().equals(hasValue)) {
                 String val = st.getObject().stringValue();
                 ((Descriptor)descriptorObject).setValue(val);
