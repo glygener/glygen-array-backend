@@ -502,7 +502,7 @@ public class UtilityController {
             String uri = MetadataTemplateRepository.templatePrefix + id;
             MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
             // if it is an assay template, reset the order
-            if (metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
+            if (metadataTemplate != null && metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
                 // reset orders to 0 for optional ones
                 List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
                 for (DescriptionTemplate d: metadataTemplate.getDescriptors()) {
