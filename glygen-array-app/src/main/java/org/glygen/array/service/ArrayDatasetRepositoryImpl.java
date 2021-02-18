@@ -1076,17 +1076,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
         }
         
-        if (image.getRawData() != null) {
-            IRI arraydataset = f.createIRI(uriPre + datasetId);
-            IRI hasImage = f.createIRI(hasImagePredicate);
+        IRI arraydataset = f.createIRI(uriPre + datasetId);
+        IRI hasImage = f.createIRI(hasImagePredicate);
+        // add the image to its dataset as well
+        statements.add(f.createStatement(arraydataset, hasImage, imageIRI, graphIRI));
+        if (image.getRawData() != null) {    
             String rawDataURI = image.getRawData().getUri();
             if (rawDataURI == null) {
                 throw new SparqlException ("Raw data should have been added already");
             }
             IRI raw = f.createIRI(rawDataURI);
             statements.add(f.createStatement(raw, derivedFrom, imageIRI, graphIRI));
-            // add the image to its dataset as well
-            statements.add(f.createStatement(arraydataset, hasImage, imageIRI, graphIRI));
         }
         
         if (metadataIRI != null) statements.add(f.createStatement(imageIRI, hasScanner, metadataIRI, graphIRI));
@@ -1235,7 +1235,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+    @Override
+    public Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
@@ -1274,11 +1275,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
-        statements = sparqlDAO.getStatements(null, scanOf, slideIRI, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            Value uriValue = st.getSubject();
-            slideObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));
+        if (slideObject != null) {
+            statements = sparqlDAO.getStatements(null, scanOf, slideIRI, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                Value uriValue = st.getSubject();
+                slideObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));
+            }
         }
         
         return slideObject;
@@ -1610,7 +1613,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
             // delete publications
-           statements = sparqlDAO.getStatements(dataset, hasPub, null, graphIRI);
+            statements = sparqlDAO.getStatements(dataset, hasPub, null, graphIRI);
             while (statements.hasNext()) {
                 Statement st = statements.next();
                 String publicationURI = st.getObject().stringValue();
@@ -1722,9 +1725,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI rawData = f.createIRI(rawDataURI);
         IRI graphIRI = f.createIRI(graph);
         IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
-        IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
-        IRI hasImage = f.createIRI(derivedFromPredicate);
-        IRI hasImage2 = f.createIRI(hasImagePredicate);
+        //IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        //IRI hasImage = f.createIRI(derivedFromPredicate);
+        //IRI hasImage2 = f.createIRI(hasImagePredicate);
+        IRI processedFrom = f.createIRI(processedFromPredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(rawData, hasMeasurement, null, graphIRI);
         while (statements.hasNext()) {
@@ -1735,7 +1739,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
         }
         
-        // delete slides
+        // delete processed data
+        statements = sparqlDAO.getStatements(null, processedFrom, rawData, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            String processedDataURI = st.getSubject().stringValue();
+            deleteProcessedData(processedDataURI, graph);
+        }
+        
+       /* // delete slides
         statements = sparqlDAO.getStatements(rawData, hasSlide, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -1759,7 +1771,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(f.createIRI(datasetURI), hasImage2, f.createIRI(imageURI), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements3), graphIRI);
             deleteFiles (imageURI, graph);
-        }
+        }*/
         
         deleteFiles(rawDataURI, graph);
         
@@ -2886,5 +2898,83 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return data;
     }
-    
+
+
+    @Override
+    public void deleteSlide(String slideId, String datasetId, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            String uri = uriPre + datasetId;
+            ValueFactory f = sparqlDAO.getValueFactory();
+            IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+            IRI graphIRI = f.createIRI(graph);
+            IRI dataset = f.createIRI(uri);
+            IRI scanOf = f.createIRI(scanOfPredicate);
+            
+            IRI slide = f.createIRI(uriPre + slideId);
+            
+            RepositoryResult<Statement> statements;
+            // delete images
+            statements = sparqlDAO.getStatements(null, scanOf, slide, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                String imageURI = st.getSubject().stringValue();
+                deleteImage (imageURI, datasetId, user);
+            }
+            
+            // delete the slide
+            statements = sparqlDAO.getStatements(slide, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            
+            statements = sparqlDAO.getStatements(dataset, hasSlide, f.createIRI(uriPre + slideId), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        }
+        
+    }
+
+    private void deleteImage(String imageURI, String datasetId, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            ValueFactory f = sparqlDAO.getValueFactory();
+            IRI derivedFrom = f.createIRI(derivedFromPredicate);
+            IRI hasImage = f.createIRI(ontPrefix + "has_image");
+            IRI graphIRI = f.createIRI(graph);
+            deleteFiles (imageURI, graph);
+            
+            IRI image = f.createIRI(imageURI);
+            IRI dataset = f.createIRI(uriPre + datasetId);
+            
+            // delete RawData
+            RepositoryResult<Statement> statements;
+            statements = sparqlDAO.getStatements(null, derivedFrom, image, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                String rawDataURI = st.getSubject().stringValue();
+                deleteRawData(rawDataURI.substring(rawDataURI.lastIndexOf("/")+1), datasetId, user);
+            }
+            
+            statements = sparqlDAO.getStatements(image, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            
+            statements = sparqlDAO.getStatements(dataset, hasImage, image, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        }
+        
+    }
 }

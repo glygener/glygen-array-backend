@@ -64,6 +64,7 @@ public interface ArrayDatasetRepository {
     boolean canDeletePrintedSlide(String uri, String parentURI, UserEntity user) throws SparqlException, SQLException;
     void deleteRawData(String rawDataId, String parentId, UserEntity user) throws SQLException, SparqlException;
     void deleteProcessedData(String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException;
+    void deleteSlide(String slideId, String datasetId, UserEntity user) throws SQLException, SparqlException;
     
     RawData getRawDataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     Publication getPublicationFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
@@ -83,6 +84,7 @@ public interface ArrayDatasetRepository {
     List<IntensityData> getIntensityDataList(String processedDataId, UserEntity user, int offset, int limit,
             String field, int order, String searchValue) throws SparqlException, SQLException;
     int getIntensityDataListCount(String processedDataId, UserEntity user) throws SparqlException, SQLException;
+    Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     
     
 }

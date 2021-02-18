@@ -3095,40 +3095,19 @@ public class DatasetController {
             
             // delete the files associated with the array dataset
             ArrayDataset dataset = getArrayDataset(id, false, principal);
-            if (dataset != null && dataset.getRawDataList() != null) {
-                for (RawData rawData: dataset.getRawDataList()) {
-                    if (rawData.getFile() != null) {
-                        File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
-                        if (rawDataFile.exists()) {
-                            rawDataFile.delete();
-                        }
-                    } 
-                    if (rawData.getProcessedDataList() != null) {
-                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                            if (processedData.getFile() != null) {
-                                File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
-                                if (dataFile.exists()) {
-                                    dataFile.delete();
-                                }
-                            }
-                        }
-                    }
-                }
+            // check the status of dataset, if PROCESSING cannot delete
+            if (dataset != null && dataset.getStatus() == FutureTaskStatus.PROCESSING) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("dataset", "NotDone"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot delete the dataset when it is still processing", errorMessage);
             }
             if (dataset != null && dataset.getSlides() != null) {
                 for (Slide slide: dataset.getSlides()) {
-                    if (slide.getImages() != null) {
-                        for (Image image: slide.getImages()) {
-                            if (image.getFile() != null) {
-                                File imageFile = new File (image.getFile().getFileFolder(), image.getFile().getIdentifier());
-                                if (imageFile.exists()) {
-                                    imageFile.delete();
-                                }
-                            }
-                        }
-                    }
-                        
+                    deleteSlide(slide.getId(), id, principal);
                 }
+                datasetRepository.deleteArrayDataset(id, user);
             }
             
             if (dataset == null) {
@@ -3138,8 +3117,6 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Cannot find array dataset with the given id", errorMessage);
             }
-            
-            datasetRepository.deleteArrayDataset(id, user);
             return new Confirmation("array dataset deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete array dataset " + id, e);
@@ -3166,10 +3143,30 @@ public class DatasetController {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             
             RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, user);
-            //delete the files associated with the rawdata
+            // check the status first
             if (rawData != null) {
+                if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Cannot delete the rawdata when it is still processing", errorMessage);
+                }
+                if (rawData.getProcessedDataList() != null) {
+                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                        if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                        }
+                    }
+                }
+                datasetRepository.deleteRawData(id, datasetId, user);
+                //delete the files associated with the rawdata
                 if (rawData.getFile() != null) {
-                    File rawDataFile = new File (rawData.getFile().getFileFolder(), id + rawData.getFile().getIdentifier());
+                    File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
                     if (rawDataFile.exists()) {
                         rawDataFile.delete();
                     }
@@ -3181,10 +3178,11 @@ public class DatasetController {
                                     dataFile.delete();
                                 }
                             }
-                            deleteProcessedData(processedData.getId(), datasetId, principal);
+                            //deleteProcessedData(processedData.getId(), datasetId, principal);
                         }
                     }
                 }
+                return new Confirmation("Rawdata deleted successfully", HttpStatus.OK.value());
             } else {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3192,15 +3190,12 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Cannot find rawData with the given id", errorMessage);
             }
-            
-            datasetRepository.deleteRawData(id, datasetId, user);
-            return new Confirmation("Rawdata deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete rawdata " + id, e);
         } 
     }
     
-    @ApiOperation(value = "Delete the given processed data from the given array dataset")
+   /* @ApiOperation(value = "Delete the given processed data from the given array dataset")
     @RequestMapping(value="/deleteprocesseddata/{processeddataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="ProcessedData deleted successfully"), 
@@ -3221,6 +3216,90 @@ public class DatasetController {
             return new Confirmation("ProcessedData deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete ProcessedData " + id, e);
+        } 
+    }
+    */
+    
+    @ApiOperation(value = "Delete the given slide from the given array dataset")
+    @RequestMapping(value="/deleteslide/{slideId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete slide"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteSlide (
+            @ApiParam(required=true, value="id of the slide to delete") 
+            @PathVariable("slideId") String id, 
+            @ApiParam(required=true, value="id of the array dataset this slide belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            Slide slide = datasetRepository.getSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, user);
+            //delete the files associated with the slide (image, raw data and processed data files)
+            if (slide != null) {
+                for (Image image: slide.getImages()) {
+                    RawData rawData = image.getRawData();
+                    if (rawData != null && rawData.getFile() != null) {
+                        if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                        }
+                        if (rawData.getProcessedDataList() != null) {
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                    ErrorMessage errorMessage = new ErrorMessage();
+                                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                    throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                }
+                            }
+                        }
+                    }
+                }
+                datasetRepository.deleteSlide(id, datasetId, user);   
+                for (Image image: slide.getImages()) {
+                    if (image.getFile() != null) {
+                        File file = new File (image.getFile().getFileFolder(), image.getFile().getIdentifier());
+                        if (file.exists()) {
+                            file.delete();
+                        }
+                    }
+                    RawData rawData = image.getRawData();
+                    if (rawData != null && rawData.getFile() != null) {
+                        File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
+                        if (rawDataFile.exists()) {
+                            rawDataFile.delete();
+                        }
+                        if (rawData.getProcessedDataList() != null) {
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                if (processedData.getFile() != null) {
+                                    File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                    if (dataFile.exists()) {
+                                        dataFile.delete();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return new Confirmation("Slide deleted successfully", HttpStatus.OK.value());
+            } else {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("slideId", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find slide with the given id", errorMessage);
+            }
+            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete slide " + id, e);
         } 
     }
     

@@ -498,7 +498,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 String tempURI = st.getObject().stringValue();
                 DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
                 descriptorObject.setKey(key);
-                descriptorObject.setName(key.getName());
+                if (key != null) descriptorObject.setName(key.getName());
             } else if (st.getPredicate().equals(hasValue)) {
                 String val = st.getObject().stringValue();
                 ((Descriptor)descriptorObject).setValue(val);
