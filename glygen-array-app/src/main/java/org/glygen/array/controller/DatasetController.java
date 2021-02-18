@@ -3404,7 +3404,7 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteSlideMetadata (
             @ApiParam(required=true, value="id of the slide metadata to delete") 
-            @PathVariable("sampleId") String id, Principal principal) {
+            @PathVariable("slideMetadataId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             metadataRepository.deleteMetadata(id, user);
