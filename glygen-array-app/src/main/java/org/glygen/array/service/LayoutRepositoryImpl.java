@@ -1787,8 +1787,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 "               LIMIT 10");
             
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        if (results.isEmpty())
+        if (results.isEmpty()) {
+            logger.warn("Query: " + queryBuf.toString() + " returned 0 results!");
             return null;
+        }
         else {
             List<Spot> spots = new ArrayList<Spot>();
             for (SparqlEntity result: results) {
