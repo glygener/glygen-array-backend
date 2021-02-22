@@ -11,6 +11,7 @@ public interface GlygenArrayRepository {
 	public static final String uriPrefix = "http://glygen.org/glygenarray/";
 	public static final String uriPrefixPublic = "http://glygen.org/glygenarray/public/";
 	public static final String ontPrefix = "http://purl.org/gadr/data#";
+	public static final String ontPrefix2 = "http://purl.org/gadr/data/";
 
 	/**
 	 * adds a new graph to the repository for the given user
