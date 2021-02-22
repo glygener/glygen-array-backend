@@ -210,7 +210,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI isXor = f.createIRI(templatePrefix + "is_xor");
         IRI hasOrder = f.createIRI(templatePrefix + "has_order");
         
-        IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix + "has_unit_of_measurement");
+        IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix2 + "has_unit_of_measurement");
         
         // get all statements
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);
