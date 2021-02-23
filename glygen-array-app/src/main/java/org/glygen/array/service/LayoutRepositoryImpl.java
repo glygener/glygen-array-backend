@@ -488,7 +488,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
+            if (blockURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
 		Block blockObject = new Block();
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -701,7 +704,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
+            if (blockLayoutURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         featureCache.clear();
@@ -964,7 +970,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
+            if (slideLayoutURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         // check the slideLayoutRepository first, if loadAll = true
@@ -1111,7 +1120,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 
                 IRI publicLayout = f.createIRI(publicLayoutURI);
                 RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicLayout, null, null, defaultGraphIRI);
-                extractFromStatements (statementsPublic, slideLayoutObject, loadAll, null);
+                extractFromStatements (statementsPublic, slideLayoutObject, loadAll, user);
             }
         }
 	}
@@ -1561,7 +1570,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		while (statements.hasNext()) {
             Statement st = statements.next();
             String blockLayoutURI = st.getSubject().stringValue();
-            s.setBlockLayoutId(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1));
+            s.setBlockLayoutUri(blockLayoutURI);
 		}
 		return s;
 	}
@@ -1706,33 +1715,21 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 
     @Override
-    public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockLayoutId,
+    public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String blockLayoutURI,
             UserEntity user) throws SparqlException, SQLException {
         String graph = null;
-        String uriPre = uriPrefix;
         if (user == null) {
             graph = DEFAULT_GRAPH;
-            uriPre = uriPrefixPublic;
         }
         else {
             graph = getGraphForUser(user);
-        }
-         
-        String slideLayoutURI = null;
-        if (slideLayoutId != null) {
-            slideLayoutURI = uriPre + slideLayoutId;
-        }
-        
-        String blockLayoutURI = null;
-        if (blockLayoutId != null) {
-            blockLayoutURI = uriPre + blockLayoutId;
         }
         
         if (slideLayoutURI != null) {
             // load the slide layout from cache and find the features there
             SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity != null) {
-                List<Spot> spots = findSpotInEntity (entity, features, blockLayoutId);
+                List<Spot> spots = findSpotInEntity (entity, features, blockLayoutURI);
                 if (spots != null &&  !spots.isEmpty())
                     return spots;
             }
@@ -1771,9 +1768,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 i++;
             }
             if (blockLayoutURI != null) {
-                where +=  "<" + blockLayoutURI + "> gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
+                if (blockLayoutURI.contains("public")) {
+                    where +=  "<" + blockLayoutURI + ">  template:has_spot ?s .  \n";
+                } else {
+                    where +=  "<" + blockLayoutURI + "> gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
+                }
             } else if (slideLayoutURI != null) {
-                where += "<" + slideLayoutURI + "> gadr:has_public_uri ?ps . ?ps gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
+                if (slideLayoutURI.contains("public")) {
+                    where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
+                } else {
+                    where += "<" + slideLayoutURI + "> gadr:has_public_uri ?ps . ?ps gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
+                }
             }
             where += "}";
         } 
@@ -1806,7 +1811,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
     }
     
-    private List<Spot> findSpotInEntity(SlideLayoutEntity entity, List<Feature> features, String blockId) {
+    private List<Spot> findSpotInEntity(SlideLayoutEntity entity, List<Feature> features, String blockLayoutURI) {
         try {
             SlideLayout s;
             if (slideLayoutCache.get(entity.getUri()) != null)
@@ -1818,7 +1823,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             List<Spot> spots = new ArrayList<>();
             if (s.getBlocks() != null) {
                 for (Block b: s.getBlocks()) {
-                    if (blockId != null && b.getBlockLayout().getId().equals(blockId)) {
+                    if (blockLayoutURI != null && b.getBlockLayout().getUri().equals(blockLayoutURI)) {
                         // check only in this block
                         for (Spot spot: b.getBlockLayout().getSpots()) {
                             boolean match = true;
@@ -1838,7 +1843,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                             }
                         }
                         
-                    } else if (blockId == null) {
+                    } else if (blockLayoutURI == null) {
                         // check this block
                         for (Spot spot: b.getBlockLayout().getSpots()) {
                             boolean match = true;
@@ -1869,7 +1874,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
     @Override
-    public Spot getSpotByPosition (String slideLayoutId, String blockLayoutId, int row, int column, UserEntity user) throws SparqlException, SQLException {
+    public Spot getSpotByPosition (String slideLayoutURI, String blockLayoutURI, int row, int column, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -1879,20 +1884,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         else {
             graph = getGraphForUser(user);
         }
-        String slideLayoutURI = null;
-        if (slideLayoutId != null) {
-            slideLayoutURI = uriPre + slideLayoutId;
-        }
-        String blockLayoutURI = null;
-        if (blockLayoutId != null) {
-            blockLayoutURI = uriPre + blockLayoutId;
-        }
         
         if (slideLayoutURI != null) {
             // load the slide layout from cache and find the spots there
             SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity != null) {
-                Spot spot = findSpotInEntity (entity, row, column, blockLayoutId);
+                Spot spot = findSpotInEntity (entity, row, column, blockLayoutURI);
                 if (spot != null)
                     return spot;
             }
@@ -1948,7 +1945,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
     }
 
-    private Spot findSpotInEntity(SlideLayoutEntity entity, int row, int column, String blockLayoutId) {
+    private Spot findSpotInEntity(SlideLayoutEntity entity, int row, int column, String blockLayoutURI) {
         try {
             SlideLayout s;
             if (slideLayoutCache.get(entity.getUri()) != null)
@@ -1958,14 +1955,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 slideLayoutCache.put(entity.getUri(), s);
             }
             for (Block b: s.getBlocks()) {
-                if (blockLayoutId != null && b.getBlockLayout().getId().equals(blockLayoutId)) {
+                if (blockLayoutURI != null && b.getBlockLayout().getUri().equals(blockLayoutURI)) {
                     // check only in this block
                     for (Spot spot: b.getBlockLayout().getSpots()) {
                         if (spot.getRow() == row && spot.getColumn() == column)
                             return spot;
                     }
                     
-                } else if (blockLayoutId == null) {
+                } else if (blockLayoutURI == null) {
                     // check this block
                     for (Spot spot: b.getBlockLayout().getSpots()) {
                         if (spot.getRow() == row && spot.getColumn() == column)
@@ -1982,22 +1979,19 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
     @Override
-    public String getPublicBlockLayoutId(String blockLayoutId, UserEntity user) throws SQLException, SparqlException {
+    public String getPublicBlockLayoutUri(String blockLayoutUri, UserEntity user) throws SQLException, SparqlException {
         String publicId = null;
         String graph = getGraphForUser(user);
-        
-        String blockLayoutURI = uriPrefix + blockLayoutId;
         
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI userGraphIRI = f.createIRI(graph);
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
-        IRI blockLayout = f.createIRI(blockLayoutURI);
+        IRI blockLayout = f.createIRI(blockLayoutUri);
         
         RepositoryResult<Statement> results = sparqlDAO.getStatements(blockLayout, hasPublicURI, null, userGraphIRI);
         while (results.hasNext()) {
             Statement st = results.next();
-            String publicURI = st.getObject().stringValue();
-            publicId = publicURI.substring(publicURI.lastIndexOf("/")+1);
+            return st.getObject().stringValue();
         }
         
         return publicId;

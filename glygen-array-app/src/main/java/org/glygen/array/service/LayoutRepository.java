@@ -64,10 +64,10 @@ public interface LayoutRepository {
     BlockLayout getBlockLayoutByName(String name, UserEntity user, boolean loadAll)
             throws SparqlException, SQLException;
     Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException;
-    List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutId, String blockId, UserEntity user) throws SparqlException, SQLException;
+    List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutUri, String blockLayoutUri, UserEntity user) throws SparqlException, SQLException;
     Spot getSpotByPosition(String slideLayoutId, String blockId, int row, int column, UserEntity user)
             throws SparqlException, SQLException;
     String makePublic(SlideLayout layout, UserEntity user, Map<String, String> spotIdMap)
             throws SparqlException, SQLException;
-    String getPublicBlockLayoutId(String blockLayoutId, UserEntity user) throws SQLException, SparqlException;
+    String getPublicBlockLayoutUri(String blockLayoutUri, UserEntity user) throws SQLException, SparqlException;
 }

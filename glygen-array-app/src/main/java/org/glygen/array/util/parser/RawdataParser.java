@@ -64,7 +64,7 @@ public class RawdataParser {
                 }
             }
             block.setLayoutData(layoutData);
-            block.setName(b.getBlockLayout().getId());
+            block.setName(b.getBlockLayout().getUri());
             blocks.add(block);
         }
         
@@ -111,7 +111,7 @@ public class RawdataParser {
                         con.setConcentration(spotData.getConcentration());
                         con.setLevelUnit(spotData.getProbeLevelUnit());
                         spot.setConcentration(con);
-                        spot.setBlockLayoutId(block.getName());
+                        spot.setBlockLayoutUri(block.getName());
                         Measurement m = new Measurement();
                         m.setbMean(spotData.getbMean());
                         m.setbMedian(spotData.getbMedian());

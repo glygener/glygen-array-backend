@@ -797,8 +797,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
+            if (linkerURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
+        
 		LinkerType type = getLinkerTypeForLinker(linkerURI, graph);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();

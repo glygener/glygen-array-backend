@@ -297,11 +297,10 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (uri.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -450,7 +449,13 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                         if (loadAll != null && !loadAll) 
                             continue;
                         Value value = stPublic.getObject();
-                        Description descriptor = getDescriptionFromURI (value.stringValue(), DEFAULT_GRAPH);
+                        String descriptorURI = value.stringValue();
+                        Description descriptor;
+                        if (descriptorURI.contains("public")) {
+                            descriptor = getDescriptionFromURI (descriptorURI, DEFAULT_GRAPH);
+                        } else {
+                            descriptor = getDescriptionFromURI (descriptorURI, graph);
+                        }
                         if (descriptor.isGroup()) {
                             metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
                         } else {
@@ -521,12 +526,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 }
             }
         }
-        descriptorObject.setUri(uri);
-        descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-        if (descriptorObject.isGroup()) {
-            ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
-            ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorList);
-            ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorGroupList);
+        if (descriptorObject != null) {
+            descriptorObject.setUri(uri);
+            descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            if (descriptorObject.isGroup()) {
+                ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
+                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorList);
+                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorGroupList);
+            }
         }
         return descriptorObject;
     }

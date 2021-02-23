@@ -539,10 +539,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         Spot existing;
                         if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic())
                             existing = layoutRepository.getSpotByPosition(slideLayoutId, 
-                                spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), null);
+                                spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), null);
                         else 
                             existing = layoutRepository.getSpotByPosition(slideLayoutId, 
-                                    spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), user);
+                                    spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), user);
                         if (existing != null)
                             statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
                         else {
@@ -620,7 +620,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                             } else {
                                 // need to locate the spot
-                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutId(), user);
+                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), user);
                                 if (existing != null && !existing.isEmpty()) {
                                     for (Spot s: existing) {
                                         IRI spotIRI = f.createIRI(s.getUri());
@@ -729,7 +729,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                             statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                         } else {
                             // need to locate the spot
-                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutId(), user);
+                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), user);
                             if (existing != null && !existing.isEmpty()) {
                                 for (Spot s: existing) {
                                     IRI spotIRI = f.createIRI(s.getUri());
@@ -818,10 +818,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        if (graph == null) {
-           return null;
+            if (uri.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -934,23 +934,23 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.setDescription(comment.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, null));            
+                        datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, user));            
                     } else if (stPublic.getPredicate().equals(hasRawData)) {
                         uriValue = stPublic.getObject();
-                        RawData rawData = getRawDataFromURI(uriValue.stringValue(), loadAll, null);
+                        RawData rawData = getRawDataFromURI(uriValue.stringValue(), loadAll, user);
                         datasetObject.getRawDataList().add(rawData);
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, null));        
+                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));        
                     } else if (st.getPredicate().equals(hasPub)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), null));            
+                        datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), user));            
                     } else if (stPublic.getPredicate().equals(hasImage)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, null));      
+                        datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));      
                     } else if (stPublic.getPredicate().equals(hasProcessedData)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, null));            
+                        datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, user));            
                     }
                 }
             }
@@ -1101,11 +1101,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (uriValue.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -1377,11 +1376,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (uri.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         RawData rawDataObject = null;
@@ -1834,11 +1832,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
-            graph = getGraphForUser(user);
-        }
-        
-        if (graph == null) {
-           return null;
+            if (uri.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -1933,8 +1930,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         uriValue = stPublic.getObject();
                         String layoutURI = uriValue.stringValue();
                         String id = layoutURI.substring(layoutURI.lastIndexOf("/")+1);
-                        SlideLayout layout = layoutRepository.getSlideLayoutById(id, null, false);
-                        slideObject.setLayout(layout);   
+                        if (layoutURI.contains("public")) {
+                            SlideLayout layout = layoutRepository.getSlideLayoutById(id, null, false);
+                            slideObject.setLayout(layout);   
+                        } else {
+                            SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, false);
+                            slideObject.setLayout(layout); 
+                        }
                     } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
                         Value label = stPublic.getObject();
                         slideObject.setName(label.stringValue());
@@ -1943,11 +1945,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         slideObject.setDescription(comment.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSlideMetadata)) {
                         Value value = stPublic.getObject();
-                        SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(value.stringValue(), loadAll, null);
+                        SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(value.stringValue(), loadAll, user);
                         slideObject.setMetadata(slideMetadata);
                     } else if (stPublic.getPredicate().equals(printedBy)) {
                         Value value = stPublic.getObject();
-                        Printer metadata = metadataRepository.getPrinterFromURI(value.stringValue(), loadAll, null);
+                        Printer metadata = metadataRepository.getPrinterFromURI(value.stringValue(), loadAll, user);
                         slideObject.setPrinter(metadata);
                     }
                 }
@@ -2151,6 +2153,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (label != null) {
             List<SparqlEntity> results = queryHelper.retrieveByLabel(label, printedSlideTypePredicate, graph);
             if (!results.isEmpty()) {
+                // prefer the private result, if any
                 for (SparqlEntity result: results) {
                     String uri = result.getValue("s");
                     if (!uri.contains("public")) {
@@ -2158,9 +2161,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     }
                 }
                 
-                String uri = results.get(0).getValue("s");
-                if (uri.contains("public"))
-                    return getPrintedSlideFromURI(uri, null);
+                // return the first result
+                for (SparqlEntity result: results) {
+                    String uri = result.getValue("s");
+                    return getPrintedSlideFromURI(uri, user);
+                } 
+                        
             }
         }
         
@@ -2391,15 +2397,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 Spot spot = rawData.getDataMap().get(measurement);
                                 spot.setUri(null);
                                 //fix its blocklayoutid
-                                String blockLayoutUri = blockLayoutUriMap.get(uriPrefix + spot.getBlockLayoutId());
+                                String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
                                 String blockLayoutId = null;
                                 if (blockLayoutUri != null) {
                                     blockLayoutId = blockLayoutUri.substring(blockLayoutUri.lastIndexOf("/")+1);
                                 }
                                 if (blockLayoutId == null)
-                                    blockLayoutId = layoutRepository.getPublicBlockLayoutId(spot.getBlockLayoutId(), user);
+                                    blockLayoutId = layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user);
                                 if (blockLayoutId != null)
-                                    spot.setBlockLayoutId(blockLayoutId);
+                                    spot.setBlockLayoutUri(blockLayoutId);
                                 else {
                                     throw new SparqlException ("public block layout for the spot cannot be set");
                                 }
@@ -2413,7 +2419,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                         for (Spot spot: intensity.getSpots()) {
                                             spot.setUri(null);
                                             //fix its blocklayoutid
-                                            spot.setBlockLayoutId(layoutRepository.getPublicBlockLayoutId(spot.getBlockLayoutId(), user));
+                                            if (!spot.getBlockLayoutUri().contains("public"))
+                                                spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
                                             // fix its features
                                             for (Feature f: spot.getFeatures()) {
                                                 if (!modifiedFeatures.contains(f)) {

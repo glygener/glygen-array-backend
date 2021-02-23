@@ -12,8 +12,8 @@ public class ProcessedResultConfiguration {
     Integer concentrationLevelColumnId;
     
     String resultFileType = "cfg";
-    String slideLayoutId;
-    String blockLayoutId = null;
+    String slideLayoutUri;
+    String blockLayoutUri = null;
     
     
     /**
@@ -121,27 +121,27 @@ public class ProcessedResultConfiguration {
         return concentrationLevelColumnId;
     }
     /**
-     * @return the slideLayoutId
+     * @return the slideLayoutUri
      */
-    public String getSlideLayoutId() {
-        return slideLayoutId;
+    public String getSlideLayoutUri() {
+        return slideLayoutUri;
     }
     /**
-     * @param slideLayoutId the slideLayoutId to set
+     * @param slideLayoutUri the slideLayoutUri to set
      */
-    public void setSlideLayoutId(String slideLayoutId) {
-        this.slideLayoutId = slideLayoutId;
+    public void setSlideLayoutUri(String slideLayoutURI) {
+        this.slideLayoutUri = slideLayoutURI;
     }
     /**
-     * @return the blockId
+     * @return the blockLayoutUri
      */
-    public String getBlockLayoutId() {
-        return blockLayoutId;
+    public String getBlockLayoutUri() {
+        return blockLayoutUri;
     }
     /**
-     * @param blockId the blockId to set
+     * @param blockLayoutUri the blockLayoutUri to set
      */
-    public void setBlockLayoutId(String blockId) {
-        this.blockLayoutId = blockId;
+    public void setBlockLayoutUri(String blockLayoutUri) {
+        this.blockLayoutUri = blockLayoutUri;
     }
 }

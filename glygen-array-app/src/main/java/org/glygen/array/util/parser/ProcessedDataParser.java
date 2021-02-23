@@ -247,10 +247,10 @@ public class ProcessedDataParser {
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
                                 features.add(feature);
-                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockLayoutId(), user);
+                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
                                 if (spots != null) {
                                     for (Spot spot: spots) {
-                                        spot.setBlockLayoutId(config.getBlockLayoutId());
+                                        spot.setBlockLayoutUri(config.getBlockLayoutUri());
                                     }
                                 }
                                 intensity.setSpots(spots);
@@ -258,10 +258,10 @@ public class ProcessedDataParser {
                         } else {
                             List<Feature> features = new ArrayList<Feature>();
                             features.add(feature);
-                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutId(), config.getBlockLayoutId(), user);
+                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
                             if (spots != null) {
                                 for (Spot spot: spots) {
-                                    spot.setBlockLayoutId(config.getBlockLayoutId());
+                                    spot.setBlockLayoutUri(config.getBlockLayoutUri());
                                 }
                             }
                             intensity.setSpots(spots);

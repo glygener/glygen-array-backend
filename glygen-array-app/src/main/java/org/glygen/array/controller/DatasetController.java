@@ -587,7 +587,7 @@ public class DatasetController {
             for (Image image: slide.getImages()) {
                 for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
                     String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata().getId(), 
-                            processedData.getMethod().getName(), p);
+                            processedData.getMethod().getName(), slide, p);
                     processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                 }
                 image.getRawData().setSlide(slide);
@@ -800,8 +800,10 @@ public class DatasetController {
             try {
                 // need to load the full layout before parsing
                 SlideLayout fullLayout = null;
+                String uriPre = ArrayDatasetRepositoryImpl.uriPrefix;
                 if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic()) {
                     fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), null);
+                    uriPre = ArrayDatasetRepositoryImpl.uriPrefixPublic;
                 } else {
                     fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), user);
                 }
@@ -812,7 +814,7 @@ public class DatasetController {
                         Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
                         for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
                             for (String blockId: rawData.getSlide().getBlocksUsed()) { 
-                                if (entry.getValue().getBlockLayoutId().equals(blockId)) {
+                                if (entry.getValue().getBlockLayoutUri().equals(uriPre + blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
                                     break;
                                 }
@@ -842,7 +844,7 @@ public class DatasetController {
                         throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
                     } 
                 });
-                rawDataURI.get(2000, TimeUnit.MILLISECONDS);
+                rawDataURI.get(1000, TimeUnit.MILLISECONDS);
             } catch (IllegalArgumentException e) {
                 rawData.setStatus(FutureTaskStatus.ERROR);
                 if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
@@ -1508,7 +1510,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Import processed data results from uploaded excel file")
+    /*@ApiOperation(value = "Import processed data results from uploaded excel file")
     @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -1517,7 +1519,7 @@ public class DatasetController {
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
             @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+            @ApiResponse(code=500, message="Internal Server Error")})*/
     public String addProcessedDataFromExcel (
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
@@ -1531,6 +1533,7 @@ public class DatasetController {
             @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
             @RequestParam("methodName")
             String methodName,
+            Slide slide,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -1586,7 +1589,7 @@ public class DatasetController {
         try {
             CompletableFuture<List<Intensity>> intensities = null;
             try {
-                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, user);
+                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, slide, user);
                 intensities.whenComplete((intensity, e) -> {
                     try {
                         String uri = processedData.getUri();
@@ -1609,7 +1612,7 @@ public class DatasetController {
                         logger.error("Could not save the processedData", e1);
                     } 
                 });
-                processedData.setIntensity(intensities.get(20000, TimeUnit.MILLISECONDS));
+                processedData.setIntensity(intensities.get(5000, TimeUnit.MILLISECONDS));
             } catch (IllegalArgumentException e) {
                 throw e;
             } catch (TimeoutException e) {
@@ -1679,6 +1682,17 @@ public class DatasetController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
+        ArrayDataset dataset;
+        try {
+            // check if the dataset with the given id exists
+            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
+        
         String uri = processedData.getUri();
         if (uri == null && processedData.getId() != null) {
             uri = GlygenArrayRepositoryImpl.uriPrefix + processedData.getId();
@@ -1735,7 +1749,7 @@ public class DatasetController {
                 
             CompletableFuture<List<Intensity>> intensities = null;
             try {
-                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, user);
+                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, dataset.getSlides().get(0), user);
                 intensities.whenComplete((intensity, e) -> {
                     try {
                         String processedURI = processedData.getUri();

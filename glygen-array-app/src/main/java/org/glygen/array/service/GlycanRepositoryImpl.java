@@ -533,14 +533,14 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		Glycan glycanObject = null;
 		
 		String graph = null;
-		if (user == null)
-		    graph = DEFAULT_GRAPH;
-		else {
-		    graph = getGraphForUser(user);
-		}
-		if (graph == null) {
-		   return null;
-		}
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            if (glycanURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
+        }
 		
 		GlycanType type = getGlycanTypeForGlycan(glycanURI, graph);
 		

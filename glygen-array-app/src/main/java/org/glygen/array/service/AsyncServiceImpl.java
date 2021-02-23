@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -12,13 +11,12 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.SlideLayout;
-import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Intensity;
-import org.glygen.array.persistence.rdf.data.Measurement;
+import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
-import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.view.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +56,8 @@ public class AsyncServiceImpl implements AsyncService {
     @Async("GlygenArrayAsyncExecutor")
     public CompletableFuture<List<Intensity>> parseProcessDataFile (
             String datasetId,
-            FileWrapper file, 
+            FileWrapper file,
+            Slide slide,
             UserEntity user) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -103,6 +102,9 @@ public class AsyncServiceImpl implements AsyncService {
                             errorMessage.addError(new ObjectError ("format", "NotValid"));
                             throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
                         }
+                        // find the slidelayoutid (format name --> slide layout name)
+                        
+                        config.setSlideLayoutUri(slide.getPrintedSlide().getLayout().getUri());
                         intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
                                 config, user);
                     } catch (SparqlException | SQLException e) {
@@ -148,13 +150,6 @@ public class AsyncServiceImpl implements AsyncService {
             config.setSheetNumber(0);
             config.setStDevColumnId(31);
             config.setStartRow(1);
-            // find the slidelayoutid (format name --> slide layout name)
-            SlideLayout layout = layoutRepository.getSlideLayoutByName(fileFormat, user);
-            if (layout != null) {
-                config.setSlideLayoutId(layout.getId());
-            } else {
-                return null;
-            }
         } else {
             return null;
         }
