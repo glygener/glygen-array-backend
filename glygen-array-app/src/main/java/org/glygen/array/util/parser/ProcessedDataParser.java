@@ -216,7 +216,7 @@ public class ProcessedDataParser {
                         String key = glycan.getUri() + linker.getUri();
                         Feature feature = featureCache.get(key);
                         if (feature == null) {
-                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
                             if (feature != null)
                                 featureCache.put(key, feature);
                         }
@@ -232,7 +232,7 @@ public class ProcessedDataParser {
                                 key = glycan.getUri() + linker.getUri();
                                 feature = featureCache.get(key);
                                 if (feature == null) {
-                                    feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, user);
+                                    feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
                                     if (feature != null)
                                         featureCache.put(key, feature);
                                 }

@@ -1797,6 +1797,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Override
     public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException {
+        return getPrintedSlideByUser(user, offset, limit, field, order, searchValue, true);
+    }
+    
+    @Override
+    public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
         List<PrintedSlide> slides = new ArrayList<>();
         
         String graph = null;
@@ -1809,7 +1815,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
-                PrintedSlide slide = getPrintedSlideFromURI(uri, user);
+                PrintedSlide slide = getPrintedSlideFromURI(uri, loadAll, user);
                 if (slide != null)
                     slides.add(slide);    
             }

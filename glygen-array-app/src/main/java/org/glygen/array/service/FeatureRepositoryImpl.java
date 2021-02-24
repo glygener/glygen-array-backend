@@ -605,7 +605,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	}
 
     @Override
-    public Feature getFeatureByGlycanLinker(Glycan glycan, Linker linker, UserEntity user)
+    public Feature getFeatureByGlycanLinker(Glycan glycan, Linker linker, String slideLayoutURI, String blockLayoutURI, UserEntity user)
             throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
@@ -619,13 +619,44 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         String where = " { " + 
                 "                   ?f gadr:has_molecule <" + glycan.getUri() +"> . \n" +
                 "                   ?f gadr:has_linker <" + linker.getUri() + "> . \n";
+        
+        if (blockLayoutURI != null) {
+            if (blockLayoutURI.contains("public")) {
+                where +=  "<" + blockLayoutURI + "> . template:has_spot ?s . ?s gadr:has_feature ?pf . ?f gadr:has_public_uri ?pf . \n";
+            } else {
+                where +=  "<" + blockLayoutURI + "> template:has_spot ?s . ?s gadr:has_feature ?f . \n";
+            }
+        } else if (slideLayoutURI != null) {
+            if (slideLayoutURI.contains("public")) {
+                where += "<" + slideLayoutURI + ">  gadr:has_block ?b . ?b template:has_block_layout ?bl . "
+                        + "?bl template:has_spot ?s .  ?s gadr:has_feature ?pf . ?f gadr:has_public_uri ?pf . \n";
+            } else {
+                where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . "
+                        + "?bl template:has_spot ?s .  ?s gadr:has_feature ?f . \n";
+            }
+        }
+        
         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH)) {
             // check if the user's private graph has this glycan
             fromString += "FROM <" + graph + ">\n";
             where += "              ?f gadr:has_date_addedtolibrary ?d .\n }";
             where += "  UNION { ?f gadr:has_date_addedtolibrary ?d .\n" 
                     + " ?f gadr:has_public_uri ?pf . ?pf gadr:has_molecule <" + glycan.getUri() +"> . "
-                    + " ?f gadr:has_public_uri ?pf . ?pf gadr:has_linker <" + linker.getUri() + "> . \n}";
+                    + " ?pf gadr:has_linker <" + linker.getUri() + "> . \n";
+            if (blockLayoutURI != null) {
+                if (blockLayoutURI.contains("public")) {
+                    where +=  "<" + blockLayoutURI + "> template:has_spot ?s . ?s gadr:has_feature ?pf . \n";
+                } else {
+                    where +=  "<" + blockLayoutURI + "> template:has_spot ?s . ?s gadr:has_feature ?f . \n";
+                }
+            } else if (slideLayoutURI != null) {
+                if (slideLayoutURI.contains("public")) {
+                    where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  ?s gadr:has_feature ?pf . \n";
+                } else {
+                    where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  ?s gadr:has_feature ?f . \n";
+                }
+            } 
+            where += "}"; // close union
             
         } else {
             where += "}";

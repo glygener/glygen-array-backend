@@ -85,6 +85,8 @@ public interface ArrayDatasetRepository {
             String field, int order, String searchValue) throws SparqlException, SQLException;
     int getIntensityDataListCount(String processedDataId, UserEntity user) throws SparqlException, SQLException;
     Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException;
     
     
 }
