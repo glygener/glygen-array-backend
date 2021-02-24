@@ -1,7 +1,9 @@
 package org.glygen.array.controller;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -82,7 +85,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -91,6 +98,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -1628,6 +1636,22 @@ public class DatasetController {
                     datasetRepository.updateStatus (uri, processedData, user);
                     return id;
                 }
+            } catch (CompletionException e) {
+                if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException) {
+                    if (e.getCause().getCause() != null && e.getCause().getCause() instanceof ErrorMessage) {
+                        processedData.setError(errorMessage);
+                    } else {
+                        errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
+                        processedData.setError(errorMessage);
+                    }
+                } else {
+                    errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
+                    processedData.setError(errorMessage);
+                }
+                processedData.setStatus(FutureTaskStatus.ERROR);
+                if (processedData.getUri() != null)
+                    datasetRepository.updateStatus (processedData.getUri(), processedData, user);
+                return processedData.getId();
             }
             
             //TODO do we ever come to this ??
@@ -2437,6 +2461,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load slide layout details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
         PrintedSlideListView result = new PrintedSlideListView();
@@ -2460,13 +2486,13 @@ public class DatasetController {
             }
             
             int total = datasetRepository.getPrintedSlideCountByUser(user);
-            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue);
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue, loadAll);
             List<PrintedSlide> totalResultList = new ArrayList<PrintedSlide>();
             totalResultList.addAll(resultList);
             
             int totalPublic = datasetRepository.getPrintedSlideCountByUser(null);
             
-            List<PrintedSlide> publicResultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue);
+            List<PrintedSlide> publicResultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue, loadAll);
             for (PrintedSlide slide: publicResultList) {
                 boolean duplicate = false;
                 for (PrintedSlide slide2: resultList) {
@@ -4354,6 +4380,14 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
             } else {
+                
+                // check if the dataset is already public
+                if (dataset.getIsPublic()) {
+                    // already been made public
+                    errorMessage.addError(new ObjectError("datasetId", "This dataset is already public"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("This dataset is already public!", errorMessage); 
+                }
                 // check if the array dataset is ready to be made public
                 if (dataset.getStatus() == FutureTaskStatus.PROCESSING) {
                     // check if enough time has passed to restart processing
@@ -4459,6 +4493,35 @@ public class DatasetController {
         } catch (Exception e) {
             throw new GlycanRepositoryException("Array dataset cannot be made public for user " + p.getName(), e);
         }
-        
-     }
+    }
+    
+    
+    @Async("GlygenArrayAsyncExecutor")
+    @ApiOperation(value = "Download the given file")
+    @RequestMapping(value="/download", method = RequestMethod.POST)
+    public ResponseEntity<StreamingResponseBody> downloadFile(
+            @ApiParam(required=true, value="file wrapper with the folder and identifier of the file to be downloaded") 
+            @RequestBody FileWrapper fileWrapper) {
+          File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
+          if (!file.exists()) {
+              ErrorMessage errorMessage = new ErrorMessage();
+              errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+              errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
+              throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
+          }
+          try {
+              StreamingResponseBody responseBody = outputStream -> {
+                 Files.copy(file.toPath(), outputStream);
+              };
+              return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileWrapper.getOriginalName())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(responseBody);
+          } catch (Exception e) {
+              ErrorMessage errorMessage = new ErrorMessage();
+              errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+              errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
+              throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
+          }
+    }
 }

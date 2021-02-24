@@ -1145,7 +1145,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         if (existingURI == null) {
             // check by label if any
-            if (linker.getName() != null && !linker.getName().isEmpty()) {
+            // ALLOW DUPLICATE NAMES IN PUBLIC REPOSITORY!!! Feb 23rd, 2021
+            /*if (linker.getName() != null && !linker.getName().isEmpty()) {
                 List <SparqlEntity> results = retrieveLinkerByLabel(linker.getName(), null);
                 if (results.isEmpty()) {
                     // make it public
@@ -1160,13 +1161,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     //throw new GlycanExistsException("Linker with name " + linker.getName() + " already exists in public graph");
                     return null;
                 }
-            } else {
+            } else {*/
                 // make it public
                 deleteByURI(uriPrefix + linker.getId(), graph);
                 updateLinkerInGraph(linker, graph);
                 // need to create the linker in the public graph, link the user's version to public one
                 return addPublicLinker(linker, null, graph, user.getUsername());
-            }
+            //}
         } else {
             deleteByURI(uriPrefix + linker.getId(), graph);
             updateLinkerInGraph(linker, graph);

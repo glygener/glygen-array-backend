@@ -3083,10 +3083,17 @@ public class GlygenArrayController {
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("linkerId", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("There is no linker with the given id in user's repository", errorMessage); 
+                throw new IllegalArgumentException("There is no slide layout with the given id in user's repository", errorMessage); 
+            }
+            if (layout.getIsPublic()) {
+                // already been made public
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("layoutId", "This slide layout is already public"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("This slide layout is already public!", errorMessage); 
             }
             String layoutURI = layoutRepository.makePublic (layout, user, new HashMap<String, String>()); 
-            //TODO what to do with glycan images???
             return layoutURI.substring(layoutURI.lastIndexOf("/")+1);
         } catch (GlycanExistsException e) {
             ErrorMessage errorMessage = new ErrorMessage();
