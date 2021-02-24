@@ -296,7 +296,7 @@ public class ProcessedDataParser {
                     error.addError(o);
                 }
             }
-            logger.error("Error parsing the excel file", error);
+            logger.error("Error parsing the excel file" + error.toString());
             throw new IllegalArgumentException(error.getMessage(), error);
         }
     }

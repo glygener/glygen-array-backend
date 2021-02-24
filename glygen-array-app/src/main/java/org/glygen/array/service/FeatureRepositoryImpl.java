@@ -669,8 +669,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 "               }\n" );
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        if (results.isEmpty())
+        if (results.isEmpty()) {
+            logger.warn ("query: " + queryBuf.toString() + " returned 0 results!");
             return null;
+        }
         else {
             String featureURI = results.get(0).getValue("f");
             if (featureURI.contains("public")) {
