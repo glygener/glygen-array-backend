@@ -983,7 +983,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 try {
                     SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
                     return s;
-                } catch (IOException e) {
+                } catch (Exception e) {
                     logger.error("Could not read slide layout from serialized value", e);
                 }
             }
@@ -1237,13 +1237,13 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public String makePublic(SlideLayout layout, UserEntity user, Map<String, String> uriMapOldToNew) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-        String existingURI = null;
+       /* String existingURI = null;
         
         if (layout.getName() != null && !layout.getName().isEmpty()) {
         	SlideLayout existing = getSlideLayoutByName(layout.getName(), null);
         	if (existing != null)
         		existingURI = existing.getUri();
-        }
+        }*/
         
         Map<String, Glycan > processedGlycans = new HashMap<>();
         Map<String, Linker > processedLinkers = new HashMap<>();
@@ -1251,7 +1251,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         blockLayoutCache.clear();
         slideLayoutCache.clear();
         
-        if (existingURI == null) {
+       // if (existingURI == null) {  // allow duplicate names in the public repository - Feb 23rd 2021
         	// first make other components public
             List<Block> publicBlocks = new ArrayList<Block>();
         	for (Block block: layout.getBlocks()) {
@@ -1303,13 +1303,13 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 slideLayoutRepository.delete(entity);
             // need to create the slidelayout in the public graph, link the user's version to public one
             return addPublicSlideLayout(layout, null, graph, user.getUsername()); 
-        } else {
+       /* } else {
             //TODO this part seems unnecessary?? why should we delete again and create again in the private one
             deleteByURI(uriPrefix + layout.getId(), graph);
             updateSlideLayoutInGraph(layout, graph);
             // need to link the user's version to the existing URI
             return addPublicSlideLayout(layout, existingURI, graph, user.getUsername());
-        }
+        }*/
 	}
 
 	private String addPublicBlock(Block block, String graph) throws SparqlException {
