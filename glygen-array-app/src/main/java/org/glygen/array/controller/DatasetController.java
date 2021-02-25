@@ -1619,6 +1619,20 @@ public class DatasetController {
                     } catch (SparqlException | SQLException e1) {
                         logger.error("Could not save the processedData", e1);
                     } 
+                }).exceptionally(ex -> { 
+                    if (ex.getCause() != null && ex.getCause() instanceof IllegalArgumentException) {
+                        if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof ErrorMessage) {
+                            processedData.setError(errorMessage);
+                        } else {
+                            errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + ex.getMessage()));
+                            processedData.setError(errorMessage);
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + ex.getMessage()));
+                        processedData.setError(errorMessage);
+                    }
+                    processedData.setStatus(FutureTaskStatus.ERROR);
+                    return null;
                 });
                 processedData.setIntensity(intensities.get(5000, TimeUnit.MILLISECONDS));
             } catch (IllegalArgumentException e) {
@@ -1636,23 +1650,7 @@ public class DatasetController {
                     datasetRepository.updateStatus (uri, processedData, user);
                     return id;
                 }
-            } catch (CompletionException e) {
-                if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException) {
-                    if (e.getCause().getCause() != null && e.getCause().getCause() instanceof ErrorMessage) {
-                        processedData.setError(errorMessage);
-                    } else {
-                        errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
-                        processedData.setError(errorMessage);
-                    }
-                } else {
-                    errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
-                    processedData.setError(errorMessage);
-                }
-                processedData.setStatus(FutureTaskStatus.ERROR);
-                if (processedData.getUri() != null)
-                    datasetRepository.updateStatus (processedData.getUri(), processedData, user);
-                return processedData.getId();
-            }
+            } 
             
             //TODO do we ever come to this ??
             if (intensities != null && intensities.isDone()) {
@@ -1671,7 +1669,6 @@ public class DatasetController {
                 String uri = datasetRepository.addProcessedData(processedData, datasetId, user);  
                 processedData.setUri(uri);
                 String id = uri.substring(uri.lastIndexOf("/")+1);
-                processedData.setStatus(FutureTaskStatus.PROCESSING);
                 datasetRepository.updateStatus (uri, processedData, user);
                 return id;
             }
