@@ -3,6 +3,9 @@ package org.glygen.array.controller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -20,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import javax.xml.ws.Response;
 
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
@@ -84,6 +88,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -4499,33 +4504,38 @@ public class DatasetController {
         }
     }
     
-    
-    @Async("GlygenArrayAsyncExecutor")
     @ApiOperation(value = "Download the given file")
-    @RequestMapping(value="/download", method = RequestMethod.POST)
-    public ResponseEntity<StreamingResponseBody> downloadFile(
+    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream"})
+    public ResponseEntity<Resource> downloadFile(
             @ApiParam(required=true, value="file wrapper with the folder and identifier of the file to be downloaded") 
-            @RequestBody FileWrapper fileWrapper) {
-          File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
-          if (!file.exists()) {
-              ErrorMessage errorMessage = new ErrorMessage();
-              errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-              errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
-              throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
-          }
-          try {
-              StreamingResponseBody responseBody = outputStream -> {
-                 Files.copy(file.toPath(), outputStream);
-              };
-              return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileWrapper.getOriginalName())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(responseBody);
-          } catch (Exception e) {
-              ErrorMessage errorMessage = new ErrorMessage();
-              errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-              errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
-              throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
-          }
+            @RequestBody FileWrapper fileWrapper, Principal p) {
+        
+        // check to see if the user can access this file
+        String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("fileWrapper", "This file does not belong to this user. Cannot be downloaded!"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
+            } 
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Array dataset cannot be loaded for user " + p.getName(), e);
+        }
+        File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
+        if (!file.exists()) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
+            throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
+        }
+  
+        Resource resource = resourceLoader.getResource("file:" + file.getAbsolutePath());
+        return ResponseEntity.ok()
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileWrapper.getOriginalName() + "\"")
+              .body(resource);
     }
 }

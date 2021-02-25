@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -29,6 +31,7 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
@@ -67,9 +70,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -134,6 +142,9 @@ public class PublicGlygenArrayController {
     
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
+    
+    @Autowired
+    ResourceLoader resourceLoader;
     
     @ApiOperation(value = "List all public glycans")
     @RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
@@ -1427,5 +1438,39 @@ public class PublicGlygenArrayController {
         
         return null;
         
+    }
+    
+    @ApiOperation(value = "Download the given file")
+    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream"})
+    public ResponseEntity<Resource> downloadFile(
+            @ApiParam(required=true, value="file wrapper with the folder and identifier of the file to be downloaded") 
+            @RequestBody FileWrapper fileWrapper) {
+        
+        // check to see if the user can access this file
+        String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
+        try {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, null);
+            if (dataset == null || !dataset.getIsPublic()) {
+                errorMessage.addError(new ObjectError("fileWrapper", "This file is not public. Cannot be downloaded!"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("There is no dataset with the given id", errorMessage); 
+            } 
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Array dataset cannot be loaded", e);
+        }
+        File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
+        if (!file.exists()) {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
+            throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
+        }
+  
+        Resource resource = resourceLoader.getResource("file:" + file.getAbsolutePath());
+        return ResponseEntity.ok()
+              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileWrapper.getOriginalName() + "\"")
+              .body(resource);
     }
 }
