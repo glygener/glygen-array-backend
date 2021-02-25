@@ -341,7 +341,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         Literal date = f.createLiteral(new Date());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI graphIRI = f.createIRI(graph);
-        Literal label = name == null ? null : f.createLiteral(name);
+        Literal label = name == null || name.isEmpty() ? null : f.createLiteral(name);
         Literal comment = description == null ? null : f.createLiteral(description);
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);

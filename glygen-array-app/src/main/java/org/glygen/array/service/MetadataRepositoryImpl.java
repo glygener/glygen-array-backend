@@ -340,126 +340,132 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             } else if (typePredicate.equals(assayTypePredicate)) {
                 metadataObject = new AssayMetadata();
                 templatePredicate = hasAssayTemplatePredicate;
-            } else if (typePredicate.equals(spotMetadataTypePredicate)) {
+            } else if (typePredicate.equals(spotMetadataTypePredicate) || typePredicate.equals(spotMetadataValueTypePredicate)) {
                 metadataObject = new SpotMetadata();
                 templatePredicate = hasSpotMetadataTemplatePredicate;
-            }
-            metadataObject.setUri(uri);
-            metadataObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-            metadataObject.setDescriptors(new ArrayList<Descriptor>());
-            metadataObject.setDescriptorGroups(new ArrayList<DescriptorGroup>());
-            if (user != null) {
-                Creator owner = new Creator ();
-                owner.setUserId(user.getUserId());
-                owner.setName(user.getUsername());
-                metadataObject.setUser(owner);
             } else {
-                metadataObject.setPublic(true);
+                logger.error("unknown template predicate" + typePredicate);
             }
-            hasTemplate = f.createIRI(templatePredicate);
+            if (metadataObject != null) {
+                metadataObject.setUri(uri);
+                metadataObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+                metadataObject.setDescriptors(new ArrayList<Descriptor>());
+                metadataObject.setDescriptorGroups(new ArrayList<DescriptorGroup>());
+                if (user != null) {
+                    Creator owner = new Creator ();
+                    owner.setUserId(user.getUserId());
+                    owner.setName(user.getUsername());
+                    metadataObject.setUser(owner);
+                } else {
+                    metadataObject.setPublic(true);
+                }
+                hasTemplate = f.createIRI(templatePredicate);
+            }
         } 
         
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            if (st.getPredicate().equals(RDFS.LABEL)) {
-                Value label = st.getObject();
-                metadataObject.setName(label.stringValue());
-            } else if (st.getPredicate().equals(createdBy)) {
-                Value label = st.getObject();
-                Creator creator = new Creator();
-                creator.setName(label.stringValue());
-                metadataObject.setUser(creator);
-            } else if (st.getPredicate().equals(RDFS.COMMENT)) {
-                Value comment = st.getObject();
-                metadataObject.setDescription(comment.stringValue());
-            } else if (st.getPredicate().equals(hasCreatedDate)) {
-                Value value = st.getObject();
-                if (value instanceof Literal) {
-                    Literal literal = (Literal)value;
-                    XMLGregorianCalendar calendar = literal.calendarValue();
-                    Date date = calendar.toGregorianCalendar().getTime();
-                    metadataObject.setDateCreated(date);
-                }
-            } else if (st.getPredicate().equals(hasModifiedDate)) {
-                Value value = st.getObject();
-                if (value instanceof Literal) {
-                    Literal literal = (Literal)value;
-                    XMLGregorianCalendar calendar = literal.calendarValue();
-                    Date date = calendar.toGregorianCalendar().getTime();
-                    metadataObject.setDateModified(date);
-                }
-            } else if (st.getPredicate().equals(hasAddedToLibrary)) {
-                Value value = st.getObject();
-                if (value instanceof Literal) {
-                    Literal literal = (Literal)value;
-                    XMLGregorianCalendar calendar = literal.calendarValue();
-                    Date date = calendar.toGregorianCalendar().getTime();
-                    metadataObject.setDateAddedToLibrary(date);
-                }
-            } else if (st.getPredicate().equals(hasTemplate)) {
-                if (loadAll != null && !loadAll) 
-                    continue;
-                Value uriValue = st.getObject();
-                String templateuri = uriValue.stringValue();
-                String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
-                metadataObject.setTemplateType(id);  
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri);
-                if (template != null)
-                    metadataObject.setTemplate(template.getName());
-            } else if (st.getPredicate().equals(hasDescriptor)) {
-                if (loadAll != null && !loadAll) 
-                    continue;
-                Value value = st.getObject();
-                Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
-                if (descriptor.isGroup()) {
-                    metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
-                } else {
-                    metadataObject.getDescriptors().add((Descriptor) descriptor);
-                }
-            } else if (st.getPredicate().equals(hasInternalId)) {
-                if (metadataObject instanceof Sample) {
-                    ((Sample) metadataObject).setInternalId(st.getObject().stringValue());
-                }
-            } else if (st.getPredicate().equals(hasPublicURI)) {
-                // need to retrieve additional information from DEFAULT graph
-                // that means the sample is already public
-                metadataObject.setPublic(true);  
-                Value uriValue = st.getObject();
-                String publicURI = uriValue.stringValue();
-                IRI publicIRI = f.createIRI(publicURI);
-                RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicIRI, null, null, defaultGraphIRI);
-                while (statementsPublic.hasNext()) {
-                    Statement stPublic = statementsPublic.next();
-                    if (stPublic.getPredicate().equals(hasTemplate)) {
-                        if (loadAll != null && !loadAll) 
-                            continue;
-                        uriValue = stPublic.getObject();
-                        String id = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("#")+1);
-                        metadataObject.setTemplateType(id);     
-                        MetadataTemplate template = templateRepository.getTemplateFromURI(uriValue.stringValue());
-                        if (template != null)
-                            metadataObject.setTemplate(template.getName());
-                    } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
-                        Value label = stPublic.getObject();
-                        metadataObject.setName(label.stringValue());
-                    }  else if (stPublic.getPredicate().equals(RDFS.COMMENT)) {
-                        Value comment = stPublic.getObject();
-                        metadataObject.setDescription(comment.stringValue());
-                    } else if (stPublic.getPredicate().equals(hasDescriptor)) {
-                        if (loadAll != null && !loadAll) 
-                            continue;
-                        Value value = stPublic.getObject();
-                        String descriptorURI = value.stringValue();
-                        Description descriptor;
-                        if (descriptorURI.contains("public")) {
-                            descriptor = getDescriptionFromURI (descriptorURI, DEFAULT_GRAPH);
-                        } else {
-                            descriptor = getDescriptionFromURI (descriptorURI, graph);
-                        }
-                        if (descriptor.isGroup()) {
-                            metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
-                        } else {
-                            metadataObject.getDescriptors().add((Descriptor) descriptor);
+        if (metadataObject != null) {
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                if (st.getPredicate().equals(RDFS.LABEL)) {
+                    Value label = st.getObject();
+                    metadataObject.setName(label.stringValue());
+                } else if (st.getPredicate().equals(createdBy)) {
+                    Value label = st.getObject();
+                    Creator creator = new Creator();
+                    creator.setName(label.stringValue());
+                    metadataObject.setUser(creator);
+                } else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                    Value comment = st.getObject();
+                    metadataObject.setDescription(comment.stringValue());
+                } else if (st.getPredicate().equals(hasCreatedDate)) {
+                    Value value = st.getObject();
+                    if (value instanceof Literal) {
+                        Literal literal = (Literal)value;
+                        XMLGregorianCalendar calendar = literal.calendarValue();
+                        Date date = calendar.toGregorianCalendar().getTime();
+                        metadataObject.setDateCreated(date);
+                    }
+                } else if (st.getPredicate().equals(hasModifiedDate)) {
+                    Value value = st.getObject();
+                    if (value instanceof Literal) {
+                        Literal literal = (Literal)value;
+                        XMLGregorianCalendar calendar = literal.calendarValue();
+                        Date date = calendar.toGregorianCalendar().getTime();
+                        metadataObject.setDateModified(date);
+                    }
+                } else if (st.getPredicate().equals(hasAddedToLibrary)) {
+                    Value value = st.getObject();
+                    if (value instanceof Literal) {
+                        Literal literal = (Literal)value;
+                        XMLGregorianCalendar calendar = literal.calendarValue();
+                        Date date = calendar.toGregorianCalendar().getTime();
+                        metadataObject.setDateAddedToLibrary(date);
+                    }
+                } else if (st.getPredicate().equals(hasTemplate)) {
+                    if (loadAll != null && !loadAll) 
+                        continue;
+                    Value uriValue = st.getObject();
+                    String templateuri = uriValue.stringValue();
+                    String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
+                    metadataObject.setTemplateType(id);  
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri);
+                    if (template != null)
+                        metadataObject.setTemplate(template.getName());
+                } else if (st.getPredicate().equals(hasDescriptor)) {
+                    if (loadAll != null && !loadAll) 
+                        continue;
+                    Value value = st.getObject();
+                    Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
+                    if (descriptor.isGroup()) {
+                        metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
+                    } else {
+                        metadataObject.getDescriptors().add((Descriptor) descriptor);
+                    }
+                } else if (st.getPredicate().equals(hasInternalId)) {
+                    if (metadataObject instanceof Sample) {
+                        ((Sample) metadataObject).setInternalId(st.getObject().stringValue());
+                    }
+                } else if (st.getPredicate().equals(hasPublicURI)) {
+                    // need to retrieve additional information from DEFAULT graph
+                    // that means the sample is already public
+                    metadataObject.setPublic(true);  
+                    Value uriValue = st.getObject();
+                    String publicURI = uriValue.stringValue();
+                    IRI publicIRI = f.createIRI(publicURI);
+                    RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicIRI, null, null, defaultGraphIRI);
+                    while (statementsPublic.hasNext()) {
+                        Statement stPublic = statementsPublic.next();
+                        if (stPublic.getPredicate().equals(hasTemplate)) {
+                            if (loadAll != null && !loadAll) 
+                                continue;
+                            uriValue = stPublic.getObject();
+                            String id = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("#")+1);
+                            metadataObject.setTemplateType(id);     
+                            MetadataTemplate template = templateRepository.getTemplateFromURI(uriValue.stringValue());
+                            if (template != null)
+                                metadataObject.setTemplate(template.getName());
+                        } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
+                            Value label = stPublic.getObject();
+                            metadataObject.setName(label.stringValue());
+                        }  else if (stPublic.getPredicate().equals(RDFS.COMMENT)) {
+                            Value comment = stPublic.getObject();
+                            metadataObject.setDescription(comment.stringValue());
+                        } else if (stPublic.getPredicate().equals(hasDescriptor)) {
+                            if (loadAll != null && !loadAll) 
+                                continue;
+                            Value value = stPublic.getObject();
+                            String descriptorURI = value.stringValue();
+                            Description descriptor;
+                            if (descriptorURI.contains("public")) {
+                                descriptor = getDescriptionFromURI (descriptorURI, DEFAULT_GRAPH);
+                            } else {
+                                descriptor = getDescriptionFromURI (descriptorURI, graph);
+                            }
+                            if (descriptor.isGroup()) {
+                                metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
+                            } else {
+                                metadataObject.getDescriptors().add((Descriptor) descriptor);
+                            }
                         }
                     }
                 }
@@ -1274,7 +1280,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     public SpotMetadata getSpotMetadataValueFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException {
         SpotMetadata metadata = (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, loadAll, user);
-        metadata.setIsTemplate(false);
+        if (metadata != null) metadata.setIsTemplate(false);
         return metadata;
     }
 

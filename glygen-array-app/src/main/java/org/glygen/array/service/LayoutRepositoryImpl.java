@@ -255,6 +255,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 String metadataURI = metadataRepository.addSpotMetadataValue(s.getMetadata(), user);
                 statements.add(f.createStatement(spot, hasSpotMetadata, f.createIRI(metadataURI), graphIRI));
             }
+            sparqlDAO.addStatements(statements, graphIRI);
         }
         
         return spotURI;
