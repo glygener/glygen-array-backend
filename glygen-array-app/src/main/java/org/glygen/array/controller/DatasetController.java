@@ -1619,10 +1619,11 @@ public class DatasetController {
                     } catch (SparqlException | SQLException e1) {
                         logger.error("Could not save the processedData", e1);
                     } 
-                }).exceptionally(ex -> { 
+                })/*.exceptionally(ex -> { 
+                    logger.error("Exception in processed data parsing", ex);
                     if (ex.getCause() != null && ex.getCause() instanceof IllegalArgumentException) {
                         if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof ErrorMessage) {
-                            processedData.setError(errorMessage);
+                            processedData.setError((ErrorMessage) ex.getCause().getCause());
                         } else {
                             errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + ex.getMessage()));
                             processedData.setError(errorMessage);
@@ -1633,10 +1634,16 @@ public class DatasetController {
                     }
                     processedData.setStatus(FutureTaskStatus.ERROR);
                     return null;
-                });
+                })*/;
                 processedData.setIntensity(intensities.get(5000, TimeUnit.MILLISECONDS));
             } catch (IllegalArgumentException e) {
-                throw e;
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    processedData.setError((ErrorMessage) e.getCause());
+                } else {
+                    errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
+                    processedData.setError(errorMessage);
+                }
+                processedData.setStatus(FutureTaskStatus.ERROR);
             } catch (TimeoutException e) {
                 synchronized (this) {
                     // save whatever we have for now for processed data and update its status to "processing"

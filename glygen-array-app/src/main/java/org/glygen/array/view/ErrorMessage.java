@@ -29,7 +29,7 @@ public class ErrorMessage extends Error {
 	}
 
 	private List<ObjectError> errors;
-	private int statusCode;
+	private int statusCode = 0;
 	private ErrorCodes errorCode;
 	
 	public ErrorMessage() {
@@ -85,7 +85,7 @@ public class ErrorMessage extends Error {
 
 	@Override
 	public String toString() {
-		String errorsString = getMessage() + ";;" + getErrorCode().toString() + ";;" + getStatusCode() + ";;";
+		String errorsString = getMessage() + ";;" + (getErrorCode() != null ? getErrorCode().toString(): " ") + ";;" + getStatusCode() + ";;";
 		if (errors != null) {
 			for (Iterator<ObjectError> iterator = errors.iterator(); iterator.hasNext();) {
 				ObjectError error = (ObjectError) iterator.next();
@@ -103,7 +103,12 @@ public class ErrorMessage extends Error {
 	    ErrorMessage errorMessage;
 	    if (first.length > 2) {
 	        errorMessage = new ErrorMessage(first[0]);
-	        errorMessage.setErrorCode(ErrorCodes.valueOf(first[1]));
+	        ErrorCodes code;
+	        if (first[1] == null || first[1].trim().isEmpty())
+	            code = ErrorCodes.INTERNAL_ERROR;
+	        else
+	            code = ErrorCodes.valueOf(first[1]);
+	        errorMessage.setErrorCode(code);
 	        try {
 	            errorMessage.setStatus(Integer.parseInt(first[2]));
 	        } catch (NumberFormatException e) {
@@ -115,7 +120,7 @@ public class ErrorMessage extends Error {
 	        errorMessage.setStatus(org.springframework.http.HttpStatus.BAD_REQUEST.value());    
 	    }
 	    if (first.length > 3) {
-	        String[] errors = first[3].split("||");
+	        String[] errors = first[3].split("\\|\\|");
     	    for (String err: errors) {
     	        String fieldName = err.substring(err.indexOf("Error in object '") + 17, err.indexOf("':"));
     	        String codesString = err.substring(err.indexOf("codes [")+7, err.indexOf("]; arguments ["));

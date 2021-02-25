@@ -17,6 +17,7 @@ import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.ProcessedResultConfiguration;
+import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +61,9 @@ public class AsyncServiceImpl implements AsyncService {
             Slide slide,
             UserEntity user) {
         
-        ErrorMessage errorMessage = new ErrorMessage();
+        ErrorMessage errorMessage = new ErrorMessage("Error parsing the processed data file");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
         
         List<Intensity> intensities = null;
         
