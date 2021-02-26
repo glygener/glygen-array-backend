@@ -88,5 +88,5 @@ public interface ArrayDatasetRepository {
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
     
-    
+    boolean isDatasetPublic (String datasetId) throws SparqlException;
 }

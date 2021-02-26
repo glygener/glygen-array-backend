@@ -2990,4 +2990,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
     }
+
+
+    @Override
+    public boolean isDatasetPublic(String datasetId) throws SparqlException {
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?publicURI \n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("<" + uriPrefix + datasetId + "> gadr:has_public_uri ?publicURI . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        return results != null && !results.isEmpty();
+    }
 }

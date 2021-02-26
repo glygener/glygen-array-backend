@@ -595,19 +595,12 @@ public class UtilityController {
             throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
         
         User userView = new User();
-        if (user.getPublicFlag() != null && user.getPublicFlag()) {
-            userView.setAffiliation(user.getAffiliation());
-            userView.setAffiliationWebsite(user.getAffiliationWebsite());
-            userView.setFirstName(user.getFirstName());
-            userView.setLastName(user.getLastName());
-            userView.setUserName(user.getUsername());
-            userView.setUserType(user.getLoginType().name());
-        } else { //TODO check which info should be displayed for a non-public user
-            userView.setFirstName(user.getFirstName());
-            userView.setLastName(user.getLastName());
-            userView.setUserName(user.getUsername());
-            userView.setUserType(user.getLoginType().name());
-        }
+        userView.setAffiliation(user.getAffiliation());
+        userView.setAffiliationWebsite(user.getAffiliationWebsite());
+        userView.setFirstName(user.getFirstName());
+        userView.setLastName(user.getLastName());
+        userView.setUserName(user.getUsername());
+        userView.setUserType(user.getLoginType().name());
         
         return userView;
     }

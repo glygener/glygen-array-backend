@@ -37,6 +37,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mail.MailSendException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -83,6 +84,18 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         errorMessage.setStatus(status.value());
         errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_MEDIATYPE);
         logger.error("MediaType Problem: {}", errorMessage.toString());
+        return new ResponseEntity<Object>(errorMessage, headers, status);
+    }
+    
+    @Override
+    protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        String unsupported = "Unsupported accept type: " + headers.getAccept();
+        String supported = "Supported accept types: " + MediaType.toString(ex.getSupportedMediaTypes());
+        FieldError error = new FieldError(unsupported, supported, "Unsupported accept media type");
+        ErrorMessage errorMessage = new ErrorMessage(error);
+        errorMessage.setStatus(status.value());
+        errorMessage.setErrorCode(ErrorCodes.UNSUPPORTED_MEDIATYPE);
+        logger.error("Accept MediaType Problem: {}", errorMessage.toString());
         return new ResponseEntity<Object>(errorMessage, headers, status);
     }
     

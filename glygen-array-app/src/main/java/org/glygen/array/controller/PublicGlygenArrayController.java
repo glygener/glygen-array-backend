@@ -1441,31 +1441,37 @@ public class PublicGlygenArrayController {
     }
     
     @ApiOperation(value = "Download the given file")
-    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream"})
+    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream", "application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
+            @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
-            @ApiParam(required=true, value="file wrapper with the folder and identifier of the file to be downloaded") 
+            @ApiParam(required=true, value="File wrapper with the folder, identifier of the file to be downloaded and the original file name") 
             @RequestBody FileWrapper fileWrapper) {
         
         // check to see if the user can access this file
         String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
+        ErrorMessage errorMessage = new ErrorMessage("Invalid input");
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         try {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, null);
-            if (dataset == null || !dataset.getIsPublic()) {
+            boolean isPublic = datasetRepository.isDatasetPublic (datasetId);
+            if (!isPublic) {
                 errorMessage.addError(new ObjectError("fileWrapper", "This file is not public. Cannot be downloaded!"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("There is no dataset with the given id", errorMessage); 
             } 
         } catch (Exception e) {
             throw new GlycanRepositoryException("Array dataset cannot be loaded", e);
         }
+        
+        
         File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
         if (!file.exists()) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
-            throw new IllegalArgumentException("Cannot find the file on the server", errorMessage);
+            errorMessage.addError(new ObjectError("file", "NotFound"));
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
   
         Resource resource = resourceLoader.getResource("file:" + file.getAbsolutePath());
