@@ -445,13 +445,14 @@ public class DatasetController {
                         errorMessage.addError(new ObjectError("imageFile", "NotFound"));
                     }
                     else {
-                        if(!imageFile.renameTo 
-                                (new File(experimentFolder + File.separator + image.getFile().getIdentifier()))) { 
+                        File newFile = new File(experimentFolder + File.separator + image.getFile().getIdentifier());
+                        if(!imageFile.renameTo (newFile)) { 
                             throw new GlycanRepositoryException("Image file cannot be moved to the dataset folder");
                         } 
+                        image.getFile().setFileFolder(uploadDir + File.separator + datasetId);
+                        image.getFile().setFileSize(newFile.length());
                     }
-                    image.getFile().setFileFolder(uploadDir + File.separator + datasetId);
-                    image.getFile().setFileSize(imageFile.length());
+                    
                 } else {
                     errorMessage.addError(new ObjectError("imageFile", "NoEmpty"));
                 }
