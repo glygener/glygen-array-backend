@@ -154,10 +154,12 @@ public final class GmailServiceImpl implements EmailManager {
     @Override
 	public void sendUserName(UserEntity user) {
 		final String recipientAddress = user.getEmail();
-		final String subject = "UserName Recovery";
+		final String subject = "GlyGen array data repository: Username recovery";
 		try {
 				sendMessage(recipientAddress, subject,  "Dear " + user.getFirstName() + " " + user.getLastName()
-                + ", \n\n Your Username is: \n\n" + user.getUsername());
+                + ", \n\n The Username for your account associated with this email is: \n\n" + user.getUsername()
+                + "\n\n If you did not request your username, please ignore this email. \n\n "
+                + "The GlyGen array data repository team");
 			} catch (MessagingException | IOException e) {
 				throw new RuntimeException("Cannot send email.", e);
 			}
@@ -179,12 +181,12 @@ public final class GmailServiceImpl implements EmailManager {
         userManager.createUser(user);
         
         final String recipientAddress = user.getEmail();
-        final String subject = "Password Reset";
+        final String subject = "GlyGen array data repository: Password recovery";
         
         try {
 			sendMessage(recipientAddress, subject, "Dear " + user.getFirstName() + " " + user.getLastName()
-			+ ", \n\nYour Glygen password is reset. This is your temporary password: \n\n" + new String(pswd) 
-			+ "\n\nPlease change it as soon as possible. \n\nGlygen.org");
+			+ ", \n\nYour Glygen array data repository password has been reset to: \n\n" + new String(pswd) 
+			+ "\n\nPlease login to the respository and change the password as soon as possible. \n\nThe Glygen array data repository team");
 		} catch (MessagingException | IOException e) {
 			throw new RuntimeException("Cannot send email.", e);
 		}
@@ -198,12 +200,16 @@ public final class GmailServiceImpl implements EmailManager {
         userManager.createVerificationTokenForUser(user, token);
 		String verificationURL = frontEndScheme + frontEndHost + frontEndbasePath + emailVerificationPage;
         final String recipientAddress = user.getEmail();
-        final String subject = "Registration Confirmation";
+        final String subject = "GlyGen array repository account activation";
         final String confirmationUrl = verificationURL+ "/" + token;
-        final String message = "Click on the link below to verify your email";
-	    
+        String message = "Dear " + user.getFirstName() + " " + user.getLastName();
+        message += "\n\nThank you for signing up to the GlyGen array data repository. If you have not created an account for your email address (" 
+                + user.getEmail() + ") you can ignore this message. If you did create the account, please use the following link to activate the account:"
+                + "\n\n" + confirmationUrl + "\n\nAlternatively, you can use the following activation code in the web frontend:"
+                + "\n\n" + token + "\n\nThe GlyGen array repository Team";
+         
         try {
-			sendMessage(recipientAddress, subject, message + " \r\n" + confirmationUrl);
+			sendMessage(recipientAddress, subject, message);
 		} catch (MessagingException | IOException e) {
 			throw new RuntimeException("Cannot send email.", e);
 		}

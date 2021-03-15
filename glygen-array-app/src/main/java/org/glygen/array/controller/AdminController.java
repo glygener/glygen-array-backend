@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.data.Image;

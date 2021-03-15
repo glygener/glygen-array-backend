@@ -354,6 +354,10 @@ public class DatasetController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        boolean allowPartialData = false;
+        if (user.hasRole("ROLE_DATA"))
+            allowPartialData = true;
+        
         // check if the dataset with the given id exists
         try {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
@@ -365,7 +369,8 @@ public class DatasetController {
         }
         
         if (slide.getMetadata() == null) {
-            errorMessage.addError(new ObjectError("assatMetadata", "NoEmpty"));
+            if (!allowPartialData)
+                errorMessage.addError(new ObjectError("assatMetadata", "NoEmpty"));
         } else  {
             try {
                 if (slide.getMetadata().getName() != null) {
@@ -401,15 +406,21 @@ public class DatasetController {
         } else {
             // check if the printed slide exists
             try {
-                String printedSlideId = slide.getPrintedSlide().getId();
-                if (printedSlideId == null) {
-                    if (slide.getPrintedSlide().getUri() != null) {
-                        printedSlideId = slide.getPrintedSlide().getUri().substring(
-                                slide.getPrintedSlide().getUri().lastIndexOf("/") + 1);
+                String printedSlideUri = slide.getPrintedSlide().getUri();
+                if (printedSlideUri != null) {
+                    PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(printedSlideUri, user);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                    } else {
+                        slide.setPrintedSlide(existing);
                     }
-                }
-                if (printedSlideId != null) {
+                } else if (slide.getPrintedSlide().getId() != null) {
+                    String printedSlideId = slide.getPrintedSlide().getId();
+                    // check locally first
                     PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + printedSlideId, user);
+                    if (existing == null) { // check public repo
+                        existing = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + printedSlideId, user);
+                    }
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
                     } else {
@@ -454,11 +465,12 @@ public class DatasetController {
                     }
                     
                 } else {
-                    errorMessage.addError(new ObjectError("imageFile", "NoEmpty"));
+                    if (!allowPartialData)
+                        errorMessage.addError(new ObjectError("imageFile", "NoEmpty"));
                 }
                 // check the metadata
                 if (image.getScanner() == null) {
-                    errorMessage.addError(new ObjectError("scannerMetadata", "NoEmpty"));
+                    if (!allowPartialData) errorMessage.addError(new ObjectError("scannerMetadata", "NoEmpty"));
                 } else {
                     try {
                         if (image.getScanner().getName() != null) {
@@ -497,11 +509,11 @@ public class DatasetController {
                 
                     // check the file for rawData
                     if (image.getRawData().getFile() == null || image.getRawData().getFile().getIdentifier() == null) {
-                        errorMessage.addError(new ObjectError("rawData filename", "NotFound"));
+                        if (!allowPartialData) errorMessage.addError(new ObjectError("rawData filename", "NotFound"));
                     } 
                     
                     if (image.getRawData().getMetadata() == null) {
-                        errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
+                        if (!allowPartialData) errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
                     } else {
                         try {
                             if (image.getRawData().getMetadata().getName() != null) {
@@ -537,7 +549,7 @@ public class DatasetController {
                     } else {
                         for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
                             if (processedData.getMetadata() == null) {
-                                errorMessage.addError(new ObjectError("dataProcessingSoftware", "NoEmpty"));
+                                if (!allowPartialData) errorMessage.addError(new ObjectError("dataProcessingSoftware", "NoEmpty"));
                             } else {
                                 try {
                                     if (processedData.getMetadata().getName() != null) {
@@ -600,7 +612,7 @@ public class DatasetController {
             // save the rawData and the processed data first
             for (Image image: slide.getImages()) {
                 for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
-                    String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata().getId(), 
+                    String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata() == null ? null : processedData.getMetadata().getId(), 
                             processedData.getMethod().getName(), slide, p);
                     processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                 }
@@ -630,6 +642,9 @@ public class DatasetController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        boolean allowPartialData = false;
+        if (user.hasRole("ROLE_DATA"))
+            allowPartialData = true;
         // check if the dataset with the given id exists
         try {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
@@ -641,7 +656,7 @@ public class DatasetController {
         }
          
         if (rawData.getSlide() == null || rawData.getSlide().getPrintedSlide() == null) {
-            errorMessage.addError(new ObjectError("slide", "NoEmpty"));
+            if (!allowPartialData) errorMessage.addError(new ObjectError("slide", "NoEmpty"));
         } else {
             try {
                 String printedSlideId = rawData.getSlide().getPrintedSlide().getId();
@@ -674,7 +689,7 @@ public class DatasetController {
         File file = null;
         // check to make sure, the file is specified and exists in the uploads folder
         if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
-            errorMessage.addError(new ObjectError("filename", "NotFound"));
+            if (!allowPartialData) errorMessage.addError(new ObjectError("filename", "NotFound"));
         } else {
             String fileFolder = uploadDir;
             if (rawData.getFile().getFileFolder() != null)
@@ -699,7 +714,7 @@ public class DatasetController {
         }
         
         if (rawData.getMetadata() == null) {
-            errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
+            if (!allowPartialData) errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
         } else {
             try {
                 if (rawData.getMetadata().getName() != null) {
@@ -730,7 +745,7 @@ public class DatasetController {
             }
         }
         
-        if (rawData.getSlide() != null && rawData.getSlide().getMetadata() == null) {
+        /*if (rawData.getSlide() != null && rawData.getSlide().getMetadata() == null) {
             errorMessage.addError(new ObjectError("assayMetadata", "NoEmpty"));
         } else if (rawData.getSlide() != null) {
             try {
@@ -760,7 +775,7 @@ public class DatasetController {
             } catch (SQLException | SparqlException e) {
                 throw new GlycanRepositoryException("Error checking for the existince of the assay metadata", e);
             }
-        }
+        }*/
         
         if (rawData.getProcessedDataList() == null || rawData.getProcessedDataList().isEmpty()) {
             errorMessage.addError(new ObjectError("processedData", "NoEmpty"));
@@ -804,11 +819,19 @@ public class DatasetController {
             String uri = datasetRepository.addRawData(rawData, datasetId, user);  
             rawData.setUri(uri);
             String id = uri.substring(uri.lastIndexOf("/")+1);
-            if (rawData.getError() == null)
+            if (rawData.getError() != null)
                 rawData.setStatus(FutureTaskStatus.PROCESSING);
             else 
                 rawData.setStatus(FutureTaskStatus.ERROR);
             datasetRepository.updateStatus (uri, rawData, user);
+            
+            // check if there is a file, if not no need to go through parsing
+            if (rawData.getFile() == null) {
+                // set the status to DONE
+                rawData.setStatus(FutureTaskStatus.DONE);
+                datasetRepository.updateStatus (uri, rawData, user);
+                return id;
+            }
             
             CompletableFuture<String> rawDataURI = null;
             try {
@@ -1062,12 +1085,7 @@ public class DatasetController {
     public String addDataProcessingSoftware (
             @ApiParam(required=true, value="Data processing software metadata to be added") 
             @RequestBody DataProcessingSoftware metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1092,6 +1110,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1157,12 +1178,7 @@ public class DatasetController {
     public String addImageAnalysisSoftware (
             @ApiParam(required=true, value="Image Analysis metadata to be added") 
             @RequestBody ImageAnalysisSoftware metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1187,6 +1203,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1252,12 +1271,7 @@ public class DatasetController {
     public String addPrinter (
             @ApiParam(required=true, value="Printer metadata to be added") 
             @RequestBody Printer printer, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1282,6 +1296,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (printer.getName() == null || printer.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1347,12 +1364,7 @@ public class DatasetController {
     public String addAssayMetadata (
             @ApiParam(required=true, value="Assay metadata to be added") 
             @RequestBody AssayMetadata metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1377,6 +1389,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1442,12 +1457,7 @@ public class DatasetController {
     public String addSpotMetadata (
             @ApiParam(required=true, value="Spot metadata to be added") 
             @RequestBody SpotMetadata metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1472,6 +1482,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1541,7 +1554,7 @@ public class DatasetController {
             @ApiParam(required=true, value="processed data file details such as name, original name, folder, format") 
             @RequestBody
             FileWrapper file,
-            @ApiParam(required=true, value="Data processing software metadata id (must already be in the repository)") 
+            @ApiParam(required=false, value="Data processing software metadata id (must already be in the repository)") 
             @RequestParam("metadataId")
             String metadataId,
             @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
@@ -1553,6 +1566,9 @@ public class DatasetController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        boolean allowPartialData = false;
+        if (user.hasRole("ROLE_DATA"))
+            allowPartialData = true;
                   
         // check if metadata exists!
         DataProcessingSoftware metadata = null;
@@ -1576,6 +1592,8 @@ public class DatasetController {
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
             }
+        } else {
+            if (!allowPartialData) errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
         }
         ProcessedData processedData = new ProcessedData();     
         processedData.setMetadata(metadata);
@@ -1843,11 +1861,7 @@ public class DatasetController {
             @ApiParam(required=true, value="Sample metadata to be added") 
             @RequestBody Sample sample, 
             @ApiParam(required=false, defaultValue = "true", value="bypass mandatory/multiplicty validation checks if set to false (not recommended)") 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate, Principal p) {   
-        
-        if (validate == null)
-            validate = true;
+            Principal p) {   
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1872,6 +1886,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (sample.getName() == null || sample.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -1941,12 +1958,7 @@ public class DatasetController {
     public String addScanner (
             @ApiParam(required=true, value="Scanner metadata to be added") 
             @RequestBody ScannerMetadata metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1971,6 +1983,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -2038,12 +2053,7 @@ public class DatasetController {
     public String addSlideMetadata (
             @ApiParam(required=true, value="Slide metadata to be added") 
             @RequestBody SlideMetadata metadata, 
-            @RequestParam(name="validate", required=false, defaultValue="true")
-            Boolean validate,
             Principal p) {
-        
-        if (validate == null)
-            validate = true;
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -2068,6 +2078,9 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));

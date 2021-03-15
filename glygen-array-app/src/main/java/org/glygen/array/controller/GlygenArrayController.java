@@ -2752,8 +2752,8 @@ public class GlygenArrayController {
         return result;
     }
 	
-	@ApiOperation(value = "List all linkers for the user")
-	@RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
+	@ApiOperation(value = "List all linkers for the user and the public ones")
+	@RequestMapping(value="/listAllLinkers", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
 			@ApiResponse(code=400, message="Invalid request, validation error for arguments"),
@@ -2761,7 +2761,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to list linkers"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-	public LinkerListResultView listLinkers (
+	public LinkerListResultView listAllLinkers (
 			@ApiParam(required=true, value="offset for pagination, start from 0") 
 			@RequestParam("offset") Integer offset,
 			@ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
@@ -2823,7 +2823,7 @@ public class GlygenArrayController {
 	}
 	
 	@ApiOperation(value = "List all linkers for the user")
-    @RequestMapping(value="/listAllLinkers", method = RequestMethod.GET, 
+    @RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
@@ -2831,7 +2831,7 @@ public class GlygenArrayController {
             @ApiResponse(code=403, message="Not enough privileges to list linkers"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public LinkerListResultView listAllLinkers (
+    public LinkerListResultView listLinkers (
             @ApiParam(required=true, value="offset for pagination, start from 0") 
             @RequestParam("offset") Integer offset,
             @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 

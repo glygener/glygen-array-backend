@@ -259,10 +259,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             String printedSlideURI = null;
             if (printedSlide.getUri() != null) {
                 printedSlideURI = printedSlide.getUri();
-            } else if (printedSlide.getId() != null) {
-                printedSlideURI = uriPre + printedSlide.getId();
-            } else { // create it the first time
-                printedSlideURI = addPrintedSlide (slide.getPrintedSlide(), user);  //TODO i don't think this should be allowed. printed slide should be there already!
+            } else {
+                throw new SparqlException ("The printed slide should be provided");
             }
             statements.add(f.createStatement(slideIRI, hasPrintedSlide, f.createIRI(printedSlideURI), graphIRI));
         }
@@ -850,7 +848,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 owner.setUserId(user.getUserId());
                 owner.setName(user.getUsername());
                 datasetObject.setUser(owner);
-            } else {
+            } 
+            if (uri.contains("public")) {
                 datasetObject.setIsPublic(true);
             }
             datasetObject.setRawDataList(new ArrayList<RawData>());
@@ -1911,8 +1910,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasSlideLayout)) {
                 Value uriValue = st.getObject();
                 String layoutURI = uriValue.stringValue();
-                String id = layoutURI.substring(layoutURI.lastIndexOf("/")+1);
-                SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, loadAll);
+                SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, loadAll, user);
                 slideObject.setLayout(layout);
             } else if (st.getPredicate().equals(hasSlideMetadata)) {
                 Value value = st.getObject();
@@ -1935,14 +1933,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     if (stPublic.getPredicate().equals(hasSlideLayout)) {
                         uriValue = stPublic.getObject();
                         String layoutURI = uriValue.stringValue();
-                        String id = layoutURI.substring(layoutURI.lastIndexOf("/")+1);
-                        if (layoutURI.contains("public")) {
-                            SlideLayout layout = layoutRepository.getSlideLayoutById(id, null, false);
-                            slideObject.setLayout(layout);   
-                        } else {
-                            SlideLayout layout = layoutRepository.getSlideLayoutById(id, user, false);
-                            slideObject.setLayout(layout); 
-                        }
+                        SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, loadAll, user);
+                        slideObject.setLayout(layout);
                     } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
                         Value label = stPublic.getObject();
                         slideObject.setName(label.stringValue());

@@ -70,4 +70,6 @@ public interface LayoutRepository {
     String makePublic(SlideLayout layout, UserEntity user, Map<String, String> spotIdMap)
             throws SparqlException, SQLException;
     String getPublicBlockLayoutUri(String blockLayoutUri, UserEntity user) throws SQLException, SparqlException;
+    SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
 }

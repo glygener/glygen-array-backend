@@ -188,7 +188,18 @@ public class UserEntity {
     
 	public void setRoles(Collection<RoleEntity> roles) {
 		this.roles = roles;
-	}   
+	} 
+	
+	public boolean hasRole (String roleName) {
+	    if (roles != null) {
+    	    for (RoleEntity role: roles) {
+    	        if (role.getRoleName().equalsIgnoreCase(roleName))
+    	            return true;
+    	    }
+    	    
+	    } 
+	    return false;
+	}
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name="logintype")

@@ -175,8 +175,11 @@ public class ProcessedDataParser {
                         }
                         errorList.add(error);
                     }
-                    continue;
                 }
+                
+                if (glycoCT == null)
+                    continue;
+                
                 String linkerName = ExtendedGalFileParser.getLinker(featureString);
                 String glycanURI = glycanURICache.get(glycoCT.trim());
                 try {

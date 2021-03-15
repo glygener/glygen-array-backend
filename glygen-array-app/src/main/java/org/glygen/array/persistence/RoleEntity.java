@@ -26,6 +26,7 @@ public class RoleEntity {
 	public final static String ADMIN="ADMIN";
 	public final static String USER="USER";
 	public final static String MODERATOR="MODERATOR";
+	public final static String DATAENTRY="DATA";
 	
 	Integer roleId;
 	String roleName;

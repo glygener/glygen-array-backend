@@ -33,6 +33,10 @@ import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.service.ArrayDatasetRepository;
+import org.glygen.array.service.FeatureRepository;
+import org.glygen.array.service.LayoutRepository;
+import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.typeahead.NamespaceHandler;
 import org.glygen.array.util.ExtendedGalFileParser;
@@ -43,6 +47,7 @@ import org.glygen.array.util.pubmed.DTOPublicationAuthor;
 import org.glygen.array.util.pubmed.PubmedUtil;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
@@ -86,6 +91,15 @@ public class UtilityController {
     
     @Autowired
     UserRepository userRepository;
+    
+    @Autowired
+    LayoutRepository layoutRepository;
+    
+    @Autowired
+    ArrayDatasetRepository datasetRepository;
+    
+    @Autowired
+    MetadataRepository metadataRepository;
 	
 	// needs to be done to initialize static variables to parse glycan sequence
 	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
@@ -603,5 +617,34 @@ public class UtilityController {
         userView.setUserType(user.getLoginType().name());
         
         return userView;
+    }
+    
+    @RequestMapping(value="/getstatistics", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the stats of the repository", response=StatisticsView.class)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Stats retrieved successfully"), 
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody StatisticsView getStatistics () {
+        
+        StatisticsView stats = new StatisticsView();
+        stats.setUserCount(userRepository.count());
+        try {
+            SettingEntity entity = settingsRepository.findByName("apiVersion");
+            if (entity != null)
+                stats.setApiVersion(entity.getValue());
+            entity = settingsRepository.findByName("portalVersion");
+            if (entity != null)
+                stats.setPortalVersion(entity.getValue());
+        } catch (Exception e) {
+            logger.warn ("cannot retrieve versions from the database", e);
+        }
+        try {
+            stats.setDatasetCount((long) datasetRepository.getArrayDatasetCountByUser(null));
+            stats.setSlideCount((long) layoutRepository.getSlideLayoutCountByUser(null));
+            stats.setSampleCount((long) metadataRepository.getSampleCountByUser(null));
+        } catch (SQLException | SparqlException e) {
+            throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
+        }
+        return stats;
     }
 }

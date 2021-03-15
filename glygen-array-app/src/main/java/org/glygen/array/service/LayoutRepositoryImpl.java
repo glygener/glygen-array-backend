@@ -965,7 +965,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return total;
 	}
 
-	private SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+	@Override
+	public SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 		SlideLayout slideLayoutObject = null;
 		String graph = null;
         if (user == null)
@@ -1005,7 +1006,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 owner.setUserId(user.getUserId());
                 owner.setName(user.getUsername());
                 slideLayoutObject.setUser(owner);
-			} else {
+			} 
+			if (slideLayoutURI.contains("public")) {
 				slideLayoutObject.setIsPublic(true);
 			}
 		}

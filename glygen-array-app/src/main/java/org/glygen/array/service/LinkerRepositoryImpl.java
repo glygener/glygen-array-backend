@@ -592,11 +592,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		else {
 		    for (SparqlEntity result: results) {
     		    String linkerURI = result.getValue("s");
-    		    if (graph.equals(DEFAULT_GRAPH) && linkerURI.contains("public")) {
-    		        return getLinkerFromURI(linkerURI, null);
-    		    } else if (!linkerURI.contains("public"))
+    		    if (!linkerURI.contains("public"))
     		        return getLinkerFromURI(linkerURI, user);
 		    }
+		    
+		    // if there is only the public one, we should come to this part
+		    for (SparqlEntity result: results) {
+                String linkerURI = result.getValue("s");
+                if (linkerURI.contains("public"))
+                    return getLinkerFromURI(linkerURI, null);
+            } 
 		}
 		return null;
 	}
@@ -832,7 +837,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 owner.setUserId(user.getUserId());
                 owner.setName(user.getUsername());
                 linkerObject.setUser(owner);
-			} else {
+			} 
+			if (linkerURI.contains("public")) {
 			    linkerObject.setIsPublic(true);
 			}
 			linkerObject.setUrls(new ArrayList<String>());
