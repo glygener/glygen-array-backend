@@ -52,7 +52,8 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
         try {
             chain.doFilter(wrappedRequest, wrappedResponse);
             requestData = getRequestData(wrappedRequest);
-            responseData = getResponseData(wrappedResponse);
+            if (!wrappedRequest.getRequestURI().contains("download"))   // file download response should not be logged, it might be too large!
+                responseData = getResponseData(wrappedResponse);
         } 
 		 finally {
             if (isLastExecution) {

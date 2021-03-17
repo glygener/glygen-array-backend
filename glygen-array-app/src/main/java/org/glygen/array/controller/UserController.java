@@ -201,7 +201,7 @@ public class UserController {
 			throw new EmailExistsException ("There is already an account with this email: " + user.getEmail(), errorMessage);
 		}
 		
-		logger.info("user affiliation", newUser.getAffiliation());
+		logger.info("user affiliation" + newUser.getAffiliation());
 			
         userManager.createUser(newUser);  
         // send email confirmation
