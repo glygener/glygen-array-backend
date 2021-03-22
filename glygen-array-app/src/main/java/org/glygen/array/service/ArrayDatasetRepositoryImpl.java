@@ -2304,11 +2304,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             if (label != null) {
                 statements.add(f.createStatement(datasetIRI, RDFS.LABEL, label, graphIRI));
-                publicStatements.add(f.createStatement(publicIRI, RDFS.LABEL, label, publicGraphIRI));
+                if (publicIRI != null)
+                    publicStatements.add(f.createStatement(publicIRI, RDFS.LABEL, label, publicGraphIRI));
             }
             if (comment != null) {
                 statements.add(f.createStatement(datasetIRI, RDFS.COMMENT, comment, graphIRI));
-                publicStatements.add(f.createStatement(publicIRI, RDFS.COMMENT, comment, publicGraphIRI));
+                if (publicIRI != null)
+                    publicStatements.add(f.createStatement(publicIRI, RDFS.COMMENT, comment, publicGraphIRI));
             }
             
             if (dataset.getSample() != null && publicIRI == null) { // do not allow changing the sample if the dataset is public
