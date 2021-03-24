@@ -168,11 +168,11 @@ public class GlytoucanUtil {
 		//System.out.println(sequence);
 		//System.out.println(accessionNumber);
 		
-		//GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
-        //GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
+		GlytoucanUtil.getInstance().setApiKey("6d9fbfb1c0a52cbbffae7c113395a203ae0e3995a455c42ff3932862cbf7e62a");
+        GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
-		//String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
-		//System.out.println(glyTouCanId);
+		String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		System.out.println(glyTouCanId);
 		
 		/*
 		GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
@@ -291,7 +291,7 @@ public class GlytoucanUtil {
 		        "LIN\n" + 
 		        "9:10d(2+1)11n";*/
 		
-		String glycoCTSeq = "RES\n" + 
+		/*String glycoCTSeq = "RES\n" + 
 		        "1b:b-dglc-HEX-1:5\n" + 
 		        "2s:n-acetyl\n" + 
 		        "3s:R_CARBOXYETHYL\n" + 
@@ -318,7 +318,7 @@ public class GlytoucanUtil {
         String wurcs = exporter.getWURCS(); 
         System.out.println(wurcs);
         String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-        System.out.println(glyTouCanId);
+        System.out.println(glyTouCanId);*/
 	}
 		
 	
