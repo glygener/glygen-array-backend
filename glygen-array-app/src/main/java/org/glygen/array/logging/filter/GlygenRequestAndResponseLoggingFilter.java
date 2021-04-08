@@ -33,7 +33,7 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
-		if (logger.isInfoEnabled()) {
+		if (logger.isInfoEnabled() && !request.getRequestURI().contains("download")) {
             doLoggedFilterInternal(request, response, chain);
         } else {
             chain.doFilter(request, response);
@@ -43,7 +43,7 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
 
 	private void doLoggedFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 		final ContentCachingRequestWrapper wrappedRequest = wrapRequest(request);
-        final ContentCachingResponseWrapper wrappedResponse = wrapResponse(response);
+		final ContentCachingResponseWrapper wrappedResponse = wrapResponse(response);      
 
         final boolean isLastExecution = !isAsyncStarted(request);
 
@@ -52,8 +52,7 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
         try {
             chain.doFilter(wrappedRequest, wrappedResponse);
             requestData = getRequestData(wrappedRequest);
-            if (!wrappedRequest.getRequestURI().contains("download"))   // file download response should not be logged, it might be too large!
-                responseData = getResponseData(wrappedResponse);
+            responseData = getResponseData(wrappedResponse);
         } 
 		 finally {
             if (isLastExecution) {

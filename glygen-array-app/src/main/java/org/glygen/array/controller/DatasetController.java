@@ -9,9 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -97,14 +99,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -4529,7 +4537,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Download the given file")
-    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream", "application/json", "application/xml"})
+    @RequestMapping(value="/download", method = RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
             @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -4537,11 +4545,15 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
-            @ApiParam(required=true, value="file wrapper with the folder, the identifier of the file to be downloaded and the original file name") 
-            @RequestBody FileWrapper fileWrapper, Principal p) {
+            @ApiParam(required=true, value="the folder of the file") 
+            @RequestParam String fileFolder, 
+            @ApiParam(required=true, value="the identifier of the file to be downloaded") 
+            @RequestParam String fileIdentifier,
+            @ApiParam(required=true, value="the original file name") 
+            @RequestParam String originalName, Principal p) {
         
         // check to see if the user can access this file
-        String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
+        String datasetId = fileFolder.substring(fileFolder.lastIndexOf("/")+1);
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         ErrorMessage errorMessage = new ErrorMessage("Invalid request");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -4554,84 +4566,28 @@ public class DatasetController {
         } catch (Exception e) {
             throw new GlycanRepositoryException("Array dataset cannot be loaded for user " + p.getName(), e);
         }
-        File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
+        File file = new File(fileFolder, fileIdentifier);
         if (!file.exists()) {
             errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-            throw new IllegalArgumentException ("File is not accessible", errorMessage);
+            return ResponseEntity.notFound().build();
+            //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
-  
-        Resource resource = resourceLoader.getResource("file:" + file.getAbsolutePath());
-        return ResponseEntity.ok()
-              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileWrapper.getOriginalName() + "\"")
-              .body(resource);
-    }
-    
-    
-    @ApiOperation(value = "Download the given file")
-    @RequestMapping(value="/download2", method = RequestMethod.POST, produces= {"application/octet-stream", "application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
-            @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to download files of the dataset"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
-    public ResponseEntity<StreamingResponseBody> handleRequest (
-            @ApiParam(required=true, value="file wrapper with the folder, the identifier of the file to be downloaded and the original file name") 
-            @RequestBody FileWrapper fileWrapper, Principal p, HttpServletResponse response) {
 
-        // check to see if the user can access this file
-        String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        ErrorMessage errorMessage = new ErrorMessage("Invalid request");
-        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
-            if (dataset == null) {
-                errorMessage.addError(new ObjectError("fileWrapper", "This file does not belong to this user. Cannot be downloaded!"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            } 
-        } catch (Exception e) {
-            throw new GlycanRepositoryException("Array dataset cannot be loaded for user " + p.getName(), e);
-        }
-        File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
-        if (!file.exists()) {
-            errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
-        }
+        FileSystemResource r = new FileSystemResource(file);
+        MediaType mediaType = MediaTypeFactory
+                .getMediaType(r)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
         
-        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-            throw new IllegalArgumentException ("File is not accessible", errorMessage);
-        }
+        HttpHeaders respHeaders = new HttpHeaders();
+        respHeaders.setContentType(mediaType);
+        respHeaders.setContentLength(file.length());
+        respHeaders.set("Content-disposition", "attachment; filename=\"" + originalName + "\"");
         
-        response.setContentType("application/octet-stream");
-        response.setHeader(
-                "Content-Disposition",
-                "attachment;filename=\"" + fileWrapper.getOriginalName() + "\"");
-
-       
-        
-        StreamingResponseBody stream = out -> {
-            
-            final OutputStream outputStream = response.getOutputStream();
-            try {
-                final InputStream inputStream=new FileInputStream(file);    
-                byte[] bytes=new byte[1024];
-                int length;
-                while ((length=inputStream.read(bytes)) >= 0) {
-                    outputStream.write(bytes, 0, length);
-                }
-                inputStream.close();
-                
-                outputStream.close();
-            } catch (final IOException e) {
-                logger.error("Exception while reading and streaming data {} ", e);
-                errorMessage.addError(new ObjectError("file", "NotFound"));
-                throw new IllegalArgumentException ("File not found", errorMessage);
-            }
-            
-        };
-        return new ResponseEntity<StreamingResponseBody>(stream, HttpStatus.OK);
+        return new ResponseEntity<Resource>(
+                r, respHeaders, HttpStatus.OK
+        );
     }
 }
