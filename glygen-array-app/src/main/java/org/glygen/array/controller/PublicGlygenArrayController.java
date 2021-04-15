@@ -69,11 +69,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -1441,17 +1444,23 @@ public class PublicGlygenArrayController {
     }
     
     @ApiOperation(value = "Download the given file")
-    @RequestMapping(value="/download", method = RequestMethod.POST, produces= {"application/octet-stream", "application/json", "application/xml"})
+    @RequestMapping(value="/download", method = RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
             @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to download files of the dataset"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
-            @ApiParam(required=true, value="File wrapper with the folder, identifier of the file to be downloaded and the original file name") 
-            @RequestBody FileWrapper fileWrapper) {
+            @ApiParam(required=true, value="the folder of the file") 
+            @RequestParam String fileFolder, 
+            @ApiParam(required=true, value="the identifier of the file to be downloaded") 
+            @RequestParam String fileIdentifier,
+            @ApiParam(required=true, value="the original file name") 
+            @RequestParam String originalName) {
         
         // check to see if the user can access this file
-        String datasetId = fileWrapper.getFileFolder().substring(fileWrapper.getFileFolder().lastIndexOf("/")+1);
+        String datasetId = fileFolder.substring(fileFolder.lastIndexOf("/")+1);
         ErrorMessage errorMessage = new ErrorMessage("Invalid input");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         try {
@@ -1465,18 +1474,28 @@ public class PublicGlygenArrayController {
         }
         
         
-        File file = new File(fileWrapper.getFileFolder(), fileWrapper.getIdentifier());
+        File file = new File(fileFolder, fileIdentifier);
         if (!file.exists()) {
             errorMessage.addError(new ObjectError("file", "NotFound"));
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-            throw new IllegalArgumentException ("File is not accessible", errorMessage);
+            return ResponseEntity.notFound().build();
+            //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
   
-        Resource resource = resourceLoader.getResource("file:" + file.getAbsolutePath());
-        return ResponseEntity.ok()
-              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileWrapper.getOriginalName() + "\"")
-              .body(resource);
+        FileSystemResource r = new FileSystemResource(file);
+        MediaType mediaType = MediaTypeFactory
+                .getMediaType(r)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
+        
+        HttpHeaders respHeaders = new HttpHeaders();
+        respHeaders.setContentType(mediaType);
+        respHeaders.setContentLength(file.length());
+        respHeaders.set("Content-disposition", "attachment; filename=\"" + originalName + "\"");
+        
+        return new ResponseEntity<Resource>(
+                r, respHeaders, HttpStatus.OK
+        );
     }
 }
