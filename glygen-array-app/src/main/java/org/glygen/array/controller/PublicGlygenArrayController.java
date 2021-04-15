@@ -73,6 +73,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -1447,8 +1448,6 @@ public class PublicGlygenArrayController {
     @RequestMapping(value="/download", method = RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
             @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to download files of the dataset"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
@@ -1492,7 +1491,13 @@ public class PublicGlygenArrayController {
         HttpHeaders respHeaders = new HttpHeaders();
         respHeaders.setContentType(mediaType);
         respHeaders.setContentLength(file.length());
-        respHeaders.set("Content-disposition", "attachment; filename=\"" + originalName + "\"");
+
+        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                .filename(originalName)
+                .build();
+
+        respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+        respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
         
         return new ResponseEntity<Resource>(
                 r, respHeaders, HttpStatus.OK
