@@ -3150,7 +3150,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 String uri = sparqlEntity.getValue("s");
                 for (GraphPermissionEntity entity: permissions) {
                     if (graph.equals(entity.getGraphIRI()) && uri.equalsIgnoreCase(entity.getResourceIRI())) {
-                        ArrayDataset dataset = getDatasetFromURI(uri, loadAll, user);
+                        // find the user
+                        UserEntity original = userRepository.findByUsernameIgnoreCase(graph.substring(graph.lastIndexOf("/")+1));
+                        ArrayDataset dataset = getDatasetFromURI(uri, loadAll, original);
                         if (dataset != null)
                             datasets.add(dataset);   
                     }
@@ -3166,13 +3168,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     @Override
     public int getArrayDatasetCountByCoOwner(UserEntity user) throws SQLException, SparqlException {
         List<GraphPermissionEntity> permissions = permissionRepository.findByUser(user);
-        int count = 0;
+        if (permissions != null)
+            return permissions.size();
+        else
+            return 0;
+       /* int count = 0;
         for (GraphPermissionEntity entity: permissions) {
             String graph = entity.getGraphIRI();
             count += getCountByUserByType(graph, datasetTypePredicate);
         }
         
-        return count;
+        return count;*/
     }
 
 
