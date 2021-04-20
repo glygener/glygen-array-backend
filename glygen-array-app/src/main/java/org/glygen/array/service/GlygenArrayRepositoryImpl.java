@@ -52,6 +52,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			+ "\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
 			+ "\nPREFIX template: <http://purl.org/gadr/template#>";
 	
+	final static String hasURLPredicate = ontPrefix + "has_url";
+	final static String hasOrganizationPredicate = ontPrefix + "has_organization";
+	final static String hasIdentiferPredicate = ontPrefix + "has_identifier";
+	
 	final static String hasDescriptionPredicate = ontPrefix + "has_description";
 	final static String hasCreatedDatePredicate = ontPrefix + "has_date_created";
 	final static String hasAddedToLibraryPredicate = ontPrefix + "has_date_addedtolibrary";
@@ -59,6 +63,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasPublicURIPredicate = ontPrefix + "has_public_uri";
 	final static String hasTypePredicate = ontPrefix + "has_type";
 	final static String hasPublication = ontPrefix + "has_publication";
+	final static String hasGrant = ontPrefix + "has_grant";
+	final static String hasCollaborator = ontPrefix + "has_collaborator";
     
     final static String hasTitlePredicate = ontPrefix + "has_title";
     final static String hasAuthorPredicate = ontPrefix + "has_author_list";

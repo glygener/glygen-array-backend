@@ -21,10 +21,12 @@ import javax.validation.Validator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -32,6 +34,7 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
+import org.glygen.array.persistence.rdf.data.Grant;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.Measurement;
@@ -76,6 +79,7 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
+import org.glygen.array.view.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -318,6 +322,170 @@ public class DatasetController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("The publication cannot be added for user " + p.getName(), e);
         }
+    }
+    
+    @ApiOperation(value = "Add given grant to the dataset for the user")
+    @RequestMapping(value="/addGrant", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added grant"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add grants"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addGrant (
+            @ApiParam(required=true, value="Grant to be added.")
+            @RequestBody Grant grant, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the grant") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+            // check for duplicates
+            if (dataset.getGrants() != null) {
+                for (Grant gr: dataset.getGrants()) {
+                    if (gr.getIdentifier() != null && gr.getIdentifier().equalsIgnoreCase(grant.getIdentifier())) {
+                     // duplicate
+                        errorMessage.addError(new ObjectError("grant", "Duplicate"));
+                    }
+                }
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid publication/dataset information", errorMessage);
+        
+        try {
+            String uri = datasetRepository.addGrant(grant, datasetId, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("The grant cannot be added for user " + p.getName(), e);
+        }
+    }
+    
+    @ApiOperation(value = "Add given collaborator to the dataset for the user")
+    @RequestMapping(value="/addCollaborator", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add collaborators"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation addCollaborator (
+            @ApiParam(required=true, value="Collaborator user to be added.")
+            @RequestBody User collab, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the collaborator") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+            // check for duplicates
+            if (dataset.getCollaborators() != null) {
+                for (Creator c: dataset.getCollaborators()) {
+                    if (c.getName() != null && c.getName().equalsIgnoreCase(collab.getUserName())) {
+                        // duplicate
+                        errorMessage.addError(new ObjectError("collaborator", "Duplicate"));
+                    }
+                }
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        
+        // check if collaborator exists
+        UserEntity collaboratorEntity = userRepository.findByUsernameIgnoreCase(collab.getUserName());
+        if (collaboratorEntity == null) {
+            errorMessage.addError(new ObjectError("collab", "NotFound"));
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid collaborator information", errorMessage);
+        
+        try {
+            Creator collaborator = new Creator();
+            collaborator.setName(collaboratorEntity.getUsername());
+            collaborator.setFirstName(collaboratorEntity.getFirstName());
+            collaborator.setLastName(collaboratorEntity.getLastName());
+            collaborator.setAffiliation(collaboratorEntity.getAffiliation());
+            collaborator.setUserId(collaboratorEntity.getUserId());
+            datasetRepository.addCollaborator(collaborator, datasetId, user);
+            return new Confirmation("Collaborator added successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("The collaborator cannot be added for user " + p.getName(), e);
+        }
+    }
+    
+    @ApiOperation(value = "Add the given user as a co-owner to the given dataset")
+    @RequestMapping(value="/addCoowner", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added publication"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add publications"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation addCoownerToDataset (
+            @ApiParam(required=true, value="User to be added.")
+            @RequestBody User coowner, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the co-owner") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        try {
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+            
+            UserEntity coOwner = userRepository.findByUsernameIgnoreCase(coowner.getUserName());
+            if (coOwner == null) {
+                errorMessage.addError(new ObjectError("coowner", "NotFound"));
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Invalid Input", errorMessage);
+            }
+            
+            datasetRepository.addCowner(coOwner, dataset.getUri(), user);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        return new Confirmation("Co-owner added successfully", HttpStatus.OK.value());
     }
     
     @ApiOperation(value = "Add given slide to the dataset for the user")

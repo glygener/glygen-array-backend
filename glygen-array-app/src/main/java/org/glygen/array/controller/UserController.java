@@ -2,7 +2,9 @@ package org.glygen.array.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -428,6 +430,31 @@ public class UserController {
     	userView.setUserName(user.getUsername());
     	userView.setUserType(user.getLoginType().name());
     	return userView;
+    }
+	
+	
+    @RequestMapping(value="/listusers", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the list of users")
+    @ApiResponses (value ={@ApiResponse(code=200, message="User list retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody List<User> getUsers () {
+        List<UserEntity> userList = userRepository.findAll();
+        List<User> users = new ArrayList<User>();
+        for (UserEntity user: userList) {
+            User userView = new User();
+            userView.setAffiliation(user.getAffiliation());
+            userView.setAffiliationWebsite(user.getAffiliationWebsite());
+            userView.setEmail(user.getEmail());
+            userView.setFirstName(user.getFirstName());
+            userView.setLastName(user.getLastName());
+            userView.setUserName(user.getUsername());
+            users.add(userView);
+        }
+        
+        return users;
     }
 	
 	@RequestMapping(value="/recover", method = RequestMethod.GET)

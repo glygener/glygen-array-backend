@@ -6,23 +6,16 @@ import java.util.concurrent.CompletableFuture;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FutureTask;
+import org.glygen.array.persistence.rdf.data.Grant;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
-import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
-import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
-import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
-import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
-import org.glygen.array.persistence.rdf.metadata.Printer;
-import org.glygen.array.persistence.rdf.metadata.Sample;
-import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
-import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
-import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 
 public interface ArrayDatasetRepository {
     
@@ -30,13 +23,18 @@ public interface ArrayDatasetRepository {
     ArrayDataset getArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, boolean loadAll) throws SparqlException, SQLException;
+    List<ArrayDataset> getArrayDatasetByCoOwner(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, boolean loadAll) throws SparqlException, SQLException;
     int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException;
+    int getArrayDatasetCountByCoOwner(UserEntity user) throws SQLException, SparqlException;
+    
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDatasetByLabel (String label, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDatasetByLabel(String label, Boolean loadAll, UserEntity user)
@@ -48,6 +46,7 @@ public interface ArrayDatasetRepository {
     String addSlide(Slide slide, String datasetId, UserEntity user) throws SparqlException, SQLException;
     String addRawData(RawData rawData, String datasetId, UserEntity user) throws SparqlException, SQLException;
     String addPublication (Publication publication, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    void addCowner (UserEntity coowner, String datasetURI, UserEntity user) throws SparqlException, SQLException;
     
     String addPrintedSlide(PrintedSlide printedSlide, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser (UserEntity user) throws SparqlException, SQLException;
@@ -89,4 +88,8 @@ public interface ArrayDatasetRepository {
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
     
     boolean isDatasetPublic (String datasetId) throws SparqlException;
+    
+    String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    void addCollaborator(Creator collab, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    Grant getGrantFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
 }

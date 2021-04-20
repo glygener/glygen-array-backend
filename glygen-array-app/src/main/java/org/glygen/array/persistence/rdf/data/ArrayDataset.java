@@ -23,6 +23,8 @@ public class ArrayDataset extends FutureTask{
     List<Image> images;
     List<Slide> slides;
     List<Publication> publications;
+    List<Creator> collaborators;
+    List<Grant> grants;
     
     boolean isPublic = false;
     Creator user;
@@ -262,6 +264,34 @@ public class ArrayDataset extends FutureTask{
      */
     public void setPublications(List<Publication> publications) {
         this.publications = publications;
+    }
+
+    /**
+     * @return the collaborators
+     */
+    public List<Creator> getCollaborators() {
+        return collaborators;
+    }
+
+    /**
+     * @param collaborators the collaborators to set
+     */
+    public void setCollaborators(List<Creator> collaborators) {
+        this.collaborators = collaborators;
+    }
+
+    /**
+     * @return the grants
+     */
+    public List<Grant> getGrants() {
+        return grants;
+    }
+
+    /**
+     * @param grants the grants to set
+     */
+    public void setGrants(List<Grant> grants) {
+        this.grants = grants;
     }
 
 }

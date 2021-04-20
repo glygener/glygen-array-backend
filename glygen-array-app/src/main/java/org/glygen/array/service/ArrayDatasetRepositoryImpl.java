@@ -22,6 +22,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
@@ -33,6 +34,7 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
+import org.glygen.array.persistence.rdf.data.Grant;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.IntensityData;
@@ -44,16 +46,12 @@ import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
-import org.glygen.array.persistence.rdf.metadata.Description;
-import org.glygen.array.persistence.rdf.metadata.Descriptor;
-import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
-import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.model.Coordinate;
@@ -186,6 +184,18 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
+            if (dataset.getCollaborators() != null && !dataset.getCollaborators().isEmpty()) {
+                for (Creator collab: dataset.getCollaborators()) {
+                    addCollaborator(collab, datasetId, user);
+                }
+            }
+            
+            if (dataset.getGrants() != null && !dataset.getGrants().isEmpty()) {
+                for (Grant grant: dataset.getGrants()) {
+                    addGrant(grant, datasetId, user);
+                }
+            }
+            
             // slides and images are created with rawData
             // here we are only creating the relationship to the dataset
             if (dataset.getSlides() != null) {
@@ -214,6 +224,68 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
         } 
         return null;
+    }
+
+    @Override
+    public String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException {
+        String graph;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        } else {
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI dataset = f.createIRI(uriPre + datasetId);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasIdentifier = f.createIRI(hasIdentiferPredicate);
+        IRI hasOrg = f.createIRI(hasOrganizationPredicate);
+        IRI hasGrantPred = f.createIRI(hasGrant);
+        IRI hasURL = f.createIRI(hasURLPredicate);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        String grantURI = generateUniqueURI(uriPre + "P", graph);
+        IRI grantIRI = f.createIRI(grantURI);
+        Literal label = grant.getTitle() == null ? f.createLiteral("") : f.createLiteral(grant.getTitle());
+        Literal organization = grant.getFundingOrganization() == null ? f.createLiteral("") : f.createLiteral(grant.getFundingOrganization());
+        Literal identifier = grant.getIdentifier() == null ? f.createLiteral("") : f.createLiteral(grant.getIdentifier());
+        Literal url = grant.getURL() == null ? f.createLiteral("") : f.createLiteral(grant.getURL());
+        
+        
+        if (organization != null) statements.add(f.createStatement(grantIRI, hasOrg, organization, graphIRI));
+        if (url != null) statements.add(f.createStatement(grantIRI, hasURL, url, graphIRI));
+        if (identifier != null) statements.add(f.createStatement(grantIRI, hasIdentifier, identifier, graphIRI));
+        if (label != null) statements.add(f.createStatement(grantIRI, RDFS.LABEL, label, graphIRI));
+        
+        statements.add(f.createStatement(dataset, hasGrantPred, grantIRI, graphIRI));
+        sparqlDAO.addStatements(statements, graphIRI);
+        return grantURI;
+        
+    }
+
+    @Override
+    public void addCollaborator(Creator collab, String datasetId, UserEntity user) throws SparqlException, SQLException {
+        String graph;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        } else {
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI dataset = f.createIRI(uriPre + datasetId);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasCollab = f.createIRI(hasCollaborator);
+        
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        Literal username = collab.getName() == null ? f.createLiteral("") : f.createLiteral(collab.getName());
+        
+        
+        statements.add(f.createStatement(dataset, hasCollab, username, graphIRI));
+        sparqlDAO.addStatements(statements, graphIRI);
     }
 
 
@@ -837,6 +909,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         IRI hasImage = f.createIRI(hasImagePredicate);
         IRI hasPub = f.createIRI(hasPublication);
+        IRI hasGrantPred = f.createIRI(hasGrant);
+        IRI hasCollab = f.createIRI(hasCollaborator);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -857,6 +931,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             datasetObject.setSlides(new ArrayList<Slide>());
             datasetObject.setImages(new ArrayList<Image>());
             datasetObject.setPublications(new ArrayList<Publication>());
+            datasetObject.setGrants(new ArrayList<>());
+            datasetObject.setCollaborators(new ArrayList<>());
         }
         
         while (statements.hasNext()) {
@@ -909,6 +985,20 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasPub)) {
                 Value uriValue = st.getObject();
                 datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), user));            
+            } else if (st.getPredicate().equals(hasCollab)) {
+                Value label = st.getObject();
+                Creator collab = new Creator();
+                collab.setName(label.stringValue());
+                UserEntity entity = userRepository.findByUsernameIgnoreCase(collab.getName());
+                if (entity != null) {
+                    collab.setFirstName(entity.getFirstName());
+                    collab.setLastName(entity.getLastName());
+                    collab.setAffiliation(entity.getAffiliation());
+                }
+                datasetObject.getCollaborators().add(collab);       
+            } else if (st.getPredicate().equals(hasGrantPred)) {
+                Value uriValue = st.getObject();
+                datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
             } else if (st.getPredicate().equals(hasImage)) {
                 Value uriValue = st.getObject();
                 datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));      
@@ -2683,6 +2773,52 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         sparqlDAO.addStatements(statements, graphIRI);
         return publicationURI;
     }
+    
+    @Override
+    public Grant getGrantFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        String graph;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+        } else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasIdentifier = f.createIRI(hasIdentiferPredicate);
+        IRI hasOrg = f.createIRI(hasOrganizationPredicate);
+        IRI hasURL = f.createIRI(hasURLPredicate);
+        
+        IRI p = f.createIRI(uri);
+        Grant grant = new Grant();
+        grant.setUri(uri);
+        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
+        while (statements2.hasNext()) {
+            Statement st2 = statements2.next();
+            if (st2.getPredicate().equals(RDFS.LABEL)) {
+                Value val = st2.getObject();
+                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                    grant.setTitle(val.stringValue());
+                }
+            } else if (st2.getPredicate().equals(hasIdentifier)) {
+                Value val = st2.getObject();
+                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                    grant.setIdentifier(val.stringValue());
+                }
+            } else if (st2.getPredicate().equals(hasURL)) {
+                Value val = st2.getObject();
+                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                    grant.setURL(val.stringValue());
+                }
+            } else if (st2.getPredicate().equals(hasOrg)) {
+                Value val = st2.getObject();
+                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                    grant.setFundingOrganization(val.stringValue());
+                }
+            } 
+        }
+        return grant;
+    }
 
     @Override
     public Publication getPublicationFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
@@ -2981,10 +3117,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             statements = sparqlDAO.getStatements(dataset, hasImage, image, graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-        }
-        
+        } 
     }
-
 
     @Override
     public boolean isDatasetPublic(String datasetId) throws SparqlException {
@@ -2996,5 +3130,60 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         return results != null && !results.isEmpty();
+    }
+
+    @Override
+    public List<ArrayDataset> getArrayDatasetByCoOwner(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, boolean loadAll) throws SparqlException, SQLException {
+        List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
+        List<String> graphs = new ArrayList<String>();
+        List<GraphPermissionEntity> permissions = permissionRepository.findByUser(user);
+        for (GraphPermissionEntity entity: permissions) {
+            String graph = entity.getGraphIRI();
+            if (!graphs.contains(graph))
+                graphs.add(graph);
+        }
+        
+        for (String graph: graphs) {
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);    
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                for (GraphPermissionEntity entity: permissions) {
+                    if (graph.equals(entity.getGraphIRI()) && uri.equalsIgnoreCase(entity.getResourceIRI())) {
+                        ArrayDataset dataset = getDatasetFromURI(uri, loadAll, user);
+                        if (dataset != null)
+                            datasets.add(dataset);   
+                    }
+                }
+                
+            }
+        }
+         
+        return datasets;
+    }
+
+
+    @Override
+    public int getArrayDatasetCountByCoOwner(UserEntity user) throws SQLException, SparqlException {
+        List<GraphPermissionEntity> permissions = permissionRepository.findByUser(user);
+        int count = 0;
+        for (GraphPermissionEntity entity: permissions) {
+            String graph = entity.getGraphIRI();
+            count += getCountByUserByType(graph, datasetTypePredicate);
+        }
+        
+        return count;
+    }
+
+
+    @Override
+    public void addCowner(UserEntity coowner, String datasetURI, UserEntity user) throws SparqlException, SQLException {
+        //TODO check for duplicates??
+        String graph = getGraphForUser(user);
+        GraphPermissionEntity entity = new GraphPermissionEntity();
+        entity.setResourceIRI(datasetURI);
+        entity.setUser(coowner);
+        entity.setGraphIRI(graph);
+        permissionRepository.save(entity);
     }
 }

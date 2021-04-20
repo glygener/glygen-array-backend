@@ -8,9 +8,11 @@ import java.util.UUID;
 
 import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.EmailChangeEntity;
+import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.VerificationToken;
 import org.glygen.array.persistence.dao.EmailRepository;
+import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class UserManagerImpl implements UserManager {
 	
     @Autowired
     private UserRepository repository;
+    
+    @Autowired
+    private GraphPermissionRepository permissionRepository;
 
     @Autowired
     private VerificationTokenRepository tokenRepository;
@@ -180,4 +185,11 @@ public class UserManagerImpl implements UserManager {
 			tokenRepository.delete(v);
 		
 	}
+
+    @Override
+    public void addCoOwner(GraphPermissionEntity entity) {
+        permissionRepository.save(entity);   
+    }
+    
+    
 }

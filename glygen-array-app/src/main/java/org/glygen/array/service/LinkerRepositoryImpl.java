@@ -54,7 +54,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String hasClassificationValuePredicate = ontPrefix+ "has_classification_value";
 	final static String opensRingPredicate = ontPrefix + "opens_ring";
 	final static String linkerTypePredicate = ontPrefix + "Linker";
-	final static String hasURLPredicate = ontPrefix + "has_url";
 	final static String createdByPredicate = ontPrefix + "created_by";
 	
 	@Override
