@@ -559,6 +559,10 @@ public class UtilityController {
             Integer limit) {
         // find the exact match if exists and put it as the first proposal
         PatriciaTrie<String> trie = NamespaceHandler.getTrieForNamespace(namespace);
+        return UtilityController.getSuggestions(trie, key, limit);
+    }
+    
+    public static List<String> getSuggestions (PatriciaTrie<String> trie, String key, Integer limit) {
         Entry<String, String> entry = trie.select(key.toLowerCase());
         SortedMap<String, String> resultMap = trie.prefixMap(key.toLowerCase());
         List<String> result = new ArrayList<String>();

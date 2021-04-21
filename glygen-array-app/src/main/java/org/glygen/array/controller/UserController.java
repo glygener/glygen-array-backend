@@ -12,6 +12,7 @@ import javax.persistence.EntityExistsException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
+import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -23,6 +24,7 @@ import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
 import org.glygen.array.service.UserManagerImpl;
+import org.glygen.array.typeahead.NamespaceHandler;
 import org.glygen.array.view.ChangePassword;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
@@ -433,28 +435,27 @@ public class UserController {
     }
 	
 	
-    @RequestMapping(value="/listusers", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the list of users")
+    @RequestMapping(value="/listusernames", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the list of usernames matching the entered username value")
     @ApiResponses (value ={@ApiResponse(code=200, message="User list retrieved successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public @ResponseBody List<User> getUsers () {
+    public @ResponseBody List<String> getUserNamesWithTypeAhead (
+            @ApiParam(required=true, value="value to match") 
+            @RequestParam("value")
+            String key, 
+            @ApiParam(required=false, value="limit of number of matches") 
+            @RequestParam(name="limit", required=false)
+            Integer limit) {
         List<UserEntity> userList = userRepository.findAll();
-        List<User> users = new ArrayList<User>();
+        List<String> userNames = new ArrayList<String>();
         for (UserEntity user: userList) {
-            User userView = new User();
-            userView.setAffiliation(user.getAffiliation());
-            userView.setAffiliationWebsite(user.getAffiliationWebsite());
-            userView.setEmail(user.getEmail());
-            userView.setFirstName(user.getFirstName());
-            userView.setLastName(user.getLastName());
-            userView.setUserName(user.getUsername());
-            users.add(userView);
+            userNames.add(user.getUsername());
         }
-        
-        return users;
+        PatriciaTrie<String> trie = NamespaceHandler.createNamespaceFromList(userNames);
+        return UtilityController.getSuggestions(trie, key, limit);
     }
 	
 	@RequestMapping(value="/recover", method = RequestMethod.GET)

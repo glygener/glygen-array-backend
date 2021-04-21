@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.trie.PatriciaTrie;
@@ -89,6 +90,21 @@ public class NamespaceHandler {
             throw e;
         }
         logger.info("NamespaceHandler Took: " +  (System.currentTimeMillis() - startTime)/1000.0 + " seconds for file: " + filename);
+        return trie;
+    }
+    
+    /**
+     * This implementation returns a PatriciaTrie using the strings in the given list as the synonyms and the actual values to show
+     * for the type ahead.
+     * 
+     * @param items list of strings
+     * @return patriciaTrie to be used in typeahead implementation
+     */
+    public static PatriciaTrie<String> createNamespaceFromList (List<String> items) {
+        PatriciaTrie<String> trie = new PatriciaTrie<String>();
+        for (String item: items) {
+            trie.put(item.toLowerCase(), item);
+        }
         return trie;
     }
     
