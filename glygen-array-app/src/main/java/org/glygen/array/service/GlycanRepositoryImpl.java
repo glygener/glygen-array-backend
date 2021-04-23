@@ -137,9 +137,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return glycanURI;
 	}
 	
-	String addBasicInfoForGlycan (Glycan g, String graph) throws SparqlException {
+	String addBasicInfoForGlycan (Glycan g, String graph) throws SparqlException, SQLException {
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray();
 		ValueFactory f = sparqlDAO.getValueFactory();
-		String glycanURI = generateUniqueURI(uriPrefix, graph) + "GAR";
+		String glycanURI = generateUniqueURI(uriPrefix, allGraphs) + "GAR";
 		IRI glycan = f.createIRI(glycanURI);
 		Literal date = f.createLiteral(new Date());
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");

@@ -225,6 +225,28 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } 
         return null;
     }
+    
+    String[] getGraphsForUser (UserEntity user, String datasetId) throws SQLException {
+        if (user == null) {
+            String[] allGraphs = new String[1];
+            allGraphs[0] = DEFAULT_GRAPH;
+            return allGraphs;
+        } else {
+            String coOwnerGraph = getCoownerGraphForUser(user, datasetId);
+            String graph = getGraphForUser(user);
+            if (coOwnerGraph != null) {
+                String[] allGraphs = new String[2];
+                allGraphs[0] = graph;
+                allGraphs[1] = coOwnerGraph;
+                return allGraphs;
+            }
+            else {
+                String[] allGraphs = new String[1];
+                allGraphs[0] = graph;
+                return allGraphs;
+            }
+        }
+    }
 
     @Override
     public String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException {
@@ -236,6 +258,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } else {
             graph = getGraphForUser(user);
         }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI dataset = f.createIRI(uriPre + datasetId);
         IRI graphIRI = f.createIRI(graph);
@@ -245,7 +268,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasURL = f.createIRI(hasURLPredicate);
         
         List<Statement> statements = new ArrayList<Statement>();
-        String grantURI = generateUniqueURI(uriPre + "P", graph);
+        String grantURI = generateUniqueURI(uriPre + "P", allGraphs);
         IRI grantIRI = f.createIRI(grantURI);
         Literal label = grant.getTitle() == null ? f.createLiteral("") : f.createLiteral(grant.getTitle());
         Literal organization = grant.getFundingOrganization() == null ? f.createLiteral("") : f.createLiteral(grant.getFundingOrganization());
@@ -262,6 +285,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         sparqlDAO.addStatements(statements, graphIRI);
         return grantURI;
         
+    }
+
+    private String getCoownerGraphForUser(UserEntity user, String datasetURI) {
+        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, datasetURI);
+        if (entity != null) {
+            return entity.getGraphIRI();
+        }
+        return null;
     }
 
     @Override
@@ -300,8 +331,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         ValueFactory f = sparqlDAO.getValueFactory();
-        String slideURI = generateUniqueURI(uriPre + "S", graph);
+        String slideURI = generateUniqueURI(uriPre + "S", allGraphs);
         
         IRI scanOf = f.createIRI(scanOfPredicate);
         IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
@@ -355,9 +387,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         ValueFactory f = sparqlDAO.getValueFactory();
-        
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         IRI graphIRI = f.createIRI(graph);
-        String printedSlideURI = generateUniqueURI(uriPre + "PS", graph);
+        String printedSlideURI = generateUniqueURI(uriPre + "PS", allGraphs);
         IRI iri = f.createIRI(printedSlideURI);
         Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
         Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
@@ -420,9 +452,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
-        String rawDataURI = generateUniqueURI(uriPre + "R", graph);
+        String rawDataURI = generateUniqueURI(uriPre + "R", allGraphs);
         
         IRI hasimageProcessingMetadata = f.createIRI(imageProcessingMetadataPredicate);
         IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
@@ -489,7 +522,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         if (rawData.getFile() != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", graph);
+            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
             Literal fileName = f.createLiteral(rawData.getFile().getIdentifier());
             Literal fileFolder = rawData.getFile().getFileFolder() == null ? null : f.createLiteral(rawData.getFile().getFileFolder());
             Literal fileFormat = rawData.getFile().getFileFormat() == null ? null : f.createLiteral(rawData.getFile().getFileFormat());
@@ -520,13 +553,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private String addMeasurement(Measurement measurement, List<Statement> statements, String graph) throws SparqlException {
+    private String addMeasurement(Measurement measurement, List<Statement> statements, String graph) throws SparqlException, SQLException {
         ValueFactory f = sparqlDAO.getValueFactory();
         String uriPre = uriPrefix;
         if (graph.equals (DEFAULT_GRAPH)) {
             uriPre = uriPrefixPublic;
         }
-        String measurementURI = generateUniqueURI(uriPre + "M", graph);
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String measurementURI = generateUniqueURI(uriPre + "M", allGraphs);
         IRI measurementIRI = f.createIRI(measurementURI);
         IRI graphIRI = f.createIRI(graph);
         // add intensities
@@ -671,11 +705,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(intensityURI), null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
-            
+            String[] allGraphs = (String[]) getAllUserGraphs().toArray();
             if (processedData.getIntensity() != null) {
                 for (Intensity intensity: processedData.getIntensity()) {
                     if (intensity == null) continue;
-                    String intensityURI = generateUniqueURI(uriPre + "I", graph);
+                    String intensityURI = generateUniqueURI(uriPre + "I", allGraphs);
                     IRI intensityIRI = f.createIRI(intensityURI);
                     Literal rfu = f.createLiteral(intensity.getRfu());
                     Literal stdev = intensity.getStDev() == null ? null : f.createLiteral(intensity.getStDev());
@@ -722,7 +756,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     fileURI = st.getObject().stringValue();
                     
                 } else {
-                    fileURI = generateUniqueURI(uriPre + "FILE", graph);
+                    fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
                 }
                 
                 Literal fileName = f.createLiteral(processedData.getFile().getIdentifier());
@@ -758,10 +792,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
         // add to user's local repository
-        String processedURI = generateUniqueURI(uriPre + "P", graph);
+        String processedURI = generateUniqueURI(uriPre + "P", allGraphs);
         IRI processed = f.createIRI(processedURI);
         IRI graphIRI = f.createIRI(graph);
         // add intensities
@@ -784,7 +819,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (processedData.getIntensity() != null) {
             for (Intensity intensity: processedData.getIntensity()) {
                 if (intensity == null) continue;
-                String intensityURI = generateUniqueURI(uriPre + "I", graph);
+                String intensityURI = generateUniqueURI(uriPre + "I", allGraphs);
                 IRI intensityIRI = f.createIRI(intensityURI);
                 Literal rfu = f.createLiteral(intensity.getRfu());
                 Literal stdev = intensity.getStDev() == null ? null : f.createLiteral(intensity.getStDev());
@@ -834,7 +869,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         if (processedData.getFile() != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", graph);
+            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
             Literal fileName = f.createLiteral(processedData.getFile().getIdentifier());
             Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
             Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
@@ -873,8 +908,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else
             graph = getGraphForUser(user);
         List<SparqlEntity> results = queryHelper.retrieveById(uriPre + datasetId, graph);
-        if (results.isEmpty())
-            return null;
+        if (results.isEmpty()) {     
+           return null;
+        }
         else {
             return getDatasetFromURI(uriPre + datasetId, loadAll, user);
         }
@@ -1127,9 +1163,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
-        
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         ValueFactory f = sparqlDAO.getValueFactory();
-        String imageURI = generateUniqueURI(uriPre + "I", graph);
+        String imageURI = generateUniqueURI(uriPre + "I", allGraphs);
         String scannerMetadataURI = null;
         if (image.getScanner() != null) {
             scannerMetadataURI = image.getScanner().getUri();
@@ -1150,7 +1186,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         List<Statement> statements = new ArrayList<Statement>();
         
         if (image.getFile() != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", graph);
+            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
             Literal fileName = f.createLiteral(image.getFile().getIdentifier());
             Literal fileFolder = image.getFile().getFileFolder() == null ? null : f.createLiteral(image.getFile().getFileFolder());
             Literal fileFormat = image.getFile().getFileFormat() == null ? null : f.createLiteral(image.getFile().getFileFormat());
@@ -2744,8 +2780,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasPubMed = f.createIRI(hasPubMedPredicate);
         IRI hasPub = f.createIRI(hasPublication);
         
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         List<Statement> statements = new ArrayList<Statement>();
-        String publicationURI = generateUniqueURI(uriPre + "P", graph);
+        String publicationURI = generateUniqueURI(uriPre + "P", allGraphs);
         IRI publication = f.createIRI(publicationURI);
         Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
         Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
@@ -2923,11 +2960,104 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI dataset = f.createIRI(uriPre + datasetId);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(pub, null, null, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        if (statements != null) {
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            statements = sparqlDAO.getStatements(dataset, hasPub, pub, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        }
+        else {
+            //need to check all the graphs that this user can access
+            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
+            if (entity != null) {
+                String otherGraph = entity.getGraphIRI();
+                graphIRI = f.createIRI(otherGraph);
+                statements = sparqlDAO.getStatements(pub, null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+                statements = sparqlDAO.getStatements(dataset, hasPub, pub, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            }
+        }        
+    }
+    
+    @Override
+    public void deleteGrant (String grantId, String datasetId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
         
-        statements = sparqlDAO.getStatements(dataset, hasPub, pub, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        String uri = uriPre + grantId;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI grant = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasGrantPred = f.createIRI(hasGrant);
+        IRI dataset = f.createIRI(uriPre + datasetId);
         
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(grant, null, null, graphIRI);
+        if (statements != null) {
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            statements = sparqlDAO.getStatements(dataset, hasGrantPred, grant, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        }
+        else {
+            //need to check all the graphs that this user can access
+            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
+            if (entity != null) {
+                String otherGraph = entity.getGraphIRI();
+                graphIRI = f.createIRI(otherGraph);
+                statements = sparqlDAO.getStatements(grant, null, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+                statements = sparqlDAO.getStatements(dataset, hasGrantPred, grant, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            }
+        }
+    }
+    
+    @Override
+    public void deleteCollaborator (String username, String datasetId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        Literal collab = f.createLiteral(username);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasCollab = f.createIRI(hasCollaborator);
+        IRI dataset = f.createIRI(uriPre + datasetId);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, hasCollab, collab, graphIRI);
+        if (statements != null)
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        else {
+            //need to check all the graphs that this user can access
+            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
+            if (entity != null) {
+                String otherGraph = entity.getGraphIRI();
+                statements = sparqlDAO.getStatements(dataset, hasCollab, collab, f.createIRI(otherGraph));
+                sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            }
+        }
+    }
+    
+    @Override
+    public void deleteCoowner (UserEntity coowner, String datasetURI, UserEntity user) throws SQLException {
+        String graph = getGraphForUser(user);
+        GraphPermissionEntity entity = new GraphPermissionEntity();
+        entity.setResourceIRI(datasetURI);
+        entity.setUser(coowner);
+        entity.setGraphIRI(graph);
+        permissionRepository.delete(entity);
     }
     
     @Override

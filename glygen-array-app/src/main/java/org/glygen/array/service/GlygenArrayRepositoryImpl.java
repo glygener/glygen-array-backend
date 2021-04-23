@@ -1,6 +1,7 @@
 package org.glygen.array.service;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -250,6 +251,15 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		}
 	}
 	
+	public List<String> getAllUserGraphs () throws SQLException {
+	    List<PrivateGraphEntity> list = graphRepository.findAll();
+	    List<String> graphs = new ArrayList<>();
+	    for (PrivateGraphEntity e: list) {
+	        graphs.add(e.getGraphIRI());
+	    }
+	    return graphs;
+	}
+	
 	/**
 	 * a generic delete method that removes all the triples for the given uri as the subject from the given graph
 	 * 
@@ -335,14 +345,15 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         return sparqlDAO.query(queryBuf.toString());
     }
     
-    protected String addGenericInfo (String name, String description, Date createdDate, List<Statement> statements, String prefix, String graph) throws SparqlException {
+    protected String addGenericInfo (String name, String description, Date createdDate, List<Statement> statements, String prefix, String graph) throws SparqlException, SQLException {
         ValueFactory f = sparqlDAO.getValueFactory();
         String uriPre = uriPrefix;
         if (graph.equals (DEFAULT_GRAPH)) {
             uriPre = uriPrefixPublic;
         }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
         // add to user's local repository
-        String uri = generateUniqueURI(uriPre + prefix, graph);
+        String uri = generateUniqueURI(uriPre + prefix, allGraphs);
         IRI iri = f.createIRI(uri);
         Literal date = f.createLiteral(new Date());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);

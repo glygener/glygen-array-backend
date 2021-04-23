@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.glygen.array.exception.UserNotFoundException;
 import org.glygen.array.persistence.EmailChangeEntity;
 import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.UserEntity;

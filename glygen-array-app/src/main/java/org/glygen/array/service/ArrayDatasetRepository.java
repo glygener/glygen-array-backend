@@ -92,4 +92,7 @@ public interface ArrayDatasetRepository {
     String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void addCollaborator(Creator collab, String datasetId, UserEntity user) throws SparqlException, SQLException;
     Grant getGrantFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    void deleteGrant(String grantId, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    void deleteCollaborator(String username, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    void deleteCoowner(UserEntity coowner, String datasetURI, UserEntity user) throws SQLException;
 }

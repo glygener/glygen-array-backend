@@ -61,7 +61,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI featureType = f.createIRI(featureTypePredicate);
-		String featureURI = generateUniqueURI(uriPrefix + "F", graph);
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		String featureURI = generateUniqueURI(uriPrefix + "F", allGraphs);
 		IRI feat = f.createIRI(featureURI);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);

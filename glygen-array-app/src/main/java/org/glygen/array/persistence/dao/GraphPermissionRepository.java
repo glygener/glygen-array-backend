@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface GraphPermissionRepository extends JpaRepository<GraphPermissionEntity, Long> {
 	
 	List<GraphPermissionEntity> findByUser(UserEntity user);
+	
+	GraphPermissionEntity findByUserAndResourceIRI (UserEntity user, String resourceURI);
 }

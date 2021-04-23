@@ -137,7 +137,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
 
-    private String addSequenceBasedLinker(Linker l, String graph) throws SparqlException {
+    private String addSequenceBasedLinker(Linker l, String graph) throws SparqlException, SQLException {
 		String linkerURI;
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
@@ -154,9 +154,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 		
 		existing = getLinkerByField(sequence, "has_sequence", "string");
-		
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
 		if (existing == null) {
-			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
+			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
@@ -227,7 +227,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			
-			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
+			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
@@ -258,7 +258,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return linkerURI;
 	}
 
-	String addSmallMoleculeLinker (SmallMoleculeLinker l, String graph) throws SparqlException {
+	String addSmallMoleculeLinker (SmallMoleculeLinker l, String graph) throws SparqlException, SQLException {
 		
 		String linkerURI;
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -271,8 +271,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			existing = getLinkerByField(l.getInChiKey(), hasInchiKeyProperty, "string");
 		}
 	
-		if (existing == null) {
-			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		if (existing == null) {   
+			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
@@ -401,7 +402,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI linker = f.createIRI(linkerURI);
 			
-			linkerURI = generateUniqueURI(uriPrefix + "L", graph);
+			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			IRI localLinker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);

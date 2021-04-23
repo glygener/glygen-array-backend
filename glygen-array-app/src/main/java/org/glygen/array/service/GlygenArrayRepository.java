@@ -1,6 +1,7 @@
 package org.glygen.array.service;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.glygen.array.persistence.UserEntity;
 
@@ -29,6 +30,8 @@ public interface GlygenArrayRepository {
 	 * @throws SQLException
 	 */
 	String getGraphForUser(UserEntity user) throws SQLException;
+	
+	List<String> getAllUserGraphs() throws SQLException;
 	
 	void resetRepository () throws SQLException;
 }
