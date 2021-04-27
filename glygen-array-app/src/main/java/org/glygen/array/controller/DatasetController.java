@@ -21,7 +21,6 @@ import javax.validation.Validator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.logging.filter.GlygenRequestAndResponseLoggingFilter;
 import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
@@ -2497,6 +2496,7 @@ public class DatasetController {
             String metadataId, 
             @RequestParam("type")
             MetadataTemplateType type,
+            String datasetId,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -2506,27 +2506,27 @@ public class DatasetController {
         MetadataCategory metadata = null;
         switch (type) {
         case SAMPLE:
-            metadata = getSample(metadataId, p);
+            metadata = getSample(metadataId, datasetId, p);
             break;
         case DATAPROCESSINGSOFTWARE:
-            metadata = getDataProcessingSoftware(metadataId, p);
+            metadata = getDataProcessingSoftware(metadataId, datasetId, p);
             break;
         case IMAGEANALYSISSOFTWARE:
-            metadata = getImageAnaylsisSoftware(metadataId, p);
+            metadata = getImageAnaylsisSoftware(metadataId, datasetId, p);
             break;
         case PRINTER:
-            metadata = getPrinter(metadataId, p);
+            metadata = getPrinter(metadataId, datasetId, p);
             break;
         case SCANNER:
-            metadata = getScanner(metadataId, p);
+            metadata = getScanner(metadataId, datasetId, p);
             break;
         case SLIDE:
-            metadata = getSlideMetadata(metadataId, p);
+            metadata = getSlideMetadata(metadataId, datasetId, p);
             break;
         case ASSAY:
-            metadata = getAssayMetadata(metadataId, p);
+            metadata = getAssayMetadata(metadataId, datasetId, p);
         case SPOT:
-            metadata = getSpotMetadata(metadataId, p);
+            metadata = getSpotMetadata(metadataId, datasetId, p);
             break;
         default:
             break;
@@ -2777,9 +2777,37 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         PrintedSlideListView result = new PrintedSlideListView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
+        
         try {
             if (offset == null)
                 offset = 0;
@@ -2798,9 +2826,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrintedSlideCountByUser(user);
+            int total = datasetRepository.getPrintedSlideCountByUser(owner);
             
-            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue);
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue);
             // clear unnecessary fields before sending the results back
             for (PrintedSlide slide: resultList) {
                 if (slide.getLayout() != null)
@@ -2845,9 +2873,36 @@ public class DatasetController {
             @ApiParam(required=false, value="load slide layout details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         PrintedSlideListView result = new PrintedSlideListView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -2866,8 +2921,8 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrintedSlideCountByUser(user);
-            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(user, offset, limit, field, order, searchValue, loadAll);
+            int total = datasetRepository.getPrintedSlideCountByUser(owner);
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<PrintedSlide> totalResultList = new ArrayList<PrintedSlide>();
             totalResultList.addAll(resultList);
             
@@ -2928,9 +2983,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -2949,9 +3031,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getDataProcessingSoftwareCountByUser(user);
+            int total = metadataRepository.getDataProcessingSoftwareCountByUser(owner);
             
-            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(user, offset, limit, field, order, searchValue);
+            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -2983,9 +3065,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3004,9 +3113,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(user);
+            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(owner);
             
-            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(user, offset, limit, field, order, searchValue);
+            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3038,9 +3147,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3059,9 +3195,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getPrinterCountByUser(user);
+            int total = metadataRepository.getPrinterCountByUser(owner);
             
-            List<Printer> metadataList = metadataRepository.getPrinterByUser(user, offset, limit, field, order, searchValue);
+            List<Printer> metadataList = metadataRepository.getPrinterByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3093,9 +3229,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3114,9 +3277,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSampleCountByUser (user);
+            int total = metadataRepository.getSampleCountByUser (owner);
             
-            List<Sample> metadataList = metadataRepository.getSampleByUser(user, offset, limit, field, order, searchValue);
+            List<Sample> metadataList = metadataRepository.getSampleByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3148,9 +3311,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3169,9 +3359,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getScannerMetadataCountByUser(user);
+            int total = metadataRepository.getScannerMetadataCountByUser(owner);
             
-            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3203,9 +3393,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3224,9 +3441,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSlideMetadataCountByUser (user);
+            int total = metadataRepository.getSlideMetadataCountByUser (owner);
             
-            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3258,9 +3475,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3279,9 +3523,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getAssayMetadataCountByUser(user);
+            int total = metadataRepository.getAssayMetadataCountByUser(owner);
             
-            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3313,9 +3557,36 @@ public class DatasetController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue, Principal p) {
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         MetadataListResultView result = new MetadataListResultView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         try {
             if (offset == null)
                 offset = 0;
@@ -3334,9 +3605,9 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSpotMetadataCountByUser(user);
+            int total = metadataRepository.getSpotMetadataCountByUser(owner);
             
-            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(user, offset, limit, field, order, searchValue);
+            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3490,10 +3761,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deletePrintedSlide (
             @ApiParam(required=true, value="id of the printed slide to delete") 
-            @PathVariable("slideId") String id, Principal principal) {
+            @PathVariable("slideId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
-            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            datasetRepository.deletePrintedSlide(id, user);
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            datasetRepository.deletePrintedSlide(id, owner);
             return new Confirmation("Printed slide deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printed slide " + id, e);
@@ -3562,8 +3860,31 @@ public class DatasetController {
         try {
             
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            UserEntity owner = user;
             
-            RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, user);
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            
+            RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
             // check the status first
             if (rawData != null) {
                 if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
@@ -3584,7 +3905,7 @@ public class DatasetController {
                         }
                     }
                 }
-                datasetRepository.deleteRawData(id, datasetId, user);
+                datasetRepository.deleteRawData(id, datasetId, owner);
                 //delete the files associated with the rawdata
                 if (rawData.getFile() != null) {
                     File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
@@ -3658,7 +3979,30 @@ public class DatasetController {
             Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            Slide slide = datasetRepository.getSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            Slide slide = datasetRepository.getSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
             //delete the files associated with the slide (image, raw data and processed data files)
             if (slide != null) {
                 for (Image image: slide.getImages()) {
@@ -3684,7 +4028,7 @@ public class DatasetController {
                         }
                     }
                 }
-                datasetRepository.deleteSlide(id, datasetId, user);   
+                datasetRepository.deleteSlide(id, datasetId, owner);   
                 for (Image image: slide.getImages()) {
                     if (image.getFile() != null) {
                         File file = new File (image.getFile().getFileFolder(), image.getFile().getIdentifier());
@@ -3940,10 +4284,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteSample (
             @ApiParam(required=true, value="id of the sample to delete") 
-            @PathVariable("sampleId") String id, Principal principal) {
+            @PathVariable("sampleId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Sample deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete sample " + id, e);
@@ -3960,10 +4331,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteImageAnalysisSoftware (
             @ApiParam(required=true, value="id of the image analysis software to delete") 
-            @PathVariable("imageAnaysisMetadataId") String id, Principal principal) {
+            @PathVariable("imageAnaysisMetadataId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Image analysis software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete image analysis software " + id, e);
@@ -3980,10 +4378,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteSlideMetadata (
             @ApiParam(required=true, value="id of the slide metadata to delete") 
-            @PathVariable("slideMetadataId") String id, Principal principal) {
+            @PathVariable("slideMetadataId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Slide metadata deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete slide metadata " + id, e);
@@ -4000,10 +4425,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteDataProcessingSoftware (
             @ApiParam(required=true, value="id of the data processing software to delete") 
-            @PathVariable("dataProcessingMetadataId") String id, Principal principal) {
+            @PathVariable("dataProcessingMetadataId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Data processing software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete data processing software " + id, e);
@@ -4020,10 +4472,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteScanner (
             @ApiParam(required=true, value="id of the scanner to delete") 
-            @PathVariable("scannerId") String id, Principal principal) {
+            @PathVariable("scannerId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Scanner deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete scanner " + id, e);
@@ -4040,10 +4519,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deletePrinter (
             @ApiParam(required=true, value="id of the printer metadata to delete") 
-            @PathVariable("printerId") String id, Principal principal) {
+            @PathVariable("printerId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
@@ -4060,10 +4566,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteAssayMetadata (
             @ApiParam(required=true, value="id of the assay metadata to delete") 
-            @PathVariable("assayId") String id, Principal principal) {
+            @PathVariable("assayId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete assay metadata " + id, e);
@@ -4080,10 +4613,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation deleteSpotMetadata (
             @ApiParam(required=true, value="id of the spot metadata to delete") 
-            @PathVariable("spotMetadataId") String id, Principal principal) {
+            @PathVariable("spotMetadataId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            metadataRepository.deleteMetadata(id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
             return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete spot metadata " + id, e);
@@ -4101,15 +4661,44 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public PrintedSlide getPrintedSlide (
             @ApiParam(required=true, value="id of the printed slide to retrieve") 
-            @PathVariable("slideId") String id, Principal p) {
+            @PathVariable("slideId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            PrintedSlide slide = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            
+            
+            PrintedSlide slide = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (slide == null) {
                 throw new EntityNotFoundException("Printed slide with id : " + id + " does not exist in the repository");
             }
             // check if it is in use
-            boolean notInUse = datasetRepository.canDeletePrintedSlide (slide.getUri(), user);
+            boolean notInUse = datasetRepository.canDeletePrintedSlide (slide.getUri(), owner);
             slide.setInUse(!notInUse);
             
             // clear the inner objects
@@ -4180,7 +4769,11 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public ProcessedData getProcessedData (
             @ApiParam(required=true, value="id of the processed data to retrieve") 
-            @PathVariable("id") String id, Principal p) {
+            @PathVariable("id") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the processed data") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             if (id == null || id.isEmpty()) {
                 ErrorMessage errorMessage = new ErrorMessage();
@@ -4189,7 +4782,30 @@ public class DatasetController {
                 throw new IllegalArgumentException("id must be provided", errorMessage);
             }
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ProcessedData data = datasetRepository.getProcessedDataFromURI(GlygenArrayRepository.uriPrefix + id, false, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            ProcessedData data = datasetRepository.getProcessedDataFromURI(GlygenArrayRepository.uriPrefix + id, false, owner);
             if (data == null) {
                 throw new EntityNotFoundException("Processed data with id : " + id + " does not exist in the repository");
             }
@@ -4211,10 +4827,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Sample getSample (
             @ApiParam(required=true, value="id of the sample to retrieve") 
-            @PathVariable("sampleId") String id, Principal p) {
+            @PathVariable("sampleId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (sample == null) {
                 throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
             }
@@ -4235,10 +4878,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Printer getPrinter (
             @ApiParam(required=true, value="id of the printer to retrieve") 
-            @PathVariable("printerId") String id, Principal p) {
+            @PathVariable("printerId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
             }
@@ -4259,10 +4929,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public ScannerMetadata getScanner (
             @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
-            @PathVariable("scannerId") String id, Principal p) {
+            @PathVariable("scannerId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
             }
@@ -4282,10 +4979,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public SlideMetadata getSlideMetadata (
             @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
-            @PathVariable("slideId") String id, Principal p) {
+            @PathVariable("slideId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
             }
@@ -4305,10 +5029,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public ImageAnalysisSoftware getImageAnaylsisSoftware (
             @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
-            @PathVariable("imagesoftwareId") String id, Principal p) {
+            @PathVariable("imagesoftwareId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
             }
@@ -4329,10 +5080,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public DataProcessingSoftware getDataProcessingSoftware (
             @ApiParam(required=true, value="id of the DataProcessingSoftware to retrieve") 
-            @PathVariable("dataprocessingId") String id, Principal p) {
+            @PathVariable("dataprocessingId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
             }
@@ -4353,10 +5131,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public AssayMetadata getAssayMetadata (
             @ApiParam(required=true, value="id of the Assay metadata to retrieve") 
-            @PathVariable("assayId") String id, Principal p) {
+            @PathVariable("assayId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
             }
@@ -4377,10 +5182,37 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public SpotMetadata getSpotMetadata (
             @ApiParam(required=true, value="id of the Spot metadata to retrieve") 
-            @PathVariable("spotMetadataId") String id, Principal p) {
+            @PathVariable("spotMetadataId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            SpotMetadata metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefix + id, user);
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (entity != null) {
+                            String coOwnedGraph = entity.getGraphIRI();
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            SpotMetadata metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("Spot metadata with id : " + id + " does not exist in the repository");
             }
@@ -4402,7 +5234,11 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updatePrintedSlide(
             @ApiParam(required=true, value="Printed slide with updated fields") 
-            @RequestBody PrintedSlide printedSlide, Principal p) throws SQLException {
+            @RequestBody PrintedSlide printedSlide, 
+            @ApiParam(required=false, value="id of the array dataset that uses this printed slide") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -4428,6 +5264,29 @@ public class DatasetController {
         
        
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         
         if (printedSlide.getName() == null || printedSlide.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -4440,7 +5299,7 @@ public class DatasetController {
 
         // check for duplicate name
         try {
-            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), user);
+            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), owner);
             if (existing != null && !existing.getUri().equals(printedSlide.getUri()) && !existing.getId().equals(printedSlide.getId())) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -4458,14 +5317,14 @@ public class DatasetController {
                     }
                 }
                 if (slideLayoutId != null) {
-                    SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutId, user, false);
+                    SlideLayout existing = layoutRepository.getSlideLayoutById(slideLayoutId, owner, false);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
                     } else {
                         printedSlide.setLayout(existing);
                     }
                 } else if (printedSlide.getLayout().getName() != null) {
-                    SlideLayout existing = layoutRepository.getSlideLayoutByName(printedSlide.getLayout().getName(), user);
+                    SlideLayout existing = layoutRepository.getSlideLayoutByName(printedSlide.getLayout().getName(), owner);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
                     } else {
@@ -4480,21 +5339,21 @@ public class DatasetController {
         if (printedSlide.getMetadata() != null) {
             try {
                 if (printedSlide.getMetadata().getName() != null) {
-                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataByLabel(printedSlide.getMetadata().getName(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataByLabel(printedSlide.getMetadata().getName(), owner);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         printedSlide.setMetadata(slideMetadata);
                     }
                 } else if (printedSlide.getMetadata().getUri() != null) {
-                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(printedSlide.getMetadata().getUri(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(printedSlide.getMetadata().getUri(), owner);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
                         printedSlide.setMetadata(slideMetadata);
                     }
                 } else if (printedSlide.getMetadata().getId() != null) {
-                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getMetadata().getId(), user);
+                    SlideMetadata slideMetadata = metadataRepository.getSlideMetadataFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getMetadata().getId(), owner);
                     if (slideMetadata == null) {
                         errorMessage.addError(new ObjectError("slideMetadata", "NotFound"));
                     } else {
@@ -4509,21 +5368,21 @@ public class DatasetController {
         if (printedSlide.getPrinter() != null) {
             try {
                 if (printedSlide.getPrinter().getName() != null) {
-                    Printer printer = metadataRepository.getPrinterByLabel(printedSlide.getPrinter().getName(), user);
+                    Printer printer = metadataRepository.getPrinterByLabel(printedSlide.getPrinter().getName(), owner);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         printedSlide.setPrinter(printer);
                     }
                 } else if (printedSlide.getPrinter().getUri() != null) {
-                    Printer printer = metadataRepository.getPrinterFromURI(printedSlide.getPrinter().getUri(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(printedSlide.getPrinter().getUri(), owner);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
                         printedSlide.setPrinter(printer);
                     }
                 } else if (printedSlide.getMetadata().getId() != null) {
-                    Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), user);
+                    Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), owner);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
                     } else {
@@ -4540,7 +5399,7 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
         
         try {
-            datasetRepository.updatePrintedSlide(printedSlide, user);
+            datasetRepository.updatePrintedSlide(printedSlide, owner);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Printed slide cannot be updated for user " + p.getName(), e);
         }       
@@ -4584,6 +5443,28 @@ public class DatasetController {
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (dataset.getId() != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset existingdataset = datasetRepository.getArrayDataset(dataset.getId(), false, user);
+                if (existingdataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + dataset.getId());
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + dataset.getId() + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         
         if (dataset.getName() == null || dataset.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -4597,7 +5478,7 @@ public class DatasetController {
 
         // check for duplicate name
         try {
-            ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName(), false, user);
+            ArrayDataset existing = datasetRepository.getArrayDatasetByLabel(dataset.getName(), false, owner);
             if (existing != null && !existing.getUri().equals(dataset.getUri()) && !existing.getId().equals(dataset.getId())) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -4615,7 +5496,7 @@ public class DatasetController {
                     }
                 }
                 if (id != null) {
-                    Sample existing = metadataRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, user);
+                    Sample existing = metadataRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, owner);
                     if (existing == null) {
                         // check the public data
                         existing = metadataRepository.getSampleFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + id, null);
@@ -4626,7 +5507,7 @@ public class DatasetController {
                         dataset.setSample(existing);
                     }
                 } else if (dataset.getSample().getName() != null) {
-                    Sample existing = metadataRepository.getSampleByLabel(dataset.getSample().getName(), user);
+                    Sample existing = metadataRepository.getSampleByLabel(dataset.getSample().getName(), owner);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("sample", "NotFound"));
                     } else {
@@ -4643,7 +5524,7 @@ public class DatasetController {
         }
         
         try {
-            datasetRepository.updateArrayDataset(dataset, user);
+            datasetRepository.updateArrayDataset(dataset, owner);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be updated for user " + p.getName(), e);
         }       
@@ -4662,8 +5543,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateSample(
             @ApiParam(required=true, value="Sample with updated fields") 
-            @RequestBody Sample metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.SAMPLE, p);
+            @RequestBody Sample metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.SAMPLE, p);
         
     }
     
@@ -4679,8 +5564,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updatePrinter(
             @ApiParam(required=true, value="Printer with updated fields") 
-            @RequestBody Printer metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.PRINTER, p);
+            @RequestBody Printer metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam("arraydatasetId")
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.PRINTER, p);
         
     }
     
@@ -4696,8 +5585,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateScanner(
             @ApiParam(required=true, value="Scanner with updated fields") 
-            @RequestBody ScannerMetadata metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.SCANNER, p);
+            @RequestBody ScannerMetadata metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.SCANNER, p);
         
     }
     
@@ -4713,8 +5606,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateSlideMetadata(
             @ApiParam(required=true, value="Slide metadata with updated fields") 
-            @RequestBody SlideMetadata metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.SLIDE, p);
+            @RequestBody SlideMetadata metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.SLIDE, p);
         
     }
     
@@ -4730,8 +5627,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateImageAnalysisSoftware(
             @ApiParam(required=true, value="Image analysis software with updated fields") 
-            @RequestBody ImageAnalysisSoftware metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, p);
+            @RequestBody ImageAnalysisSoftware metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.IMAGEANALYSISSOFTWARE, p);
         
     }
     
@@ -4747,8 +5648,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateDataProcessingSoftware(
             @ApiParam(required=true, value="Data processing software with updated fields") 
-            @RequestBody DataProcessingSoftware metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, p);
+            @RequestBody DataProcessingSoftware metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.DATAPROCESSINGSOFTWARE, p);
         
     }
     
@@ -4764,8 +5669,12 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateAssayMetadata(
             @ApiParam(required=true, value="Assay metadata with updated fields") 
-            @RequestBody AssayMetadata metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.ASSAY, p);
+            @RequestBody AssayMetadata metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.ASSAY, p);
         
     }
     
@@ -4781,12 +5690,16 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateSpotMetadata(
             @ApiParam(required=true, value="Spot metadata with updated fields") 
-            @RequestBody SpotMetadata metadata, Principal p) throws SQLException {
-        return updateMetadata(metadata, MetadataTemplateType.SPOT, p);
+            @RequestBody SpotMetadata metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.SPOT, p);
         
     }
      
-    private Confirmation updateMetadata (MetadataCategory metadata, MetadataTemplateType type, Principal p) {
+    private Confirmation updateMetadata (MetadataCategory metadata, String datasetId, MetadataTemplateType type, Principal p) {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -4811,6 +5724,29 @@ public class DatasetController {
         
        
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (entity != null) {
+                        String coOwnedGraph = entity.getGraphIRI();
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
         
         if (metadata.getName() == null || metadata.getName().isEmpty()) {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
@@ -4849,28 +5785,28 @@ public class DatasetController {
                 MetadataCategory existing = null;
                 switch (type) {
                 case SAMPLE:
-                    existing = metadataRepository.getSampleByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getSampleByLabel(metadata.getName(), owner);
                     break;
                 case PRINTER:
-                    existing = metadataRepository.getPrinterByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getPrinterByLabel(metadata.getName(), owner);
                     break;
                 case SCANNER:
-                    existing = metadataRepository.getScannerMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getScannerMetadataByLabel(metadata.getName(), owner);
                     break;
                 case SLIDE:
-                    existing = metadataRepository.getSlideMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getSlideMetadataByLabel(metadata.getName(), owner);
                     break;
                 case IMAGEANALYSISSOFTWARE:
-                    existing = metadataRepository.getImageAnalysisSoftwarByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getImageAnalysisSoftwarByLabel(metadata.getName(), owner);
                     break;
                 case DATAPROCESSINGSOFTWARE:
-                    existing = metadataRepository.getDataProcessingSoftwareByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getDataProcessingSoftwareByLabel(metadata.getName(), owner);
                     break;
                 case ASSAY:
-                    existing = metadataRepository.getAssayMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getAssayMetadataByLabel(metadata.getName(), owner);
                     break;
                 case SPOT:
-                    existing = metadataRepository.getSpotMetadataByLabel(metadata.getName(), user);
+                    existing = metadataRepository.getSpotMetadataByLabel(metadata.getName(), owner);
                     break;
                 }
                     
@@ -4888,16 +5824,16 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid metadata information", errorMessage);
         
         try {
-            metadataRepository.updateMetadata(metadata, user);
+            metadataRepository.updateMetadata(metadata, owner);
             try {
                 // check mirage and update mirage info
-                boolean isMirage = checkMirageCompliance(metadata.getId(), type, p);
+                boolean isMirage = checkMirageCompliance(metadata.getId(), type, datasetId, p);
                 metadata.setIsMirage(isMirage);
             } catch (IllegalArgumentException e) {
                 metadata.setIsMirage(false);
                 logger.error("Error checking for mirage compliance", e);
             }
-            metadataRepository.updateMetadataMirage(metadata, user);
+            metadataRepository.updateMetadataMirage(metadata, owner);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Error updating metadata with id: " + metadata.getId());
         }
