@@ -5854,79 +5854,94 @@ public class DatasetController {
             @ApiParam(required=true, value="id of the dataset to make public") 
             @PathVariable("datasetid") String datasetId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
         try {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            
             if (dataset == null) {
-                errorMessage.addError(new ObjectError("datasetId", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
-            } else {
-                
-                // check if the dataset is already public
-                if (dataset.getIsPublic()) {
-                    // already been made public
-                    errorMessage.addError(new ObjectError("datasetId", "This dataset is already public"));
+                // check if the user can access this dataset as a co-owner
+                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (entity != null) {
+                    String coOwnedGraph = entity.getGraphIRI();
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        owner = originalUser;
+                    }
+                }
+                if (dataset == null) {
+                    errorMessage.addError(new ObjectError("datasetId", "NotValid"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("This dataset is already public!", errorMessage); 
+                    throw new IllegalArgumentException("There is no dataset with the given id in user's repository", errorMessage); 
                 }
-                // check if the array dataset is ready to be made public
-                if (dataset.getStatus() == FutureTaskStatus.PROCESSING) {
-                    // check if enough time has passed to restart processing
-                    // check the timestamp and see if enough time has passed
-                    Long timeDelay = 3600L;
-                    SettingEntity entity = settingsRepository.findByName("timeDelay");
-                    if (entity != null) {
-                        timeDelay = Long.parseLong(entity.getValue());
-                    }
-                   
-                    Date current = new Date();
-                    Date startDate = dataset.getStartDate();
-                    if (startDate != null) {
-                        long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
-                        if (timeDelay > diffInMillies / 1000) {
-                            // not enough time has passed, cannot restart!
-                            // it is already being made public, do not allow it again
-                            errorMessage.addError(new ObjectError("status", "NotDone"));
-                            errorMessage.addError(new ObjectError("time", "NotValid"));
-                            throw new IllegalArgumentException("Not enough time has passed. Please wait before restarting", errorMessage);
-                        }
-                    }
-                    
+            }
+              
+            // check if the dataset is already public
+            if (dataset.getIsPublic()) {
+                // already been made public
+                errorMessage.addError(new ObjectError("datasetId", "This dataset is already public"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("This dataset is already public!", errorMessage); 
+            }
+            // check if the array dataset is ready to be made public
+            if (dataset.getStatus() == FutureTaskStatus.PROCESSING) {
+                // check if enough time has passed to restart processing
+                // check the timestamp and see if enough time has passed
+                Long timeDelay = 3600L;
+                SettingEntity entity = settingsRepository.findByName("timeDelay");
+                if (entity != null) {
+                    timeDelay = Long.parseLong(entity.getValue());
                 }
-                if (dataset.getSlides() == null || dataset.getSlides().isEmpty()) {
-                    errorMessage.addError(new ObjectError("slide", "NotFound"));
+               
+                Date current = new Date();
+                Date startDate = dataset.getStartDate();
+                if (startDate != null) {
+                    long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                    if (timeDelay > diffInMillies / 1000) {
+                        // not enough time has passed, cannot restart!
+                        // it is already being made public, do not allow it again
+                        errorMessage.addError(new ObjectError("status", "NotDone"));
+                        errorMessage.addError(new ObjectError("time", "NotValid"));
+                        throw new IllegalArgumentException("Not enough time has passed. Please wait before restarting", errorMessage);
+                    }
                 }
                 
-                /*if (existing.getRawDataList() == null || existing.getRawDataList().isEmpty()) {
-                    // cannot make public without raw data
-                    errorMessage.addError(new ObjectError("rawData", "NotFound"));
-                }
-                if (existing.getProcessedData() == null || existing.getProcessedData().isEmpty()) {
-                    // cannot make public without processed data
-                    errorMessage.addError(new ObjectError("processedData", "NotFound"));
-                } */
-                
-                if (dataset.getRawDataList() != null) {
-                    for (RawData rawData: dataset.getRawDataList()) {
-                        if (rawData.getStatus() != FutureTaskStatus.DONE) {
-                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
-                        }
-                        if (!rawData.getProcessedDataList().isEmpty()) {
-                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                if (processedData.getStatus() != FutureTaskStatus.DONE) {
-                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
-                                }
+            }
+            if (dataset.getSlides() == null || dataset.getSlides().isEmpty()) {
+                errorMessage.addError(new ObjectError("slide", "NotFound"));
+            }
+            
+            /*if (existing.getRawDataList() == null || existing.getRawDataList().isEmpty()) {
+                // cannot make public without raw data
+                errorMessage.addError(new ObjectError("rawData", "NotFound"));
+            }
+            if (existing.getProcessedData() == null || existing.getProcessedData().isEmpty()) {
+                // cannot make public without processed data
+                errorMessage.addError(new ObjectError("processedData", "NotFound"));
+            } */
+            
+            if (dataset.getRawDataList() != null) {
+                for (RawData rawData: dataset.getRawDataList()) {
+                    if (rawData.getStatus() != FutureTaskStatus.DONE) {
+                        errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                    }
+                    if (!rawData.getProcessedDataList().isEmpty()) {
+                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                            if (processedData.getStatus() != FutureTaskStatus.DONE) {
+                                errorMessage.addError(new ObjectError("processedData", "NotDone"));
                             }
                         }
                     }
                 }
-                
-                if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                    throw new IllegalArgumentException("Cannot make public now!", errorMessage); 
-                }
             }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Cannot make public now!", errorMessage); 
+            }
+            
             
             
             CompletableFuture<String> datasetURI = null;
@@ -5936,24 +5951,26 @@ public class DatasetController {
                 //ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, true, user);
                 // set the status to processing first
                 dataset.setStatus(FutureTaskStatus.PROCESSING);
-                datasetRepository.updateStatus (dataset.getUri(), dataset, user);
-                datasetURI = datasetRepository.makePublicArrayDataset(dataset, user); 
+                datasetRepository.updateStatus (dataset.getUri(), dataset, owner);
+                datasetURI = datasetRepository.makePublicArrayDataset(dataset, owner); 
+                final ArrayDataset data = dataset;
+                final UserEntity o = owner;
                 datasetURI.whenComplete((uri, e) -> {
                     try {
-                        String existingURI = dataset.getUri();
+                        String existingURI = data.getUri();
                         if (e != null) {
                             task.setStatus(FutureTaskStatus.ERROR);
                             logger.error(e.getMessage(), e);
-                            dataset.setStatus(FutureTaskStatus.ERROR);
+                            data.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
-                                dataset.setError((ErrorMessage) e.getCause().getCause());
+                                data.setError((ErrorMessage) e.getCause().getCause());
                             
                         } else {
                             task.setStatus(FutureTaskStatus.DONE);
-                            dataset.setStatus(FutureTaskStatus.DONE);
-                            dataset.setUri(uri);
+                            data.setStatus(FutureTaskStatus.DONE);
+                            data.setUri(uri);
                         }
-                        datasetRepository.updateStatus (existingURI, dataset, user);
+                        datasetRepository.updateStatus (existingURI, data, o);
                         
                     } catch (SparqlException | SQLException e1) {
                         logger.error("Could not save the processedData", e1);
@@ -6002,8 +6019,19 @@ public class DatasetController {
         try {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
-                errorMessage.addError(new ObjectError("fileWrapper", "This file does not belong to this user. Cannot be downloaded!"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                // check if the user can access this dataset as a co-owner
+                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (entity != null) {
+                    String coOwnedGraph = entity.getGraphIRI();
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                    }
+                }
+                if (dataset == null) {
+                    errorMessage.addError(new ObjectError("fileWrapper", "This file does not belong to this user. Cannot be downloaded!"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                }
             } 
         } catch (Exception e) {
             throw new GlycanRepositoryException("Array dataset cannot be loaded for user " + p.getName(), e);
