@@ -2,6 +2,7 @@ package org.glygen.array.persistence.rdf.data;
 
 public class Grant {
     
+    String id;
     String uri;
     String title;
     String identifier;
@@ -66,6 +67,18 @@ public class Grant {
      */
     public void setUri(String uri) {
         this.uri = uri;
+    }
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+    /**
+     * @param id the id to set
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
 }

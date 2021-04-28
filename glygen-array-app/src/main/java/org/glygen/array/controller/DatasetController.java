@@ -2758,6 +2758,35 @@ public class DatasetController {
         return result;
     }
     
+    @ApiOperation(value = "List co-owners for the dataset")
+    @RequestMapping(value="/listcoowners", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Co-owners retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public List<User> listCoownersForDataset(
+            @ApiParam(required=true, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=true)
+            String datasetId,
+            Principal p) {
+        
+        List<User> users = new ArrayList<User>();
+        List<GraphPermissionEntity> entities = permissionRepository.findByResourceIRI(GlygenArrayRepositoryImpl.uriPrefix + datasetId);
+        for (GraphPermissionEntity e: entities) {
+            UserEntity u = e.getUser();
+            User user = new User();
+            user.setUserName(u.getUsername());
+            user.setFirstName(u.getFirstName());
+            user.setLastName(u.getLastName());
+            user.setAffiliation(u.getAffiliation());
+            users.add(user);
+        }
+        return users;  
+    }
+    
     @ApiOperation(value = "List all printed slides for the user")
     @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
