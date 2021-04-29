@@ -351,7 +351,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         if (graph.equals (DEFAULT_GRAPH)) {
             uriPre = uriPrefixPublic;
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         // add to user's local repository
         String uri = generateUniqueURI(uriPre + prefix, allGraphs);
         IRI iri = f.createIRI(uri);

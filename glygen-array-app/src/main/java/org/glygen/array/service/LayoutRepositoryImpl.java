@@ -132,7 +132,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		} catch (SQLException e) {
 			throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
 		}
-		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		String blockLayoutURI = generateUniqueURI(uriPrefix + "BL", allGraphs);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
@@ -271,7 +271,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			throw new SparqlException ("Cannot add the private graph for the user: " + user.getUsername(), e);
 		}
 		blockLayoutCache.clear();
-		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		String slideLayoutURI = generateUniqueURI(uriPrefix + "SL", allGraphs);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();

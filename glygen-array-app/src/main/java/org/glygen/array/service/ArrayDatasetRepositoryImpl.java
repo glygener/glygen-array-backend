@@ -258,7 +258,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } else {
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI dataset = f.createIRI(uriPre + datasetId);
         IRI graphIRI = f.createIRI(graph);
@@ -331,7 +331,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         ValueFactory f = sparqlDAO.getValueFactory();
         String slideURI = generateUniqueURI(uriPre + "S", allGraphs);
         
@@ -387,7 +387,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         ValueFactory f = sparqlDAO.getValueFactory();
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         IRI graphIRI = f.createIRI(graph);
         String printedSlideURI = generateUniqueURI(uriPre + "PS", allGraphs);
         IRI iri = f.createIRI(printedSlideURI);
@@ -452,7 +452,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
         String rawDataURI = generateUniqueURI(uriPre + "R", allGraphs);
@@ -559,7 +559,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (graph.equals (DEFAULT_GRAPH)) {
             uriPre = uriPrefixPublic;
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         String measurementURI = generateUniqueURI(uriPre + "M", allGraphs);
         IRI measurementIRI = f.createIRI(measurementURI);
         IRI graphIRI = f.createIRI(graph);
@@ -705,7 +705,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(intensityURI), null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
-            String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+            String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
             if (processedData.getIntensity() != null) {
                 for (Intensity intensity: processedData.getIntensity()) {
                     if (intensity == null) continue;
@@ -792,7 +792,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         ValueFactory f = sparqlDAO.getValueFactory();
         List<Statement> statements = new ArrayList<Statement>();
         // add to user's local repository
@@ -1163,7 +1163,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             // check if there is already a private graph for user
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         ValueFactory f = sparqlDAO.getValueFactory();
         String imageURI = generateUniqueURI(uriPre + "I", allGraphs);
         String scannerMetadataURI = null;
@@ -2780,7 +2780,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasPubMed = f.createIRI(hasPubMedPredicate);
         IRI hasPub = f.createIRI(hasPublication);
         
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         List<Statement> statements = new ArrayList<Statement>();
         String publicationURI = generateUniqueURI(uriPre + "P", allGraphs);
         IRI publication = f.createIRI(publicationURI);

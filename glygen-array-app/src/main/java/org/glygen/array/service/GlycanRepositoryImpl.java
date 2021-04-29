@@ -138,7 +138,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	}
 	
 	String addBasicInfoForGlycan (Glycan g, String graph) throws SparqlException, SQLException {
-	    String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		ValueFactory f = sparqlDAO.getValueFactory();
 		String glycanURI = generateUniqueURI(uriPrefix, allGraphs) + "GAR";
 		IRI glycan = f.createIRI(glycanURI);

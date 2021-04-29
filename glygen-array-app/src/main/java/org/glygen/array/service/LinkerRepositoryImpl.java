@@ -154,7 +154,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 		
 		existing = getLinkerByField(sequence, "has_sequence", "string");
-		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		if (existing == null) {
 			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			
@@ -271,7 +271,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			existing = getLinkerByField(l.getInChiKey(), hasInchiKeyProperty, "string");
 		}
 	
-		String[] allGraphs = (String[]) getAllUserGraphs().toArray();
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		if (existing == null) {   
 			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
 			
