@@ -105,8 +105,11 @@ create table IF NOT EXISTS permissions (
   userid bigint not null,
   graphuri varchar(256),
   resourceuri varchar(256),
-  permissiontype bigint not null
+  permissiontype bigint not null,
+  additiondate date
 );
+
+ALTER TABLE permissions ADD COLUMN IF NOT EXISTS additiondate date;
        
 select create_constraint_if_not_exists(
         'graphs',

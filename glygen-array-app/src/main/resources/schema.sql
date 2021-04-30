@@ -89,7 +89,8 @@ create table IF NOT EXISTS permissions (
   userid bigint not null,
   graphuri varchar(256),
   resourceuri varchar(256),
-  permissiontype bigint not null
+  permissiontype bigint not null,
+  additiondate date
 );
 
 create table IF NOT EXISTS email (

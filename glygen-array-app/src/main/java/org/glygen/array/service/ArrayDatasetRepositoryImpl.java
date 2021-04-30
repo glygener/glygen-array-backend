@@ -3321,6 +3321,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         entity.setResourceIRI(datasetURI);
         entity.setUser(coowner);
         entity.setGraphIRI(graph);
+        entity.setAdditionDate(new Date());
         permissionRepository.save(entity);
     }
 }

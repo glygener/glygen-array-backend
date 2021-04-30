@@ -1,5 +1,7 @@
 package org.glygen.array.persistence;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -36,6 +38,9 @@ public class GraphPermissionEntity {
 	@Column(name="permissiontype", unique = false, nullable = false)
 	private Integer permission = 0;   // 0 - read only, 1 - read/update/delete
 	
+	@Column(name="additiondate", unique = false, nullable = false)
+	private Date additionDate;
+	
 	public String getGraphIRI() {
 		return graphIRI;
 	}
@@ -67,4 +72,12 @@ public class GraphPermissionEntity {
 	public void setPermission(Integer permission) {
 		this.permission = permission;
 	}
+	
+	public Date getAdditionDate() {
+        return additionDate;
+    }
+	
+	public void setAdditionDate(Date additionDate) {
+        this.additionDate = additionDate;
+    }
 }

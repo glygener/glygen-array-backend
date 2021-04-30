@@ -1,6 +1,5 @@
 package org.glygen.array.service;
 
-import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.VerificationToken;
 
@@ -31,7 +30,5 @@ public interface UserManager {
 	UserEntity getUserByUsername(String userName);
 	
 	void cleanUpExpiredSignup ();
-	
-	void addCoOwner (GraphPermissionEntity entity);
 
 }
