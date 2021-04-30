@@ -2395,6 +2395,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasSample = f.createIRI(ontPrefix + "has_sample");
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
             IRI hasPub = f.createIRI(hasPublication);
+            IRI hasGrantPredicate = f.createIRI(hasGrant);
+            IRI hasCollab = f.createIRI(hasCollaborator);
             IRI datasetIRI = f.createIRI(datasetURI);
             IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
             
@@ -2474,6 +2476,62 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         addPublication(pub, dataset.getId(), user);
                     } else {
                         addPublication(pub, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+            }
+            
+            if (dataset.getGrants() != null) {
+                RepositoryResult<Statement> results2 = null;
+                // get existing grants
+                if (publicIRI == null) {
+                    results2 = sparqlDAO.getStatements(datasetIRI, hasGrantPredicate, null, graphIRI);
+                }
+                else {
+                    // get from public graph
+                    results2 = sparqlDAO.getStatements(publicIRI, hasGrantPredicate, null, publicGraphIRI);
+                }
+                while (results2.hasNext()) {
+                    Statement st = results2.next();
+                    String pub = st.getObject().stringValue();
+                    if (publicIRI == null) {
+                        deleteGrant(pub.substring(pub.lastIndexOf("/")+1), dataset.getId(), user);
+                    } else {
+                        deleteGrant(pub.substring(pub.lastIndexOf("/")+1), publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+                for (Grant grant: dataset.getGrants()) {
+                    if (publicIRI == null) {
+                        addGrant(grant, dataset.getId(), user);
+                    } else {
+                        addGrant(grant, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+            }
+            
+            if (dataset.getCollaborators() != null) {
+                RepositoryResult<Statement> results2 = null;
+                // get existing collaborators
+                if (publicIRI == null) {
+                    results2 = sparqlDAO.getStatements(datasetIRI, hasCollab, null, graphIRI);
+                }
+                else {
+                    // get from public graph
+                    results2 = sparqlDAO.getStatements(publicIRI, hasCollab, null, publicGraphIRI);
+                }
+                while (results2.hasNext()) {
+                    Statement st = results2.next();
+                    String username = st.getObject().stringValue();
+                    if (publicIRI == null) {
+                        deleteCollaborator(username, dataset.getId(), user);
+                    } else {
+                        deleteCollaborator(username, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+                for (Creator collab: dataset.getCollaborators()) {
+                    if (publicIRI == null) {
+                        addCollaborator(collab, dataset.getId(), user);
+                    } else {
+                        addCollaborator(collab, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
                     }
                 }
             }
@@ -2808,6 +2866,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         statements.add(f.createStatement(dataset, hasPub, publication, graphIRI));
         sparqlDAO.addStatements(statements, graphIRI);
+        pub.setUri(publicationURI);
         return publicationURI;
     }
     

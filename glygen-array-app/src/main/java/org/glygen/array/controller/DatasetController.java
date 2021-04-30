@@ -281,9 +281,10 @@ public class DatasetController {
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         UserEntity owner = user;
+        ArrayDataset dataset = null;
         // check if the dataset with the given id exists
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
@@ -335,9 +336,13 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid publication/dataset information", errorMessage);
         
         try {
-            String uri = datasetRepository.addPublication(publication, datasetId, owner);
-            String id = uri.substring(uri.lastIndexOf("/")+1);
-            return id;
+            dataset.getPublications().add(publication);
+            datasetRepository.updateArrayDataset(dataset, owner);
+            if (publication.getUri() != null) {
+                String id = publication.getUri().substring(publication.getUri().lastIndexOf("/")+1);
+                return id;
+            } 
+            return null;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("The publication cannot be added for user " + p.getName(), e);
         }
@@ -367,8 +372,9 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the dataset with the given id exists
         UserEntity owner = user;
+        ArrayDataset dataset = null;
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
@@ -400,9 +406,13 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid publication/dataset information", errorMessage);
         
         try {
-            String uri = datasetRepository.addGrant(grant, datasetId, owner);
-            String id = uri.substring(uri.lastIndexOf("/")+1);
-            return id;
+            dataset.getGrants().add(grant);
+            datasetRepository.updateArrayDataset(dataset, owner);
+            if (grant.getUri() != null) {
+                String id = grant.getUri().substring(grant.getUri().lastIndexOf("/")+1);
+                return id;
+            } 
+            return null;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("The grant cannot be added for user " + p.getName(), e);
         }
@@ -432,8 +442,9 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         UserEntity owner = user;
         // check if the dataset with the given id exists
+        ArrayDataset dataset = null;
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
@@ -478,7 +489,8 @@ public class DatasetController {
             collaborator.setLastName(collaboratorEntity.getLastName());
             collaborator.setAffiliation(collaboratorEntity.getAffiliation());
             collaborator.setUserId(collaboratorEntity.getUserId());
-            datasetRepository.addCollaborator(collaborator, datasetId, owner);
+            dataset.getCollaborators().add(collaborator);
+            datasetRepository.updateArrayDataset(dataset, owner);
             return new Confirmation("Collaborator added successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("The collaborator cannot be added for user " + p.getName(), e);
