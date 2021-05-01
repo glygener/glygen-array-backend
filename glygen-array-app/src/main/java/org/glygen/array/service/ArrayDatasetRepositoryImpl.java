@@ -3112,12 +3112,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public void deleteCoowner (UserEntity coowner, String datasetURI, UserEntity user) throws SQLException {
-        String graph = getGraphForUser(user);
-        GraphPermissionEntity entity = new GraphPermissionEntity();
-        entity.setResourceIRI(datasetURI);
-        entity.setUser(coowner);
-        entity.setGraphIRI(graph);
-        permissionRepository.delete(entity);
+        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(coowner, datasetURI);
+        if (entity != null) {
+            permissionRepository.delete(entity);
+        }
     }
     
     @Override
