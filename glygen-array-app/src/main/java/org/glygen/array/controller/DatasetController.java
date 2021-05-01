@@ -544,7 +544,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Delete the given user as a co-owner from the given dataset")
-    @RequestMapping(value="/deleteCoowner", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/deleteCoowner/{username}", method = RequestMethod.DELETE, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation if co-owner deleted successfully"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
@@ -554,9 +554,10 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation removeCoownerFromDataset (
             @ApiParam(required=true, value="User to be removed.")
-            @RequestBody User coowner, 
+//            @RequestBody User coowner,
+            @PathVariable("username") String coowner,
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to remove the co-owner") 
-            @RequestParam("arraydatasetId")
+            @RequestParam("datasetId")
             String datasetId,  
             Principal p) {
         
@@ -572,7 +573,8 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
             
-            UserEntity coOwner = userRepository.findByUsernameIgnoreCase(coowner.getUserName());
+//            UserEntity coOwner = userRepository.findByUsernameIgnoreCase(coowner.getUserName());
+            UserEntity coOwner = userRepository.findByUsernameIgnoreCase(coowner);
             if (coOwner == null) {
                 errorMessage.addError(new ObjectError("coowner", "NotFound"));
             }
