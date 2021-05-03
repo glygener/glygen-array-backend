@@ -12,5 +12,5 @@ public interface GraphPermissionRepository extends JpaRepository<GraphPermission
 	
 	List<GraphPermissionEntity> findByResourceIRI(String resourceIRI);
 	
-	GraphPermissionEntity findByUserAndResourceIRI (UserEntity user, String resourceURI);
+	List<GraphPermissionEntity> findByUserAndResourceIRI (UserEntity user, String resourceURI);
 }

@@ -95,4 +95,5 @@ public interface ArrayDatasetRepository {
     void deleteGrant(String grantId, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void deleteCollaborator(String username, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void deleteCoowner(UserEntity coowner, String datasetURI, UserEntity user) throws SQLException;
+    String getCoownerGraphForUser(UserEntity user, String datasetURI);
 }

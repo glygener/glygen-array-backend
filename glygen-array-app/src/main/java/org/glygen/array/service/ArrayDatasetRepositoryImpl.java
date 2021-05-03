@@ -287,10 +287,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
     }
 
-    private String getCoownerGraphForUser(UserEntity user, String datasetURI) {
-        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, datasetURI);
-        if (entity != null) {
-            return entity.getGraphIRI();
+    @Override
+    public String getCoownerGraphForUser(UserEntity user, String datasetURI) {
+        List<GraphPermissionEntity> entities = permissionRepository.findByUserAndResourceIRI(user, datasetURI);
+        if (entities != null && !entities.isEmpty()) {
+            return entities.get(0).getGraphIRI();
         }
         return null;
     }
@@ -3027,15 +3028,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         else {
             //need to check all the graphs that this user can access
-            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
-            if (entity != null) {
-                String otherGraph = entity.getGraphIRI();
+            String otherGraph = getCoownerGraphForUser(user, uriPre + datasetId);
+            if (otherGraph != null) {
                 graphIRI = f.createIRI(otherGraph);
                 statements = sparqlDAO.getStatements(pub, null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
                 statements = sparqlDAO.getStatements(dataset, hasPub, pub, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
             }
+            
         }        
     }
     
@@ -3066,9 +3067,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         else {
             //need to check all the graphs that this user can access
-            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
-            if (entity != null) {
-                String otherGraph = entity.getGraphIRI();
+            String otherGraph = getCoownerGraphForUser(user, uriPre + datasetId);
+            if (otherGraph != null) {
                 graphIRI = f.createIRI(otherGraph);
                 statements = sparqlDAO.getStatements(grant, null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
@@ -3101,9 +3101,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
         else {
             //need to check all the graphs that this user can access
-            GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, uriPre + datasetId);
-            if (entity != null) {
-                String otherGraph = entity.getGraphIRI();
+            String otherGraph = getCoownerGraphForUser(user, uriPre + datasetId);
+            if (otherGraph != null) {
                 statements = sparqlDAO.getStatements(dataset, hasCollab, collab, f.createIRI(otherGraph));
                 sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
             }
@@ -3112,9 +3111,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public void deleteCoowner (UserEntity coowner, String datasetURI, UserEntity user) throws SQLException {
-        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(coowner, datasetURI);
-        if (entity != null) {
-            permissionRepository.delete(entity);
+        List<GraphPermissionEntity> entities = permissionRepository.findByUserAndResourceIRI(coowner, datasetURI);
+        if (entities != null) {
+            for (GraphPermissionEntity entity: entities)
+                permissionRepository.delete(entity);
         }
     }
     

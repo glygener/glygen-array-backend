@@ -287,9 +287,8 @@ public class DatasetController {
             dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -377,9 +376,8 @@ public class DatasetController {
             dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -447,9 +445,8 @@ public class DatasetController {
             dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -629,9 +626,8 @@ public class DatasetController {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -928,9 +924,8 @@ public class DatasetController {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -1869,9 +1864,8 @@ public class DatasetController {
             dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -2044,9 +2038,8 @@ public class DatasetController {
             dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -2835,9 +2828,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -2931,9 +2923,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3041,9 +3032,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3123,9 +3113,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3205,9 +3194,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3287,9 +3275,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3369,9 +3356,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3451,9 +3437,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3533,9 +3518,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3615,9 +3599,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3819,9 +3802,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -3911,9 +3893,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4030,9 +4011,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4138,9 +4118,8 @@ public class DatasetController {
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4207,9 +4186,8 @@ public class DatasetController {
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4276,9 +4254,8 @@ public class DatasetController {
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4342,9 +4319,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4389,9 +4365,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4436,9 +4411,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4483,9 +4457,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4530,9 +4503,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4577,9 +4549,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4624,9 +4595,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4671,9 +4641,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4719,9 +4688,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4782,9 +4750,8 @@ public class DatasetController {
             ArrayDataset dataset = datasetRepository.getArrayDataset(id, loadAll, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + id);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + id);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(id, loadAll, originalUser);
@@ -4833,9 +4800,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4885,9 +4851,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4936,9 +4901,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -4987,9 +4951,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5037,9 +5000,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5087,9 +5049,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5138,9 +5099,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5189,9 +5149,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5240,9 +5199,8 @@ public class DatasetController {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
-                        GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                        if (entity != null) {
-                            String coOwnedGraph = entity.getGraphIRI();
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
                             UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                             if (originalUser != null) {
                                 dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5315,9 +5273,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5494,9 +5451,8 @@ public class DatasetController {
                 ArrayDataset existingdataset = datasetRepository.getArrayDataset(dataset.getId(), false, user);
                 if (existingdataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + dataset.getId());
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + dataset.getId());
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             owner = originalUser;
@@ -5775,9 +5731,8 @@ public class DatasetController {
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                    if (entity != null) {
-                        String coOwnedGraph = entity.getGraphIRI();
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
                             dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -5906,9 +5861,8 @@ public class DatasetController {
             
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
@@ -6063,9 +6017,8 @@ public class DatasetController {
             ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                GraphPermissionEntity entity = permissionRepository.findByUserAndResourceIRI(user, GlycanRepositoryImpl.uriPrefix + datasetId);
-                if (entity != null) {
-                    String coOwnedGraph = entity.getGraphIRI();
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
                         dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
