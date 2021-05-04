@@ -1463,8 +1463,8 @@ public class PublicGlygenArrayController {
         ErrorMessage errorMessage = new ErrorMessage("Invalid input");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         try {
-            boolean isPublic = datasetRepository.isDatasetPublic (datasetId);
-            if (!isPublic) {
+            String publicid = datasetRepository.getDatasetPublicId(datasetId);
+            if (publicid == null) {
                 errorMessage.addError(new ObjectError("fileWrapper", "This file is not public. Cannot be downloaded!"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             } 

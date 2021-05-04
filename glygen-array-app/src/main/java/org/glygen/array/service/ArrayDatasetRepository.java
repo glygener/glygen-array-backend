@@ -87,8 +87,6 @@ public interface ArrayDatasetRepository {
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
     
-    boolean isDatasetPublic (String datasetId) throws SparqlException;
-    
     String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void addCollaborator(Creator collab, String datasetId, UserEntity user) throws SparqlException, SQLException;
     Grant getGrantFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
@@ -96,4 +94,5 @@ public interface ArrayDatasetRepository {
     void deleteCollaborator(String username, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void deleteCoowner(UserEntity coowner, String datasetURI, UserEntity user) throws SQLException;
     String getCoownerGraphForUser(UserEntity user, String datasetURI);
+    String getDatasetPublicId(String datasetId) throws SparqlException;
 }

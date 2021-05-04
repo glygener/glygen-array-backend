@@ -542,7 +542,7 @@ public class DatasetController {
     
     @ApiOperation(value = "Delete the given user as a co-owner from the given dataset")
     @RequestMapping(value="/deleteCoowner/{username}", method = RequestMethod.DELETE, 
-            consumes={"application/json", "application/xml"})
+            produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation if co-owner deleted successfully"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -638,6 +638,17 @@ public class DatasetController {
             if (dataset == null)
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
         } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        //check if the dataset is public
+        try {
+            String publicID = datasetRepository.getDatasetPublicId(datasetId);
+            if (publicID != null) {
+                // this is major change, do not allow
+                errorMessage.addError(new ObjectError("dataset", "Public"));
+            }
+        } catch (SparqlException e) {
             throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
         }
         
@@ -4004,7 +4015,8 @@ public class DatasetController {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             UserEntity owner = user;
-            
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
@@ -4020,11 +4032,25 @@ public class DatasetController {
                             }
                         }
                     }
-                    
                 } catch (SparqlException | SQLException e) {
                     throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
                 }
             }
+            
+            //check if the dataset is public
+            try {
+                String publicID = datasetRepository.getDatasetPublicId(datasetId);
+                if (publicID != null) {
+                    // this is major change, do not allow
+                    errorMessage.addError(new ObjectError("dataset", "Public"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                }
+            } catch (SparqlException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+            }
+            
+           
             Slide slide = datasetRepository.getSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
             //delete the files associated with the slide (image, raw data and processed data files)
             if (slide != null) {
@@ -4032,8 +4058,7 @@ public class DatasetController {
                     RawData rawData = image.getRawData();
                     if (rawData != null && rawData.getFile() != null) {
                         if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
-                            ErrorMessage errorMessage = new ErrorMessage();
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            
                             errorMessage.addError(new ObjectError("rawData", "NotDone"));
                             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                             throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
@@ -4041,8 +4066,6 @@ public class DatasetController {
                         if (rawData.getProcessedDataList() != null) {
                             for (ProcessedData processedData: rawData.getProcessedDataList()) {
                                 if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
-                                    ErrorMessage errorMessage = new ErrorMessage();
-                                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                     errorMessage.addError(new ObjectError("processedData", "NotDone"));
                                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                                     throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
@@ -4079,8 +4102,6 @@ public class DatasetController {
                 }
                 return new Confirmation("Slide deleted successfully", HttpStatus.OK.value());
             } else {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("slideId", "NotFound"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Cannot find slide with the given id", errorMessage);
@@ -4133,9 +4154,14 @@ public class DatasetController {
             
             if (dataset != null && dataset.getPublications() != null) {
                 boolean found = false;
+                boolean isPublic = false;
                 for (Publication pub: dataset.getPublications()) {
-                    if (pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefix+id) || pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefixPublic+id)) {
+                    if (pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefix+id)) {
                         found = true;
+                    }
+                    if (pub.getUri().equals(GlygenArrayRepositoryImpl.uriPrefixPublic+id)) {
+                        found = true;
+                        isPublic = true;
                     }
                 }
                 if (!found) {
@@ -4144,7 +4170,8 @@ public class DatasetController {
                     throw new IllegalArgumentException("Given array dataset does not have a publication with the given id", errorMessage);
                 }
                 else {
-                    datasetRepository.deletePublication(id, datasetId, owner);
+                    String publicId = datasetRepository.getDatasetPublicId(datasetId);
+                    datasetRepository.deletePublication(id, isPublic ? publicId : datasetId, isPublic? null: owner);
                     return new Confirmation("Publication deleted successfully", HttpStatus.OK.value());
                 }
             }
@@ -4201,9 +4228,14 @@ public class DatasetController {
             
             if (dataset != null && dataset.getGrants() != null) {
                 boolean found = false;
+                boolean isPublic = false;
                 for (Grant g: dataset.getGrants()) {
-                    if (g.getUri().equals(GlygenArrayRepositoryImpl.uriPrefix+id) || g.getUri().equals(GlygenArrayRepositoryImpl.uriPrefixPublic+id)) {
+                    if (g.getUri().equals(GlygenArrayRepositoryImpl.uriPrefix+id)) {
                         found = true;
+                    }
+                    if (g.getUri().equals(GlygenArrayRepositoryImpl.uriPrefixPublic+id)) {
+                        found = true;
+                        isPublic = true;
                     }
                 }
                 if (!found) {
@@ -4212,7 +4244,8 @@ public class DatasetController {
                     throw new IllegalArgumentException("Given array dataset does not have a grant with the given id", errorMessage);
                 }
                 else {
-                    datasetRepository.deleteGrant(id, datasetId, owner);
+                    String publicId = datasetRepository.getDatasetPublicId(datasetId);
+                    datasetRepository.deleteGrant(id, isPublic ? publicId : datasetId, isPublic? null: owner);
                     return new Confirmation("Grant deleted successfully", HttpStatus.OK.value());
                 }
             }
@@ -4279,7 +4312,12 @@ public class DatasetController {
                     throw new IllegalArgumentException("Given array dataset does not have a collaborator with the given username", errorMessage);
                 }
                 else {
-                    datasetRepository.deleteCollaborator(username, datasetId, owner);
+                    String publicId = datasetRepository.getDatasetPublicId(datasetId);
+                    if (publicId != null) {
+                        datasetRepository.deleteCollaborator(username, publicId, null);
+                    } else {
+                        datasetRepository.deleteCollaborator(username, datasetId, owner);
+                    }
                     return new Confirmation("Collaborator deleted successfully", HttpStatus.OK.value());
                 }
             }

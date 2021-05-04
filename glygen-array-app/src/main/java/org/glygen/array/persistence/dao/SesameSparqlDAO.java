@@ -183,6 +183,11 @@ public class SesameSparqlDAO {
         }
 	}
 	
+	public void clearGraph (Resource ...graphs) throws SQLException {
+	    RepositoryConnection con = sesameConnectionFactory.getConnection();
+	    con.clear(graphs);
+    }
+	
 	public ValueFactory getValueFactory () {
 		RepositoryConnection con = sesameConnectionFactory.getConnection();
 		return con.getValueFactory();

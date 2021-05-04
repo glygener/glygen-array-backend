@@ -1068,9 +1068,23 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));        
-                    } else if (st.getPredicate().equals(hasPub)) {
+                    } else if (stPublic.getPredicate().equals(hasPub)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), user));            
+                    } else if (stPublic.getPredicate().equals(hasCollab)) {
+                        Value label = stPublic.getObject();
+                        Creator collab = new Creator();
+                        collab.setName(label.stringValue());
+                        UserEntity entity = userRepository.findByUsernameIgnoreCase(collab.getName());
+                        if (entity != null) {
+                            collab.setFirstName(entity.getFirstName());
+                            collab.setLastName(entity.getLastName());
+                            collab.setAffiliation(entity.getAffiliation());
+                        }
+                        datasetObject.getCollaborators().add(collab);       
+                    } else if (stPublic.getPredicate().equals(hasGrantPred)) {
+                        uriValue = stPublic.getObject();
+                        datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
                     } else if (stPublic.getPredicate().equals(hasImage)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));      
@@ -2873,11 +2887,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public Grant getGrantFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        String graph;
-        if (user == null) {
+        String graph = null;
+        if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
-        } else {
-            graph = getGraphForUser(user);
+        else {
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -2920,11 +2937,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public Publication getPublicationFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        String graph;
-        if (user == null) {
+        String graph = null;
+        if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
-        } else {
-            graph = getGraphForUser(user);
+        else {
+            if (user != null)
+                graph = getGraphForUser(user);
+            else 
+                graph = DEFAULT_GRAPH;
         }
         
         ValueFactory f = sparqlDAO.getValueFactory();
@@ -3309,7 +3329,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
     @Override
-    public boolean isDatasetPublic(String datasetId) throws SparqlException {
+    public String getDatasetPublicId(String datasetId) throws SparqlException {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?publicURI \n");
@@ -3317,7 +3337,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         queryBuf.append ("<" + uriPrefix + datasetId + "> gadr:has_public_uri ?publicURI . }");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        return results != null && !results.isEmpty();
+        if (results != null && !results.isEmpty()) {
+            String publicURI = results.get(0).getValue("publicURI");
+            return publicURI.substring(publicURI.lastIndexOf("/")+1);
+        }
+        return null;
     }
 
     @Override
