@@ -2882,6 +2882,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(dataset, hasPub, publication, graphIRI));
         sparqlDAO.addStatements(statements, graphIRI);
         pub.setUri(publicationURI);
+        pub.setId(publicationURI.substring(publicationURI.lastIndexOf("/")+1));
         return publicationURI;
     }
     
@@ -2963,6 +2964,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI p = f.createIRI(uri);
         Publication publication = new Publication();
         publication.setUri(uri);
+        publication.setId(uri.substring(uri.lastIndexOf("/")+1));
         RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
         while (statements2.hasNext()) {
             Statement st2 = statements2.next();

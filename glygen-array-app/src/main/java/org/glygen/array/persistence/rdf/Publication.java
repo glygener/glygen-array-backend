@@ -2,6 +2,7 @@ package org.glygen.array.persistence.rdf;
 
 public class Publication {
 	String uri;
+	String id;
 	private String authors;
     private Integer pubmedId = null;
     private String doiId = null;
@@ -12,6 +13,14 @@ public class Publication {
     private String volume = null;
     private Integer year = null;
     private String number = null;
+    
+    public String getId() {
+        return id;
+    }
+    
+    public void setId(String id) {
+        this.id = id;
+    }
     
     public String getUri() {
 		return uri;

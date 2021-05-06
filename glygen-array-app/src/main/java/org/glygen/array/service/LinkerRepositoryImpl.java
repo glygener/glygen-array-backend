@@ -1020,6 +1020,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 IRI p = f.createIRI(pubURI);
                 Publication publication = new Publication();
                 publication.setUri(pubURI);
+                publication.setId(pubURI.substring(pubURI.lastIndexOf("/")+1));
                 linkerObject.getPublications().add(publication);
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(p, null, null, graphIRI);
                 while (statements2.hasNext()) {
