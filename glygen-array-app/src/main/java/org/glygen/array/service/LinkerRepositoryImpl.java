@@ -28,6 +28,7 @@ import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -649,23 +650,23 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 
     @Override
-    public String getSearchPredicate(String searchValue) {
+    public String getSearchPredicate(String searchValue, String queryLabel) {
         String predicates = "";
         
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
-        predicates += "OPTIONAL {?s gadr:has_sequence ?value3} \n";
-        predicates += "OPTIONAL {?s gadr:has_pdbId ?value4} \n";
-        predicates += "OPTIONAL {?s gadr:has_uniProtId ?value5} \n";
-        predicates += "OPTIONAL {?s gadr:has_inChI_sequence ?value6} \n";
-        predicates += "OPTIONAL {?s gadr:has_iupac_name ?value7} \n";
-        predicates += "OPTIONAL {?s gadr:has_smiles ?value8} \n";
-        predicates += "OPTIONAL {?s gadr:has_mass ?value9} \n";
-        predicates += "OPTIONAL {?s gadr:has_molecular_formula ?value10} \n";
-        predicates += "OPTIONAL {?s gadr:has_pubchem_compound_id ?value11} \n";
-        predicates += "OPTIONAL {?s gadr:has_inChI_key ?value12} \n";
-        predicates += "OPTIONAL {?s gadr:has_classification ?c . ?c gadr:has_classification_value ?value13 . ?c gadr:has_chEBI ?value14} \n";
-        predicates += "OPTIONAL {?s gadr:has_type ?value15} \n";
+        predicates += queryLabel + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryLabel + " rdfs:comment ?value2} \n";
+        predicates += "OPTIONAL {" + queryLabel + "  gadr:has_sequence ?value3} \n";
+        predicates += "OPTIONAL {" + queryLabel + "  gadr:has_pdbId ?value4} \n";
+        predicates += "OPTIONAL {"  + queryLabel + " gadr:has_uniProtId ?value5} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_inChI_sequence ?value6} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_iupac_name ?value7} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_smiles ?value8} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_mass ?value9} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_molecular_formula ?value10} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_pubchem_compound_id ?value11} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_inChI_key ?value12} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_classification ?c . ?c gadr:has_classification_value ?value13 . ?c gadr:has_chEBI ?value14} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_type ?value15} \n";
        
         int numberOfValues = 16; // need to match the total values used above value1 - value15
         String filterClause = "filter (";
@@ -686,12 +687,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             String searchValue) throws SparqlException, SQLException {
         List<Linker> linkers = new ArrayList<Linker>();
         
-        String sortPredicate = getSortPredicateForLinker (field);
-        String searchPredicate = "";
-        if (searchValue != null) {
-            searchPredicate = getSearchPredicate(searchValue);
-        }
-        
         // get all linkerURIs from user's private graph
         String graph = null;
         if (user == null)
@@ -700,20 +695,51 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         if (graph != null) {
+            
+            String sortPredicate = getSortPredicateForLinker (field);
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
             String sortLine = "";
-            if (sortPredicate != null)
+            String publicSortLine = "";
+            if (sortPredicate != null) {
                 sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
-            String orderByLine = " ORDER BY " 
-                    + (order == 0 ? " DESC" : " ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");
+                sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
-            queryBuf.append ("SELECT DISTINCT ?s \n");
-            //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-            queryBuf.append ("FROM <" + graph + ">\n");
-            queryBuf.append ("WHERE {\n");
-            queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d .\n" +
-                    " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
-                    sortLine + searchPredicate + "}\n" +
+            queryBuf.append ("SELECT DISTINCT ?s");
+            if (sortPredicate != null) {
+              //  queryBuf.append(", ?sortBy");
+            }
+            queryBuf.append ("\nFROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (
+                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                            " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                            sortLine + searchPredicate + 
+                    "}\n" );
+             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                    " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
+                        publicSortLine + publicSearchPredicate + 
+                    "}}\n"); 
+             }
+             queryBuf.append ("}" + 
                      orderByLine + 
                     ((limit == -1) ? " " : " LIMIT " + limit) +
                     " OFFSET " + offset);
@@ -762,6 +788,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return "gadr:has_sequence";
 		else if (field.equalsIgnoreCase("type"))
             return "gadr:has_type";
+		else if (field.equalsIgnoreCase("classification")) 
+		    return "gadr:has_classification ?c . ?c gadr:has_classification_value";
 		
 		return null;
 	}
@@ -1091,10 +1119,18 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException {
+	    updateLinker(g, user, null);
+	}
+	
+	@Override
+	public void updateLinker(Linker g, UserEntity user, ChangeLog change) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
 		Linker existing = getLinkerFromURI(g.getUri(), user);
 		if (graph != null && existing !=null) {
 			updateLinkerInGraph(g, graph);
+			if (change != null) {
+			    saveChangeLog(change, existing.getUri(), graph);
+			}
 		}
 	}
 

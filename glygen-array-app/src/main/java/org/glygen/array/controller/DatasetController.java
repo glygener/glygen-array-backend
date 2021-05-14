@@ -337,9 +337,8 @@ public class DatasetController {
         try {
             dataset.getPublications().add(publication);
             datasetRepository.updateArrayDataset(dataset, owner);
-            if (publication.getUri() != null) {
-                String id = publication.getUri().substring(publication.getUri().lastIndexOf("/")+1);
-                return id;
+            if (publication.getId() != null) {
+                return publication.getId();
             } 
             return null;
         } catch (SparqlException | SQLException e) {
@@ -2874,7 +2873,7 @@ public class DatasetController {
             
             int total = datasetRepository.getPrintedSlideCountByUser(owner);
             
-            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue);
+            List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue, false);
             // clear unnecessary fields before sending the results back
             for (PrintedSlide slide: resultList) {
                 if (slide.getLayout() != null)

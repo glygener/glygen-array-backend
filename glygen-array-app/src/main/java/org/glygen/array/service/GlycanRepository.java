@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 
 public interface GlycanRepository {
 	
@@ -62,6 +63,7 @@ public interface GlycanRepository {
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
 	Glycan getGlycanFromURI(String glycanURI, UserEntity user) throws SparqlException, SQLException;
 	void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException;
+	void updateGlycan(Glycan g, UserEntity user, ChangeLog change) throws SparqlException, SQLException;
     List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException;

@@ -31,6 +31,7 @@ import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -2388,6 +2389,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
 
     @Override
     public void updateArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException {
+        updateArrayDataset (dataset, user, null);
+    }
+    
+    @Override
+    public void updateArrayDataset(ArrayDataset dataset, UserEntity user, ChangeLog change) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -2432,11 +2438,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+            if (change != null) {
+                saveChangeLog(change, datasetURI, graph);
+            }
             
             if (publicIRI != null) {
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.LABEL, null, publicGraphIRI)), publicGraphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.COMMENT, null, publicGraphIRI)), publicGraphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, hasModifiedDate, null, publicGraphIRI)), publicGraphIRI);
+                if (change != null) {
+                    saveChangeLog(change, datasetURI, DEFAULT_GRAPH);
+                }
             }
             
             Literal date = f.createLiteral(new Date());
@@ -3200,7 +3212,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             String searchPredicate = "";
             if (searchValue != null && !searchValue.isEmpty())
-                searchPredicate = getSearchPredicate(searchValue);
+                searchPredicate = getSearchPredicate(searchValue, "?s");
             
             String sortLine = "";
             if (sortPredicate != null)

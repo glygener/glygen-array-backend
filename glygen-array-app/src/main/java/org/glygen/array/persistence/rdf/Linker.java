@@ -7,6 +7,8 @@ import java.util.List;
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -21,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 		@Type(value = PeptideLinker.class, name = "PEPTIDE_LINKER"),
 		@Type(value = ProteinLinker.class, name = "PROTEIN_LINKER")
 	})
-public abstract class Linker {
+public abstract class Linker implements ChangeTrackable {
 	String id;
 	String uri;
 	String name;
@@ -39,6 +41,8 @@ public abstract class Linker {
     
     Boolean inUse = false;
 	
+    List<ChangeLog> changes = new ArrayList<ChangeLog>();
+    
     public Boolean getIsPublic() {
         return isPublic;
     }
@@ -213,6 +217,21 @@ public abstract class Linker {
         if (publications == null) 
             publications = new ArrayList<Publication>();
         publications.add(publication);
+    }
+    
+    @Override
+    public List<ChangeLog> getChanges() {
+        return this.changes;
+    }
+
+    @Override
+    public void setChanges(List<ChangeLog> changes) {
+        this.changes = changes;
+    }
+
+    @Override
+    public void addChange(ChangeLog change) {
+        this.changes.add(change);
     }
 
 }

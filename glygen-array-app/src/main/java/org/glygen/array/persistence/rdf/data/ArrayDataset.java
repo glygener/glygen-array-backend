@@ -1,5 +1,6 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
-public class ArrayDataset extends FutureTask{
+public class ArrayDataset extends FutureTask implements ChangeTrackable {
     String id;
     String uri;
     String name;
@@ -32,6 +33,8 @@ public class ArrayDataset extends FutureTask{
     Date dateModified;
     Date dateCreated;
     Date dateAddedToLibrary;
+    
+    List<ChangeLog> changes = new ArrayList<>();
 
     /**
      * @return the id
@@ -292,6 +295,21 @@ public class ArrayDataset extends FutureTask{
      */
     public void setGrants(List<Grant> grants) {
         this.grants = grants;
+    }
+
+    @Override
+    public List<ChangeLog> getChanges() {
+        return this.changes;
+    }
+
+    @Override
+    public void setChanges(List<ChangeLog> changes) {
+        this.changes = changes;
+    }
+
+    @Override
+    public void addChange(ChangeLog change) {
+        this.changes.add(change);
     }
 
 }

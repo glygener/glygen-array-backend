@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 
 public interface LinkerRepository {
 	
@@ -20,14 +21,15 @@ public interface LinkerRepository {
 
 	int getLinkerCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void updateLinker(Linker g, UserEntity user) throws SparqlException, SQLException;
+	void updateLinker(Linker g, UserEntity user, ChangeLog change) throws SparqlException, SQLException;
 	Linker getLinkerFromURI(String linkerURI, UserEntity user) throws SparqlException, SQLException;
 	String getLinkerByField(String field, String predicate, String type) throws SparqlException;
 	String getLinkerByField(String field, String predicate, String type, UserEntity user)
 			throws SparqlException, SQLException;
-	
-	String getSearchPredicate(String searchValue);
+
 	List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     String makePublic(Linker linker, UserEntity user) throws SparqlException, SQLException;
+    String getSearchPredicate(String searchValue, String queryLabel);
 
 }

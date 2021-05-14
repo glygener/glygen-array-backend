@@ -208,10 +208,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             throws SparqlException, SQLException {
 		List<Feature> features = new ArrayList<Feature>();
 		
-		String sortPredicate = getSortPredicate (field);
-		String searchPredicate = "";
-        if (searchValue != null)
-            searchPredicate = getSearchPredicate(searchValue);
 		// get all featureURIs from user's private graph
         String graph = null;
         if (user == null)
@@ -220,24 +216,54 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             graph = getGraphForUser(user);
         }
 		if (graph != null) {
-			String sortLine = "";
-			if (sortPredicate != null)
-				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s \n");
-			//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append ( 
-					" ?s gadr:has_date_addedtolibrary ?d .\n" +
-					" ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
-					sortLine + searchPredicate +
-				    "}\n" +
-					 orderByLine + 
-					((limit == -1) ? " " : " LIMIT " + limit) +
-					" OFFSET " + offset);
+		    
+		    String sortPredicate = getSortPredicate (field);
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public) ) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s");
+            if (sortPredicate != null) {
+               // queryBuf.append(", ?sortBy");
+            }
+            queryBuf.append ("\nFROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (
+                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                    " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                            sortLine + searchPredicate + 
+                    "}\n" );
+             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                    " ?public rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+                        publicSortLine + publicSearchPredicate + 
+                    "}}\n"); 
+             }
+             queryBuf.append ("}" + 
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			
@@ -251,13 +277,28 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		return features;
 	}
 	
-	public String getSearchPredicate (String searchValue) {
+	@Override
+	protected String getSortPredicate(String field) {
+	    String predicate = super.getSortPredicate(field);
+	    if (predicate == null) {
+	        if (field != null && field.equalsIgnoreCase("linker")) {
+	            return "gadr:has_linker ?l . ?l rdfs:label";
+	        } else if (field != null && field.startsWith("glycan")) {
+	            return "gadr:has_molecule ?g . ?g rdfs:label";
+	        } else if (field != null && field.equalsIgnoreCase("type")) {
+	            return "gadr:has_type";
+	        }
+	    } 
+        return predicate;
+	}
+	
+	public String getSearchPredicate (String searchValue, String queryLabel) {
         String predicates = "";
         
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s gadr:has_type ?value2 .}\n";
-        predicates += "OPTIONAL {?s gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value3 . ?g rdfs:label ?value4} \n";
-        predicates += "OPTIONAL {?s gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value5 . ?l rdfs:label ?value6} \n";
+        predicates += queryLabel + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_type ?value2 .}\n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value3 . ?g rdfs:label ?value4} \n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value5 . ?l rdfs:label ?value6} \n";
         
         int numberOfValues = 6; // need to match with the total values (?value1 - ?value6) specified in above predicates
         

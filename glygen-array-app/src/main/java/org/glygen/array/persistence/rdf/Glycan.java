@@ -7,6 +7,8 @@ import java.util.List;
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -25,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 		@Type(value = Glycan.class, name = "CLASSIFICATION_BASED"),
 		@Type(value = Glycan.class, name = "FRAGMENT_ONLY")
 	})
-public class Glycan {
+public class Glycan implements ChangeTrackable{
 	String id;
 	String uri;
 	String internalId;
@@ -41,6 +43,8 @@ public class Glycan {
 	byte[] cartoon;
 	
 	Boolean inUse = false;
+	
+	List<ChangeLog> changes = new ArrayList<>();
 	
 	public Boolean getIsPublic() {
 		return isPublic;
@@ -204,4 +208,19 @@ public class Glycan {
 		
 		return super.hashCode();
 	}
+	
+	@Override
+    public List<ChangeLog> getChanges() {
+        return this.changes;
+    }
+
+    @Override
+    public void setChanges(List<ChangeLog> changes) {
+        this.changes = changes;
+    }
+
+    @Override
+    public void addChange(ChangeLog change) {
+        this.changes.add(change);
+    }
 }

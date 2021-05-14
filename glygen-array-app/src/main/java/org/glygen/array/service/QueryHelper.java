@@ -47,16 +47,17 @@ public class QueryHelper {
         return sparqlDAO.query(queryBuf.toString());
     }
     
-    public String getSearchPredicate (String searchValue) {
+    public String getSearchPredicate (String searchValue, String queryVariable) {
         String predicates = "";
         
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s gadr:has_internal_id ?value2} \n";
-        predicates += "OPTIONAL {?s rdfs:comment ?value3} \n";
-        predicates += "OPTIONAL {?s gadr:has_alias ?value4} \n";
-        predicates += "OPTIONAL {?s gadr:has_glytoucan_id ?value5} \n";
-        predicates += "OPTIONAL {?s gadr:has_mass ?value6} \n";
-        predicates += "OPTIONAL {?s gadr:has_type ?value7} \n";
+        predicates += queryVariable + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryVariable + " gadr:has_internal_id ?value2} \n";
+        predicates += "OPTIONAL {" + queryVariable + " rdfs:comment ?value3} \n";
+        predicates += "OPTIONAL {" + queryVariable + " gadr:has_alias ?value4} \n";
+        predicates += "OPTIONAL {" + queryVariable + " gadr:has_glytoucan_id ?value5} \n";
+        predicates += "OPTIONAL {" + queryVariable + " gadr:has_mass ?value6} \n";
+        predicates += "OPTIONAL {" + queryVariable + " gadr:has_type ?value7} \n";
+        
         
         int numberOfValues = 8;
         String filterClause = "filter (";
@@ -68,6 +69,7 @@ public class QueryHelper {
         filterClause += ")\n";
             
         predicates += filterClause;
+        
         return predicates;
     }
     
@@ -95,24 +97,48 @@ public class QueryHelper {
         String sortPredicate = getSortPredicate (field);
         
         String searchPredicate = "";
-        if (searchValue != null)
-            searchPredicate = getSearchPredicate(searchValue);
+        String publicSearchPredicate = "";
+        if (searchValue != null) {
+            searchPredicate = getSearchPredicate(searchValue, "?s");
+            publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+        }
         
         String sortLine = "";
-        if (sortPredicate != null)
+        String publicSortLine = "";
+        if (sortPredicate != null) {
             sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            sortLine += "filter (bound (?sortBy) or !bound(?public) ) . \n";
+            publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+        }
+        
+        
         String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("SELECT DISTINCT ?s");
+        if (sortPredicate != null) {
+            //queryBuf.append(", ?sortBy");
+        }
+        queryBuf.append ("\nFROM <" + graph + ">\n");
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        }
+        queryBuf.append ("WHERE {\n {\n");
         queryBuf.append (
                 " ?s gadr:has_date_addedtolibrary ?d .\n" +
                 " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
                         sortLine + searchPredicate + 
-                "}\n" +
+                "}\n" );
+         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+             queryBuf.append ("UNION {" +
+                "?s gadr:has_public_uri ?public . \n" +
+                "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                " ?public rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                    publicSortLine + publicSearchPredicate + 
+                "}}\n"); 
+         }
+         queryBuf.append ("}" + 
                  orderByLine + 
                 ((limit == -1) ? " " : " LIMIT " + limit) +
                 " OFFSET " + offset);

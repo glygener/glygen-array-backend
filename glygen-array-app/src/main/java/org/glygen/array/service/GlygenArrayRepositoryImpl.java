@@ -21,6 +21,8 @@ import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.PrivateGraphRepository;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasURLPredicate = ontPrefix + "has_url";
 	final static String hasOrganizationPredicate = ontPrefix + "has_organization";
 	final static String hasIdentiferPredicate = ontPrefix + "has_identifier";
+	
+	final static String hasChangeLogPredicate = ontPrefix + "has_change_log";
+	final static String createdByPredicate = ontPrefix + "created_by";
 	
 	final static String hasDescriptionPredicate = ontPrefix + "has_description";
 	final static String hasCreatedDatePredicate = ontPrefix + "has_date_created";
@@ -280,11 +285,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         sparqlDAO.deleteAll();   
     }
     
-    protected String getSearchPredicate (String searchValue) {
+    protected String getSearchPredicate (String searchValue, String queryLabel) {
         String predicates = "";
         
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        predicates += queryLabel + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryLabel + " rdfs:comment ?value2} \n";
         
         int numberOfValues = 3;
         String filterClause = "filter (";
@@ -317,27 +322,51 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 
     protected List<SparqlEntity> retrieveByTypeAndUser(int offset, int limit, String field, int order, String searchValue,
             String graph, String type) throws SparqlException {
-        String sortPredicate = getSortPredicate (field);
         
+        String sortPredicate = getSortPredicate (field);
         String searchPredicate = "";
-        if (searchValue != null && !searchValue.isEmpty())
-            searchPredicate = getSearchPredicate(searchValue);
+        String publicSearchPredicate = "";
+        if (searchValue != null) {
+            searchPredicate = getSearchPredicate(searchValue, "?s");
+            publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+        }
         
         String sortLine = "";
-        if (sortPredicate != null)
+        String publicSortLine = "";
+        if (sortPredicate != null) {
             sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
+            publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+        }
+        
+        
         String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-      //  queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("SELECT DISTINCT ?s");
+        if (sortPredicate != null) {
+            //queryBuf.append(", ?sortBy");
+        }
+        queryBuf.append ("\nFROM <" + graph + ">\n");
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        }
+        queryBuf.append ("WHERE {\n {\n");
         queryBuf.append (
                 " ?s gadr:has_date_addedtolibrary ?d .\n" +
                 " ?s rdf:type <" + type + "> . \n" +
+                " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
                         sortLine + searchPredicate + 
-                "}\n" +
+                "}\n" );
+         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+             queryBuf.append ("UNION {" +
+                "?s gadr:has_public_uri ?public . \n" +
+                "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                " ?public rdf:type <" + type + "> . \n" +
+                    publicSortLine + publicSearchPredicate + 
+                "}}\n"); 
+         }
+         queryBuf.append ("}" + 
                  orderByLine + 
                 ((limit == -1) ? " " : " LIMIT " + limit) +
                 " OFFSET " + offset);
@@ -371,6 +400,39 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         statements.add(f.createStatement(iri, hasAddedToLibrary, createdDateLit, graphIRI));
         statements.add(f.createStatement(iri, hasModifiedDate, date, graphIRI));
         
+        return uri;
+    }
+
+    @Override
+    public String saveChangeLog(ChangeLog change, String entryURI, String graph) throws SparqlException, SQLException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        String uriPre = uriPrefix;
+        if (graph.equals (DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        // add to user's local repository
+        String uri = generateUniqueURI(uriPre + "CL", allGraphs);
+        IRI entryIRI = f.createIRI(entryURI);
+        IRI iri = f.createIRI(uri);
+        Literal date = f.createLiteral(new Date());
+        IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+        IRI createdBy = f.createIRI(createdByPredicate);
+        IRI hasType = f.createIRI(hasTypePredicate);
+        IRI hasChangeLog = f.createIRI(hasChangeLogPredicate);
+        IRI graphIRI = f.createIRI(graph);
+        Literal comment = change.getSummary() == null ? null : f.createLiteral(change.getSummary());
+        Literal user = f.createLiteral(change.getUser());
+        Literal type = f.createLiteral(change.getChangeType().name());
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        statements.add(f.createStatement(iri, hasCreatedDate, date, graphIRI));
+        if (comment != null) statements.add(f.createStatement(iri, RDFS.COMMENT, comment, graphIRI));
+        statements.add(f.createStatement(iri, createdBy, user, graphIRI));
+        statements.add(f.createStatement(iri, hasType, type, graphIRI));
+        statements.add(f.createStatement(entryIRI, hasChangeLog, iri, graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
         return uri;
     }
 }

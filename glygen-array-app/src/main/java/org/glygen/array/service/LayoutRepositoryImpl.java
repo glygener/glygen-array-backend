@@ -625,10 +625,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		List<BlockLayout> layouts = new ArrayList<BlockLayout>();
 		
-		String sortPredicate = getSortPredicateForLayout (field);
-		String searchPredicate = "";
-		if (searchValue != null)
-		    searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
 		String graph = null;
         if (user == null)
@@ -637,22 +633,52 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
 		if (graph != null) {
-			String sortLine = "";
-			if (sortPredicate != null)
-				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";	
-			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s \n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append (
-					" ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n" +
-							sortLine + searchPredicate +
-				    "}\n" +
-					 orderByLine + 
-					((limit == -1) ? " " : " LIMIT " + limit) +
-					" OFFSET " + offset);
+		    String sortPredicate = getSortPredicateForLayout (field);
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s");
+            if (sortPredicate != null) {
+                //queryBuf.append(", ?sortBy");
+            }
+            queryBuf.append ("\nFROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (
+                    " ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n" +
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                            sortLine + searchPredicate + 
+                    "}\n" );
+             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                    " ?public rdf:type  <http://purl.org/gadr/template#block_layout>. \n" +
+                        publicSortLine + publicSearchPredicate + 
+                    "}}\n"); 
+             }
+             queryBuf.append ("}" + 
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			
@@ -892,10 +918,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	 
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		
-		String sortPredicate = getSortPredicateForLayout (field);
-		String searchPredicate = "";
-        if (searchValue != null)
-            searchPredicate = getSearchPredicate(searchValue);
 		// get all blockLayoutURIs from user's private graph
         String graph = null;
         if (user == null)
@@ -904,22 +926,52 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
 		if (graph != null) {
-			String sortLine = "";
-			if (sortPredicate != null)
-				sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";		
-			String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");	
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT DISTINCT ?s \n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append (
-					" ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n" +
-							sortLine + searchPredicate + 
-				    "}\n" +
-					 orderByLine + 
-					((limit == -1) ? " " : " LIMIT " + limit) +
-					" OFFSET " + offset);
+		    String sortPredicate = getSortPredicateForLayout (field);
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s");
+            if (sortPredicate != null) {
+                //queryBuf.append(", ?sortBy");
+            }
+            queryBuf.append ("\nFROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (
+                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                            " ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n" +
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                            sortLine + searchPredicate + 
+                    "}\n" );
+             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                    " ?public rdf:type  <http://purl.org/gadr/template#slide_layout>. \n" +
+                        publicSortLine + publicSearchPredicate + 
+                    "}}\n"); 
+             }
+             queryBuf.append ("}" + 
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			
@@ -1181,16 +1233,20 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return "rdfs:comment";
 		else if (field.equalsIgnoreCase("dateModified"))
 			return "gadr:has_date_modified";
+		else if (field.equalsIgnoreCase("height")) 
+		    return "template:has_height";
+		else if (field.equalsIgnoreCase("width")) 
+            return "template:has_width";
 		else if (field.equalsIgnoreCase("id"))
 			return null;	
 		return null;
 	}
 	
-    public String getSearchPredicate (String searchValue) {
+    public String getSearchPredicate (String searchValue, String queryLabel) {
         String predicates = "";
         
-        predicates += "?s rdfs:label ?value1 .\n";
-        predicates += "OPTIONAL {?s rdfs:comment ?value2} \n";
+        predicates += queryLabel + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryLabel + " rdfs:comment ?value2} \n";
        
         
         String filterClause = "filter (";

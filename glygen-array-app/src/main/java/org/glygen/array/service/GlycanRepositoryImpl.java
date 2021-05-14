@@ -30,6 +30,7 @@ import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.util.GlytoucanUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -497,12 +498,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         if (graph != null) {
             
             List<SparqlEntity> results = queryHelper.retrieveGlycanByUser(offset, limit, field, order, searchValue, graph);
-            
+            int i=0;
             for (SparqlEntity sparqlEntity : results) {
                 String glycanURI = sparqlEntity.getValue("s");
-                Glycan glycan = getGlycanFromURI(glycanURI, user);
-                if (glycan != null)
-                    glycans.add(glycan);    
+                if (user == null || !glycanURI.contains("public")) {
+                    Glycan glycan = getGlycanFromURI(glycanURI, user);
+                    if (glycan != null && i < limit) {
+                        glycans.add(glycan);    
+                        i++;
+                    }
+                }
             }
         }
         
@@ -760,12 +765,20 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	}
 	
 	@Override
+    public void updateGlycan(Glycan g, UserEntity user, ChangeLog change) throws SparqlException, SQLException {
+        String graph = getGraphForUser(user);
+        Glycan existing = getGlycanFromURI(g.getUri(), user);
+        if (graph != null && existing !=null) {
+            updateGlycanInGraph(g, graph);
+            if (change != null) {
+                saveChangeLog(change, existing.getUri(), graph);
+            }
+        }
+    }
+	
+	@Override
 	public void updateGlycan(Glycan g, UserEntity user) throws SparqlException, SQLException {
-		String graph = getGraphForUser(user);
-		Glycan existing = getGlycanFromURI(g.getUri(), user);
-		if (graph != null && existing !=null) {
-			updateGlycanInGraph(g, graph);
-		}
+		updateGlycan(g, user, null);
 	}
 
 	void updateGlycanInGraph (Glycan g, String graph) throws SparqlException {	

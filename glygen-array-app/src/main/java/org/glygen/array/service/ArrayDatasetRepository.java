@@ -9,6 +9,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.Grant;
 import org.glygen.array.persistence.rdf.data.IntensityData;
@@ -95,4 +96,6 @@ public interface ArrayDatasetRepository {
     void deleteCoowner(UserEntity coowner, String datasetURI, UserEntity user) throws SQLException;
     String getCoownerGraphForUser(UserEntity user, String datasetURI);
     String getDatasetPublicId(String datasetId) throws SparqlException;
+    void updateArrayDataset(ArrayDataset dataset, UserEntity user, ChangeLog change)
+            throws SparqlException, SQLException;
 }
