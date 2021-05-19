@@ -98,4 +98,6 @@ public interface ArrayDatasetRepository {
     String getDatasetPublicId(String datasetId) throws SparqlException;
     void updateArrayDataset(ArrayDataset dataset, UserEntity user, ChangeLog change)
             throws SparqlException, SQLException;
+    PrintedSlide getPrintedSlideByLabel(String label, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException;
 }

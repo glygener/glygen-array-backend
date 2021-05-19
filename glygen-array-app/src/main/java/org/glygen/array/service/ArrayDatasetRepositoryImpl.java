@@ -1505,8 +1505,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (statements.hasNext()) {
             Statement st = statements.next();
             String rawDataURI = st.getSubject().stringValue();
+            if (imageObject == null) {
+                imageObject = new Image();
+                imageObject.setUri(uri);
+                imageObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            }
             imageObject.setRawData(getRawDataFromURI(rawDataURI, loadAll, user));
         }
+        
             
         return imageObject;
     }
@@ -2280,9 +2286,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return dataset;
     }
 
-
     @Override
     public PrintedSlide getPrintedSlideByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        return getPrintedSlideByLabel(label, true, user);
+    }
+
+    @Override
+    public PrintedSlide getPrintedSlideByLabel(String label, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         PrintedSlide slide = null;
         String graph = null;
         if (user == null)
@@ -2297,14 +2307,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 for (SparqlEntity result: results) {
                     String uri = result.getValue("s");
                     if (!uri.contains("public")) {
-                        return getPrintedSlideFromURI(uri, user);
+                        return getPrintedSlideFromURI(uri, loadAll, user);
                     }
                 }
                 
                 // return the first result
                 for (SparqlEntity result: results) {
                     String uri = result.getValue("s");
-                    return getPrintedSlideFromURI(uri, user);
+                    return getPrintedSlideFromURI(uri, loadAll, user);
                 } 
                         
             }

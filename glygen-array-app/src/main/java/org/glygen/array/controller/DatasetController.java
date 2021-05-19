@@ -710,9 +710,15 @@ public class DatasetController {
                         slide.setPrintedSlide(existing);
                     }
                 } else if (slide.getPrintedSlide().getName() != null) {
-                    PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getPrintedSlide().getName(), owner);
+                    PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getPrintedSlide().getName(), false, owner);
                     if (existing == null) {
-                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        // try to see if it exists in public graph
+                        existing = datasetRepository.getPrintedSlideByLabel(slide.getPrintedSlide().getName(), false, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        } else {
+                            slide.setPrintedSlide(existing);
+                        }
                     } else {
                         slide.setPrintedSlide(existing);
                     }
@@ -953,24 +959,36 @@ public class DatasetController {
             if (!allowPartialData) errorMessage.addError(new ObjectError("slide", "NoEmpty"));
         } else {
             try {
-                String printedSlideId = rawData.getSlide().getPrintedSlide().getId();
-                if (printedSlideId == null) {
-                    if (rawData.getSlide().getPrintedSlide().getUri() != null) {
-                        printedSlideId = rawData.getSlide().getPrintedSlide().getUri().substring(
-                                rawData.getSlide().getPrintedSlide().getUri().lastIndexOf("/") + 1);
+                String printedSlideUri = rawData.getSlide().getPrintedSlide().getUri();
+                if (printedSlideUri != null) {
+                    PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(printedSlideUri, owner);
+                    if (existing == null) {
+                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                    } else {
+                        rawData.getSlide().setPrintedSlide(existing);
                     }
-                }
-                if (printedSlideId != null) {
+                } else if (rawData.getSlide().getPrintedSlide().getId() != null) {
+                    String printedSlideId = rawData.getSlide().getPrintedSlide().getId();
+                    // check locally first
                     PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + printedSlideId, owner);
+                    if (existing == null) { // check public repo
+                        existing = datasetRepository.getPrintedSlideFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + printedSlideId, owner);
+                    }
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
                     } else {
                         rawData.getSlide().setPrintedSlide(existing);
                     }
                 } else if (rawData.getSlide().getPrintedSlide().getName() != null) {
-                    PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(rawData.getSlide().getPrintedSlide().getName(), owner);
+                    PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(rawData.getSlide().getPrintedSlide().getName(), false, owner);
                     if (existing == null) {
-                        errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        // try to see if it exists in public graph
+                        existing = datasetRepository.getPrintedSlideByLabel(rawData.getSlide().getPrintedSlide().getName(), false, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        } else {
+                            rawData.getSlide().setPrintedSlide(existing);
+                        }
                     } else {
                         rawData.getSlide().setPrintedSlide(existing);
                     }
@@ -1260,7 +1278,7 @@ public class DatasetController {
         
         // check for duplicate name
         try {
-            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getName().trim(), user);
+            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(slide.getName().trim(), false, user);
             if (existing != null) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }
@@ -5336,7 +5354,7 @@ public class DatasetController {
 
         // check for duplicate name
         try {
-            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), owner);
+            PrintedSlide existing = datasetRepository.getPrintedSlideByLabel(printedSlide.getName().trim(), false, owner);
             if (existing != null && !existing.getUri().equals(printedSlide.getUri()) && !existing.getId().equals(printedSlide.getId())) {
                 errorMessage.addError(new ObjectError("name", "Duplicate"));
             }

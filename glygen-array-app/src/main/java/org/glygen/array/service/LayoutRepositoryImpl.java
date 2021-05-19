@@ -1784,15 +1784,16 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         
-        if (slideLayoutURI != null) {
+     //   if (slideLayoutURI != null) {
             // load the slide layout from cache and find the features there
-            SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
-            if (entity != null) {
-                List<Spot> spots = findSpotInEntity (entity, features, blockLayoutURI);
-                if (spots != null &&  !spots.isEmpty())
-                    return spots;
-            }
-        } /*else {
+    //        SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
+    //        if (entity != null) {
+    //            List<Spot> spots = findSpotInEntity (entity, features, blockLayoutURI);
+    //            if (spots != null &&  !spots.isEmpty())
+     //               return spots;
+      //      }
+    //    } 
+    /*else {
             // check all slide layouts
             List<SlideLayoutEntity> layouts = slideLayoutRepository.findAll();
             for (SlideLayoutEntity entity: layouts) {

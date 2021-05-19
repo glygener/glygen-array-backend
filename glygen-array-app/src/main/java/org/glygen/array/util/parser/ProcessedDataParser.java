@@ -205,6 +205,11 @@ public class ProcessedDataParser {
                             linker = linkerRepository.getLinkerByLabel(linkerName.trim(), user);
                             if (linker != null)
                                 linkerCache.put(linkerName.trim(), linker);
+                            else {
+                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
+                                if (linker != null)
+                                    linkerCache.put(linkerName+"B", linker);
+                            }
                         }
                         if (linker == null) {
                             // error
