@@ -64,6 +64,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasIdentiferPredicate = ontPrefix + "has_identifier";
 	
 	final static String hasChangeLogPredicate = ontPrefix + "has_change_log";
+	final static String hasChangeTypePredicate = ontPrefix + "has_change_type";
 	final static String hasChangeFieldPredicate = ontPrefix + "has_field_change";
 	final static String createdByPredicate = ontPrefix + "created_by";
 	
@@ -423,7 +424,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         Literal date = f.createLiteral(new Date());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI createdBy = f.createIRI(createdByPredicate);
-        IRI hasType = f.createIRI(hasTypePredicate);
+        IRI hasType = f.createIRI(hasChangeFieldPredicate);
         IRI hasChangeLog = f.createIRI(hasChangeLogPredicate);
         IRI hasFieldChange = f.createIRI(hasChangeFieldPredicate);
         IRI graphIRI = f.createIRI(graph);
@@ -454,7 +455,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI entityIRI = f.createIRI(entityUri);
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI createdBy = f.createIRI(createdByPredicate);
-        IRI hasType = f.createIRI(hasTypePredicate);
+        IRI hasType = f.createIRI(hasChangeTypePredicate);
         IRI hasFieldChange = f.createIRI(hasChangeFieldPredicate);
         IRI graphIRI = f.createIRI(graph);
         
