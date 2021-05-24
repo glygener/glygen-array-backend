@@ -32,6 +32,8 @@ import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -530,7 +532,7 @@ public class DatasetController {
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Invalid Input", errorMessage);
             }
-            
+            //TODO add change log and save it
             datasetRepository.addCowner(coOwner, dataset.getUri(), user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
@@ -579,6 +581,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Invalid Input", errorMessage);
             }
             
+            //TODO add change log and save it
             datasetRepository.deleteCoowner(coOwner, dataset.getUri(), user);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
@@ -4187,6 +4190,7 @@ public class DatasetController {
                     throw new IllegalArgumentException("Given array dataset does not have a publication with the given id", errorMessage);
                 }
                 else {
+                    //TODO create a change log and save it
                     String publicId = datasetRepository.getDatasetPublicId(datasetId);
                     datasetRepository.deletePublication(id, isPublic ? publicId : datasetId, isPublic? null: owner);
                     return new Confirmation("Publication deleted successfully", HttpStatus.OK.value());
@@ -4261,6 +4265,7 @@ public class DatasetController {
                     throw new IllegalArgumentException("Given array dataset does not have a grant with the given id", errorMessage);
                 }
                 else {
+                    //TODO create a change log and save it
                     String publicId = datasetRepository.getDatasetPublicId(datasetId);
                     datasetRepository.deleteGrant(id, isPublic ? publicId : datasetId, isPublic? null: owner);
                     return new Confirmation("Grant deleted successfully", HttpStatus.OK.value());
@@ -4330,6 +4335,7 @@ public class DatasetController {
                 }
                 else {
                     String publicId = datasetRepository.getDatasetPublicId(datasetId);
+                    //TODO create a change log and save it
                     if (publicId != null) {
                         datasetRepository.deleteCollaborator(username, publicId, null);
                     } else {
@@ -5473,7 +5479,14 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateDataset(
             @ApiParam(required=true, value="Array dataset with updated fields. You can change name, description and sample") 
-            @RequestBody ArrayDataset dataset, Principal p) throws SQLException {
+            @RequestBody ArrayDataset dataset, 
+            @ApiParam(required=false, value="summary of the changes") 
+            @RequestParam(value="changeSummary", required=false)
+            String changeSummary,
+            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @RequestParam(value="changedField", required=false)
+            List<String> changedFields,
+            Principal p) throws SQLException {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -5578,6 +5591,13 @@ public class DatasetController {
         }
         
         try {
+            ChangeLog changeLog = new ChangeLog();
+            changeLog.setUser(p.getName());
+            changeLog.setChangeType(ChangeType.MINOR);
+            changeLog.setDate(new Date());
+            changeLog.setSummary(changeSummary);
+            changeLog.setChangedFields(changedFields);
+            dataset.addChange(changeLog);
             datasetRepository.updateArrayDataset(dataset, owner);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be updated for user " + p.getName(), e);

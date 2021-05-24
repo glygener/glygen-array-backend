@@ -874,6 +874,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        extractFromStatements (statements, linkerObject, graph);
 		}
 		
+		retrieveChangeLog(linkerObject, linkerObject.getUri(), graph);
 		return linkerObject;
 	}
 	

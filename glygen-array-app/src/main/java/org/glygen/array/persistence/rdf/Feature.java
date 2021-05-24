@@ -16,6 +16,7 @@ public class Feature {
 	String id;
 	String uri;
 	String name;
+	String internalId;
 	List<Glycan> glycans;
 	Linker linker;
 	
@@ -166,5 +167,20 @@ public class Feature {
 	
 	public FeatureType getType() {
         return type;
+    }
+
+    /**
+     * @return the internalId
+     */
+	@Size(max=ValidationConstants.NAME_LIMIT, message="InternalId cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
+    public String getInternalId() {
+        return internalId;
+    }
+
+    /**
+     * @param internalId the internalId to set
+     */
+    public void setInternalId(String internalId) {
+        this.internalId = internalId;
     }
 }

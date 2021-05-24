@@ -1,6 +1,7 @@
 package org.glygen.array.persistence.rdf.data;
 
 import java.util.Date;
+import java.util.List;
 
 public class ChangeLog {
     
@@ -8,6 +9,8 @@ public class ChangeLog {
     ChangeType changeType;
     String user;
     String summary;
+    List<String> changedFields;
+    
     /**
      * @return the date
      */
@@ -55,6 +58,18 @@ public class ChangeLog {
      */
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+    /**
+     * @return the changedFields
+     */
+    public List<String> getChangedFields() {
+        return changedFields;
+    }
+    /**
+     * @param changedFields the changedFields to set
+     */
+    public void setChangedFields(List<String> changedFields) {
+        this.changedFields = changedFields;
     }
     
     

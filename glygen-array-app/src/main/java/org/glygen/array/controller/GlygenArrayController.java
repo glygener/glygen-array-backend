@@ -16,6 +16,7 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,8 @@ import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.service.FeatureRepository;
@@ -356,6 +359,12 @@ public class GlygenArrayController {
                     errorMessage.addError(new ObjectError("name", "LengthExceeded"));
                 }       
             }
+            if  (feature.getInternalId() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "internalId", feature.getInternalId());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
+                }       
+            }
         } else {
             throw new RuntimeException("Validator cannot be found!");
         }
@@ -387,6 +396,18 @@ public class GlygenArrayController {
                 throw new GlycanRepositoryException("Could not query existing features", e);
             }
 		}
+		
+		if (feature.getInternalId() != null && !feature.getInternalId().trim().isEmpty()) {
+            try {
+                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getInternalId(), 
+                        "gadr:has_internal_id", user);
+                if (existing != null) {
+                    errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing features", e);
+            }
+        }
 		
 		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
@@ -3214,7 +3235,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateGlycan(
 			@ApiParam(required=true, value="Glycan with updated fields") 
-			@RequestBody Glycan glycanView, Principal principal) throws SQLException {
+			@RequestBody Glycan glycanView, 
+			@RequestParam(value="changeSummary", required=false)
+            String changeSummary,
+            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @RequestParam(value="changedField", required=false)
+            List<String> changedFields,
+			Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3268,6 +3295,13 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
 			
+			ChangeLog changeLog = new ChangeLog();
+            changeLog.setUser(principal.getName());
+            changeLog.setChangeType(ChangeType.MINOR);
+            changeLog.setDate(new Date());
+            changeLog.setSummary(changeSummary);
+            changeLog.setChangedFields(changedFields);
+            glycan.addChange(changeLog);
 			glycanRepository.updateGlycan(glycan, user);
 			return new Confirmation("Glycan updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {
@@ -3287,7 +3321,14 @@ public class GlygenArrayController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateLinker(
 			@ApiParam(required=true, value="Linker to be updated, id is required, name and comment can be updated only") 
-			@RequestBody Linker linkerView, Principal principal) throws SQLException {
+			@RequestBody Linker linkerView, 
+			@ApiParam(required=false, value="summary of the changes") 
+            @RequestParam(value="changeSummary", required=false)
+            String changeSummary,
+            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @RequestParam(value="changedField", required=false)
+            List<String> changedFields,
+			Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3335,6 +3376,13 @@ public class GlygenArrayController {
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
+			ChangeLog changeLog = new ChangeLog();
+            changeLog.setUser(principal.getName());
+            changeLog.setChangeType(ChangeType.MINOR);
+            changeLog.setDate(new Date());
+            changeLog.setSummary(changeSummary);
+            changeLog.setChangedFields(changedFields);
+            linker.addChange(changeLog);
 			linkerRepository.updateLinker(linker, user);
 			return new Confirmation("Linker updated successfully", HttpStatus.OK.value());
 		} catch (SparqlException e) {

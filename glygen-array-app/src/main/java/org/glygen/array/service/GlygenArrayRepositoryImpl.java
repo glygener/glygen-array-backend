@@ -6,10 +6,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -23,6 +26,7 @@ import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
+import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +64,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	final static String hasIdentiferPredicate = ontPrefix + "has_identifier";
 	
 	final static String hasChangeLogPredicate = ontPrefix + "has_change_log";
+	final static String hasChangeFieldPredicate = ontPrefix + "has_field_change";
 	final static String createdByPredicate = ontPrefix + "created_by";
 	
 	final static String hasDescriptionPredicate = ontPrefix + "has_description";
@@ -420,6 +425,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI createdBy = f.createIRI(createdByPredicate);
         IRI hasType = f.createIRI(hasTypePredicate);
         IRI hasChangeLog = f.createIRI(hasChangeLogPredicate);
+        IRI hasFieldChange = f.createIRI(hasChangeFieldPredicate);
         IRI graphIRI = f.createIRI(graph);
         Literal comment = change.getSummary() == null ? null : f.createLiteral(change.getSummary());
         Literal user = f.createLiteral(change.getUser());
@@ -432,7 +438,49 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         statements.add(f.createStatement(iri, hasType, type, graphIRI));
         statements.add(f.createStatement(entryIRI, hasChangeLog, iri, graphIRI));
         
+        if (change.getChangedFields() != null) {
+            for (String fieldChange: change.getChangedFields()) {
+                statements.add(f.createStatement(iri, hasFieldChange, f.createLiteral(fieldChange), graphIRI));
+            }
+        }
+        
         sparqlDAO.addStatements(statements, graphIRI);
         return uri;
+    }
+
+    @Override
+    public void retrieveChangeLog(ChangeTrackable entity, String entityUri, String graph) throws SparqlException, SQLException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI entityIRI = f.createIRI(entityUri);
+        IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+        IRI createdBy = f.createIRI(createdByPredicate);
+        IRI hasType = f.createIRI(hasTypePredicate);
+        IRI hasFieldChange = f.createIRI(hasChangeFieldPredicate);
+        IRI graphIRI = f.createIRI(graph);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(entityIRI, null, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            ChangeLog change = new ChangeLog();
+            List<String> changedFields = new ArrayList<String>();
+            if (st.getPredicate().equals(RDFS.COMMENT)) {
+                change.setSummary(st.getObject().stringValue());
+            } else if (st.getPredicate().equals(hasCreatedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    change.setDate(date);
+                }
+            } else if (st.getPredicate().equals(hasType)) {
+                change.setChangeType(ChangeType.valueOf(st.getObject().stringValue()));
+            } else if (st.getPredicate().equals(createdBy)) {
+                change.setUser(st.getObject().stringValue());
+            } else if (st.getPredicate().equals(hasFieldChange)) {
+                changedFields.add(st.getObject().stringValue());
+            }
+            entity.addChange(change);
+         }
     }
 }

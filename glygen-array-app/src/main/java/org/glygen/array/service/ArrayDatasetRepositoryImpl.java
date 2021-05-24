@@ -1098,6 +1098,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         getStatusFromURI (datasetObject.getUri(), datasetObject, graph);
+        retrieveChangeLog (datasetObject, datasetObject.getUri(), graph);
         return datasetObject;
     }
     

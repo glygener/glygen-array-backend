@@ -39,4 +39,6 @@ public interface GlygenArrayRepository {
 	void resetRepository () throws SQLException;
 
     String saveChangeLog(ChangeLog change, String entryURI, String graph) throws SparqlException, SQLException;
+
+    void retrieveChangeLog(ChangeTrackable entity, String entityUri, String graph) throws SparqlException, SQLException;
 }

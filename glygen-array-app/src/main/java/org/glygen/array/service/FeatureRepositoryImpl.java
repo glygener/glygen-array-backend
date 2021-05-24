@@ -75,6 +75,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
+        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        Literal internalId = feature.getInternalId() == null ? f.createLiteral(feature.getName()) : f.createLiteral(feature.getInternalId());
         
 		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
 		    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
@@ -89,6 +91,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
 		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
+		statements.add(f.createStatement(feat, hasInternalId, internalId, graphIRI));
 		
 		Linker linker = feature.getLinker();
 		if (linker.getUri() == null) {
@@ -165,6 +168,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	
 	@Override
     public Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+	    return getFeatureByLabel(label, "rdfs:label", user);
+	}
+	
+	@Override
+    public Feature getFeatureByLabel(String label, String predicate, UserEntity user) throws SparqlException, SQLException {
         if (label == null || label.isEmpty())
             return null;
         String graph = null;
@@ -181,7 +189,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
-        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
+        queryBuf.append ( " ?s " + predicate + " ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
                 + "}\n");
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (results.isEmpty())
@@ -287,7 +295,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	            return "gadr:has_molecule ?g . ?g rdfs:label";
 	        } else if (field != null && field.equalsIgnoreCase("type")) {
 	            return "gadr:has_type";
-	        }
+	        } else if (field != null && field.equalsIgnoreCase("internalId")) {
+                return "gadr:has_internal_id";
+            }
 	    } 
         return predicate;
 	}
@@ -297,10 +307,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         
         predicates += queryLabel + " rdfs:label ?value1 .\n";
         predicates += "OPTIONAL {" + queryLabel + " gadr:has_type ?value2 .}\n";
+        predicates += "OPTIONAL {" + queryLabel + " gadr:has_internal_id ?value7 .}\n";
         predicates += "OPTIONAL {" + queryLabel + " gadr:has_molecule ?g . ?g gadr:has_glytoucan_id ?value3 . ?g rdfs:label ?value4} \n";
         predicates += "OPTIONAL {" + queryLabel + " gadr:has_linker ?l . ?l gadr:has_pubchem_compound_id ?value5 . ?l rdfs:label ?value6} \n";
         
-        int numberOfValues = 6; // need to match with the total values (?value1 - ?value6) specified in above predicates
+        int numberOfValues = 7; // need to match with the total values (?value1 - ?value7) specified in above predicates
         
         String filterClause = "filter (";
         for (int i=1; i <= numberOfValues; i++) {
@@ -411,6 +422,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
 		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
@@ -433,6 +445,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			        FeatureType type = FeatureType.valueOf(value.stringValue());
 			        featureObject.setType(type);
 			    }
+			} else if (st.getPredicate().equals(hasInternalId)) { 
+			    Value label = st.getObject();
+                featureObject.setInternalId(label.stringValue());
 			} else if (st.getPredicate().equals(hasLinker)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
