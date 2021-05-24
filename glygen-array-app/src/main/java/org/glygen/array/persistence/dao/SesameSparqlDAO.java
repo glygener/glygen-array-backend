@@ -72,7 +72,7 @@ public class SesameSparqlDAO {
 	 * @param statement
 	 * @throws SparqlException
 	 */
-	private void update (String statement) throws SparqlException {
+	public void update (String statement) throws SparqlException {
 		RepositoryConnection connection = sesameConnectionFactory.getConnection();
 		try {
 			Update update;
