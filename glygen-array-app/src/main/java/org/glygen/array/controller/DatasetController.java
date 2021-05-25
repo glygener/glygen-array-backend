@@ -2727,7 +2727,7 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
-            
+            logger.info("User is " + user.getUsername());
             int total = datasetRepository.getArrayDatasetCountByUser(user);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue, loadAll);
