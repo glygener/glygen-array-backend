@@ -1130,7 +1130,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = DEFAULT_GRAPH;
         else
             graph = getGraphForUser(user);
-        logger.info("graph for user " + user + " is " + graph);
         if (graph != null) {
             
             List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);
@@ -1154,7 +1153,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else {
             graph = getGraphForUser(user);
         }
-        logger.info("graph for user " + user + " is " + graph);
         return getCountByUserByType(graph, datasetTypePredicate);
     }
 
