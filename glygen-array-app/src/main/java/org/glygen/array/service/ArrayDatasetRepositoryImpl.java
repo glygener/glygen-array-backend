@@ -1154,6 +1154,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else {
             graph = getGraphForUser(user);
         }
+        logger.info("graph for user " + user + " is " + graph);
         return getCountByUserByType(graph, datasetTypePredicate);
     }
 
