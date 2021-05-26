@@ -286,6 +286,11 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
 	}
 
+	/**
+	 * removes all the data from the repository
+	 * This removes necessary initialized data as well, so it is necessary to restart virtuoso container after resetting the 
+	 * repository!!!
+	 */
     @Override
     public void resetRepository() throws SQLException {
         sparqlDAO.deleteAll();   
