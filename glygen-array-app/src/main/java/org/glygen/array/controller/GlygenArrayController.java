@@ -1589,9 +1589,9 @@ public class GlygenArrayController {
                     for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
                         if (f.getGlycans()  != null) {
                             for (Glycan g: f.getGlycans()) {
-                                if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
+                                if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null ) {
                                     byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                                    if (image == null) {
+                                    if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                         // try to create one
                                         BufferedImage t_image = null;
                                         try {
@@ -2168,7 +2168,7 @@ public class GlygenArrayController {
 			}
 			if (glycan instanceof SequenceDefinedGlycan) {
 			    byte[] image = getCartoonForGlycan(glycanId, ((SequenceDefinedGlycan) glycan).getSequence());
-                if (image == null) {
+                if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                     // try to create one
                     BufferedImage t_image = null;
                     try {
@@ -2353,7 +2353,7 @@ public class GlygenArrayController {
                                     for (Glycan g: f.getGlycans()) {
                                         if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
                                             byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                                            if (image == null) {
+                                            if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                                 // try to create one
                                                 BufferedImage t_image = null;
                                                 try {
@@ -2420,7 +2420,7 @@ public class GlygenArrayController {
                 for (Glycan g: feature.getGlycans()) {
                     if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
                         byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                        if (image == null) {
+                        if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                             // try to create one
                             BufferedImage t_image = null;
                             try {
@@ -2664,7 +2664,7 @@ public class GlygenArrayController {
     		                    for (Glycan g: f.getGlycans()) {
     		                        if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
     		                            byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                                        if (image == null) {
+                                        if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                             // try to create one
                                             BufferedImage t_image = null;
                                             try {
@@ -2759,7 +2759,7 @@ public class GlygenArrayController {
 			        for (Glycan g: f.getGlycans()) {
 			            if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
 			                byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                            if (image == null) {
+                            if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                 // try to create one
                                 BufferedImage t_image = null;
                                 try {
@@ -2843,7 +2843,7 @@ public class GlygenArrayController {
 			for (Glycan glycan : glycans) {
 			    if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
 			        byte[] image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
-			        if (image == null) {
+			        if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
                         BufferedImage t_image = null;
                         try {
@@ -2945,7 +2945,7 @@ public class GlygenArrayController {
             for (Glycan glycan : totalResultList) {
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
                     byte[] image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
-                    if (image == null) {
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
                         BufferedImage t_image = null;
                         try {
@@ -3173,7 +3173,7 @@ public class GlygenArrayController {
                                             for (Glycan g: f.getGlycans()) {
                                                 if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
                                                     byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
-                                                    if (image == null) {
+                                                    if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                                         // try to create one
                                                         BufferedImage t_image = null;
                                                         try {

@@ -194,7 +194,7 @@ public class PublicGlygenArrayController {
             for (Glycan glycan : glycans) {
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
                     byte[] image = getCartoonForGlycan(glycan.getId());
-                    if (image == null) {
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
                         BufferedImage t_image = null;
                         try {
@@ -1395,7 +1395,7 @@ public class PublicGlygenArrayController {
                             for (Glycan glycan: feature.getGlycans()) {
                                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
                                     byte[] image = getCartoonForGlycan(glycan.getId());
-                                    if (image == null) {
+                                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                                         // try to create one
                                         BufferedImage t_image = null;
                                         try {
