@@ -56,6 +56,8 @@ public class AdminController {
     ArrayDatasetRepository datasetRepository;
      
 
+    @ApiOperation(value = "deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
+            + "It is therefore necessary to restart the triple store after executing this web service.")
     @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})

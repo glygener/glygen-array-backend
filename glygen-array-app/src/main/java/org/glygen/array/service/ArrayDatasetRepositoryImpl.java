@@ -2593,11 +2593,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         for (Slide slide: dataset.getSlides()) {
             // make assay metadata public
             AssayMetadata assayMetadata = slide.getMetadata();
-            String assayPublicURI = makeMetadataPublic(assayMetadata, MetadataTemplateType.ASSAY, 
-                    hasAssayTemplatePredicate, assayTypePredicate, "A", graph);
-            AssayMetadata publicAssayMetadata = new AssayMetadata();
-            publicAssayMetadata.setUri(assayPublicURI);
-            slide.setMetadata(publicAssayMetadata);
+            if (assayMetadata != null) {
+                String assayPublicURI = makeMetadataPublic(assayMetadata, MetadataTemplateType.ASSAY, 
+                        hasAssayTemplatePredicate, assayTypePredicate, "A", graph);
+                AssayMetadata publicAssayMetadata = new AssayMetadata();
+                publicAssayMetadata.setUri(assayPublicURI);
+                slide.setMetadata(publicAssayMetadata);
+            }
             // clear out the uri so that it will be added again in the public graph
             slide.setUri(null);
             slide.setId(null);
@@ -2659,17 +2661,21 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     
                     // make printed slide metadata public
                     SlideMetadata sMetadata = slide.getPrintedSlide().getMetadata();
-                    String sPublicURI = makeMetadataPublic(sMetadata, MetadataTemplateType.SLIDE, 
-                            hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", graph);
-                    sMetadata = new SlideMetadata();
-                    sMetadata.setUri(sPublicURI);
-                    slide.getPrintedSlide().setMetadata(sMetadata);
+                    if (sMetadata != null) {
+                        String sPublicURI = makeMetadataPublic(sMetadata, MetadataTemplateType.SLIDE, 
+                                hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", graph);
+                        sMetadata = new SlideMetadata();
+                        sMetadata.setUri(sPublicURI);
+                        slide.getPrintedSlide().setMetadata(sMetadata);
+                    }
                     Printer printer = slide.getPrintedSlide().getPrinter();
-                    String printerPublicURI = makeMetadataPublic(printer, MetadataTemplateType.PRINTER,
-                            hasPrinterTemplatePredicate, printerTypePredicate, "P", graph);
-                    printer = new Printer();
-                    printer.setUri(printerPublicURI);
-                    slide.getPrintedSlide().setPrinter(printer);
+                    if (printer != null) {
+                        String printerPublicURI = makeMetadataPublic(printer, MetadataTemplateType.PRINTER,
+                                hasPrinterTemplatePredicate, printerTypePredicate, "P", graph);
+                        printer = new Printer();
+                        printer.setUri(printerPublicURI);
+                        slide.getPrintedSlide().setPrinter(printer);
+                    }
                     
                     // delete printedSlide from user's graph and add it to the public graph
                     publicPSURI = makePrintedSlidePublic (slide.getPrintedSlide(), graph);
@@ -2681,11 +2687,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 
                 for (Image image: slide.getImages()) {
                     ScannerMetadata scanner = image.getScanner();
-                    String scannerPublicURI = makeMetadataPublic(scanner, MetadataTemplateType.SCANNER, 
-                            hasScannerleTemplatePredicate, scannerTypePredicate, "Sc", graph);
-                    scanner = new ScannerMetadata();
-                    scanner.setUri(scannerPublicURI);
-                    image.setScanner(scanner);
+                        if (scanner != null) {
+                            String scannerPublicURI = makeMetadataPublic(scanner, MetadataTemplateType.SCANNER, 
+                                hasScannerleTemplatePredicate, scannerTypePredicate, "Sc", graph);
+                        scanner = new ScannerMetadata();
+                        scanner.setUri(scannerPublicURI);
+                        image.setScanner(scanner);
+                    }
                     // clear out the uri so that it will be added again in the public graph
                     image.setUri(null);
                     image.setId(null);
