@@ -572,14 +572,14 @@ public class GlygenArrayController {
 			user = userRepository.findByUsernameIgnoreCase(p.getName());
 			Glycan local = null;
 			// check if internalid and label are unique
-			if (glycan.getInternalId() != null) {
+			if (glycan.getInternalId() != null && !glycan.getInternalId().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
-			if (glycan.getName() != null) {
+			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
@@ -787,14 +787,14 @@ public class GlygenArrayController {
 			// TODO if name is null, check by mass to make sure there are no other glycans with the same mass and no name
 			Glycan local = null;
 			// check if internalid and label are unique
-			if (glycan.getInternalId() != null) {
+			if (glycan.getInternalId() != null && !glycan.getInternalId().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
-			if (glycan.getName() != null) {
+			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
@@ -1165,14 +1165,14 @@ public class GlygenArrayController {
 			}
 			Glycan local = null;
 			// check if internalid and label are unique
-			if (glycan.getInternalId() != null) {
+			if (glycan.getInternalId() != null && !glycan.getInternalId().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
-			if (glycan.getName() != null) {
+			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
@@ -3518,13 +3518,13 @@ public class GlygenArrayController {
 			
 			Glycan local = null;
 			// check if internalid and label are unique
-			if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
+			if (glycan.getInternalId() != null && !glycan.getInternalId().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same internal id
 					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
 				}
 			}
-			if (glycan.getName() != null && !glycan.getName().isEmpty()) {
+			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null && !local.getUri().equals(glycan.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
