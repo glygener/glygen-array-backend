@@ -32,6 +32,7 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.util.GlytoucanUtil;
+import org.jline.utils.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -222,6 +223,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					exporter.start(g.getSequence());
 					String wurcs = exporter.getWURCS();
 					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+					logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
 					if (glyToucanId == null || glyToucanId.length() != 8) {
 					    // this is new registration, hash returned
 					    glyToucanHash = glyToucanId;
@@ -236,7 +238,13 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 					exporter.start(g.getSequence());
 					String wurcs = exporter.getWURCS();
-					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);	
+					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+					logger.info("Got glytoucan id for new glycan:" + glyToucanId);
+					/*if (glyToucanId == null || glyToucanId.length() != 8) {
+                        // this is new registration, hash returned
+                        glyToucanHash = glyToucanId;
+                        glyToucanId = null;
+                    }*/
 				} catch (Exception e) {
 					logger.warn("Cannot get glytoucanId with the given sequence", g.getSequence());
 				}
@@ -744,7 +752,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     exporter.start(((SequenceDefinedGlycan) glycanObject).getSequence());
                     String wurcs = exporter.getWURCS();
                     String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-                    if (glyToucanId != null) {
+                    if (glyToucanId != null && glyToucanId.length() < 10) {
                         ((SequenceDefinedGlycan) glycanObject).setGlytoucanId(glyToucanId);
                         ((SequenceDefinedGlycan) glycanObject).setGlytoucanHash(null);
                         // need to update glycan in the repository
