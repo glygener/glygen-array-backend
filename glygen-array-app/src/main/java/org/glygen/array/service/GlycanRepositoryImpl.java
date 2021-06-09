@@ -18,7 +18,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
-import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
+import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;

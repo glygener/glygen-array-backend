@@ -16,7 +16,7 @@ import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
 import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
-import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSExporterGlycoCT;
+import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
 import org.grits.toolbox.util.structure.glycan.database.GlycanStructure;
@@ -171,8 +171,8 @@ public class GlytoucanUtil {
 		GlytoucanUtil.getInstance().setApiKey("6d9fbfb1c0a52cbbffae7c113395a203ae0e3995a455c42ff3932862cbf7e62a");
         GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
-		String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
-		System.out.println(glyTouCanId);
+		//String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		//System.out.println(glyTouCanId);
 		
 		/*
 		GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
@@ -301,7 +301,45 @@ public class GlytoucanUtil {
 		        "1:1d(2+1)2n\n" + 
 		        "2:1o(3+1)3n\n" + 
 		        "3:1d(4+1)4o\n" + 
-		        "4:4d(2+1)5n";
+		        "4:4d(2+1)5n";*/
+		
+		String glycoCTSeq = "RES\n"
+		        + "1b:b-dglc-HEX-1:5\n"
+		        + "2s:n-acetyl\n"
+		        + "3b:b-dglc-HEX-1:5\n"
+		        + "4s:n-acetyl\n"
+		        + "5b:b-dman-HEX-1:5\n"
+		        + "6b:a-dman-HEX-1:5\n"
+		        + "7b:b-dglc-HEX-1:5\n"
+		        + "8s:n-acetyl\n"
+		        + "9b:b-dgal-HEX-1:5\n"
+		        + "10b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n"
+		        + "11s:n-acetyl\n"
+		        + "12b:a-dman-HEX-1:5\n"
+		        + "13b:b-dglc-HEX-1:5\n"
+		        + "14s:n-acetyl\n"
+		        + "15b:b-dgal-HEX-1:5\n"
+		        + "16b:a-dgro-dgal-NON-2:6|1:a|2:keto|3:d\n"
+		        + "17s:n-acetyl\n"
+		        + "18b:a-lgal-HEX-1:5|6:d\n"
+		        + "LIN\n"
+		        + "1:1d(2+1)2n\n"
+		        + "2:1o(4+1)3d\n"
+		        + "3:3d(2+1)4n\n"
+		        + "4:3o(4+1)5d\n"
+		        + "5:5o(3+1)6d\n"
+		        + "6:6o(2+1)7d\n"
+		        + "7:7d(2+1)8n\n"
+		        + "8:7o(4+1)9d\n"
+		        + "9:9o(3+2)10d\n"
+		        + "10:10d(5+1)11n\n"
+		        + "11:5o(6+1)12d\n"
+		        + "12:12o(2+1)13d\n"
+		        + "13:13d(2+1)14n\n"
+		        + "14:13o(4+1)15d\n"
+		        + "15:15o(3+2)16d\n"
+		        + "16:16d(5+1)17n\n"
+		        + "17:1o(6+1)18d";
         WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
         try {
             exporter.start(glycoCTSeq);
@@ -318,7 +356,7 @@ public class GlytoucanUtil {
         String wurcs = exporter.getWURCS(); 
         System.out.println(wurcs);
         String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-        System.out.println(glyTouCanId);*/
+        System.out.println(glyTouCanId);
 	}
 		
 	

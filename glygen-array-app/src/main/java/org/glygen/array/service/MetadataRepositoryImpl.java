@@ -26,6 +26,7 @@ import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.Printer;
@@ -343,6 +344,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             } else if (typePredicate.equals(spotMetadataTypePredicate) || typePredicate.equals(spotMetadataValueTypePredicate)) {
                 metadataObject = new SpotMetadata();
                 templatePredicate = hasSpotMetadataTemplatePredicate;
+            } else if (typePredicate.equals(featureMetadataTypePredicate)) {
+                metadataObject = new FeatureMetadata();
+                templatePredicate = null;
             } else {
                 logger.error("unknown template predicate" + typePredicate);
             }
@@ -359,7 +363,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 } else {
                     metadataObject.setPublic(true);
                 }
-                hasTemplate = f.createIRI(templatePredicate);
+                hasTemplate = templatePredicate == null ? null : f.createIRI(templatePredicate);
             }
         } 
         

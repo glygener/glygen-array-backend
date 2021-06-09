@@ -9,6 +9,8 @@ import java.util.Map;
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
+import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
+import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
@@ -19,6 +21,7 @@ public class Feature {
 	String internalId;
 	List<Glycan> glycans;
 	Linker linker;
+	FeatureMetadata metadata;
 	
 	Map<String, String> positionMap = new HashMap<>(); // position to glycanId map
 	
@@ -182,5 +185,19 @@ public class Feature {
      */
     public void setInternalId(String internalId) {
         this.internalId = internalId;
+    }
+
+    /**
+     * @return the metadata
+     */
+    public FeatureMetadata getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * @param metadata the metadata to set
+     */
+    public void setMetadata(FeatureMetadata metadata) {
+        this.metadata = metadata;
     }
 }

@@ -25,6 +25,9 @@ import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
+import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +48,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	
 	@Autowired
 	LinkerRepository linkerRepository;
+	
+	@Autowired
+    MetadataRepository metadataRepository;
 	
 	Map<String, Feature> featureCache = new HashMap<String, Feature>();
 
@@ -72,6 +78,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
@@ -132,6 +139,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
+		}
+		
+		if (feature.getMetadata() != null) {
+		    if (feature.getMetadata().getUri() != null) {
+		        statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(feature.getMetadata().getUri()), graphIRI));
+		    } else {
+		        String metadataURI = metadataRepository.addMetadataCategory(feature.getMetadata(), MetadataTemplateType.FEATURE, featureMetadataPredicate, featureMetadataTypePredicate, "FM", user);
+		        statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(metadataURI), graphIRI));
+		    }
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);
@@ -423,6 +439,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
 		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
 		List<Glycan> glycans = new ArrayList<Glycan>();
@@ -508,7 +525,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				if (position != null && glycanInContext != null) {
 					positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
 				}
-			} else if (st.getPredicate().equals(hasPublicURI)) {
+			} else if (st.getPredicate().equals(hasFeatureMetadata)) {
+                Value uriValue = st.getObject();
+                featureObject.setMetadata((FeatureMetadata) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), featureMetadataTypePredicate, true, user));
+            } else if (st.getPredicate().equals(hasPublicURI)) {
 			    Value value = st.getObject();
 			    String publicURI = value.stringValue();
 			    IRI publicFeature = f.createIRI(publicURI);
@@ -560,6 +580,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                         if (position != null && glycanInContext != null) {
                             positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
                         }
+                    } else if (stPublic.getPredicate().equals(hasFeatureMetadata)) {
+                        Value uriValue = stPublic.getObject();
+                        featureObject.setMetadata((FeatureMetadata) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), featureMetadataTypePredicate, true, null));
                     }
                 }
 			}
@@ -600,6 +623,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
@@ -636,6 +660,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
+		}
+		
+		if (feature.getMetadata() != null) {
+		    if (feature.getMetadata().getUri() != null) {
+                statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(feature.getMetadata().getUri()), graphIRI));
+            } else {
+                String metadataURI = metadataRepository.addMetadataCategory(feature.getMetadata(), MetadataTemplateType.FEATURE, featureMetadataPredicate, featureMetadataTypePredicate, "FM", null);
+                statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(metadataURI), graphIRI));    
+            }
 		}
 		
 		sparqlDAO.addStatements(statements, graphIRI);

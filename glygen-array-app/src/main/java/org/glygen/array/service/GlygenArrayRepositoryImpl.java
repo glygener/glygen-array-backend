@@ -92,6 +92,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     
     public final static String sampleTypePredicate = ontPrefix + "sample";
    
+    public final static String featureMetadataTypePredicate = ontPrefix + "feature_metadata";
     public final static String slideTypePredicate = ontPrefix + "slide";
     public final static String printerTypePredicate = ontPrefix + "printer";
     public final static String scannerTypePredicate = ontPrefix + "scanner";
@@ -110,6 +111,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String assayMetadataPredicate = ontPrefix + "has_assay_metadata";
     public final static String printerMetadataPredicate = ontPrefix + "printed_by";
     public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
+    public final static String featureMetadataPredicate = ontPrefix + "has_feature_metadata";
     
     public final static String orderPredicate = ontPrefix + "has_order";
     public final static String valuePredicate = ontPrefix + "has_value";

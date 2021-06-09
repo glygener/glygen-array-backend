@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +13,9 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Validator;
 
 import org.apache.commons.io.IOUtils;
-import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
-import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
-import org.eurocarbdb.application.glycanbuilder.Union;
-import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -31,7 +25,6 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
-import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
@@ -81,7 +74,6 @@ import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -97,24 +89,6 @@ import io.swagger.annotations.ApiResponses;
 @RequestMapping("/array/public")
 public class PublicGlygenArrayController {
     final static Logger logger = LoggerFactory.getLogger("event-logger");
-    
-    // needs to be done to initialize static variables to parse glycan sequence
-    private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
-    
-    static {
-            // Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
-            glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
-            // Set flag to show information such as linkage positions and anomers
-            glycanWorkspace.getGraphicOptions().SHOW_INFO = true;
-            // Set flag to show mass
-            glycanWorkspace.getGraphicOptions().SHOW_MASSES = false;
-            // Set flag to show reducing end
-            glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
-
-            glycanWorkspace.setDisplay(GraphicOptions.DISPLAY_NORMAL);
-            glycanWorkspace.setNotation(GraphicOptions.NOTATION_CFG);
-
-    }
     
     @Autowired
     @Qualifier("glygenArrayRepositoryImpl")
@@ -196,16 +170,7 @@ public class PublicGlygenArrayController {
                     byte[] image = getCartoonForGlycan(glycan.getId());
                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
-                        BufferedImage t_image = null;
-                        try {
-                            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                                    org.eurocarbdb.application.glycanbuilder.Glycan.
-                                    fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
-                            t_image = glycanWorkspace.getGlycanRenderer()
-                                .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-                        } catch (Exception e) {
-                            logger.error ("Glycan image cannot be generated", e);
-                        }
+                        BufferedImage t_image = GlygenArrayController.createImageForGlycan((SequenceDefinedGlycan) glycan);
                         if (t_image != null) {
                             String filename = glycan.getId() + ".png";
                             //save the image into a file
@@ -1397,16 +1362,7 @@ public class PublicGlygenArrayController {
                                     byte[] image = getCartoonForGlycan(glycan.getId());
                                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                                         // try to create one
-                                        BufferedImage t_image = null;
-                                        try {
-                                            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                                                    org.eurocarbdb.application.glycanbuilder.Glycan.
-                                                    fromGlycoCTCondensed(((SequenceDefinedGlycan) glycan).getSequence().trim());
-                                            t_image = glycanWorkspace.getGlycanRenderer()
-                                                .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-                                        } catch (Exception e) {
-                                            logger.error ("Glycan image cannot be generated", e);
-                                        }
+                                        BufferedImage t_image = GlygenArrayController.createImageForGlycan((SequenceDefinedGlycan) glycan);
                                         if (t_image != null) {
                                             String filename = glycan.getId() + ".png";
                                             //save the image into a file
