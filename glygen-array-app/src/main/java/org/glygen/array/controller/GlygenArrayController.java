@@ -1160,7 +1160,7 @@ public class GlygenArrayController {
 					logger.error("Parse Error for sequence: " + glycan.getSequence());
 				} else {
 					String existingURI = glycanRepository.getGlycanBySequence(glycoCT, user);
-					if (existingURI != null) {
+					if (existingURI != null && !existingURI.contains("public")) {
 					    glycan.setId(existingURI.substring(existingURI.lastIndexOf("/")+1));
 						errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 					}

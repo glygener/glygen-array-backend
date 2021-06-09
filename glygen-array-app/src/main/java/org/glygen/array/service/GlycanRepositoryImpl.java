@@ -308,7 +308,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
-			addAliasForGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), g.getName(), user);
+			//addAliasForGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), g.getName(), user);
 		}
 		
 		return glycanURI;
