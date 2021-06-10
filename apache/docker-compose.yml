@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  httpd:
+    image: httpd:alpine
+    ports:
+      - 9980:80
+    volumes:
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ${HOME}/workspace/glygen-array-backend/ontology/:/usr/local/apache2/htdocs/ontology/
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-glygen-array-network}

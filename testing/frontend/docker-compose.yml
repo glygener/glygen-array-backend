@@ -1,0 +1,30 @@
+version: '3.4'
+services:
+  java:
+    image: maven:3.3.9-jdk-8
+    volumes:
+      - ${HOME}/${SITE_CODE}-data/maven:/root/.m2
+      - /etc/localtime:/etc/localtime
+      - ../../glygen-array-app-frontend:/workspace
+    working_dir: /workspace/
+    ports:
+      - 8081:8080
+    command: mvn -U -DskipTests=true spring-boot:run $SPRING_PROFILE
+    environment:
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTID
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENTSECRET
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENTID
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENTSECRET
+      - SPRING_TRIPLESTORE_PASSWORD
+      - SPRING_TRIPLESTORE_URL
+      - VIRTUAL_HOST=${ARRAY_VIRTUAL_HOST}
+      - VIRTUAL_PORT=${ARRAY_VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${ARRAY_VIRTUAL_HOST}
+      - LETSENCRYPT_PORT=${ARRAY_VIRTUAL_PORT}
+      - LETSENCRYPT_EMAIL=${SITE_EMAIL}
+    restart: always
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-webproxy}

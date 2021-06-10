@@ -1,0 +1,133 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.glygen.array</groupId>
+  <artifactId>glygen-array-javaclient</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.2.RELEASE</version>
+  </parent>
+
+  <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <repositories>
+		<repository>
+			<id>nexus</id>
+			<url>https://glygen.ccrc.uga.edu/repository/content/repositories/thirdparty/</url>
+		</repository>
+	</repositories>
+  
+  <dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+    	<groupId>org.springframework.boot</groupId>
+    	<artifactId>spring-boot-configuration-processor</artifactId>
+    	<optional>true</optional>
+    </dependency>
+    <!-- GRITS-GlycanArray -->
+	<dependency>
+	  <groupId>grits</groupId>
+	  <artifactId>glycanarray</artifactId>
+	  <version>1.22</version>
+	</dependency>
+	<dependency>
+	    <groupId>grits</groupId>
+	    <artifactId>filter-om</artifactId>
+	    <version>1.18</version>
+	</dependency>
+	<dependency>
+		  <groupId>eurocarb</groupId>
+		  <artifactId>eurocarb-glycanbuilder</artifactId>
+		  <version>1.0rc</version>
+	</dependency>
+	<dependency>
+		  <groupId>eurocarb</groupId>
+		  <artifactId>eurocarb-glycoworkbench</artifactId>
+		  <version>1.0rc</version>
+	</dependency>
+	<dependency>
+	  <groupId>eurocarb</groupId>
+	  <artifactId>eurocarb-molecularframework</artifactId>
+	  <version>1.0rc</version>
+	</dependency>
+	<dependency>
+	  <groupId>resourcesdb</groupId>
+	  <artifactId>resourcesdb_interfaces</artifactId>
+	  <version>1</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.jdom</groupId>
+	    <artifactId>jdom</artifactId>
+	    <version>1.1.3</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/log4j/log4j -->
+	<dependency>
+	    <groupId>log4j</groupId>
+	    <artifactId>log4j</artifactId>
+	    <version>1.2.17</version>
+	</dependency>
+  </dependencies>
+  
+  <build>
+      <plugins>
+          <plugin>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-maven-plugin</artifactId>
+              <configuration>
+                    <mainClass>org.glygen.array.client.Application</mainClass>
+                </configuration>
+          </plugin>
+          <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-jar-plugin</artifactId>
+	        <executions>
+	            <execution>
+	                <goals>
+	                    <goal>jar</goal>
+	                </goals>
+	                <phase>package</phase>
+	                <configuration>
+	                    <!--to be imported on other projects-->
+	                    <classifier>app-to-import</classifier>
+	                </configuration>
+	            </execution>
+	        </executions>
+	    </plugin>
+	    <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>attach-javadocs</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+					<phase>package</phase>
+	                <configuration>
+	                    <!--to be imported on other projects-->
+	                    <classifier>javadoc</classifier>
+	                </configuration>
+				</execution>
+			</executions>
+		</plugin>
+      </plugins>
+  </build>
+</project>

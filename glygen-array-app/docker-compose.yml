@@ -1,0 +1,39 @@
+version: '3.4'
+services:
+  backend:
+    image: maven:3.5.4-jdk-10
+    ports:
+      - 8082:8080
+    volumes:
+      - ${HOME}/glygen-array/maven:/root/.m2
+      - ${HOME}/glygen-array/images:/images
+      - ${HOME}/glygen-array/uploads:/uploads
+      - ./ontology:/ontology
+      - .:/workspace
+    working_dir: /workspace/
+    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"
+    environment:
+      - JASYPT_SECRET
+      - GOOGLE_CLIENT_CLIENT-ID
+      - GOOGLE_CLIENT_CLIENT-SECRET
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - SPRING_TRIPLESTORE_PASSWORD
+      - SPRING_TRIPLESTORE_USERNAME
+      - SPRING_TRIPLESTORE_URL=${SPRING_TRIPLESTORE_URL:-jdbc:virtuoso://virtuoso:1111}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/glygen}
+      - SPRING_DATASOURCE_USERNAME=glygen
+      - SPRING_DATASOURCE_PASSWORD
+      - GLYGEN_SCHEME=${GLYGEN_SCHEME:-http://}
+      - GLYGEN_HOST=${GLYGEN_HOST:-glycomics.ccrc.uga.edu/ggarray}
+      - GLYGEN_FRONTEND_HOST=${GLYGEN_FRONTEND_HOST:-glycomics.ccrc.uga.edu/ggarray}
+      - GLYGEN_BASEPATH=${GLYGEN_BASEPATH:-/api}
+      - SERVER_SERVLET_CONTEXT_PATH=${SERVER_SERVLET_CONTEXT_PATH:-/}
+      - SPRING_FILE_IMAGEDIRECTORY=/images
+      - SPRING_FILE_UPLOADDIRECTORY=/uploads
+      - LOGGING_LEVEL_ORG_GLYGEN=INFO
+    restart: always
+
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}

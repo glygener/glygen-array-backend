@@ -1,0 +1,81 @@
+spring:
+  profiles:
+    active: "prod"
+  datasource:
+    url: jdbc:postgresql://localhost:5432/glygen
+    username: glygen
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
+    driver-class-name: org.postgresql.Driver
+    separator: ^^^ END OF SCRIPT ^^^
+  triplestore:
+    driverClassName: virtuoso.jdbc4.Driver
+    dialect: sparql
+    url: jdbc:virtuoso://localhost:1111
+    username: dba
+    password: ENC(6fDqWRT97iuR7f1U4akTM918JIiZPKRT)
+    graph: graph
+  file:
+    imagedirectory: ./images
+    uploaddirectory: ./uploads
+google:
+    client:
+        client-id: 540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com
+        client-secret: ENC(HM+tmiraZ24pKoR97vJnEhuJ7JUpuuMN7p15vgMvX3EHKIdLQScsfA==)
+        accessTokenUri: https://www.googleapis.com/oauth2/v4/token
+        userAuthorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+        clientAuthenticationScheme: form
+        scope: 
+          - openid
+          - email
+          - profile
+    resource:
+        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
+        tokenInfoUri: https://www.googleapis.com/oauth2/v3/tokeninfo?access_token={accessToken}
+        preferTokenInfo: true
+    gmail:
+        email: glygenarray.api@gmail.com
+        client-id: 213261356634-v6kh325uhmkovn8f3vmd0uf3iir780ij.apps.googleusercontent.com
+        client-secret: ENC(yNs24f9XTY6hx0bXEpIyVdN+bYwg11ZfOUf7CXIrpGZac3s30+7FdA==)
+        access-token: ya29.GlvVBggZaTU2C8sC_IWuj7k5yglAH09uTbq5nj5TVPb3lT0pTZ0lk3TuVXZLYY_Mccpr_DRTStmFGPOwPUX3Fo46kql4TpvY20_pkakhLAl7g2AmQQpiSVNj3yvt
+        refresh-token: 1/aTU4_Z7jEE-gF-gsvV5z87R3pZqVUwoa5KkcTn29eAY
+glytoucan:
+  api-key: ENC(ddUsTNOlO3RJdZWg7EFJUNLYRBySKL+V8BzQDOTSB/VITkYD/i8wSOzDJRPNs55i02FeIN8LKux2ILjOu3zQWxYGABGeU8KdDcQGGeqRQlE=)
+  user-id: ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d
+        
+glygen:
+  glytoucanregistration: false
+  token-secret: ENC(B/AsM4RnG9dNa6B0lao8sdrlVFKw24VYDfDLgmxSSfcQJupOEdw9iQ==)
+  scheme: http://
+  host: localhost:8080
+  basePath: /
+  frontend:
+      scheme: http://
+      host: localhost:3000
+      basePath: /
+      loginPage: login.html
+      emailVerificationPage: emailConfirmation
+
+
+   
+server:
+  port: 8080
+  servlet:
+     contextPath: /
+  
+---
+
+spring:
+  profiles: dev
+  datasource:
+    initialization-mode: always
+  
+---
+
+spring:
+  profiles: prod
+  datasource:
+    initialization-mode: always
+    schema: classpath:/schema-prod.sql
+    data: classpath:/data-prod.sql
+  glygen:
+    glytoucanregistration: false

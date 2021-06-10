@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<script>
+  var GoogleAuth;
+  var token;
+  var SCOPE = 'profile openid email';
+  function handleClientLoad() {
+    // Load the API's client and auth2 modules.
+    // Call the initClient function after the modules load.
+    gapi.load('client:auth2', initClient);
+  }
+
+  function initClient() {
+    // Initialize the gapi.client object, which app uses to make API requests.
+    // Get API key and client ID from API Console.
+    // 'scope' field specifies space-delimited list of access scopes.
+    gapi.client.init({
+        'clientId': '540165369039-5ti43rf0vqhu60o4bo8i9552tvvth570.apps.googleusercontent.com',
+        'scope': SCOPE,
+        'ux_mode': 'redirect',
+        'redirect_uri': 'http://localhost:8080/login/google'
+    }).then(function () {
+      GoogleAuth = gapi.auth2.getAuthInstance();
+
+      // Listen for sign-in state changes.
+      GoogleAuth.isSignedIn.listen(updateSigninStatus);
+
+      // Handle initial sign-in state. (Determine if user is already signed in.)
+      var user = GoogleAuth.currentUser.get();
+      setSigninStatus();
+
+      // Call handleAuthClick function when user clicks on
+      //      "Sign In/Authorize" button.
+      $('#sign-in-or-out-button').click(function() {
+        handleAuthClick();
+      }); 
+      $('#revoke-access-button').click(function() {
+        revokeAccess();
+      }); 
+      $('#user-profile-button').click(function() {
+          getUserProfile();
+        }); 
+    });
+  }
+
+  function handleAuthClick() {
+    if (GoogleAuth.isSignedIn.get()) {
+      // User is authorized and has clicked 'Sign out' button.
+      GoogleAuth.signOut();
+    } else {
+      // User is not signed in. Start Google auth flow.
+      GoogleAuth.signIn();
+    }
+  }
+
+  function revokeAccess() {
+    GoogleAuth.disconnect();
+  }
+  
+  function ajaxProfileSuccess(data, textStatus, jqXHR) {
+    if (data.statusCode) {
+    	if (data.statusCode != 200) {
+	        console.log(data.statusCode);
+	        displayErrorByCode(data.statusCode);
+    	} else {
+    	    alert("failed to get user info");
+    	}
+    } 
+    else if (data.email) 
+    	alert ("User email: " + data.email);
+    else {
+   	    alert("failed to get user info");
+   	}
+  }
+
+function ajaxProfileFailure() {
+	//  $('#error-message').show();
+	    alert("failed authorization");
+	}
+  
+  function getUserProfile() {
+	  var username = GoogleAuth.currentUser.get().getId();
+	  var ajaxConfig = {
+		  url: 'http://localhost:8080/users/get/' + username,
+		  headers: {
+			'Accept': 'application/json',
+      	    'Authorization': 'Bearer ' + token
+          },
+		  type: 'GET',
+		  success: ajaxProfileSuccess,
+		  error: ajaxProfileFailure,
+		  processData: false
+	  };
+
+	  // make the server call
+	  $.ajax(ajaxConfig);
+  }
+
+  function setSigninStatus(isSignedIn) {
+    var user = GoogleAuth.currentUser.get();
+    var isAuthorized = user.hasGrantedScopes(SCOPE);
+    if (isAuthorized) {
+      $('#sign-in-or-out-button').html('Sign out');
+      $('#revoke-access-button').css('display', 'inline-block');
+      $('#auth-status').html('You are currently signed in and have granted ' +
+          'access to this app.');
+      token = user.getAuthResponse(true).access_token;
+      $('#user-profile-button').css('display', 'inline-block');
+    } else {
+      $('#sign-in-or-out-button').html('Sign In/Authorize');
+      $('#revoke-access-button').css('display', 'none');
+      $('#user-profile-button').css('display', 'none');
+      $('#auth-status').html('You have not authorized this app or you are ' +
+          'signed out.');
+      token = null;
+    }
+  }
+
+  function updateSigninStatus(isSignedIn) {
+    setSigninStatus();
+  }
+</script>
+
+<button id="sign-in-or-out-button"
+        style="margin-left: 25px">Sign In/Authorize</button>
+<button id="revoke-access-button"
+        style="display: none; margin-left: 25px">Revoke access</button>
+<button id="user-profile-button"
+        style="display: none; margin-left: 25px">Get User Info</button>
+
+<div id="auth-status" style="display: inline; padding-left: 25px"></div><hr>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script async defer src="https://apis.google.com/js/api.js" 
+        onload="this.onload=function(){};handleClientLoad()" 
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+</script>
+</body>
+</html>

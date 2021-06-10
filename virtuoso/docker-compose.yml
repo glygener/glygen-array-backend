@@ -1,0 +1,23 @@
+version: '3.4'
+services:
+  virtuoso:
+     build: .
+     image: tenforce/virtuoso:1.3.1-virtuoso7.2.2
+     environment:
+        - SPARQL_UPDATE=false
+        - DBA_PASSWORD
+        - DEFAULT_GRAPH=http://glygen.org/glygenarray
+     volumes:
+        - ${HOME}/${SITE_CODE:-glygen-array}/virtuoso:/data
+     labels:
+        - "com.docker.lb.hosts=virtuoso"
+        - "com.docker.lb.port=8890"
+        - "com.docker.lb.context_root=/ggarray"
+        - "com.docker.lb.context_root_rewrite=true"
+     ports:
+       - "8890:8890"
+       - "1111:1111"
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}

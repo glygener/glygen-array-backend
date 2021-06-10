@@ -1,0 +1,1135 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.org/gadr/data/"
+     xml:base="http://purl.org/gadr/data/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:dcterms="http://purl.org/dc/terms/"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://purl.org/gadr/data/">
+        <owl:versionIRI rdf:resource="http://purl.org/gadr/data/1.0.0"/>
+        <rdfs:comment xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</rdfs:comment>
+        <dcterms:creator xml:lang="en">Rene Ranzinger</dcterms:creator>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/terms/creator -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/dc/terms/creator"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/binding_value_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/binding_value_of">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:comment>Links an intensity value to the feature that was on the spots.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/created_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
+        <owl:inverseOf rdf:resource="http://purl.org/gadr/data/owner_of"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:comment>An object property to relate simple description class with its owner or creator.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/derived_from -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/derived_from">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:comment>Raw data is derived from an image of a slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/described_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/described_by">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>An object property that allows linking metadata categories with its descriptions.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_block -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_block">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/block"/>
+        <rdfs:comment>A glycan array slide has one or multiple blocks with array probes on it. This property is used to link the blocks with the slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_concentration -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_concentration">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:comment>object property relating the concentration of printed molecule to a spot</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_concentration_unit -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_concentration_unit">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
+        <rdfs:comment>unit of the concentration</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_data_processing_software_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_data_processing_software_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/data_processing_software"/>
+        <rdfs:comment>Links the metadata of the utilized process software tools with the processed data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_description -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_description">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/complex_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_feature -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:comment>Links a spot on the array with the molecules that are printed on a spot.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_image -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:comment>Adds an image to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_image_processing_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image_processing_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/image_analysis_software"/>
+        <rdfs:comment>Links the images processing software metadata with the raw data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_intensity -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_intensity">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:comment>Links a set of intensity values with the processed data.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_key -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_key">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <rdfs:comment>An object property that assigns a descriptor to a simple description.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_linker -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_linker">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:comment>Specifies the linker that is used for a feature.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_measurement -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_measurement">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:comment>Links a list of measurements with the raw data file they have been detected in.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_molecule -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Links a feature and its linker with a list of molecules that are on a spot with this linker.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_processed_data -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_processed_data">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:comment>Links a processed data file to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_raw_data -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_raw_data">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:comment>Associates a set of raw data with the Array dataset</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_sample -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_sample">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/sample"/>
+        <rdfs:comment>associates the array data set to the sample</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_scanner_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_scanner_metadata">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/scanner"/>
+        <rdfs:comment>Associates the scanner metadata with an image.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_sequence -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_sequence">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Sequence"/>
+        <rdfs:comment>Sequence of the chemical entity. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_slide -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_slide">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:comment>Associates a slide with an experiment.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_slide_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_slide_metadata">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
+        <rdfs:comment>Associates the slide with its metadata.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_spot -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_spot">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/block"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:comment>Associates the spot with the glycans with a block on the slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_unit_of_measurement -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_unit_of_measurement">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
+        <rdfs:comment>Assigns a unit of measurement to the description. This property is optional.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/integrated_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/integrated_by">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/statistic_method"/>
+        <rdfs:comment>Links a statistical method with a Intensity value. The method was used to create the value out of the measurments.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/integrates -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/integrates">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/intensity"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:comment>A single intensity value integrates multiple measurments.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/measurement_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/measurement_of">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:comment>Links a measurement to a spot.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/owner_of">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:comment>Object property that defines relation from owner information to descriptor.
+Inverse of created_by object property</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/printed_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/printed_by">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/printer"/>
+        <rdfs:comment>Connects a slide with the printer metadata.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/processed_from -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/processed_from">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:comment>Processed data was derived from a set of raw data files.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/scan_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/scan_of">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/image"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/slide"/>
+        <rdfs:comment>Associates an image as a scan of a particular slide.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/concentration_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/concentration_value">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Concentration"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>value for concentration</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_bMean -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_bMean">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>background mean of the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_bMedian -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_bMedian">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>background median of measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_column -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_column">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/block"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>An subject can have a corrdinate in an appropritate coordinate system. The x-Axis is specified as column.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_date_addedtolibrary -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_date_addedtolibrary">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+        <rdfs:comment>The date this entity is added to user&apos;s library</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_date_created -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_date_created">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_date_modified -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_date_modified">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_diameter -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_diameter">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>diameter of the measurement as reported in the raw file</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_glytoucan_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_glytoucan_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycan"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Links a glycan object with a GlyTouCan ID.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_group -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_group">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+        <rdfs:comment>group of a spot helps locating the replicates of a feature</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_image_url -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_image_url">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Link to the image at PubChem</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_inChI_key -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_key">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_inChI_sequence -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_sequence">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_institution_name -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_institution_name">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store institution name for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_internal_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_internal_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycan"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_iupac_name -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_iupac_name">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>The compound&apos;s IUPAC name</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_mass -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_mass">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>Mass of the compound</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_mean -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_mean">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>mean value for the spot</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_meanminusB -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_meanminusB">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>mean minus background value for the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_median -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_median">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>median value of the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_medianminusB -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_medianminusB">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>median minus background for the measurement</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_molecular_formula -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_molecular_formula">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_pubchem_compound_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubchem_compound_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>Adds a PubChem ID to a chemical entity.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_pubmed_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubmed_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>a link to pubmed id of the publication describing this peptide or protein linker</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_ratio -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_ratio">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>data property to specify the ratio of a feature or the ratio of the &quot;printed molecule&quot; in a feature</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_row -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_row">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/block"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+        <rdfs:comment>An subject can have a corrdinate in an appropritate coordinate system. The y-Axis is specified as row.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_sequence_format -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_sequence_format">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Sequence"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Sequence format of the Sequence. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_sequence_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_sequence_value">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Sequence"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Sequence value of the sequence. Each subclass may utilize a different sequence format (e.g. FASTA for proteins, GlycoCT for glyans).</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_stdev -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_stdev">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>stdev as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_uniprot_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_uniprot_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_url -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_url">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/image"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/raw_data"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#description_context"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#anyURI"/>
+        <rdfs:comment>An object (e.g. an image or data file) has a URL where the file can be found.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_user_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_user_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store user id for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_username -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_username">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store username for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_value">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>A data property that assigns a value to a simple description.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_x_coordinate -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_x_coordinate">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>x coordinate of the spot as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_y_coordinate -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_y_coordinate">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/signal"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:comment>y coordinate of the spot as reported in raw data</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/is_mixture -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/is_mixture">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:comment>boolean value indicating wheter this feature contains mixtures of glycans. If false and if the feature has multiple glycans/linkers that means there is uncertainity about which glycan is actually on the spot</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/opens_ring -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/opens_ring">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linker"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+        <rdfs:comment>Whether this linker opens the ring on the reducing end of the glycan when attached</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/Concentration -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Concentration">
+        <rdfs:comment>concentration of printed molecule on a spot</rdfs:comment>
+        <rdfs:label>Concentration</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/PeptideLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/PeptideLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/ProteinLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/ProteinLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/Sequence -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Sequence">
+        <rdfs:comment>Sequence for a chemical entity</rdfs:comment>
+        <rdfs:label>Sequence</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/SmallMoleculeLinker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/SmallMoleculeLinker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/array_dataset -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/array_dataset">
+        <rdfs:comment>Top level class for an glycan array experiment and the resulting data set.</rdfs:comment>
+        <rdfs:label>Array Dataset</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/block -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/block">
+        <rdfs:comment>Block or pad on a array slide. Each block has coordinates on the slide as well as a list of spots.</rdfs:comment>
+        <rdfs:label>Block</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/chemical_entity -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/chemical_entity">
+        <rdfs:comment>A parent class for all kinds of chemical structures</rdfs:comment>
+        <rdfs:label>Chemical Entity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/complex_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/complex_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A complex descriptor consists either of a list of simple descriptors (key value pairs), a list of complex descritptors (recursiv), or any mixture of both.</rdfs:comment>
+        <rdfs:label>Complex Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/data_processing_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/data_processing_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the data processing software. Provide details of how data in the table of microarray binding results (Part 7) are generated and calculated, i.e., specific software, normalization method, data selection procedures, and parameters, statistical analysis (including how the data from glycan replicates on the array were handled in the statistical method), transformation algorithm and scaling parameters.</rdfs:comment>
+        <rdfs:label>Data Processing Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/description">
+        <rdfs:comment>An construct used to describe a metadata category instance. It can either be a simple descriptor (key value pair) or a complex object (grouping multiple key value pairs or complex objects).</rdfs:comment>
+        <rdfs:label>Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/descriptor -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/descriptor">
+        <rdfs:comment>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</rdfs:comment>
+        <rdfs:label>Descriptor</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/feature -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/feature">
+        <rdfs:comment>A probe combination that was printed on a spot of the array. This probe can consist of different molecules that all have the same linker.</rdfs:comment>
+        <rdfs:label>Feature</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/glycan -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/glycan">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Glycan printed on an array.</rdfs:comment>
+        <rdfs:label>Glycan</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/image -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/image">
+        <rdfs:label>Image</rdfs:label>
+        <rdfs:label>Image of an glycan array slide.</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/image_analysis_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/image_analysis_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the image analysis software. Describe the software used to analyse (quantify) the output scanner image, indicating the name, version and manufacturer used and any special features active in the software (i.e. data smoothing, normalization, etc.).</rdfs:comment>
+        <rdfs:label>Image Analysis Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/intensity -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/intensity">
+        <rdfs:comment>An value for the binding of the features on a spot with the sample. Derived by combining all statistic measurment (replicates) into a single value.</rdfs:comment>
+        <rdfs:label>Intensity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/linker -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/linker">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:comment>A molecule used to connect the printed molecules (e.g. glycans) to the surface of the slide.</rdfs:comment>
+        <rdfs:label>Linker</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/metadata_category -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/metadata_category">
+        <rdfs:comment>An toplevel class for all instances that can be described. There should be no instance in the class itself but rather in its subclasses.</rdfs:comment>
+        <rdfs:label>Metadata Category</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/owner">
+        <rdfs:comment>Owner class to store the ownership information. i.e. user_name, institution_name and user_id.</rdfs:comment>
+        <rdfs:label>Owner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printed_molecule -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printed_molecule">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
+        <rdfs:comment>A molecule that is printed on an array spot. There can be no instances of this class but only of its subclasses.</rdfs:comment>
+        <rdfs:label>Printed Molecule</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printer -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printer">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the printer. Glycan microarrays are printed using a robotic liquid delivery system to deposit glycans on a printing surface. The utility of the data generated will be related to the quality of the printed array, thus minimal information regarding the arrayer or printer and the parameters of the printing process need to be stored.</rdfs:comment>
+        <rdfs:label>Printer</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/processed_data -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/processed_data">
+        <rdfs:comment>The final data after data processing and statistics.</rdfs:comment>
+        <rdfs:label>Processed Data</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/protein -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/protein">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
+        <rdfs:comment>Protein printed on an array.</rdfs:comment>
+        <rdfs:label>Protein</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/raw_data -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/raw_data">
+        <rdfs:comment>Excel data produced by the image processing software.</rdfs:comment>
+        <rdfs:label>Raw Data</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/sample -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/sample">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>A sample that has been analyzed as part of an array experiment.</rdfs:comment>
+        <rdfs:label>Sample</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/scanner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/scanner">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata about the scanner and scanner settings. Describe the scanning hardware (manufacturer/model), including detection method; e.g., optical detection (fluorescence/colorimetric), surface plasmon resonance (SPR) imaging technique, etc.; MS detection (MIRAGE MS guidelines, doi:10.3762/mirage.2 are recommended). The intensities of signals generated from Sample binding to individual glycans are a reflection of affinities or avidities of the interactions. Provide an indication of whether the scanner settings (scanning resolution, laser channel, PMT and scan power) are such that signals are in a linear range of the scanner’s detector (no ‘saturation of signals’) and whether the scanning resolution is adequate for the sizes of sample spots.</rdfs:comment>
+        <rdfs:label>Scanner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/signal -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/signal">
+        <rdfs:comment>A value that was derived by the image processing software from a spot on the slide.</rdfs:comment>
+        <rdfs:label>Measurement</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/simple_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/simple_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A simple key value pair (+ unit of measurment) to describe a metadata instance.</rdfs:comment>
+        <rdfs:label>Simple Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/slide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/slide">
+        <rdfs:comment>Slide that was used to run an experiment. Each slide has a set of blocks with spots.</rdfs:comment>
+        <rdfs:label>Slide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/slide_metadata -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/slide_metadata">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</rdfs:comment>
+        <rdfs:label>Slide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/spot -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/spot">
+        <rdfs:comment>Each block on a glycan array slide consists of multiple spot on which the glycans are fixed. Usual that is a round shaped place on the slide. Each spot has coordinates and a diameter.</rdfs:comment>
+        <rdfs:label>Spot</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/statistic_method -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/statistic_method">
+        <rdfs:comment>The statistic method used to integrated multiple measurments into a single value.</rdfs:comment>
+        <rdfs:label>Statistic Method</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/unit_of_measurement -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/unit_of_measurement">
+        <rdfs:comment>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</rdfs:comment>
+        <rdfs:label>Unit of Measurement</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#description_context -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#description_context"/>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.2.6.20160910-2108) https://github.com/owlcs/owlapi -->
+

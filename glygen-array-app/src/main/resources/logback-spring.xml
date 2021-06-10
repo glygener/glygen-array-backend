@@ -1,0 +1,149 @@
+<configuration>
+<springProperty scope="context" name="dataSourceURL" source="spring.datasource.url"
+       defaultValue="jdbc:postgresql://localhost:5431/glygen"/>
+<springProperty scope="context" name="dataSourcePassword" source="spring.datasource.password"/>
+<springProperty scope="context" name="dataSourceUser" source="spring.datasource.username"/>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%-4relative [%thread] %-5level %logger{35} - %msg %n</pattern>
+    </encoder>
+  </appender>
+
+<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    
+    <!-- Filter that accepts only error level of logs -->
+    <!-- <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter> -->
+    
+    <!-- log file name -->
+    <file>logFile.log</file>
+    
+    <!-- rolling pollicy -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>logFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 60 days' worth of history capped at 20GB total size -->
+      <maxHistory>60</maxHistory>
+      <totalSizeCap>20GB</totalSizeCap>
+
+    </rollingPolicy>
+
+	<!-- encoder string i.e. output of log -->
+    <encoder>
+      <pattern>%-4d %-5level %class - %msg%n</pattern>
+    </encoder>
+  </appender> 
+  
+  <appender name="ERROR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    
+    Filter that accepts only error level of logs 
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter> 
+    
+    <!-- log file name -->
+    <file>errorlogFile.log</file>
+    
+    <!-- rolling pollicy -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>errorlogFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 60 days' worth of history capped at 20GB total size -->
+      <maxHistory>60</maxHistory>
+      <totalSizeCap>20GB</totalSizeCap>
+
+    </rollingPolicy>
+
+	<!-- encoder string i.e. output of log -->
+    <encoder>
+      <pattern>%-4d %-5level %class - %msg%n</pattern>
+    </encoder>
+  </appender> 
+  
+  <appender name="WEB-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    
+    <!-- Filter that accepts only error level of logs -->
+    <!-- <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>ERROR</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter> -->
+    
+    <!-- log file name -->
+    <file>weblogFile.log</file>
+    
+    <!-- rolling pollicy -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>weblogFile.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+      <!-- keep 60 days' worth of history capped at 20GB total size -->
+      <maxHistory>60</maxHistory>
+      <totalSizeCap>20GB</totalSizeCap>
+
+    </rollingPolicy>
+
+	<!-- encoder string i.e. output of log -->
+    <encoder>
+      <pattern>%-4d %-5level %class - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+
+<appender name="access-log-dbappender" class="org.glygen.array.logging.DBappender.AccessLogDBAppender">
+	<connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+		<driverClass>org.postgresql.Driver</driverClass>
+		<url>${dataSourceURL}</url>
+		<user>${dataSourceUser}</user>
+		<password>${dataSourcePassword}</password>
+	</connectionSource>	
+</appender>
+
+<appender name="event-log-dbappender" class="org.glygen.array.logging.DBappender.EventLogDBAppender">
+	<connectionSource class="ch.qos.logback.core.db.DriverManagerConnectionSource">
+		<driverClass>org.postgresql.Driver</driverClass>
+		<url>${dataSourceURL}</url>
+		<user>${dataSourceUser}</user>
+		<password>${dataSourcePassword}</password>
+	</connectionSource>
+</appender>
+
+<logger name="access-logger" level="INFO">
+    <appender-ref ref="access-log-dbappender" />
+  </logger>
+
+  <logger name="event-logger" level="INFO">
+    <appender-ref ref="event-log-dbappender" />
+  </logger>
+  
+  <logger name="file-logger" level="ERROR">
+    <appender-ref ref="FILE" />
+  </logger>
+  
+  <logger name="error-file-logger" level="ERROR">
+    <appender-ref ref="ERROR-FILE" />
+  </logger>
+  
+  <logger name="web-file-logger" level="ERROR">
+    <appender-ref ref="WEB-FILE" />
+  </logger>
+
+
+<root level="INFO">
+	<appender-ref ref="STDOUT"/>
+	<appender-ref ref="FILE"/>
+</root>
+
+</configuration>
+
+

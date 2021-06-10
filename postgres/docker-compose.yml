@@ -1,0 +1,16 @@
+version: '3.4'
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${HOME}/glygen-array/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=glygen
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB=glygen
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}

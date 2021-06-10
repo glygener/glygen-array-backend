@@ -1,0 +1,298 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.org/gadr/data/"
+     xml:base="http://purl.org/gadr/data/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:dcterms="http://purl.org/dc/terms/">
+    <owl:Ontology rdf:about="http://purl.org/gadr/data/">
+        <owl:versionIRI rdf:resource="http://purl.org/gadr/data/1.0.0"/>
+        <dcterms:creator xml:lang="en">Rene Ranzinger</dcterms:creator>
+        <rdfs:comment xml:lang="en">The Glygen Array Repository Data ontology focuses on the classes and relationships of the data and metadata in the array repository.</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/terms/creator -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/dc/terms/creator"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/created_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/created_by">
+        <owl:inverseOf rdf:resource="http://purl.org/gadr/data/owner_of"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:comment>An object property to relate simple description class with its owner or creator.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/described_by -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/described_by">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>An object property that allows linking metadata categories with its descriptions.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_description -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_description">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/complex_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/description"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_key -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_key">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <rdfs:comment>An object property that assigns a descriptor to a simple description.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_unit_of_measurement -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_unit_of_measurement">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/unit_of_measurement"/>
+        <rdfs:comment>Assigns a unit of measurement to the description. This property is optional.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner_of -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/owner_of">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:comment>Object property that defines relation from owner information to descriptor.
+Inverse of created_by object property</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/has_institution_name -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_institution_name">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store institution name for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_user_id -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_user_id">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store user id for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_username -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_username">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/owner"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Data property to store username for ownership information.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_value -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_value">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/simple_description"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>A data property that assigns a value to a simple description.</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/gadr/data/complex_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/complex_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A complex descriptor consists either of a list of simple descriptors (key value pairs), a list of complex descritptors (recursiv), or any mixture of both.</rdfs:comment>
+        <rdfs:label>Complex Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/data_processing_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/data_processing_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the data processing software. Provide details of how data in the table of microarray binding results (Part 7) are generated and calculated, i.e., specific software, normalization method, data selection procedures, and parameters, statistical analysis (including how the data from glycan replicates on the array were handled in the statistical method), transformation algorithm and scaling parameters.</rdfs:comment>
+        <rdfs:label>Data Processing Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/description">
+        <rdfs:comment>An construct used to describe a metadata category instance. It can either be a simple descriptor (key value pair) or a complex object (grouping multiple key value pairs or complex objects).</rdfs:comment>
+        <rdfs:label>Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/descriptor -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/descriptor">
+        <rdfs:comment>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</rdfs:comment>
+        <rdfs:label>Descriptor</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/image_analysis_software -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/image_analysis_software">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the image analysis software. Describe the software used to analyse (quantify) the output scanner image, indicating the name, version and manufacturer used and any special features active in the software (i.e. data smoothing, normalization, etc.).</rdfs:comment>
+        <rdfs:label>Image Analysis Software</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/metadata_category -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/metadata_category">
+        <rdfs:comment>An toplevel class for all instances that can be described. There should be no instance in the class itself but rather in its subclasses.</rdfs:comment>
+        <rdfs:label>Metadata Category</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/owner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/owner">
+        <rdfs:comment>Owner class to store the ownership information. i.e. user_name, institution_name and user_id.</rdfs:comment>
+        <rdfs:label>Owner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/printer -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/printer">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata on the printer. Glycan microarrays are printed using a robotic liquid delivery system to deposit glycans on a printing surface. The utility of the data generated will be related to the quality of the printed array, thus minimal information regarding the arrayer or printer and the parameters of the printing process need to be stored.</rdfs:comment>
+        <rdfs:label>Printer</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/sample -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/sample">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>A sample that has been analyzed as part of an array experiment.</rdfs:comment>
+        <rdfs:label>Sample</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/scanner -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/scanner">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata about the scanner and scanner settings. Describe the scanning hardware (manufacturer/model), including detection method; e.g., optical detection (fluorescence/colorimetric), surface plasmon resonance (SPR) imaging technique, etc.; MS detection (MIRAGE MS guidelines, doi:10.3762/mirage.2 are recommended). The intensities of signals generated from Sample binding to individual glycans are a reflection of affinities or avidities of the interactions. Provide an indication of whether the scanner settings (scanning resolution, laser channel, PMT and scan power) are such that signals are in a linear range of the scanner’s detector (no ‘saturation of signals’) and whether the scanning resolution is adequate for the sizes of sample spots.</rdfs:comment>
+        <rdfs:label>Scanner</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/simple_description -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/simple_description">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/description"/>
+        <rdfs:comment>A simple key value pair (+ unit of measurment) to describe a metadata instance.</rdfs:comment>
+        <rdfs:label>Simple Description</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/slide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/slide">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:comment>Metadata information about the slide. A wide variety of solid phases can be used to print glycan microarrays. As the utility of the data generated from a glycan array analysis will be related to the quality of the printed array, minimal information regarding a surface on which the array is printed need to be stored.</rdfs:comment>
+        <rdfs:label>Slide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/unit_of_measurement -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/unit_of_measurement">
+        <rdfs:comment>A container for the unit of measurements. The individuals refer to the classes in the Unit of Measurement Ontology (https://bioportal.bioontology.org/ontologies/UO/?p=summary).</rdfs:comment>
+        <rdfs:label>Unit of Measurement</rdfs:label>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.6.2018-09-06T00:27:41Z) https://github.com/owlcs/owlapi -->
+

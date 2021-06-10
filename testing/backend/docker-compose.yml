@@ -1,0 +1,23 @@
+version: '3.4'
+services:
+  backend:
+    image: maven:3.3.9-jdk-8
+    ports:
+      - 8081:8080
+    volumes:
+      - /home/array2018/glygen-array/maven:/root/.m2
+      - ../../glygen-array-app:/workspace
+    working_dir: /workspace/
+    command: mvn -U -DskipTests=true spring-boot:run
+    environment:
+      - GOOGLE_OAUTH2_CLIENTID
+      - GOOGLE_OAUTH2_CLIENTSECRET
+      - SPRING_TRIPLESTORE_PASSWORD
+      - SPRING_TRIPLESTORE_URL=${SPRING_TRIPLESTORE_URL:-jdbc:virtuoso://virtuoso:1111}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+    restart: always
+
+networks:
+  default:
+    external:
+      name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}

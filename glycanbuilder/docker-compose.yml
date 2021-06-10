@@ -1,0 +1,14 @@
+version: '3.4'
+services:
+  glycanbuilder:
+    image: aokinobu/glytoucan_glycanbuilder:v1.2.9-TOCO
+    ports:
+     - "8080:80"
+    volumes:
+     - /etc/localtime:/etc/localtime
+    restart: always
+
+networks:
+  default:
+    external:
+      name: ${NETWORK:-glygen-array-network}

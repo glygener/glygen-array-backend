@@ -1,0 +1,11 @@
+.settings
+/logs
+/logFile.log
+/logFile.2018-05-29.log
+/logFile.2018-05-30.log
+/logFile*
+/.factorypath
+.factorypath
+/catalog-v001.xml
+/warningoutput.txt
+/erroroutput.txt
