@@ -297,8 +297,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			Literal type = f.createLiteral(g.getType().name());
 			IRI glycanType = f.createIRI(ontPrefix + "Glycan");
 			
-			statements.add(f.createStatement(glycan, RDF.TYPE, glycanType, graphIRI));
-			statements.add(f.createStatement(glycan, hasGlycanType, type, graphIRI));
+			statements.add(f.createStatement(localGlycan, RDF.TYPE, glycanType, graphIRI));
+			statements.add(f.createStatement(localGlycan, hasGlycanType, type, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasPublicURI, glycan, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasModifiedDate, date, graphIRI));

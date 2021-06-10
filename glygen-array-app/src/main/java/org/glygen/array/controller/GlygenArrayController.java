@@ -1226,8 +1226,8 @@ public class GlygenArrayController {
     	                }
 				    } 
 				} else {
-						logger.error("Added glycan cannot be retrieved back");
-						throw new GlycanRepositoryException("Glycan image cannot be generated");
+					logger.error("Added glycan cannot be retrieved back");
+					throw new GlycanRepositoryException("Glycan could not be added");
 				}
 				return id;
 			}
