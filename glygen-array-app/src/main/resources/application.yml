@@ -35,9 +35,9 @@ google:
     gmail:
         email: glygenarray.api@gmail.com
         client-id: 213261356634-v6kh325uhmkovn8f3vmd0uf3iir780ij.apps.googleusercontent.com
-        client-secret: ENC(yNs24f9XTY6hx0bXEpIyVdN+bYwg11ZfOUf7CXIrpGZac3s30+7FdA==)
-        access-token: ya29.GlvVBggZaTU2C8sC_IWuj7k5yglAH09uTbq5nj5TVPb3lT0pTZ0lk3TuVXZLYY_Mccpr_DRTStmFGPOwPUX3Fo46kql4TpvY20_pkakhLAl7g2AmQQpiSVNj3yvt
-        refresh-token: 1/aTU4_Z7jEE-gF-gsvV5z87R3pZqVUwoa5KkcTn29eAY
+        client-secret: ENC(UqdEXdzWeDGPnwRhtOkm2FNeua/LRybHra+sVEC/odY85jCLMAutOA==)
+        access-token: ya29.a0AfH6SMCjAlRXid74xjJpaYY3UD5jDF0WcgUCaYJZv-kK7p5aOqtxSTH1AI3mYsUrlOMQeBToY6OHsli5zqJlOttILGXTZww2AEAx2F0reIpIDSL_KRKrYA9aFKzX82y7A57vQOjreBARzfXiT0UVZlA0EeOB
+        refresh-token: 1//01dpniHWWGcURCgYIARAAGAESNwF-L9Irmaj0VQLV8ETfr6HucpPUcL90xYrIiFzkouMXHvImwfU2HcaRUMn1qjJsNCZqmzyuO7Q
 glytoucan:
   api-key: ENC(ddUsTNOlO3RJdZWg7EFJUNLYRBySKL+V8BzQDOTSB/VITkYD/i8wSOzDJRPNs55i02FeIN8LKux2ILjOu3zQWxYGABGeU8KdDcQGGeqRQlE=)
   user-id: ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d
