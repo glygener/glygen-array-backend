@@ -530,6 +530,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#feature_template -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#feature_template">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
+        <rdfs:label>Feature Template</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/template#image_analysis_software_template -->
 
     <owl:Class rdf:about="http://purl.org/gadr/template#image_analysis_software_template">
@@ -654,6 +663,179 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#DescriptionContext10000 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10000">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10001"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10002"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10003"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10006"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+        <rdfs:comment>Information about the confirmed purity of the glycoconjugate</rdfs:comment>
+        <rdfs:label>Purity</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10001 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10001">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10001"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10002 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10002">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10002"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10003 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10003">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10004"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10005"/>
+        <template:cardinality>n</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+        <rdfs:comment>A reference that describest the method</rdfs:comment>
+        <rdfs:label>Reference</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10004 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10004">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10004"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10005 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10005">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10005"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10006 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10006">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10006"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">4</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10007 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10007">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10008"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10009"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10010"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_mandate_group rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_mandate_group>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+        <rdfs:comment></rdfs:comment>
+        <rdfs:label>Commercial source</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10008 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10008">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10008"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example>Vector labs</template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10009 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10009">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10009"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example>B-1305</template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://purl.org/gadr/template#DescriptionContext1001 -->
 
     <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext1001">
@@ -664,6 +846,160 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">7</template:has_order>
         <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_mirage>
         <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10010 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10010">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10010"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example>Z1002</template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10011 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10011">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10012"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10013"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10014"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10015"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10018"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_mandate_group rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_mandate_group>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+        <rdfs:comment></rdfs:comment>
+        <rdfs:label>Non-commercial</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10012 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10012">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10012"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10013 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10013">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10013"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10014 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10014">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10014"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10015 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10015">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10016"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10017"/>
+        <template:cardinality>n</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">4</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+        <rdfs:comment>A reference that describest the method</rdfs:comment>
+        <rdfs:label>Reference</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10016 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10016">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10016"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10017 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10017">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10017"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example></template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+        <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+        <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#DescriptionContext10018 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#DescriptionContext10018">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
+        <template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor10018"/>
+        <template:cardinality>1</template:cardinality>
+        <template:has_example>Natural / Synthesis</template:has_example>
+        <template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">5</template:has_order>
+        <template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+        <template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
         <template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
         <template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
     </owl:NamedIndividual>
@@ -7105,6 +7441,83 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
     
 
 
+    <!-- http://purl.org/gadr/template#Descriptor10001 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10001">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Percent value of purity</rdfs:comment>
+        <rdfs:label>Value</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10002 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10002">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary10002"/>
+        <rdfs:comment>Method of purity verification</rdfs:comment>
+        <rdfs:label>Method</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10004 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10004">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespaceselection10004"/>
+        <rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+        <rdfs:label>Type</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10005 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10005">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>URL, PMID or DOI</rdfs:comment>
+        <rdfs:label>Value</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10006 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10006">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+        <rdfs:label>Comment</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10008 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10008">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Name of the vendor where the glycoconjugate was purchased.</rdfs:comment>
+        <rdfs:label>Vendor</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10009 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10009">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Catalogue Number of the glycoconjugate.</rdfs:comment>
+        <rdfs:label>Catalogue number</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://purl.org/gadr/template#Descriptor1001 -->
 
     <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor1001">
@@ -7112,6 +7525,83 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
         <template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary1001"/>
         <rdfs:comment>Type of biospecimen (e.g. urine, serum, plasma)</rdfs:comment>
         <rdfs:label>Biospecimen type</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10010 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10010">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Batch ID or LOT number if known.</rdfs:comment>
+        <rdfs:label>Batch ID</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10012 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10012">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Provide information on the lab of origin of the glycoconjugate</rdfs:comment>
+        <rdfs:label>Provider lab</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10013 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10013">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Batch ID could be the date of production</rdfs:comment>
+        <rdfs:label>Batch ID</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10014 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10014">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>Name of the method</rdfs:comment>
+        <rdfs:label>Method</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10016 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10016">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespacedictionary10016"/>
+        <rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+        <rdfs:label>Type</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10017 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10017">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>URL, PMID or DOI</rdfs:comment>
+        <rdfs:label>Value</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Descriptor10018 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Descriptor10018">
+        <rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
+        <template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+        <rdfs:comment>A general fields for comment on the utilized method</rdfs:comment>
+        <rdfs:label>Comment</rdfs:label>
     </owl:NamedIndividual>
     
 
@@ -10276,6 +10766,18 @@ Also time and temperature for each step</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#Metadata14 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Metadata14">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#feature_template"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10000"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10007"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext10011"/>
+        <rdfs:label>Default Feature</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://purl.org/gadr/template#Metadata2 -->
 
     <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Metadata2">
@@ -10428,9 +10930,27 @@ Also time and temperature for each step</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#Namespacedictionary10002 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Namespacedictionary10002">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+        <rdfs:label>dictionary</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
     <!-- http://purl.org/gadr/template#Namespacedictionary1001 -->
 
     <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Namespacedictionary1001">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+        <rdfs:label>dictionary</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Namespacedictionary10016 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Namespacedictionary10016">
         <rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
         <rdfs:label>dictionary</rdfs:label>
     </owl:NamedIndividual>
@@ -10703,6 +11223,15 @@ Also time and temperature for each step</rdfs:comment>
     <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Namespacedictionary1213">
         <rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
         <rdfs:label>dictionary</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://purl.org/gadr/template#Namespaceselection10004 -->
+
+    <owl:NamedIndividual rdf:about="http://purl.org/gadr/template#Namespaceselection10004">
+        <rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
+        <rdfs:label>selection</rdfs:label>
     </owl:NamedIndividual>
     
 

@@ -56,7 +56,7 @@ public class AdminController {
     ArrayDatasetRepository datasetRepository;
      
 
-    @ApiOperation(value = "deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
+    @ApiOperation(value = "Deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
             + "It is therefore necessary to restart the triple store after executing this web service.")
     @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
@@ -70,6 +70,7 @@ public class AdminController {
         }
     }
     
+    @ApiOperation(value = "Deletes templates for metadata and recreate them using the current version of the template ontology.")
     @RequestMapping(value="/populateTemplates", method = RequestMethod.POST)
     public void populateTemplates (Principal p) { 
         try {

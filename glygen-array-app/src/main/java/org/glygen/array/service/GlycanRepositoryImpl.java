@@ -224,7 +224,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					String wurcs = exporter.getWURCS();
 					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
 					logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
-					if (glyToucanId == null || glyToucanId.length() != 8) {
+					if (glyToucanId == null || glyToucanId.length() > 10) {
 					    // this is new registration, hash returned
 					    glyToucanHash = glyToucanId;
 					    glyToucanId = null;
@@ -240,11 +240,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					String wurcs = exporter.getWURCS();
 					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 					logger.info("Got glytoucan id for new glycan:" + glyToucanId);
-					/*if (glyToucanId == null || glyToucanId.length() != 8) {
+					if (glyToucanId == null || glyToucanId.length() > 10) {
                         // this is new registration, hash returned
                         glyToucanHash = glyToucanId;
                         glyToucanId = null;
-                    }*/
+                    }
 				} catch (Exception e) {
 					logger.warn("Cannot get glytoucanId with the given sequence", g.getSequence());
 				}
@@ -947,7 +947,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                    if (glyToucanId == null) { // need to register
 	                        if (glytoucanregistration != null && glytoucanregistration.equalsIgnoreCase("true")) {
     	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-    	                        if (glyToucanId == null || glyToucanId.length() != 8) {
+    	                        if (glyToucanId == null || glyToucanId.length() > 10) {
     	                            // this is new registration, hash returned
     	                            glyToucanHash = glyToucanId;
     	                            glyToucanId = null;
@@ -956,7 +956,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     	                            ((SequenceDefinedGlycan) glycan).setGlytoucanId(glyToucanId);
     	                        }
 	                        }
-	                    } else {
+	                    } else if (glyToucanId.length() < 10) { // it might return the hash instead of glytoucan id 
 	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
 	                    }
 	                } catch (Exception e) {

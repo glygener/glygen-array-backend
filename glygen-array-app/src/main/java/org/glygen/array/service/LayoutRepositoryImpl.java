@@ -1411,46 +1411,61 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			    if (!processedFeatures.containsKey(previous)) {
     				List<Glycan> publicGlycans = new ArrayList<>();
     				for (Glycan g: feature.getGlycans()) {
-    				    String previousG = g.getUri();
-    				    if (!processedGlycans.containsKey(previousG)) {
-    						String glycanURI = glycanRepository.makePublic(g, user);
-    						if (glycanURI != null) {
-        						Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
-        						publicGlycans.add(newGlycan); // get the public one
-        						processedGlycans.put(previousG, newGlycan);
-    						} else {
-        						Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
-        						if (existing != null) {
-        						    publicGlycans.add(existing);
-        						    processedGlycans.put(previousG, existing);
-        						}
-        					} 
-    				    }
-    				    else {
-    				        publicGlycans.add(processedGlycans.get(previousG)); // get the public one
+    				    if (g.getIsPublic()) {
+    				        // already public
+    				        if (!processedGlycans.containsKey(g.getUri())) {
+    				            publicGlycans.add(g); 
+    				            processedGlycans.put(g.getUri(), g);
+    				        }
+    				    } else {
+        				    String previousG = g.getUri();
+        				    if (!processedGlycans.containsKey(previousG)) {
+        						String glycanURI = glycanRepository.makePublic(g, user);
+        						if (glycanURI != null) {
+            						Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
+            						publicGlycans.add(newGlycan); // get the public one
+            						processedGlycans.put(previousG, newGlycan);
+        						} else {
+            						Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
+            						if (existing != null) {
+            						    publicGlycans.add(existing);
+            						    processedGlycans.put(previousG, existing);
+            						}
+            					} 
+        				    }
+        				    else {
+        				        publicGlycans.add(processedGlycans.get(previousG)); // get the public one
+        				    }
     				    }
     				}
     				feature.setGlycans(publicGlycans);
     				Linker l = feature.getLinker();
     				if (l != null) {
-    				    String previousL = l.getUri();
-                        if (!processedLinkers.containsKey(previousL)) {
-        					String linkerURI = linkerRepository.makePublic(l, user);
-        					if (linkerURI != null) {
-            					Linker newLinker = linkerRepository.getLinkerFromURI(linkerURI, null);
-            					feature.setLinker(newLinker); // get the public one
-            					processedLinkers.put(previousL, newLinker);
-        					} else {
-            					// retrieve the existing one
-            					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), null);
-            					if (existing != null) {
-            					    feature.setLinker(existing);
-            					    processedLinkers.put(previousL, existing);
+    				    if (l.getIsPublic()) {
+    				        if (!processedLinkers.containsKey(l.getUri())) {
+    				            processedLinkers.put(l.getUri(), l);
+    				            feature.setLinker(l); // get the public one
+    				        }
+    				    } else {
+        				    String previousL = l.getUri();
+                            if (!processedLinkers.containsKey(previousL)) {
+            					String linkerURI = linkerRepository.makePublic(l, user);
+            					if (linkerURI != null) {
+                					Linker newLinker = linkerRepository.getLinkerFromURI(linkerURI, null);
+                					feature.setLinker(newLinker); // get the public one
+                					processedLinkers.put(previousL, newLinker);
+            					} else {
+                					// retrieve the existing one
+                					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), null);
+                					if (existing != null) {
+                					    feature.setLinker(existing);
+                					    processedLinkers.put(previousL, existing);
+                					}
             					}
-        					}
-                        } else {
-                            feature.setLinker(processedLinkers.get(previousL));
-                        }
+                            } else {
+                                feature.setLinker(processedLinkers.get(previousL));
+                            }
+    				    }
     				}
     				// make feature public
     				featureURI = featureRepository.addPublicFeature (feature, user);
