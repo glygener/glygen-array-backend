@@ -629,7 +629,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			    // need to check if the accession number is available and update glycan
 			    Value glytoucanHash = st.getObject();
 			    if (glycanObject instanceof SequenceDefinedGlycan) {
-                    ((SequenceDefinedGlycan)glycanObject).setGlytoucanId(glytoucanHash.stringValue()); 
+                    ((SequenceDefinedGlycan)glycanObject).setGlytoucanHash(glytoucanHash.stringValue()); 
 			    }
 			} else if (st.getPredicate().equals(hasMass)) {
 				Value mass = st.getObject();
@@ -748,7 +748,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		// check if glytoucanHash exists, if so we need to check if accession number is available now
 		if (glycanObject instanceof SequenceDefinedGlycan) {
-		    if (((SequenceDefinedGlycan) glycanObject).getGlytoucanHash() != null) {
+		    if (((SequenceDefinedGlycan) glycanObject).getGlytoucanHash() != null && !((SequenceDefinedGlycan) glycanObject).getGlytoucanHash().isEmpty()) {
 		        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
                 try {
                     exporter.start(((SequenceDefinedGlycan) glycanObject).getSequence());

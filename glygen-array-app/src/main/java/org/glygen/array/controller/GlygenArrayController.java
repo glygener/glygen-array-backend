@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.analytical.mass.GlycoVisitorMass;
@@ -1098,6 +1099,7 @@ public class GlygenArrayController {
 					case GLYCOCT:
 					    try {
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+					        glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
 					    } catch (Exception e) {
 					        logger.error("Glycan builder parse error", e);
 					        gwbError = true;
@@ -1115,6 +1117,9 @@ public class GlygenArrayController {
                                     parseError = true;
                                     gwbError = false;  
                                 } else {
+                                    SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                                    exporter.start(sugar);
+                                    glycoCT = exporter.getHashCode();
                                     // calculate mass
                                     GlycoVisitorMass massVisitor = new GlycoVisitorMass();
                                     massVisitor.start(sugar);
@@ -1126,7 +1131,7 @@ public class GlygenArrayController {
                                 gwbError = false;
                             }
 					    }
-						glycoCT = glycan.getSequence().trim();
+						//glycoCT = glycan.getSequence().trim();
 						break;
 					case GWS:
 						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
