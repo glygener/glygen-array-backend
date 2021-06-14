@@ -228,6 +228,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					    // this is new registration, hash returned
 					    glyToucanHash = glyToucanId;
 					    glyToucanId = null;
+					    logger.info("got glytoucan hash, no accession number!");
 					}
 				} catch (Exception e) {
 					logger.warn("Cannot register glytoucanId with the given sequence", g.getSequence());
@@ -244,6 +245,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         // this is new registration, hash returned
                         glyToucanHash = glyToucanId;
                         glyToucanId = null;
+                        logger.info("got glytoucan hash, no accession number!");
                     }
 				} catch (Exception e) {
 					logger.warn("Cannot get glytoucanId with the given sequence", g.getSequence());
