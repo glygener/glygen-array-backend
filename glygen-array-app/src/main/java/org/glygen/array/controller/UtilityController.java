@@ -12,9 +12,8 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import org.apache.commons.collections4.trie.PatriciaTrie;
-import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
-import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
-import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
+import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -26,15 +25,10 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
-import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
-import org.glygen.array.persistence.rdf.metadata.Description;
-import org.glygen.array.persistence.rdf.metadata.Descriptor;
-import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
-import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
@@ -57,11 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -74,8 +63,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
-import io.swagger.annotations.AuthorizationScope;
 
 @RestController
 @RequestMapping("/util")
@@ -100,21 +87,12 @@ public class UtilityController {
     
     @Autowired
     MetadataRepository metadataRepository;
+    
+    static {
+        BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
+        glycanWorkspace.initData();
+    }
 	
-	// needs to be done to initialize static variables to parse glycan sequence
-	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
-	
-	static {
-			// Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
-			glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
-			// Set flag to show information such as linkage positions and anomers
-			glycanWorkspace.getGraphicOptions().SHOW_INFO = true;
-			// Set flag to show mass
-			glycanWorkspace.getGraphicOptions().SHOW_MASSES = false;
-			// Set flag to show reducing end
-			glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
-
-	}
 
 	@ApiOperation(value = "Convert given glycan sequence (in NCFG format) into GlycoCT")
 	@RequestMapping(value="/parseSequence", method = RequestMethod.GET)
@@ -609,8 +587,9 @@ public class UtilityController {
             String userName) {
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(userName);    
-        if (user == null) 
+        if (user == null) {
             throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
+        }
         
         User userView = new User();
         userView.setAffiliation(user.getAffiliation());

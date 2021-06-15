@@ -33,10 +33,15 @@ public class GlygenUserDetailsService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(username);
-		if (user == null) 
-			throw new UsernameNotFoundException("User with username " + username + " does not exist!");
+		if (user == null) {
+		    // try to find by email
+		    user = userRepository.findByEmailIgnoreCase(username);
+		    
+		    if (user == null)
+		        throw new UsernameNotFoundException("User with username or email " + username + " does not exist!");
+		}
 			
-		return new GlygenUser(username, user.getPassword(), user.getEnabled(), true, true, true,
+		return new GlygenUser(user.getUsername(), user.getPassword(), user.getEnabled(), true, true, true,
 				getAuthorities(user.getRoles()), user.getFirstName(), user.getLastName(), 
 				user.getEmail(), user.getAffiliation(), user.getAffiliationWebsite(), user.getPublicFlag());
 	}

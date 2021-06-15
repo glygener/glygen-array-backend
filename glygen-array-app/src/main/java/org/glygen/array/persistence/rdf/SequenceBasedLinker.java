@@ -4,15 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
-import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
+import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 
 public class SequenceBasedLinker extends Linker {
 	
-	// needs to be done to initialize static variables to parse glycan sequence
-	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
+    static {
+        BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
+        glycanWorkspace.initData();
+    }
 	
 	String sequence;
 	

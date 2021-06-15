@@ -12,10 +12,13 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.codec.binary.Base64;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
+import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
-import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
-import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
@@ -47,7 +50,10 @@ public class GlytoucanUtil {
 	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
 	// needs to be done to initialize static variables to parse glycan sequence
-	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
+   /* static {
+        BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
+        glycanWorkspace.initData();
+    }*/
 	
 	static GlytoucanUtil instance;
 	
@@ -355,8 +361,20 @@ public class GlytoucanUtil {
         }
         String wurcs = exporter.getWURCS(); 
         System.out.println(wurcs);
+        
+        wurcs = "WURCS=2.0/6,15,14/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O][a1221m-1a_1-5]/1-1-2-3-1-4-5-1-4-5-3-1-4-5-6/a4-b1_a6-o1_b4-c1_d2-h1_e4-f1_f3-g2_h4-i1_i3-j2_k2-l1_l4-m1_m3-n2_c?-d1_c?-k1_d?-e1";
+        System.out.println(wurcs);
         String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
         System.out.println(glyTouCanId);
+        try {
+            SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+            Sugar sugar = importer.parse(glycoCTSeq);
+            SugarExporterGlycoCTCondensed exporter2 = new SugarExporterGlycoCTCondensed();
+            exporter2.start(sugar);
+            System.out.println(exporter2.getHashCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 		
 	

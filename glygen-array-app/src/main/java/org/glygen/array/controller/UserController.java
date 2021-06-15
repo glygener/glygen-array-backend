@@ -234,10 +234,17 @@ public class UserController {
 	    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
 		UserEntity userEntity = userRepository.findByUsernameIgnoreCase(loginId);
-		if (userEntity == null)
-	    	throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist");
-    	
-		if ((user.getUserName() == null || user.getUserName().isEmpty()) || !loginId.equals(user.getUserName())) {
+		if (userEntity == null) {
+		    // find it with email
+		    userEntity = userRepository.findByEmailIgnoreCase(loginId);
+		    if (userEntity == null) {
+		        ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
+	            errorMessage.addError(new ObjectError("username", "NotFound"));
+	            throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist", errorMessage);
+		    }
+	    	
+		}
+		if ((user.getUserName() == null || user.getUserName().isEmpty()) || (!loginId.equals(user.getUserName()) && !loginId.equals(user.getEmail()))) {
 			throw new IllegalArgumentException("userName (path variable) and the submitted user information do not match");
 		}
 		
@@ -288,7 +295,7 @@ public class UserController {
     		// a user can only update his/her own user information
     		// username of the authenticated user should match the username of the user retrieved from the db
     		
-    		if (auth.getName().equals(loginId)) {
+    		if (auth.getName().equals(loginId) || auth.getName().equals(userEntity.getUsername())) {
     			if (user.getEmail() != null && !user.getEmail().isEmpty() && !user.getEmail().trim().equals(userEntity.getEmail())) {
     				// send email confirmation
     		        try {
@@ -325,7 +332,7 @@ public class UserController {
     	    	userRepository.save(userEntity);
     		}
     		else {
-    			logger.info("The user: " + auth.getName() + " is not authorized to update user with id " + loginId);
+    			logger.info("The user: " + auth.getName() + " is not authorized to update user " + loginId);
     			throw new AccessDeniedException("The user: " + auth.getName() + " is not authorized to update user with id " + loginId);
     		}
     	}
@@ -404,15 +411,23 @@ public class UserController {
     		// username of the authenticated user should match the username parameter
     		// a user can only see his/her own user information
     		// but admin can access all the users' information
-    		
-    		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))
-    		{
-    			user = userRepository.findByUsernameIgnoreCase(userName);
-    		}
-    		else if (auth.getName().equals(userName)) {
-    			user = userRepository.findByUsernameIgnoreCase(userName);
-    		}
-    		else {
+    	    user = userRepository.findByUsernameIgnoreCase(userName);
+    	    if (user == null) {
+    	        // try with email
+    	        user = userRepository.findByEmailIgnoreCase(userName);
+    	        if (user == null) {
+    	            ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
+    	            errorMessage.addError(new ObjectError("username", "NotFound"));
+    	            throw new UserNotFoundException ("A user with loginId " + userName + " does not exist", errorMessage);
+    	        }
+    	    }
+    		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+    			// no issues, the admin can access any profile
+    		} else if (auth.getName().equals(userName)) {
+    			// the user can display his/her own details
+    		} else if (user.getEmail().equals(userName)) {
+    		    // the user can retrieve his/her own details
+    		} else {
     			logger.info("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
     			throw new AccessDeniedException("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
     		}
@@ -420,8 +435,7 @@ public class UserController {
     	else { // should not reach here at all
     		throw new BadCredentialsException ("The user has not been authenticated");
     	}
-    	if (user == null) 
-    		throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
+    	
     	User userView = new User();
     	userView.setAffiliation(user.getAffiliation());
     	userView.setAffiliationWebsite(user.getAffiliationWebsite());
@@ -489,11 +503,13 @@ public class UserController {
     public @ResponseBody Confirmation recoverPassword (
     		@PathVariable("userName") String loginId) {
     	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId);
-    	
     	if (user == null) {
-    		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
-    		errorMessage.addError(new ObjectError("username", "NotFound"));
-    		throw new UserNotFoundException ("A user with loginId \" + loginId + \" does not exist", errorMessage);
+    	    user = userRepository.findByEmailIgnoreCase(loginId);
+    	    if (user == null) {
+        		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
+        		errorMessage.addError(new ObjectError("username", "NotFound"));
+        		throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist", errorMessage);
+    	    }
     	}
     	emailManager.sendPasswordReminder(user);
     	logger.info("Password reminder email is sent to {}", loginId);
@@ -520,7 +536,17 @@ public class UserController {
     		// not authenticated
     		throw new BadCredentialsException("Unauthorized to change the password");
     	}
-    	if (!p.getName().equalsIgnoreCase(userName)) {
+    	UserEntity user = userManager.getUserByUsername(userName);
+    	if (user == null) {
+    	    user = userRepository.findByEmailIgnoreCase(userName);
+    	    if (user == null) {
+    	        ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
+                errorMessage.addError(new ObjectError("username", "NotFound"));
+                throw new UserNotFoundException ("A user with loginId " + userName + " does not exist", errorMessage);
+    	    }
+    	}
+    	
+    	if (!p.getName().equalsIgnoreCase(userName) && !p.getName().equalsIgnoreCase(user.getUsername())) {
     		logger.warn("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
     		throw new AccessDeniedException("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
     	}
@@ -548,8 +574,6 @@ public class UserController {
     		errorMessage.addError(new ObjectError("password", "NotValid"));
     		throw new IllegalArgumentException("Invalid Input: Password is not valid", errorMessage);
     	}
-    	
-    	UserEntity user = userManager.getUserByUsername(userName);
     	
     	if(passwordEncoder.matches(changePassword.getCurrentPassword(), user.getPassword())) {
     		// encrypt the password

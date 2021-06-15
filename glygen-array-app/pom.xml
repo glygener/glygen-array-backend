@@ -139,11 +139,18 @@
 		    <artifactId>filter-om</artifactId>
 		    <version>1.19</version>
 		</dependency>
+		<!--  
 		<dependency>
 			  <groupId>eurocarb</groupId>
 			  <artifactId>eurocarb-glycanbuilder</artifactId>
 			  <version>1.0rc</version>
 		</dependency> 
+		-->
+		<dependency>
+			<groupId>org.eurocarbdb.glycanbuilder</groupId>
+			<artifactId>glycanbuilder2</artifactId>
+			<version>1.12.0</version>
+		</dependency>
 		<dependency>
 			  <groupId>eurocarb</groupId>
 			  <artifactId>eurocarb-glycoworkbench</artifactId>

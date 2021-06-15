@@ -79,6 +79,7 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
     	String token = Jwts.builder()
                 .setSubject(((GlygenUser) auth.getPrincipal()).getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(SignatureAlgorithm.HS512, tokenSecret.getBytes())
                 .compact();

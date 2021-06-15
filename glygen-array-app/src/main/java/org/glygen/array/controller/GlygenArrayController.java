@@ -36,15 +36,15 @@ import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondense
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.analytical.mass.GlycoVisitorMass;
-import org.eurocarbdb.application.glycanbuilder.GlycanRendererAWT;
-import org.eurocarbdb.application.glycanbuilder.GraphicOptions;
-import org.eurocarbdb.application.glycanbuilder.IonCloud;
-import org.eurocarbdb.application.glycanbuilder.MassOptions;
-import org.eurocarbdb.application.glycanbuilder.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
-import org.eurocarbdb.application.glycanbuilder.Union;
-import org.eurocarbdb.application.glycoworkbench.GlycanWorkspace;
+import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.massutil.IonCloud;
+import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
+import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
+import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.exception.GlycanExistsException;
@@ -77,7 +77,6 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
-import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.GalFileImportResult;
 import org.glygen.array.util.GlytoucanUtil;
@@ -139,10 +138,9 @@ import io.swagger.annotations.ApiResponses;
 public class GlygenArrayController {
 	final static Logger logger = LoggerFactory.getLogger("event-logger");
 	
-	// needs to be done to initialize static variables to parse glycan sequence
-	private static GlycanWorkspace glycanWorkspace = new GlycanWorkspace(null, false, new GlycanRendererAWT());
-	
-	static {
+	static BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
+	static {       
+	        glycanWorkspace.initData();
 			// Set orientation of glycan: RL - right to left, LR - left to right, TB - top to bottom, BT - bottom to top
 			glycanWorkspace.getGraphicOptions().ORIENTATION = GraphicOptions.RL;
 			// Set flag to show information such as linkage positions and anomers
@@ -152,9 +150,8 @@ public class GlygenArrayController {
 			// Set flag to show reducing end
 			glycanWorkspace.getGraphicOptions().SHOW_REDEND = true;
 
-			glycanWorkspace.setDisplay(GraphicOptions.DISPLAY_NORMAL);
-			glycanWorkspace.setNotation(GraphicOptions.NOTATION_CFG);
-
+			glycanWorkspace.setDisplay(GraphicOptions.DISPLAY_NORMALINFO);
+			glycanWorkspace.setNotation(GraphicOptions.NOTATION_SNFG);
 	}
 	
 	@Autowired
@@ -1217,19 +1214,16 @@ public class GlygenArrayController {
 				String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
 				Glycan added = glycanRepository.getGlycanById(id, user);
 				if (added != null) {
-				    if (glycanObject != null) {
-    				    BufferedImage t_image = glycanWorkspace.getGlycanRenderer()
-    	                        .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
-    	                if (t_image != null) {
-    						String filename = id + ".png";
-    						//save the image into a file
-    						logger.debug("Adding image to " + imageLocation);
-    						File imageFile = new File(imageLocation + File.separator + filename);
-    						ImageIO.write(t_image, "png", imageFile);
-    	                } else {
-    	                    logger.warn ("Glycan image cannot be generated for glycan " + g.getName());
-    	                }
-				    } 
+				    BufferedImage t_image = createImageForGlycan(g);
+	                if (t_image != null) {
+						String filename = id + ".png";
+						//save the image into a file
+						logger.debug("Adding image to " + imageLocation);
+						File imageFile = new File(imageLocation + File.separator + filename);
+						ImageIO.write(t_image, "png", imageFile);
+	                } else {
+	                    logger.warn ("Glycan image cannot be generated for glycan " + g.getName());
+	                }
 				} else {
 					logger.error("Added glycan cannot be retrieved back");
 					throw new GlycanRepositoryException("Glycan could not be added");
@@ -3693,16 +3687,21 @@ public class GlygenArrayController {
 	public static BufferedImage createImageForGlycan(SequenceDefinedGlycan glycan) {
 	     // try to create one
 	        BufferedImage t_image = null;
+	        org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = null;
 	        try {
 	            if (glycan.getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
-	                org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+	                glycanObject = 
 	                        org.eurocarbdb.application.glycanbuilder.Glycan.
 	                        fromGlycoCTCondensed(glycan.getSequence().trim());
-	                t_image = glycanWorkspace.getGlycanRenderer()
-	                    .getImage(new Union<org.eurocarbdb.application.glycanbuilder.Glycan>(glycanObject), true, false, true, 0.5d);
+	                
 	            } else if (glycan.getSequenceType() == GlycanSequenceFormat.WURCS) {
-	                //TODO find the image using WURCS sequence
+	                WURCS2Parser t_wurcsparser = new WURCS2Parser();
+	                glycanObject = t_wurcsparser.readGlycan(glycan.getSequence().trim(), new MassOptions());
 	            }
+	            if (glycanObject != null) {
+	                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+	            }
+
 	        } catch (Exception e) {
 	            logger.error ("Glycan image cannot be generated", e);
 	        }
