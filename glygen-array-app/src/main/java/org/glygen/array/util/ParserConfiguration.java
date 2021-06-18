@@ -12,6 +12,8 @@ public class ParserConfiguration {
     Integer typeColumn;
     Integer mixtureColumn;
     Integer groupColumn;
+    Integer glytoucanIdColumn;
+    Integer massColumn;
     
     public Integer getBlockColumn() {
         return blockColumn;
@@ -129,5 +131,29 @@ public class ParserConfiguration {
      */
     public void setCoordinateColumnY(Integer coordinateColumnY) {
         this.coordinateColumnY = coordinateColumnY;
+    }
+    /**
+     * @return the glytoucanIdColumn
+     */
+    public Integer getGlytoucanIdColumn() {
+        return glytoucanIdColumn;
+    }
+    /**
+     * @param glytoucanIdColumn the glytoucanIdColumn to set
+     */
+    public void setGlytoucanIdColumn(Integer glytoucanIdColumn) {
+        this.glytoucanIdColumn = glytoucanIdColumn;
+    }
+    /**
+     * @return the massColumn
+     */
+    public Integer getMassColumn() {
+        return massColumn;
+    }
+    /**
+     * @param massColumn the massColumn to set
+     */
+    public void setMassColumn(Integer massColumn) {
+        this.massColumn = massColumn;
     }
 }
