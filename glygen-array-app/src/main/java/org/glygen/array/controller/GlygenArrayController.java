@@ -399,6 +399,7 @@ public class GlygenArrayController {
 		    try {
                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);
                 if (existing != null) {
+                    feature.setId(existing.getId());
                     errorMessage.addError(new ObjectError("name", "Duplicate"));
                 }
             } catch (SparqlException | SQLException e) {
@@ -411,6 +412,7 @@ public class GlygenArrayController {
                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getInternalId(), 
                         "gadr:has_internal_id", user);
                 if (existing != null) {
+                    feature.setId(existing.getId());
                     errorMessage.addError(new ObjectError("internalId", "Duplicate"));
                 }
             } catch (SparqlException | SQLException e) {
@@ -1330,25 +1332,52 @@ public class GlygenArrayController {
                                 parseError = true;
                                 gwbError = false;
                             }
+					    } else {
+					        g.setMass(computeMass(glycanObject));
 					    }
-						//glycoCT = glycan.getSequence().trim();
+						g.setSequence(glycoCT);
+						g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 						break;
 					case GWS:
 						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
 						glycoCT = glycanObject.toGlycoCTCondensed();
+						g.setMass(computeMass(glycanObject));
+						g.setSequence(glycoCT);
+                        g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 						break;
 					case WURCS:
 					    WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
 					    wurcsConverter.start(glycan.getSequence().trim());
 					    glycoCT = wurcsConverter.getGlycoCT();
-					    if (glycoCT != null) 
+					    if (glycoCT != null) {
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
+					        g.setMass(computeMass(glycanObject));
+	                        g.setSequence(glycoCT);
+	                        g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+					    } else { // keep the sequence as WURCS
+					        g.setSequence(glycan.getSequence().trim());
+					        g.setSequenceType(GlycanSequenceFormat.WURCS);
+					        WURCS2Parser t_wurcsparser = new WURCS2Parser();
+					        MassOptions massOptions = new MassOptions();
+				            massOptions.setDerivatization(MassOptions.NO_DERIVATIZATION);
+				            massOptions.setIsotope(MassOptions.ISOTOPE_MONO);
+				            massOptions.ION_CLOUD = new IonCloud();
+				            massOptions.NEUTRAL_EXCHANGES = new IonCloud();
+				            ResidueType m_residueFreeEnd = ResidueDictionary.findResidueType("freeEnd");
+				            massOptions.setReducingEndType(m_residueFreeEnd);
+                            glycanObject = t_wurcsparser.readGlycan(g.getSequence(), massOptions);
+					        g.setMass(computeMass(glycanObject));
+					    }
 					    break;
                     case IUPAC:
                         CFGMasterListParser parser = new CFGMasterListParser();
                         glycoCT = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(glycan.getSequence().trim()));
-                        if (glycoCT != null)
+                        if (glycoCT != null) {
                             glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
+                            g.setMass(computeMass(glycanObject));
+                            g.setSequence(glycoCT);
+                            g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+                        }
                         break;
                     default:
                         break;
@@ -1364,7 +1393,7 @@ public class GlygenArrayController {
 					parseError = true;
 					logger.error("Parse Error for sequence: " + glycan.getSequence());
 				} else {
-					String existingURI = glycanRepository.getGlycanBySequence(glycoCT, user);
+					String existingURI = glycanRepository.getGlycanBySequence(g.getSequence(), user);
 					if (existingURI != null && !existingURI.contains("public")) {
 					    glycan.setId(existingURI.substring(existingURI.lastIndexOf("/")+1));
 					    String[] codes = {existingURI.substring(existingURI.lastIndexOf("/")+1)};
@@ -1404,9 +1433,9 @@ public class GlygenArrayController {
 		try {	
 			// no errors add the glycan
 			if (glycanObject != null || gwbError) {
-				if (!gwbError) g.setMass(computeMass(glycanObject));
-				g.setSequence(glycoCT);
-				g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+				//if (!gwbError) g.setMass(computeMass(glycanObject));
+				//g.setSequence(glycoCT);
+				//g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 				
 				String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
 				String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
@@ -1815,7 +1844,7 @@ public class GlygenArrayController {
                         if (f.getGlycans()  != null) {
                             for (Glycan g: f.getGlycans()) {
                                 if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null ) {
-                                    byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                    byte[] image = getCartoonForGlycan(g.getId());
                                     if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                         // try to create one
                                         BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -1830,7 +1859,7 @@ public class GlygenArrayController {
                                                 logger.error ("Glycan image cannot be written", e);
                                             }
                                         }
-                                        image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                        image = getCartoonForGlycan(g.getId());
                                     }
                                     
                                     g.setCartoon(image);
@@ -1846,7 +1875,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	private byte[] getCartoonForGlycan (String glycanId, String sequence) {
+	private byte[] getCartoonForGlycan (String glycanId) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
 			if (imageFile.exists()) {
@@ -2384,7 +2413,7 @@ public class GlygenArrayController {
 			    }
 			}
 			if (glycan instanceof SequenceDefinedGlycan) {
-			    byte[] image = getCartoonForGlycan(glycanId, ((SequenceDefinedGlycan) glycan).getSequence());
+			    byte[] image = getCartoonForGlycan(glycanId);
                 if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                     // try to create one
                     BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) glycan);
@@ -2399,7 +2428,7 @@ public class GlygenArrayController {
                             logger.error ("Glycan image cannot be written", e);
                         }
                     }
-                    image = getCartoonForGlycan(glycanId, ((SequenceDefinedGlycan) glycan).getSequence());
+                    image = getCartoonForGlycan(glycanId);
                 }
                 glycan.setCartoon(image);
 			    
@@ -2567,7 +2596,7 @@ public class GlygenArrayController {
                                 if (f.getGlycans()  != null) {
                                     for (Glycan g: f.getGlycans()) {
                                         if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                                            byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                            byte[] image = getCartoonForGlycan(g.getId());
                                             if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                                 // try to create one
                                                 BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -2582,7 +2611,7 @@ public class GlygenArrayController {
                                                         logger.error ("Glycan image cannot be written", e);
                                                     }
                                                 }
-                                                image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                                image = getCartoonForGlycan(g.getId());
                                             }
                                             g.setCartoon(image);
                                         }
@@ -2625,7 +2654,7 @@ public class GlygenArrayController {
             if (feature.getGlycans()  != null) {
                 for (Glycan g: feature.getGlycans()) {
                     if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                        byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                        byte[] image = getCartoonForGlycan(g.getId());
                         if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                             // try to create one
                             BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -2640,7 +2669,7 @@ public class GlygenArrayController {
                                     logger.error ("Glycan image cannot be written", e);
                                 }
                             }
-                            image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                            image = getCartoonForGlycan(g.getId());
                         }
                         g.setCartoon(image);
                     }
@@ -2861,7 +2890,7 @@ public class GlygenArrayController {
     			            if (f.getGlycans()  != null) {
     		                    for (Glycan g: f.getGlycans()) {
     		                        if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-    		                            byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+    		                            byte[] image = getCartoonForGlycan(g.getId());
                                         if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                             // try to create one
                                             BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -2876,7 +2905,7 @@ public class GlygenArrayController {
                                                     logger.error ("Glycan image cannot be written", e);
                                                 }
                                             }
-                                            image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                            image = getCartoonForGlycan(g.getId());
                                         }
                                         
                                         g.setCartoon(image);
@@ -2947,7 +2976,7 @@ public class GlygenArrayController {
 			    if (f.getGlycans()  != null) {
 			        for (Glycan g: f.getGlycans()) {
 			            if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-			                byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+			                byte[] image = getCartoonForGlycan(g.getId());
                             if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                 // try to create one
                                 BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -2962,7 +2991,7 @@ public class GlygenArrayController {
                                         logger.error ("Glycan image cannot be written", e);
                                     }
                                 }
-                                image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                image = getCartoonForGlycan(g.getId());
                             }
                             
                             g.setCartoon(image);
@@ -3022,7 +3051,7 @@ public class GlygenArrayController {
 			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
 			for (Glycan glycan : glycans) {
 			    if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-			        byte[] image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
+			        byte[] image = getCartoonForGlycan(glycan.getId());
 			        if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) glycan);
                         if (t_image != null) {
@@ -3036,7 +3065,7 @@ public class GlygenArrayController {
                                 logger.error ("Glycan image cannot be written", e);
                             }
                         }
-                        image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
+                        image = getCartoonForGlycan(glycan.getId());
                     }
 			        glycan.setCartoon(image);
 			    }
@@ -3114,7 +3143,7 @@ public class GlygenArrayController {
             
             for (Glycan glycan : totalResultList) {
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                    byte[] image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
+                    byte[] image = getCartoonForGlycan(glycan.getId());
                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
                         BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) glycan);
@@ -3129,7 +3158,7 @@ public class GlygenArrayController {
                                 logger.error ("Glycan image cannot be written", e);
                             }
                         }
-                        image = getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence());
+                        image = getCartoonForGlycan(glycan.getId());
                     }
                     glycan.setCartoon(image);
                     //glycan.setCartoon(getCartoonForGlycan(glycan.getId(), ((SequenceDefinedGlycan) glycan).getSequence()));
@@ -3333,7 +3362,7 @@ public class GlygenArrayController {
                                         if (f.getGlycans()  != null) {
                                             for (Glycan g: f.getGlycans()) {
                                                 if (g instanceof SequenceDefinedGlycan && g.getCartoon() == null) {
-                                                    byte[] image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                                    byte[] image = getCartoonForGlycan(g.getId());
                                                     if (image == null && ((SequenceDefinedGlycan) g).getSequence() != null) {
                                                         // try to create one
                                                         BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) g);
@@ -3348,7 +3377,7 @@ public class GlygenArrayController {
                                                                 logger.error ("Glycan image cannot be written", e);
                                                             }
                                                         }
-                                                        image = getCartoonForGlycan(g.getId(), ((SequenceDefinedGlycan) g).getSequence());
+                                                        image = getCartoonForGlycan(g.getId());
                                                     }
                                                     
                                                     g.setCartoon(image);
@@ -3915,6 +3944,17 @@ public class GlygenArrayController {
 	                glycanObject = 
 	                        org.eurocarbdb.application.glycanbuilder.Glycan.
 	                        fromGlycoCTCondensed(glycan.getSequence().trim());
+	                if (glycanObject == null && glycan.getGlytoucanId() != null) {
+	                    String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
+	                    if (seq != null) {
+	                        try {
+    	                        WURCS2Parser t_wurcsparser = new WURCS2Parser();
+    	                        glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
+	                        } catch (Exception e) {
+	                            logger.error ("Glycan image cannot be generated with WURCS sequence", e);
+	                        }
+	                    }
+	                }
 	                
 	            } else if (glycan.getSequenceType() == GlycanSequenceFormat.WURCS) {
 	                WURCS2Parser t_wurcsparser = new WURCS2Parser();
@@ -3922,10 +3962,26 @@ public class GlygenArrayController {
 	            }
 	            if (glycanObject != null) {
 	                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
-	            }
+	            } 
 
 	        } catch (Exception e) {
 	            logger.error ("Glycan image cannot be generated", e);
+	            // check if there is glytoucan id
+	            if (glycan.getGlytoucanId() != null) {
+	                String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
+	                if (seq != null) {
+	                    WURCS2Parser t_wurcsparser = new WURCS2Parser();
+	                    try {
+                            glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
+                            if (glycanObject != null) {
+                                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+                            }
+                        } catch (Exception e1) {
+                            logger.error ("Glycan image cannot be generated from WURCS", e);
+                        }
+	                }
+	            }
+	            
 	        }
 	        return t_image;
 	    }

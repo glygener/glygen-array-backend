@@ -227,13 +227,33 @@ public class ExtendedGalFileParser {
                             String[] seqs = sequence.split("\\|");
                             String[] concentrations = concentration.split("\\|");
                             String[] featureTypes = featureType.split("\\|");
+                            String[] featureNames = featureName.split("\\|");
                             LevelUnit[] levelUnits = new LevelUnit[concentrations.length];
                             int i=0;
                             for (String c: concentrations) {
                                 levelUnits[i++] = addLevel(c, levels); 
                             }
                             i = 0;
-                            for (String seq: seqs) {
+                            for (String fName: featureNames) {
+                                Feature feature = new Feature();
+                                feature.setName(fName.trim());
+                                String fType = featureTypes[i];
+                                if (fType.equalsIgnoreCase("landing_light")) {
+                                    feature.setType(FeatureType.LANDING_LIGHT);
+                                } else if (fType.equalsIgnoreCase("control")) {
+                                    feature.setType(FeatureType.CONTROL);
+                                } else if (fType.equalsIgnoreCase("negative control")) {
+                                    feature.setType(FeatureType.NEGATIVE_CONTROL);
+                                } else if (fType.equalsIgnoreCase("organic compound")) {
+                                    feature.setType(FeatureType.COMPOUND);
+                                } else {
+                                    feature.setType(FeatureType.NORMAL);
+                                }
+                                i++;
+                                spotFeatures.add(feature);
+                                featureList.add(feature);
+                            }
+                            /*for (String seq: seqs) {
                                 // create a feature for each seq
                                 // and add to the spot
                                 Feature feature = parseSequenceForFeature (featureTypes[i].trim(), featureName, 
@@ -241,7 +261,7 @@ public class ExtendedGalFileParser {
                                 i++;
                                 spotFeatures.add(feature);
                                 featureList.add(feature);
-                            }
+                            }*/
                         } else {
                             if (glycanMap.get(internalId) != null) {
                                 // already created the feature
@@ -251,8 +271,21 @@ public class ExtendedGalFileParser {
                                 if (levelUnit != null)
                                     spot.setConcentration(levelUnit);    
                             } else {
-                                Feature feature = parseSequenceForFeature (featureType, featureName, 
-                                        internalId, sequence, sequenceType, levelUnit, glycanList, linkerList, errorList);
+                                //Feature feature = parseSequenceForFeature (featureType, featureName, 
+                                //        internalId, sequence, sequenceType, levelUnit, glycanList, linkerList, errorList);
+                                Feature feature = new Feature();
+                                feature.setName(featureName.trim());
+                                if (featureType.equalsIgnoreCase("landing_light")) {
+                                    feature.setType(FeatureType.LANDING_LIGHT);
+                                } else if (featureType.equalsIgnoreCase("control")) {
+                                    feature.setType(FeatureType.CONTROL);
+                                } else if (featureType.equalsIgnoreCase("negative control")) {
+                                    feature.setType(FeatureType.NEGATIVE_CONTROL);
+                                } else if (featureType.equalsIgnoreCase("organic compound")) {
+                                    feature.setType(FeatureType.COMPOUND);
+                                } else {
+                                    feature.setType(FeatureType.NORMAL);
+                                }
                                 spotFeatures.add(feature);
                                 if (groupId > maxGroup)
                                     maxGroup = groupId;

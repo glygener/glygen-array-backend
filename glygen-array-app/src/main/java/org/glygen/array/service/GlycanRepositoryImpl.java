@@ -219,33 +219,47 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			if (g.getGlytoucanId() == null && !noGlytoucanRegistration) {
 				// check and register to GlyToucan
 				try {
-					WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-					exporter.start(g.getSequence());
-					String wurcs = exporter.getWURCS();
-					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-					logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
-					if (glyToucanId == null || glyToucanId.length() > 10) {
-					    // this is new registration, hash returned
-					    glyToucanHash = glyToucanId;
-					    glyToucanId = null;
-					    logger.info("got glytoucan hash, no accession number!");
-					}
+				    String wurcs = null;
+                    if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+    					WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+    					exporter.start(g.getSequence());
+    					wurcs = exporter.getWURCS();
+                    } else if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.WURCS) {
+                        wurcs = g.getSequence();
+                    }
+                    if (wurcs != null) {
+    					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+    					logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
+    					if (glyToucanId == null || glyToucanId.length() > 10) {
+    					    // this is new registration, hash returned
+    					    glyToucanHash = glyToucanId;
+    					    glyToucanId = null;
+    					    logger.info("got glytoucan hash, no accession number!");
+    					}
+                    }
 				} catch (Exception e) {
 					logger.warn("Cannot register glytoucanId with the given sequence", g.getSequence());
 				}
 			} else if (g.getGlytoucanId() == null) {
 				// check if it is already in GlyToucan
 				try {
-					WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-					exporter.start(g.getSequence());
-					String wurcs = exporter.getWURCS();
-					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-					logger.info("Got glytoucan id for new glycan:" + glyToucanId);
-					if (glyToucanId == null || glyToucanId.length() > 10) {
-                        // this is new registration, hash returned
-                        glyToucanHash = glyToucanId;
-                        glyToucanId = null;
-                        logger.info("got glytoucan hash, no accession number!");
+				    String wurcs = null;
+                    if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+                        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+                        exporter.start(g.getSequence());
+                        wurcs = exporter.getWURCS();
+                    } else if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.WURCS) {
+                        wurcs = g.getSequence();
+                    }
+                    if (wurcs != null) {
+    					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+    					logger.info("Got glytoucan id for new glycan:" + glyToucanId);
+    					if (glyToucanId == null || glyToucanId.length() > 10) {
+                            // this is new registration, hash returned
+                            glyToucanHash = glyToucanId;
+                            glyToucanId = null;
+                            logger.info("got glytoucan hash, no accession number!");
+                        }
                     }
 				} catch (Exception e) {
 					logger.warn("Cannot get glytoucanId with the given sequence", g.getSequence());
@@ -749,21 +763,29 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		// check if glytoucanHash exists, if so we need to check if accession number is available now
 		if (glycanObject instanceof SequenceDefinedGlycan) {
 		    if (((SequenceDefinedGlycan) glycanObject).getGlytoucanHash() != null && !((SequenceDefinedGlycan) glycanObject).getGlytoucanHash().isEmpty()) {
-		        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
                 try {
-                    exporter.start(((SequenceDefinedGlycan) glycanObject).getSequence());
-                    String wurcs = exporter.getWURCS();
-                    String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-                    if (glyToucanId != null && glyToucanId.length() < 10) {
-                        ((SequenceDefinedGlycan) glycanObject).setGlytoucanId(glyToucanId);
-                        ((SequenceDefinedGlycan) glycanObject).setGlytoucanHash(null);
-                        // need to update glycan in the repository
-                        Literal glytoucanLit = f.createLiteral(glyToucanId);
-                        // remove glytoucanhash
-                        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, hasGlytoucanHash, null, graphIRI)), graphIRI);
-                        List<Statement> statements2 = new ArrayList<Statement>();
-                        statements2.add(f.createStatement(glycan, hasGlytoucanId, glytoucanLit, graphIRI));
-                        sparqlDAO.addStatements(statements2, graphIRI);
+                    String wurcs = null;
+                    if (((SequenceDefinedGlycan) glycanObject).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+                        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+                        exporter.start(((SequenceDefinedGlycan) glycanObject).getSequence());
+                        wurcs = exporter.getWURCS();
+                    }
+                    else if (((SequenceDefinedGlycan) glycanObject).getSequenceType() == GlycanSequenceFormat.WURCS) {
+                        wurcs = ((SequenceDefinedGlycan) glycanObject).getSequence();
+                    }
+                    if (wurcs != null) {
+                        String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+                        if (glyToucanId != null && glyToucanId.length() < 10) {
+                            ((SequenceDefinedGlycan) glycanObject).setGlytoucanId(glyToucanId);
+                            ((SequenceDefinedGlycan) glycanObject).setGlytoucanHash(null);
+                            // need to update glycan in the repository
+                            Literal glytoucanLit = f.createLiteral(glyToucanId);
+                            // remove glytoucanhash
+                            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(glycan, hasGlytoucanHash, null, graphIRI)), graphIRI);
+                            List<Statement> statements2 = new ArrayList<Statement>();
+                            statements2.add(f.createStatement(glycan, hasGlytoucanId, glytoucanLit, graphIRI));
+                            sparqlDAO.addStatements(statements2, graphIRI);
+                        }
                     }
                 } catch (SugarImporterException | GlycoVisitorException | WURCSException e) {
                     logger.error("Cannot convert to WURCS", e);
@@ -942,24 +964,31 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            if (((SequenceDefinedGlycan) glycan).getGlytoucanId() == null) {
 	                // check and register to GlyToucan
 	                try {
-	                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-	                    exporter.start(((SequenceDefinedGlycan) glycan).getSequence().trim());
-	                    String wurcs = exporter.getWURCS();
-	                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
-	                    if (glyToucanId == null) { // need to register
-	                        if (glytoucanregistration != null && glytoucanregistration.equalsIgnoreCase("true")) {
-    	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-    	                        if (glyToucanId == null || glyToucanId.length() > 10) {
-    	                            // this is new registration, hash returned
-    	                            glyToucanHash = glyToucanId;
-    	                            glyToucanId = null;
-    	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
-    	                        } else { // in case it returns an id immediately, it does not happen though
-    	                            ((SequenceDefinedGlycan) glycan).setGlytoucanId(glyToucanId);
+	                    String wurcs = null;
+	                    if (((SequenceDefinedGlycan) glycan).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+    	                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+    	                    exporter.start(((SequenceDefinedGlycan) glycan).getSequence().trim());
+    	                    wurcs = exporter.getWURCS();
+	                    } else if (((SequenceDefinedGlycan) glycan).getSequenceType() == GlycanSequenceFormat.WURCS) {
+	                        wurcs = ((SequenceDefinedGlycan) glycan).getSequence().trim();
+	                    }
+	                    if (wurcs != null) {
+    	                    glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);    
+    	                    if (glyToucanId == null) { // need to register
+    	                        if (glytoucanregistration != null && glytoucanregistration.equalsIgnoreCase("true")) {
+        	                        glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+        	                        if (glyToucanId == null || glyToucanId.length() > 10) {
+        	                            // this is new registration, hash returned
+        	                            glyToucanHash = glyToucanId;
+        	                            glyToucanId = null;
+        	                            ((SequenceDefinedGlycan) glycan).setGlytoucanHash(glyToucanHash);
+        	                        } else { // in case it returns an id immediately, it does not happen though
+        	                            ((SequenceDefinedGlycan) glycan).setGlytoucanId(glyToucanId);
+        	                        }
     	                        }
-	                        }
-	                    } else if (glyToucanId.length() < 10) { // it might return the hash instead of glytoucan id 
-	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
+    	                    } else if (glyToucanId.length() < 10) { // it might return the hash instead of glytoucan id 
+    	                        ((SequenceDefinedGlycan) glycan).setGlytoucanId (glyToucanId);
+    	                    }
 	                    }
 	                } catch (Exception e) {
 	                    logger.warn("Cannot register glytoucanId with the given sequence", ((SequenceDefinedGlycan) glycan).getSequence());
