@@ -1083,7 +1083,7 @@ public class GlygenArrayController {
 			
 			l = linker;
 			l.setUri(linkerURI);
-			if (linker.getName() != null) {
+			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 				if (local != null) {
 				    linker.setId(local.getId());
@@ -1143,7 +1143,7 @@ public class GlygenArrayController {
 			Linker l = null;
 			String linkerURI = null;
 			
-			if (linker.getSequence() != null) {
+			if (linker.getSequence() != null && !linker.getSequence().trim().isEmpty()) {
 			    // modify the sequence to add position markers
                 try {
                     String sequence = addPositionToSequence(linker.getSequence().trim());
@@ -1157,7 +1157,7 @@ public class GlygenArrayController {
 				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 				}
 			}
-			else if (linker.getUniProtId() != null) {
+			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
@@ -1167,7 +1167,7 @@ public class GlygenArrayController {
 			
 			l = linker;
 			l.setUri(linkerURI);
-			if (linker.getName() != null) {
+			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 				if (local != null) {
 				    linker.setId(local.getId());
@@ -1610,7 +1610,7 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
 				}
 			}
-			else if (linker.getInChiKey() != null) {
+			else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
 				linkerURI = linkerRepository.getLinkerByField(linker.getInChiKey(), "has_inChI_key", "string", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
@@ -1650,7 +1650,7 @@ public class GlygenArrayController {
 					l.setUri(linkerURI);
 				}
 				
-				if (linker.getName() != null) {
+				if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
 					if (local != null) {
 					    linker.setId(local.getId());
