@@ -77,3 +77,27 @@ By default, any data that is put in the `toLoad` directory in the Virtuoso datab
 ### Context Path
 
 See https://docs.docker.com/ee/ucp/interlock/usage/context/ for setting a context path for the sparql end-point.
+
+### Backup and Restore from Backup
+
+backup.sh script creates backup of the repository and stores them into $HOME/backups folder. Environment variable DBA_PASSWORD should be set before running the script
+
+In order to restore from the backup, follow the steps (in $HOME/workspace/glygen-array-backend/virtuoso directory):
+
+- stop the running virtuoso docker container
+```
+docker-compose down
+```
+- change into the database folder ($HOME/glygen-array/virtuoso)
+- move the virtuoso.db and virtuoso.log file from the database folder into an archive folder 
+- cp the backup files (with prefix backup_) into the database folder 
+- run the restore.sh script inside the database folder 
+
+```
+. $HOME/workspace/glygen-array-backend/virtuoso/restore.sh
+```
+- restart the virtuoso docker container (if everything went well). Change into $HOME/workspace/glygen-array-backend/virtuoso directory and execute:
+
+```
+docker-compose up -d
+```
