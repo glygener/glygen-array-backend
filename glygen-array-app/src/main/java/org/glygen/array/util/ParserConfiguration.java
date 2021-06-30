@@ -1,19 +1,54 @@
 package org.glygen.array.util;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+@Configuration
+@PropertySource("classpath:extendedgalfile.properties")
 public class ParserConfiguration {
+    @Value("${blockColumn}")
     Integer blockColumn = -1;
+    @Value("${coordinateColumnX}")
     Integer coordinateColumnX;
+    @Value("${coordinateColumnY}")
     Integer coordinateColumnY;
+    @Value("${idColumn}")
     Integer idColumn;
+    @Value("${sequenceColumn}")
     Integer sequenceColumn;
+    @Value("${nameColumn}")
     Integer nameColumn;
+    @Value("${sequenceTypeColumn}")
     Integer sequenceTypeColumn;
+    @Value("${concentrationColumn}")
     Integer concentrationColumn;
+    @Value("${typeColumn}")
     Integer typeColumn;
+    @Value("${mixtureColumn}")
     Integer mixtureColumn;
+    @Value("${groupColumn}")
     Integer groupColumn;
+    @Value("${glytoucanIdColumn}")
     Integer glytoucanIdColumn;
+    @Value("${massColumn}")
     Integer massColumn;
+    @Value("${bufferColumn}")
+    Integer bufferColumn;
+    @Value("${carrierColumn}")
+    Integer carrierColumn;
+    @Value("${methodColumn}")
+    Integer methodColumn;
+    @Value("${referenceColumn}")
+    Integer referenceColumn;
+    @Value("${volumeColumn}")
+    Integer volumeColumn;
+    @Value("${dispensesColumn}")
+    Integer dispensesColumn;
+    @Value("${ratioColumn}")
+    Integer ratioColumn;
+    @Value("${commentColumn}")
+    Integer commentColumn;
     
     public Integer getBlockColumn() {
         return blockColumn;
@@ -155,5 +190,101 @@ public class ParserConfiguration {
      */
     public void setMassColumn(Integer massColumn) {
         this.massColumn = massColumn;
+    }
+    /**
+     * @return the bufferColumn
+     */
+    public Integer getBufferColumn() {
+        return bufferColumn;
+    }
+    /**
+     * @param bufferColumn the bufferColumn to set
+     */
+    public void setBufferColumn(Integer bufferColumn) {
+        this.bufferColumn = bufferColumn;
+    }
+    /**
+     * @return the carrierColumn
+     */
+    public Integer getCarrierColumn() {
+        return carrierColumn;
+    }
+    /**
+     * @param carrierColumn the carrierColumn to set
+     */
+    public void setCarrierColumn(Integer carrierColumn) {
+        this.carrierColumn = carrierColumn;
+    }
+    /**
+     * @return the methodColumn
+     */
+    public Integer getMethodColumn() {
+        return methodColumn;
+    }
+    /**
+     * @param methodColumn the methodColumn to set
+     */
+    public void setMethodColumn(Integer methodColumn) {
+        this.methodColumn = methodColumn;
+    }
+    /**
+     * @return the referenceColumn
+     */
+    public Integer getReferenceColumn() {
+        return referenceColumn;
+    }
+    /**
+     * @param referenceColumn the referenceColumn to set
+     */
+    public void setReferenceColumn(Integer referenceColumn) {
+        this.referenceColumn = referenceColumn;
+    }
+    /**
+     * @return the volumeColumn
+     */
+    public Integer getVolumeColumn() {
+        return volumeColumn;
+    }
+    /**
+     * @param volumeColumn the volumeColumn to set
+     */
+    public void setVolumeColumn(Integer volumeColumn) {
+        this.volumeColumn = volumeColumn;
+    }
+    /**
+     * @return the dispensesColumn
+     */
+    public Integer getDispensesColumn() {
+        return dispensesColumn;
+    }
+    /**
+     * @param dispensesColumn the dispensesColumn to set
+     */
+    public void setDispensesColumn(Integer dispensesColumn) {
+        this.dispensesColumn = dispensesColumn;
+    }
+    /**
+     * @return the ratioColumn
+     */
+    public Integer getRatioColumn() {
+        return ratioColumn;
+    }
+    /**
+     * @param ratioColumn the ratioColumn to set
+     */
+    public void setRatioColumn(Integer ratioColumn) {
+        this.ratioColumn = ratioColumn;
+    }
+    /**
+     * @return the commentColumn
+     */
+    public Integer getCommentColumn() {
+        return commentColumn;
+    }
+    /**
+     * @param commentColumn the commentColumn to set
+     */
+    public void setCommentColumn(Integer commentColumn) {
+        this.commentColumn = commentColumn;
     }
 }

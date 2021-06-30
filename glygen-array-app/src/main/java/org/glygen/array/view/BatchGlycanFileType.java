@@ -12,11 +12,11 @@ public enum BatchGlycanFileType {
     
     @JsonCreator
     public static BatchGlycanFileType forValue(String value) {
-        if (value.equals("Tab separated"))
+        if (value.equalsIgnoreCase("Tab separated"))
             return TABSEPARATED;
-        else if (value.equals("GlycoWorkbench"))
+        else if (value.equalsIgnoreCase("GlycoWorkbench"))
             return GWS;
-        else if (value.equals("Library XML"))
+        else if (value.equalsIgnoreCase("Library XML"))
             return XML;
         return GWS;
     }

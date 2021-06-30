@@ -21,6 +21,10 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.persistence.rdf.metadata.Description;
+import org.glygen.array.persistence.rdf.metadata.Descriptor;
+import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
@@ -28,6 +32,7 @@ import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 
@@ -35,14 +40,20 @@ public class ExtendedGalFileParser {
 
     final static Logger logger = LoggerFactory.getLogger("event-logger");
     
+    @Autowired
+    SpotMetadataConfig metadataConfig;
+    
+    @Autowired
+    ParserConfiguration config;
+    
     /**
-     * parses the given GAL file to create a Slide Layout with all its blocks, features and glycans. Linkers should be created
+     * parses the given GAL file to create a Slide Layout with all its blocks. Features should exist already. Linkers should be created
      * before hand and passed in as a list
      * 
      * @param filePath file path of the GAL file to be parsed
      * @param name name of the slide layout to be created
      * @param linkerList should contain all the existing linkers 
-     * @return import result with slide layout and all the block layouts, feature and glycans to be created
+     * @return import result with slide layout and all the block layouts to be created
      * @throws IOException if the file cannot be found or invalid
      */
     public GalFileImportResult parse (String filePath, String name, List<Linker> linkerList) throws IOException {
@@ -81,7 +92,7 @@ public class ExtendedGalFileParser {
         BlockLayout blockLayout=null;
         
         //TODO detect parser configuration
-        ParserConfiguration config = new ParserConfiguration();
+        /*ParserConfiguration config = new ParserConfiguration();
         config.setBlockColumn(0);
         config.setCoordinateColumnY(1);
         config.setCoordinateColumnX(2);
@@ -92,6 +103,14 @@ public class ExtendedGalFileParser {
         config.setConcentrationColumn(7);
         config.setTypeColumn(8);
         config.setMixtureColumn(9);
+        config.setBufferColumn(10);
+        config.setRatioColumn(11);
+        config.setCarrierColumn(14);
+        config.setMethodColumn(15);
+        config.setReferenceColumn(16);
+        config.setVolumeColumn(17);
+        config.setDispensesColumn(18);*/
+        
         
         while(scan.hasNext()){
             String curLine = scan.nextLine();
@@ -203,6 +222,7 @@ public class ExtendedGalFileParser {
                     Spot spot = new Spot();
                     spot.setColumn(x);
                     spot.setRow(y);
+                    spot.setMetadata(addSpotMetadata(name + "metadata-" + x + ":" + y, splitted));
                     
                     List<Feature> spotFeatures = new ArrayList<Feature>();
                 
@@ -323,6 +343,57 @@ public class ExtendedGalFileParser {
         result.setLayoutList(layoutList);
         result.setErrors(errorList);
         return result;
+    }
+    
+    
+    SpotMetadata addSpotMetadata (String metadataName, String[] splittedRow) {
+        SpotMetadata spotMetadata = new SpotMetadata();
+        spotMetadata.setName(metadataName);
+        List<DescriptorGroup> descriptorGroups = new ArrayList<DescriptorGroup>();
+        List<Descriptor> descriptors = new ArrayList<Descriptor>();
+        spotMetadata.setDescriptorGroups(descriptorGroups);
+        spotMetadata.setDescriptors(descriptors);
+        
+        String metadata1 = metadataConfig.getFormulationSolutionDescription();
+        String[] splitted = metadata1.split("::");
+        String descriptorGroupName = splitted[0];
+        
+        DescriptorGroup group = new DescriptorGroup();
+        group.setName(descriptorGroupName);
+        group.setDescriptors(new ArrayList<Description>());
+        String buffer = splitted[1];
+        Descriptor desc1 = new Descriptor();
+        desc1.setName(buffer);
+        desc1.setValue(splittedRow[config.bufferColumn]);
+        group.getDescriptors().add(desc1);
+        String carrier = metadataConfig.getFormulationCarrierDescription().split("::")[1];
+        Descriptor desc2 = new Descriptor();
+        desc2.setName(carrier);
+        desc2.setValue(splittedRow[config.carrierColumn]);
+        group.getDescriptors().add(desc2);
+        String method = metadataConfig.getFormulationMethodDescription().split("::")[1];
+        Descriptor desc3 = new Descriptor();
+        desc3.setName(method);
+        desc3.setValue(splittedRow[config.methodColumn]);
+        group.getDescriptors().add(desc3);
+        String reference = metadataConfig.getFormulationReferenceDescription().split("::")[1];
+        Descriptor desc4 = new Descriptor();
+        desc4.setName(reference);
+        desc4.setValue(splittedRow[config.referenceColumn]);
+        group.getDescriptors().add(desc4);
+        String volume = metadataConfig.getVolumeDescription();
+        Descriptor desc5 = new Descriptor();
+        desc5.setName(volume);
+        desc5.setValue(splittedRow[config.volumeColumn]);
+        descriptors.add(desc5);
+        String dispenses = metadataConfig.getNumberDispensesDescription();
+        Descriptor desc6 = new Descriptor();
+        desc6.setName(dispenses);
+        desc6.setValue(splittedRow[config.dispensesColumn]);
+        descriptors.add(desc6);
+        
+        return spotMetadata;
+        
     }
 
     /**

@@ -660,7 +660,7 @@ public class GlygenArrayController {
 	    case XML:
 	        return addGlycanFromLibraryFile(file, noGlytoucanRegistration, p);
 	    case TABSEPARATED:
-	        return addGlycanFromExcelFile(file, noGlytoucanRegistration, p);
+	        return addGlycanFromCSVFile(file, noGlytoucanRegistration, p);
 	    }
 	    ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
 	    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -748,7 +748,7 @@ public class GlygenArrayController {
 	    } 
 	}
 	
-	private BatchGlycanUploadResult addGlycanFromExcelFile (MultipartFile file, Boolean noGlytoucanRegistration, Principal p) {
+	private BatchGlycanUploadResult addGlycanFromCSVFile (MultipartFile file, Boolean noGlytoucanRegistration, Principal p) {
 	    ParserConfiguration config = new ParserConfiguration();
 	    config.setNameColumn(0);
 	    config.setIdColumn(1);
@@ -756,6 +756,7 @@ public class GlygenArrayController {
 	    config.setSequenceColumn(3);
 	    config.setSequenceTypeColumn(4);
 	    config.setMassColumn(5);
+	    config.setCommentColumn(6);
 	    
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         BatchGlycanUploadResult result = new BatchGlycanUploadResult();
@@ -775,43 +776,50 @@ public class GlygenArrayController {
                     continue; // skip the header line
                 }
                 count++;
-                String glycanName = splitted[config.getNameColumn()].trim();
-                String glytoucanId = splitted[config.getGlytoucanIdColumn()].trim();
-                String sequence = splitted[config.getSequenceColumn()].trim();
-                String sequenceType = splitted[config.getSequenceTypeColumn()].trim();
-                String mass = splitted[config.getMassColumn()].trim();
-                String internalId = splitted[config.getIdColumn()].trim();
+                String glycanName = splitted[config.getNameColumn()];
+                String glytoucanId = splitted[config.getGlytoucanIdColumn()];
+                String sequence = splitted[config.getSequenceColumn()];
+                String sequenceType = splitted[config.getSequenceTypeColumn()];
+                String mass = splitted[config.getMassColumn()];
+                String internalId = splitted[config.getIdColumn()];
+                String comments = splitted[config.getCommentColumn()];
                 
                 Glycan glycan = null;
                 if ((glytoucanId == null || glytoucanId.isEmpty()) && (sequence == null || sequence.isEmpty())) {
                     // mass only glycan
-                    glycan = new MassOnlyGlycan(); 
-                    try {
-                        ((MassOnlyGlycan) glycan).setMass(Double.parseDouble(mass));
-                    } catch (NumberFormatException e) {
-                        // add to error list
-                        result.addWrongSequence(count + ":" + mass);
+                    if (mass != null && !mass.trim().isEmpty()) {
+                        glycan = new MassOnlyGlycan(); 
+                        try {
+                            ((MassOnlyGlycan) glycan).setMass(Double.parseDouble(mass.trim()));
+                        } catch (NumberFormatException e) {
+                            // add to error list
+                            result.addWrongSequence(count + ":" + mass);
+                        }
+                    } else {
+                        // ERROR
+                        result.addWrongSequence(count + ": No sequence and mass information found");
                     }
                 } else {
                     // sequence defined glycan
                     glycan = new SequenceDefinedGlycan();
-                    if (glytoucanId != null && !glytoucanId.isEmpty()) {
+                    if (glytoucanId != null && !glytoucanId.trim().isEmpty()) {
                         // use glytoucanid to retrieve the sequence
-                        String glycoCT = getSequenceFromGlytoucan(glytoucanId);
+                        String glycoCT = getSequenceFromGlytoucan(glytoucanId.trim());
                         if (glycoCT != null && glycoCT.startsWith("RES")) {
-                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT);
+                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT.trim());
                             ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                         } else if (glycoCT != null && glycoCT.startsWith("WURCS")){
-                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT);
+                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT.trim());
                             ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.WURCS);
                         }
-                    } else if (sequence != null && !sequence.isEmpty()) {
-                        ((SequenceDefinedGlycan) glycan).setSequence(sequence);
+                    } else if (sequence != null && !sequence.trim().isEmpty()) {
+                        ((SequenceDefinedGlycan) glycan).setSequence(sequence.trim());
                         ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.forValue(sequenceType));
                     }
                 }
-                glycan.setInternalId(internalId);
-                glycan.setName(glycanName);
+                if (internalId != null) glycan.setInternalId(internalId.trim());
+                if (glycanName != null) glycan.setName(glycanName.trim());
+                if (comments != null) glycan.setDescription(comments);
                 try {  
                     String id = addGlycan(glycan, p, noGlytoucanRegistration);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
