@@ -58,6 +58,12 @@ public interface GlycanRepository {
 	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	
 	List<Glycan> getSharedGlycansByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+	
+	List<Glycan> getGlycanByGlytoucanIds(UserEntity user, int offset, int limit, String field, int order,
+            List<String> ids) throws SparqlException, SQLException;
+	
+	List<Glycan> getGlycanByMass (UserEntity user, int offset, int limit, String field, int order, 
+	        double min, double max) throws SparqlException, SQLException;
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
@@ -67,4 +73,5 @@ public interface GlycanRepository {
     List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException;
+    
 }

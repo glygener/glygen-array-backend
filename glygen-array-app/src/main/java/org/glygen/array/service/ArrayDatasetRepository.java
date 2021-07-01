@@ -100,4 +100,6 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideByLabel(String label, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    
+    int getDatasetCountByGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
 }

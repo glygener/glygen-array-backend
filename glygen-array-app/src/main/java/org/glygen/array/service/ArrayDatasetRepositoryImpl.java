@@ -3438,4 +3438,44 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         entity.setAdditionDate(new Date());
         permissionRepository.save(entity);
     }
+
+    @Override
+    public int getDatasetCountByGlycan(String glycanId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        int total = 0;
+        
+        if (graph != null) {
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT count(DISTINCT ?dataset) as ?count \n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (
+                    "?dataset gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . \n" +
+                    "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
+                    "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
+                    "?spot data:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId +"> . \n }"); 
+                   
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            for (SparqlEntity sparqlEntity : results) {
+                String count = sparqlEntity.getValue("count");
+                try {
+                    total = Integer.parseInt(count);
+                    break;
+                } catch (NumberFormatException e) {
+                    throw new SparqlException("Count query returned invalid result", e);
+                }
+                
+            }
+        }
+        return total;
+    }
 }

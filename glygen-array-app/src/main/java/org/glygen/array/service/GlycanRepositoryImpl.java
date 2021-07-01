@@ -1037,4 +1037,45 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         return publicURI;
     }
+
+    @Override
+    public List<Glycan> getGlycanByGlytoucanIds(UserEntity user, int offset, int limit, String field, int order, List<String> ids)
+            throws SparqlException, SQLException {
+        List<Glycan> glycans = new ArrayList<Glycan>();
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        List<SparqlEntity> results = queryHelper.retrieveByListofGlytoucanIds(ids, limit, offset, field, order, graph);
+        for (SparqlEntity result: results) {
+            String glycanURI = result.getValue("s");
+            Glycan glycan = getGlycanFromURI(glycanURI, user);
+            if (glycan != null) {
+                glycans.add(glycan);
+            }
+        }
+        
+        return glycans;
+    }
+
+    @Override
+    public List<Glycan> getGlycanByMass(UserEntity user, int offset, int limit, String field, int order, double min, double max)
+            throws SparqlException, SQLException {
+        List<Glycan> glycans = new ArrayList<Glycan>();
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        List<SparqlEntity> results = queryHelper.retrieveByMassRange(min, max, limit, offset, field, order, graph);
+        for (SparqlEntity result: results) {
+            String glycanURI = result.getValue("s");
+            Glycan glycan = getGlycanFromURI(glycanURI, user);
+            if (glycan != null) {
+                glycans.add(glycan);
+            }
+        }
+        return glycans;
+    }
 }

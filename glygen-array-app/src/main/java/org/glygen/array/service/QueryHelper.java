@@ -3,6 +3,7 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
@@ -209,6 +210,58 @@ public class QueryHelper {
        queryBuf.append ("FROM <" + graph + ">\n");
        queryBuf.append ("WHERE {\n");
        queryBuf.append ("?s gadr:has_molecule  <" +  glycanURI + "> . } LIMIT 1");
+       
+       return sparqlDAO.query(queryBuf.toString());
+   }
+   
+   
+   public List<SparqlEntity> retrieveByListofGlytoucanIds (List<String> ids, int limit, int offset, String field, int order, String graph) throws SparqlException {
+       String list = StringUtils.join(ids, "'^^xsd:string, '");
+       list = "'" + list + "'^^xsd:string";
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
+       String sortLine = "";
+       String sortPredicate = getSortPredicate (field);
+       if (sortPredicate != null) {
+           sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+       }
+       StringBuffer queryBuf = new StringBuffer();
+       queryBuf.append (prefix + "\n");
+       queryBuf.append ("SELECT DISTINCT ?s \n");
+       queryBuf.append ("FROM <" + graph + ">\n");
+       queryBuf.append ("WHERE {\n");
+       queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
+       queryBuf.append ( " {?s gadr:has_glytoucan_id ?gid FILTER (?gid IN (" + list + ")) } ");
+        
+       queryBuf.append (sortLine);
+       queryBuf.append ("}" + 
+               orderByLine + 
+              ((limit == -1) ? " " : " LIMIT " + limit) +
+              " OFFSET " + offset);
+       
+       return sparqlDAO.query(queryBuf.toString());
+   }
+   
+   public List<SparqlEntity> retrieveByMassRange (double min, double max, int limit, int offset, String field, int order, String graph) throws SparqlException {
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
+       
+       String sortLine = "";
+       String sortPredicate = getSortPredicate (field);
+       if (sortPredicate != null) {
+           sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+       }
+       
+       StringBuffer queryBuf = new StringBuffer();
+       queryBuf.append (prefix + "\n");
+       queryBuf.append ("SELECT DISTINCT ?s \n");
+       queryBuf.append ("FROM <" + graph + ">\n");
+       queryBuf.append ("WHERE {\n");
+       queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
+       queryBuf.append ( " {?s gadr:has_mass ?mass FILTER (?mass <" +  max  + " && ?mass > " + min + ") }");
+       queryBuf.append (sortLine);
+       queryBuf.append ("}" + 
+               orderByLine + 
+              ((limit == -1) ? " " : " LIMIT " + limit) +
+              " OFFSET " + offset);
        
        return sparqlDAO.query(queryBuf.toString());
    }

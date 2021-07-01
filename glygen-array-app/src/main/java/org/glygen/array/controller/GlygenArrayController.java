@@ -3088,6 +3088,8 @@ public class GlygenArrayController {
 		
 		return result;
 	}
+	
+	
 
     @ApiOperation(value = "List all glycans for the user and the public ones")
     @RequestMapping(value="/listAllGlycans", method = RequestMethod.GET, 

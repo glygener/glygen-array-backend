@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -171,6 +173,153 @@ public class PublicGlygenArrayController {
                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                         // try to create one
                         BufferedImage t_image = GlygenArrayController.createImageForGlycan((SequenceDefinedGlycan) glycan);
+                        if (t_image != null) {
+                            String filename = glycan.getId() + ".png";
+                            //save the image into a file
+                            logger.debug("Adding image to " + imageLocation);
+                            File imageFile = new File(imageLocation + File.separator + filename);
+                            try {
+                                ImageIO.write(t_image, "png", imageFile);
+                            } catch (IOException e) {
+                                logger.error ("Glycan image cannot be written", e);
+                            }
+                        }
+                        image = getCartoonForGlycan(glycan.getId());
+                    }
+                    glycan.setCartoon(image);
+                }
+            }
+            
+            result.setRows(glycans);
+            result.setTotal(total);
+            result.setFilteredTotal(glycans.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    
+    @ApiOperation(value = "List glycans that match one of the given glytoucan ids")
+    @RequestMapping(value="/listGlycansByGlytoucanIds", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public GlycanListResultView listGlycansByGlytoucanIds (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=true, value="list of glytoucan ids to match") 
+            @RequestParam(value="glytoucanids", required=true) List<String> ids) {
+        GlycanListResultView result = new GlycanListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = glycanRepository.getGlycanCountByUser (null);
+            
+            List<Glycan> glycans = glycanRepository.getGlycanByGlytoucanIds(null, offset, limit, field, order, ids);
+            for (Glycan glycan : glycans) {
+                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+                    byte[] image = getCartoonForGlycan(glycan.getId());
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
+                        if (t_image != null) {
+                            String filename = glycan.getId() + ".png";
+                            //save the image into a file
+                            logger.debug("Adding image to " + imageLocation);
+                            File imageFile = new File(imageLocation + File.separator + filename);
+                            try {
+                                ImageIO.write(t_image, "png", imageFile);
+                            } catch (IOException e) {
+                                logger.error ("Glycan image cannot be written", e);
+                            }
+                        }
+                        image = getCartoonForGlycan(glycan.getId());
+                    }
+                    glycan.setCartoon(image);
+                }
+            }
+            
+            result.setRows(glycans);
+            result.setTotal(total);
+            result.setFilteredTotal(glycans.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List glycans that have masses in the given range")
+    @RequestMapping(value="/listGlycansByMass", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public GlycanListResultView listGlycansByMassRange (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=true, value="minimum mass") 
+            @RequestParam(value="min", required=true) Double min,
+            @ApiParam(required=true, value="maximum mass") 
+            @RequestParam(value="max", required=true) Double max) {
+        GlycanListResultView result = new GlycanListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = glycanRepository.getGlycanCountByUser (null);
+            
+            List<Glycan> glycans = glycanRepository.getGlycanByMass(null, offset, limit, field, order, min, max);
+            for (Glycan glycan : glycans) {
+                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+                    byte[] image = getCartoonForGlycan(glycan.getId());
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
                         if (t_image != null) {
                             String filename = glycan.getId() + ".png";
                             //save the image into a file
