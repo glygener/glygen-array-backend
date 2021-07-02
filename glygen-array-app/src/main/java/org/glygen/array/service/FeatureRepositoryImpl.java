@@ -130,6 +130,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
+			    // need to check if the position is valid
+                try {
+                    Integer.parseInt(position);
+                } catch (NumberFormatException e) {
+                    logger.info("got invalid position for the feature's glycans", e);
+                    continue;
+                }
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);
@@ -293,12 +300,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String featureURI = sparqlEntity.getValue("s");
-				logger.info("Getting " +  featureURI + " from repository");
+				//logger.info("Getting " +  featureURI + " from repository");
 				Feature feature = getFeatureFromURI(featureURI, user);
 				features.add(feature);	
 			}
 			
-			logger.info("Done retrieving features");
+			//logger.info("Done retrieving features");
 		}
 		
 		return features;
@@ -445,7 +452,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
-		logger.info("got statements");
 		List<Glycan> glycans = new ArrayList<Glycan>();
 		Map<String, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
@@ -457,7 +463,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
-			logger.info("handling statement: " + st);
 			if (st.getPredicate().equals(RDFS.LABEL)) {
 			    Value label = st.getObject();
                 featureObject.setName(label.stringValue());
@@ -665,6 +670,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
+			    // need to check if the position is valid
+			    try {
+			        Integer.parseInt(position);
+			    } catch (NumberFormatException e) {
+			        logger.info("got invalid position for the feature's glycans", e);
+			        continue;
+			    }
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefixPublic + glycanId);
 				Literal pos = f.createLiteral(position);
