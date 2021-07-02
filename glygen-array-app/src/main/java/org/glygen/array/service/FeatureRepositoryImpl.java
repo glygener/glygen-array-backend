@@ -288,8 +288,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                      orderByLine + 
                     ((limit == -1) ? " " : " LIMIT " + limit) +
                     " OFFSET " + offset);
+            logger.info("Feature list query:" + queryBuf.toString());
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			
+			logger.info("Got results:" + results.size());
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String featureURI = sparqlEntity.getValue("s");

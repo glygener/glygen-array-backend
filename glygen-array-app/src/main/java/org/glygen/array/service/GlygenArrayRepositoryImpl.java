@@ -209,11 +209,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 			for (SparqlEntity sparqlEntity : results) {
 				String count = sparqlEntity.getValue("count");
-				try {
-					total = Integer.parseInt(count);
-					break;
-				} catch (NumberFormatException e) {
-					throw new SparqlException("Count query returned invalid result", e);
+				if (count == null) {
+				    logger.error("Cannot get the count from repository");
+				} 
+				else {
+    				try {
+    					total = Integer.parseInt(count);
+    					break;
+    				} catch (NumberFormatException e) {
+    					throw new SparqlException("Count query returned invalid result", e);
+    				}
 				}
 				
 			}

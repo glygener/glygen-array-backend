@@ -1309,13 +1309,13 @@ public class GlygenArrayController {
 					case GLYCOCT:
 					    try {
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
+					        if (glycanObject == null) 
+	                            gwbError = true;
 					        glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
 					    } catch (Exception e) {
 					        logger.error("Glycan builder parse error", e);
 					        gwbError = true;
 					    }
-					    if (glycanObject == null) 
-					        gwbError = true;
 					    
 					    if (gwbError) {
 					        // check to make sure GlycoCT valid without using GWB
