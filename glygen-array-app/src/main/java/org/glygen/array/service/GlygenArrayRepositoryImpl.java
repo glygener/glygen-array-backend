@@ -207,6 +207,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
 			queryBuf.append (" ?s rdf:type  <" + type +">. }");
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+			logger.info("count query:" + queryBuf.toString());
 			for (SparqlEntity sparqlEntity : results) {
 				String count = sparqlEntity.getValue("count");
 				if (count == null) {
