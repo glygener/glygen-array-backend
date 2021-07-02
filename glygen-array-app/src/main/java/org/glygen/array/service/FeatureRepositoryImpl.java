@@ -299,6 +299,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				Feature feature = getFeatureFromURI(featureURI, user);
 				features.add(feature);	
 			}
+			
+			logger.info("Retrieved features from repository");
 		}
 		
 		return features;
