@@ -3462,7 +3462,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     "?dataset gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . \n" +
                     "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
                     "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
-                    "?spot data:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId +"> . \n }"); 
+                    "?spot gadr:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId +"> . \n }"); 
                    
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
             for (SparqlEntity sparqlEntity : results) {

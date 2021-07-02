@@ -53,6 +53,8 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
+import org.glygen.array.view.GlycanSearchResult;
+import org.glygen.array.view.GlycanSearchResultView;
 import org.glygen.array.view.IntensityDataResultView;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.MetadataListResultView;
@@ -204,11 +206,11 @@ public class PublicGlygenArrayController {
     @ApiOperation(value = "List glycans that match one of the given glytoucan ids")
     @RequestMapping(value="/listGlycansByGlytoucanIds", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanListResultView listGlycansByGlytoucanIds (
+    public GlycanSearchResultView listGlycansByGlytoucanIds (
             @ApiParam(required=true, value="offset for pagination, start from 0") 
             @RequestParam("offset") Integer offset,
             @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
@@ -219,7 +221,7 @@ public class PublicGlygenArrayController {
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=true, value="list of glytoucan ids to match") 
             @RequestParam(value="glytoucanids", required=true) List<String> ids) {
-        GlycanListResultView result = new GlycanListResultView();
+        GlycanSearchResultView result = new GlycanSearchResultView();
         try {
             if (offset == null)
                 offset = 0;
@@ -241,7 +243,13 @@ public class PublicGlygenArrayController {
             int total = glycanRepository.getGlycanCountByUser (null);
             
             List<Glycan> glycans = glycanRepository.getGlycanByGlytoucanIds(null, offset, limit, field, order, ids);
+            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
             for (Glycan glycan : glycans) {
+                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                GlycanSearchResult r = new GlycanSearchResult();
+                r.setDatasetCount(count);
+                r.setGlycan(glycan);
+                searchGlycans.add(r);
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
                     byte[] image = getCartoonForGlycan(glycan.getId());
                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
@@ -263,7 +271,7 @@ public class PublicGlygenArrayController {
                 }
             }
             
-            result.setRows(glycans);
+            result.setRows(searchGlycans);
             result.setTotal(total);
             result.setFilteredTotal(glycans.size());
         } catch (SparqlException | SQLException e) {
@@ -276,11 +284,11 @@ public class PublicGlygenArrayController {
     @ApiOperation(value = "List glycans that have masses in the given range")
     @RequestMapping(value="/listGlycansByMass", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanListResultView listGlycansByMassRange (
+    public GlycanSearchResultView listGlycansByMassRange (
             @ApiParam(required=true, value="offset for pagination, start from 0") 
             @RequestParam("offset") Integer offset,
             @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
@@ -293,7 +301,7 @@ public class PublicGlygenArrayController {
             @RequestParam(value="min", required=true) Double min,
             @ApiParam(required=true, value="maximum mass") 
             @RequestParam(value="max", required=true) Double max) {
-        GlycanListResultView result = new GlycanListResultView();
+        GlycanSearchResultView result = new GlycanSearchResultView();
         try {
             if (offset == null)
                 offset = 0;
@@ -315,7 +323,13 @@ public class PublicGlygenArrayController {
             int total = glycanRepository.getGlycanCountByUser (null);
             
             List<Glycan> glycans = glycanRepository.getGlycanByMass(null, offset, limit, field, order, min, max);
+            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
             for (Glycan glycan : glycans) {
+                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                GlycanSearchResult r = new GlycanSearchResult();
+                r.setDatasetCount(count);
+                r.setGlycan(glycan);
+                searchGlycans.add(r);
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
                     byte[] image = getCartoonForGlycan(glycan.getId());
                     if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
@@ -337,7 +351,7 @@ public class PublicGlygenArrayController {
                 }
             }
             
-            result.setRows(glycans);
+            result.setRows(searchGlycans);
             result.setTotal(total);
             result.setFilteredTotal(glycans.size());
         } catch (SparqlException | SQLException e) {

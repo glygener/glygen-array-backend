@@ -10,7 +10,6 @@ import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
-import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
