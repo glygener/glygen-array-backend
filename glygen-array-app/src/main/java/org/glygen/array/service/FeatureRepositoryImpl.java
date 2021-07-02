@@ -288,11 +288,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                      orderByLine + 
                     ((limit == -1) ? " " : " LIMIT " + limit) +
                     " OFFSET " + offset);
-            logger.info("Feature list query:" + queryBuf.toString());
 			
 			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			
-			logger.info("Got results:" + results.size());
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String featureURI = sparqlEntity.getValue("s");
@@ -448,6 +445,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
+		logger.info("got statements");
 		List<Glycan> glycans = new ArrayList<Glycan>();
 		Map<String, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
@@ -459,6 +457,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		}
 		while (statements.hasNext()) {
 			Statement st = statements.next();
+			logger.info("handling statement: " + st);
 			if (st.getPredicate().equals(RDFS.LABEL)) {
 			    Value label = st.getObject();
                 featureObject.setName(label.stringValue());
@@ -592,6 +591,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     }
                 }
 			}
+			logger.info("done");
 		}
 		
 		// for the private graph retrievals, only keep the non-public ones
