@@ -520,7 +520,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					if (st2.getPredicate().equals(hasPosition)) {
 						Value value = st2.getObject();
 						if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
-							position = Integer.parseInt(value.stringValue());
+						    try {
+						        position = Integer.parseInt(value.stringValue());
+						    } catch (NumberFormatException e) {
+						        logger.error("glycan position is invalid", e);
+						    }
 						}	
 					} else if (st2.getPredicate().equals(hasMolecule)) {
 						Value val = st2.getObject();
@@ -575,7 +579,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             if (st2.getPredicate().equals(hasPosition)) {
                                 value = st2.getObject();
                                 if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
-                                    position = Integer.parseInt(value.stringValue());
+                                    try {
+                                        position = Integer.parseInt(value.stringValue());
+                                    } catch (NumberFormatException e) {
+                                        logger.error("glycan position is invalid", e);
+                                    }
                                 }   
                             } else if (st2.getPredicate().equals(hasMolecule)) {
                                 Value val = st2.getObject();
