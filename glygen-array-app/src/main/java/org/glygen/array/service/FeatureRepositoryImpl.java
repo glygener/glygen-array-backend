@@ -296,11 +296,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			
 			for (SparqlEntity sparqlEntity : results) {
 				String featureURI = sparqlEntity.getValue("s");
+				logger.info("Getting " +  featureURI + " from repository");
 				Feature feature = getFeatureFromURI(featureURI, user);
 				features.add(feature);	
 			}
 			
-			logger.info("Retrieved features from repository");
+			logger.info("Done retrieving features");
 		}
 		
 		return features;
