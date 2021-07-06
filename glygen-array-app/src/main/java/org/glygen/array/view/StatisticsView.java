@@ -8,6 +8,7 @@ public class StatisticsView {
     Long datasetCount=0L;
     Long sampleCount=0L;
     Long slideCount=0L;
+    Long glycanCount=0L;
     /**
      * @return the apiVersion
      */
@@ -79,6 +80,18 @@ public class StatisticsView {
      */
     public void setSlideCount(Long slideCount) {
         this.slideCount = slideCount;
+    }
+    /**
+     * @return the glycanCount
+     */
+    public Long getGlycanCount() {
+        return glycanCount;
+    }
+    /**
+     * @param glycanCount the glycanCount to set
+     */
+    public void setGlycanCount(Long glycanCount) {
+        this.glycanCount = glycanCount;
     }
     
 }

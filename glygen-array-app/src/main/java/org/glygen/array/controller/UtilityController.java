@@ -29,6 +29,7 @@ import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
+import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
@@ -87,6 +88,9 @@ public class UtilityController {
     
     @Autowired
     MetadataRepository metadataRepository;
+    
+    @Autowired
+    GlycanRepository glycanRepository;
     
     static {
         BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
@@ -625,6 +629,7 @@ public class UtilityController {
             stats.setDatasetCount((long) datasetRepository.getArrayDatasetCountByUser(null));
             stats.setSlideCount((long) layoutRepository.getSlideLayoutCountByUser(null));
             stats.setSampleCount((long) metadataRepository.getSampleCountByUser(null));
+            stats.setGlycanCount((long)glycanRepository.getGlycanCountByUser(null));
         } catch (SQLException | SparqlException e) {
             throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
         }
