@@ -2017,6 +2017,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else {
                 slideObject.setPublic(true);
             }
+            if (uri.contains("public")) {
+                slideObject.setPublic(true);
+            }
         }
     
         while (statements.hasNext()) {
