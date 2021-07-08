@@ -264,6 +264,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				} catch (Exception e) {
 					logger.warn("Cannot get glytoucanId with the given sequence", g.getSequence());
 				}
+			} else {
+			    glyToucanId = g.getGlytoucanId();
 			}
 			
 			Literal glytoucanLit = glyToucanId == null ? null : f.createLiteral(glyToucanId);

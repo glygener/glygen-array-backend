@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -642,39 +643,67 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Register all glycans listed in a glycoworkbench file")
+	@ApiOperation(value = "Register all glycans listed in a file")
 	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, 
-			consumes = {"multipart/form-data"}, produces={"application/json", "application/xml"})
+			consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 
-			@ApiResponse(code=400, message="Invalid request if file is not a text file"),
+			@ApiResponse(code=400, message="Invalid request if file is not a valid file"),
 			@ApiResponse(code=401, message="Unauthorized"),
 			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public BatchGlycanUploadResult addGlycanFromFile (@RequestBody MultipartFile file, Principal p, @RequestParam Boolean noGlytoucanRegistration,
+	public BatchGlycanUploadResult addGlycanFromFile (
+	        @ApiParam(required=true, name="file", value="details of the uploded file") 
+	        @RequestBody
+	        FileWrapper fileWrapper, Principal p, 
+	        @RequestParam Boolean noGlytoucanRegistration,
+	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated, Library XML, GlycoWorkbench") 
 	        @RequestParam(required=true, value="filetype") String fileType) {
 	    BatchGlycanFileType type = BatchGlycanFileType.forValue(fileType);
-	    switch (type) {
-	    case GWS:
-	        return addGlycanFromGWSFile(file, noGlytoucanRegistration, p);
-	    case XML:
-	        return addGlycanFromLibraryFile(file, noGlytoucanRegistration, p);
-	    case TABSEPARATED:
-	        return addGlycanFromCSVFile(file, noGlytoucanRegistration, p);
-	    }
-	    ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
-	    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        errorMessage.addError(new ObjectError("filetype", "NotValid"));
-        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-        throw new IllegalArgumentException("File is not acceptable", errorMessage);
+	    
+	    String fileFolder = uploadDir;
+        if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
+            fileFolder = fileWrapper.getFileFolder();
+        File file = new File (fileFolder, fileWrapper.getIdentifier());
+        if (!file.exists()) {
+            ErrorMessage errorMessage = new ErrorMessage("file is not in the uploads folder");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotFound"));
+            throw new IllegalArgumentException("File is not acceptable", errorMessage);
+        }
+        else {
+            byte[] fileContent;
+            try {
+                fileContent = Files.readAllBytes(file.toPath());
+                switch (type) {
+                case GWS:
+                    return addGlycanFromGWSFile(fileContent, noGlytoucanRegistration, p);
+                case XML:
+                    return addGlycanFromLibraryFile(fileContent, noGlytoucanRegistration, p);
+                case TABSEPARATED:
+                    return addGlycanFromCSVFile(fileContent, noGlytoucanRegistration, p);
+                }
+                ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("filetype", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            } catch (IOException e) {
+                ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File cannot be read", errorMessage);
+            }
+    	    
+        }
 	}
 	
 	@SuppressWarnings("rawtypes")
-    private BatchGlycanUploadResult addGlycanFromLibraryFile (MultipartFile file, Boolean noGlytoucanRegistration, Principal p) {
+    private BatchGlycanUploadResult addGlycanFromLibraryFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
 	    try {
-	        ByteArrayInputStream stream = new ByteArrayInputStream(file.getBytes());
+	        ByteArrayInputStream stream = new ByteArrayInputStream(contents);
             InputStreamReader reader2 = new InputStreamReader(stream, "UTF-8");
             List<Class> contextList = new ArrayList<Class>(Arrays.asList(FilterUtils.filterClassContext));
             contextList.add(ArrayDesignLibrary.class);
@@ -748,7 +777,7 @@ public class GlygenArrayController {
 	    } 
 	}
 	
-	private BatchGlycanUploadResult addGlycanFromCSVFile (MultipartFile file, Boolean noGlytoucanRegistration, Principal p) {
+	private BatchGlycanUploadResult addGlycanFromCSVFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
 	    ParserConfiguration config = new ParserConfiguration();
 	    config.setNameColumn(0);
 	    config.setIdColumn(1);
@@ -761,7 +790,7 @@ public class GlygenArrayController {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         BatchGlycanUploadResult result = new BatchGlycanUploadResult();
         try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
+            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
             String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
             Scanner scan = new Scanner(fileAsString);
             int count = 0;
@@ -866,11 +895,11 @@ public class GlygenArrayController {
         }
     }
 	
-	private BatchGlycanUploadResult addGlycanFromGWSFile (MultipartFile file, Boolean noGlytoucanRegistration, Principal p) {
+	private BatchGlycanUploadResult addGlycanFromGWSFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
         try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(file.getBytes());
+            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
             String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
             
             boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
@@ -1276,7 +1305,7 @@ public class GlygenArrayController {
 				}		
 			}
 			if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
-				Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "glytoucanId", glycan.getGlytoucanId());
+				Set<ConstraintViolation<SequenceDefinedGlycan>> violations = validator.validateValue(SequenceDefinedGlycan.class, "glytoucanId", glycan.getGlytoucanId());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("glytoucanId", "LengthExceeded"));
 				}		
@@ -1311,7 +1340,8 @@ public class GlygenArrayController {
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycan.getSequence().trim());
 					        if (glycanObject == null) 
 	                            gwbError = true;
-					        glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+					        else 
+					            glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
 					    } catch (Exception e) {
 					        logger.error("Glycan builder parse error", e);
 					        gwbError = true;
