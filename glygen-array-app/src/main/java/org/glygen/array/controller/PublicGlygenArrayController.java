@@ -533,8 +533,11 @@ public class PublicGlygenArrayController {
             @RequestBody String sequence,
             @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
-            @ApiParam(required=false, value="perform search again to refresh the search results") 
-            @RequestParam(value="refresh", required=false)
+            @ApiParam(required=false, defaultValue = "false", value="restrict search to reducing end") 
+            @RequestParam(value="reducingEnd", defaultValue = "false", required=false)
+            Boolean reducingEnd,
+            @ApiParam(required=false, defaultValue = "false", value="perform search again to refresh the search results") 
+            @RequestParam(value="refresh", defaultValue = "false", required=false)
             Boolean refreshResults) {
         GlycanSearchResultView result = new GlycanSearchResultView();
         try {
@@ -546,6 +549,8 @@ public class PublicGlygenArrayController {
                 field = "id";
             if (order == null)
                 order = 0; // DESC
+            if (reducingEnd == null)
+                reducingEnd = false;
             
             if (order != 0 && order != 1) {
                 ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
@@ -580,7 +585,7 @@ public class PublicGlygenArrayController {
                     logger.error("Cannot retrieve the search result", e);
                 }
                 if (idList == null || refreshResults) {
-                    matches = subStructureSearch(searchSequence, glycans);
+                    matches = subStructureSearch(searchSequence, glycans, reducingEnd);
                     try {
                         GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                         searchResult.setSequence(searchSequence);
@@ -712,7 +717,8 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    public List<String> subStructureSearch(String structure, List<SequenceDefinedGlycan> structures)
+    public List<String> subStructureSearch(String structure, List<SequenceDefinedGlycan> structures, 
+            boolean reducingEnd)
             throws SugarImporterException, GlycoVisitorException, GlycoconjugateException, SearchEngineException {
         SugarImporterGlycoCTCondensed t_importer = new SugarImporterGlycoCTCondensed();
         Sugar t_sugarStructure = null;
@@ -722,6 +728,10 @@ public class PublicGlygenArrayController {
         // parse the sequence
         t_sugarStructure = t_importer.parse(structure);
         search.setQueryStructure(t_sugarStructure);
+        
+        if (reducingEnd){
+            search.restrictToReducingEnds();
+        }
         
         // test for each structure
         for (SequenceDefinedGlycan s: structures) {
