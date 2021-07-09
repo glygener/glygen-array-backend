@@ -32,7 +32,6 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.util.GlytoucanUtil;
-import org.jline.utils.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1086,6 +1085,35 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 glycans.add(glycan);
             }
         }
+        return glycans;
+    }
+
+    @Override
+    public List<SequenceDefinedGlycan> getAllSequenceDefinedGlycans() throws SparqlException {
+        List<SequenceDefinedGlycan> glycans = new ArrayList<SequenceDefinedGlycan>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s ?val ?format\n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        queryBuf.append ( " ?s gadr:has_sequence ?seq . ?seq gadr:has_sequence_value ?val . ?seq gadr:has_sequence_format ?format . \n");
+        queryBuf.append("}\n");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("s");
+            String sequence = result.getValue("val");
+            String sequenceFormat = result.getValue("format");
+            
+            SequenceDefinedGlycan glycan = new SequenceDefinedGlycan();
+            glycan.setUri(uri);
+            glycan.setId(uri.substring(uri.lastIndexOf("/")+1));
+            glycan.setSequence(sequence);
+            glycan.setSequenceType(GlycanSequenceFormat.forValue(sequenceFormat));
+            glycans.add(glycan);
+        }
+        
         return glycans;
     }
 }

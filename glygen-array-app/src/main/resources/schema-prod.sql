@@ -109,6 +109,11 @@ create table IF NOT EXISTS permissions (
   additiondate date
 );
 
+create table IF NOT EXISTS glycansearchresult (
+  sequence text not null,
+  idlist text not null
+);
+
 ALTER TABLE permissions ADD COLUMN IF NOT EXISTS additiondate date;
        
 select create_constraint_if_not_exists(

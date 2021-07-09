@@ -100,6 +100,11 @@ create table IF NOT EXISTS email (
   newemail varchar(256) not null
 );
 
+create table IF NOT EXISTS glycansearchresult (
+  sequence text not null,
+  idlist text not null
+);
+
 alter table verification_token 
         add constraint FK_m1eg457wh2xxe878rx5y5limo 
         foreign key (userid) 

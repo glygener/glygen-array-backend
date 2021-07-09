@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -25,6 +27,8 @@ import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.GlycanSearchResultEntity;
+import org.glygen.array.persistence.dao.GlycanSearchResultRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -132,6 +136,9 @@ public class PublicGlygenArrayController {
     MetadataRepository metadataRepository;
     
     @Autowired
+    GlycanSearchResultRepository searchResultRepository;
+    
+    @Autowired
     Validator validator;
     
     @Value("${spring.file.imagedirectory}")
@@ -171,7 +178,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -245,7 +252,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -325,7 +332,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -365,7 +372,7 @@ public class PublicGlygenArrayController {
             
             result.setRows(searchGlycans);
             result.setTotal(total);
-            result.setFilteredTotal(glycans.size());
+            result.setFilteredTotal(searchGlycans.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }
@@ -392,65 +399,7 @@ public class PublicGlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             
-            GlycanSequenceFormat format = GlycanSequenceFormat.forValue(sequenceFormat.trim());
-            String searchSequence = null;
-            switch (format) {
-            case GLYCOCT:
-                boolean gwbError = false;
-                try {
-                    org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                            org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
-                    if (glycanObject == null) 
-                        gwbError = true;
-                    else 
-                        searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
-                } catch (Exception e) {
-                    logger.error("Glycan builder parse error", e);
-                }
-                
-                if (gwbError) {
-                    // check to make sure GlycoCT valid without using GWB
-                    SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
-                    try {
-                        Sugar sugar = importer.parse(sequence.trim());
-                        if (sugar == null) {
-                            logger.error("Cannot get Sugar object for sequence:" + sequence.trim());
-                            errorMessage.addError(new ObjectError("sequence", "Invalid"));
-                        } else {
-                            SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
-                            exporter.start(sugar);
-                            searchSequence = exporter.getHashCode();
-                        }
-                    } catch (Exception pe) {
-                        logger.error("GlycoCT parsing failed", pe);
-                        errorMessage.addError(new ObjectError("sequence", pe.getMessage()));
-                    }
-                }
-                break;
-            case WURCS:
-                WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
-                wurcsConverter.start(sequence.trim());
-                searchSequence = wurcsConverter.getGlycoCT();
-                if (searchSequence == null) {
-                    searchSequence = sequence.trim();
-                }
-                break;
-            case IUPAC:
-                CFGMasterListParser parser = new CFGMasterListParser();
-                searchSequence = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequence.trim()));
-                break;
-            case GWS:
-                org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                        org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
-                if (glycanObject == null) 
-                    gwbError = true;
-                searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
-                break;
-            }
-            
-            if (searchSequence == null) {
-                errorMessage.addError(new ObjectError("sequence", "Invalid"));
-            }
+            String searchSequence = parseSequence(errorMessage, sequence, sequenceFormat);
             
             if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Error in the arguments", errorMessage);
@@ -487,6 +436,271 @@ public class PublicGlygenArrayController {
                 r.setGlycan(glycan);
                 searchGlycans.add(r);
             }
+            
+            result.setRows(searchGlycans);
+            result.setTotal(total);
+            result.setFilteredTotal(searchGlycans.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    String parseSequence (ErrorMessage errorMessage, String sequence, String sequenceFormat) {
+        GlycanSequenceFormat format = GlycanSequenceFormat.forValue(sequenceFormat.trim());
+        String searchSequence = null;
+        switch (format) {
+        case GLYCOCT:
+            boolean gwbError = false;
+            try {
+                org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                        org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
+                if (glycanObject == null) 
+                    gwbError = true;
+                else 
+                    searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+            } catch (Exception e) {
+                logger.error("Glycan builder parse error", e);
+            }
+            
+            if (gwbError) {
+                // check to make sure GlycoCT valid without using GWB
+                SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                try {
+                    Sugar sugar = importer.parse(sequence.trim());
+                    if (sugar == null) {
+                        logger.error("Cannot get Sugar object for sequence:" + sequence.trim());
+                        errorMessage.addError(new ObjectError("sequence", "Invalid"));
+                    } else {
+                        SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                        exporter.start(sugar);
+                        searchSequence = exporter.getHashCode();
+                    }
+                } catch (Exception pe) {
+                    logger.error("GlycoCT parsing failed", pe);
+                    errorMessage.addError(new ObjectError("sequence", pe.getMessage()));
+                }
+            }
+            break;
+        case WURCS:
+            WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
+            wurcsConverter.start(sequence.trim());
+            searchSequence = wurcsConverter.getGlycoCT();
+            if (searchSequence == null) {
+                searchSequence = sequence.trim();
+            }
+            break;
+        case IUPAC:
+            CFGMasterListParser parser = new CFGMasterListParser();
+            searchSequence = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequence.trim()));
+            break;
+        case GWS:
+            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                    org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
+            if (glycanObject == null) 
+                gwbError = true;
+            searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+            break;
+        }
+        
+        if (searchSequence == null) {
+            errorMessage.addError(new ObjectError("sequence", "Invalid"));
+        }
+        
+        return searchSequence;
+    }
+    
+    
+    @ApiOperation(value = "List glycans that match the given substructure")
+    @RequestMapping(value="/listGlycansBySubstructure", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public GlycanSearchResultView listGlycansBySubstructure (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=true, value="substructure to match") 
+            @RequestBody String sequence,
+            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
+            @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
+            @ApiParam(required=false, value="perform search again to refresh the search results") 
+            @RequestParam(value="refresh", required=false)
+            Boolean refreshResults) {
+        GlycanSearchResultView result = new GlycanSearchResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            
+            String searchSequence = parseSequence(errorMessage, sequence, sequenceFormat);
+            
+            if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Error in the arguments", errorMessage);
+            }
+            
+            int total = glycanRepository.getGlycanCountByUser (null);
+            
+            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
+            List<SequenceDefinedGlycan> glycans = glycanRepository.getAllSequenceDefinedGlycans();
+            List<String> matches = null;
+            try {
+                String idList = null;
+                try {
+                    GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchSequence);
+                    if (r != null)
+                        idList = r.getIdList();
+                } catch (Exception e) {
+                    logger.error("Cannot retrieve the search result", e);
+                }
+                if (idList == null || refreshResults) {
+                    matches = subStructureSearch(searchSequence, glycans);
+                    try {
+                        GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                        searchResult.setSequence(searchSequence);
+                        searchResult.setIdList(String.join(",", matches));
+                        searchResultRepository.save(searchResult);
+                    } catch (Exception e) {
+                        logger.error("Cannot save the search result", e);
+                    }
+                } else {
+                    matches = Arrays.asList(idList.split(","));  
+                }
+            } catch (SugarImporterException | GlycoVisitorException | GlycoconjugateException
+                    | SearchEngineException e1) {
+                errorMessage.addError(new ObjectError ("search", e1.getMessage()));
+                throw new IllegalArgumentException("Error during search", errorMessage);
+
+            }
+            if (matches != null) {
+                List<SequenceDefinedGlycan> loadedGlycans = new ArrayList<SequenceDefinedGlycan>();
+                for (String match: matches) {
+                    Glycan glycan = glycanRepository.getGlycanById(match, null);
+                    loadedGlycans.add((SequenceDefinedGlycan)glycan);
+                }
+                // sort the glycans by the given order
+                if (field == null || field.equalsIgnoreCase("name")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getName));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getName).reversed());
+                } else if (field.equalsIgnoreCase("comment")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDescription));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDescription).reversed());
+                } else if (field.equalsIgnoreCase("glytoucanId")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getGlytoucanId));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getGlytoucanId).reversed());
+                } else if (field.equalsIgnoreCase("dateModified")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDateModified));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDateModified).reversed());
+                } else if (field.equalsIgnoreCase("mass")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getMass));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getMass).reversed());
+                } else if (field.equalsIgnoreCase("id")) {
+                    if (order == 1)
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getId));
+                    else 
+                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getId).reversed());
+                }
+                int i=0;
+                int added = 0;
+                for (Glycan glycan: loadedGlycans) {
+                    i++;
+                    if (i <= offset) continue;
+                    int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                    GlycanSearchResult r = new GlycanSearchResult();
+                    r.setDatasetCount(count);
+                    r.setGlycan(glycan);
+                    searchGlycans.add(r);
+                    added ++;
+                    byte[] image = getCartoonForGlycan(glycan.getId());
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
+                        if (t_image != null) {
+                            String filename = glycan.getId() + ".png";
+                            //save the image into a file
+                            logger.debug("Adding image to " + imageLocation);
+                            File imageFile = new File(imageLocation + File.separator + filename);
+                            try {
+                                ImageIO.write(t_image, "png", imageFile);
+                            } catch (IOException e) {
+                                logger.error ("Glycan image cannot be written", e);
+                            }
+                        }
+                        image = getCartoonForGlycan(glycan.getId());
+                    }
+                    glycan.setCartoon(image);
+                    
+                    if (added >= limit) break;
+                    
+                }
+            }
+            /*// sort the glycans according to the given order before sending
+            if (field == null || field.equalsIgnoreCase("name")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getName));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getName).reversed());
+            } else if (field.equalsIgnoreCase("comment")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDescription));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDescription).reversed());
+            } else if (field.equalsIgnoreCase("glytoucanId")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getGlytoucanId));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getGlytoucanId).reversed());
+            } else if (field.equalsIgnoreCase("dateModified")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDateModified));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDateModified).reversed());
+            } else if (field.equalsIgnoreCase("mass")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getMass));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getMass).reversed());
+            } else if (field.equalsIgnoreCase("id")) {
+                if (order == 1)
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getId));
+                else 
+                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getId).reversed());
+            }*/
             
             result.setRows(searchGlycans);
             result.setTotal(total);
@@ -630,7 +844,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -682,7 +896,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -734,7 +948,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -784,7 +998,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -838,7 +1052,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -894,7 +1108,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -956,7 +1170,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1021,7 +1235,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1075,7 +1289,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1129,7 +1343,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1183,7 +1397,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1237,7 +1451,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1291,7 +1505,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1345,7 +1559,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -1645,7 +1859,7 @@ public class PublicGlygenArrayController {
                 order = 0; // DESC
             
             if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage();
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("order", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
