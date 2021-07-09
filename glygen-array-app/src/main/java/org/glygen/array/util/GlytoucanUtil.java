@@ -1,6 +1,7 @@
 package org.glygen.array.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
@@ -19,8 +20,13 @@ import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
+import org.glycoinfo.GlycanFormatconverter.Glycan.GlyContainer;
+import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.GlyContainerToSugar;
+import org.glycoinfo.GlycanFormatconverter.util.exchange.WURCSGraphToGlyContainer.WURCSGraphToGlyContainer;
 import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
+import org.glycoinfo.WURCSFramework.util.WURCSFactory;
+import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
 import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
 import org.grits.toolbox.util.structure.glycan.database.GlycanStructure;
 import org.slf4j.Logger;
@@ -158,6 +164,26 @@ public class GlytoucanUtil {
 	         set( "Authorization", authHeader );
 	         setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 	      }};
+	}
+	
+	public static Sugar getSugarFromWURCS (String wurcsSequence) throws IOException {
+	    try {
+            WURCSFactory wf = new WURCSFactory(wurcsSequence);
+            WURCSGraph graph = wf.getGraph();
+
+            // Exchange WURCSGraph to GlyContainer
+            WURCSGraphToGlyContainer wg2gc = new WURCSGraphToGlyContainer();
+            wg2gc.start(graph);
+            GlyContainer t_gc = wg2gc.getGlycan();
+
+            // Exchange GlyConatainer to Sugar
+            GlyContainerToSugar t_export = new GlyContainerToSugar();
+            t_export.start(t_gc);
+            Sugar t_sugar = t_export.getConvertedSugar();
+            return t_sugar;
+	    } catch (Exception e) {
+	        throw new IOException ("Cannot be converted to Sugar object. Reason: " + e.getMessage());
+	    }
 	}
 	
 	

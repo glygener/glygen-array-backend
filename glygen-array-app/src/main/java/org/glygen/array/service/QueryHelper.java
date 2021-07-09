@@ -175,11 +175,15 @@ public class QueryHelper {
    
     
     public List<SparqlEntity> findGlycanInGraphBySequence (String sequence, String graph) throws SparqlException {
+        String singleLineSequence = sequence.replace("\n", "\\n");
+        // remove the \n at the end
+        singleLineSequence = singleLineSequence.substring(0, singleLineSequence.length()-2 );
+        //System.out.println("seqeunce " + singleLineSequence);
         String fromString = "FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n";
         String whereClause = "WHERE {";
         String where = " { " + 
                 "                   ?s gadr:has_sequence ?o .\n" +
-                "                    ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string .\n";
+                "                    ?o gadr:has_sequence_value \"\"\"" + singleLineSequence + "\"\"\"^^xsd:string .\n";
         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH)) {
             // check if the user's private graph has this glycan
             fromString += "FROM <" + graph + ">\n";
@@ -187,7 +191,7 @@ public class QueryHelper {
             where += "  UNION { ?s gadr:has_date_addedtolibrary ?d .\n"
                     + " ?s gadr:has_public_uri ?p . \n" 
                     + " ?p gadr:has_sequence ?o . \n"
-                    + " ?o gadr:has_sequence_value \"\"\"" + sequence + "\"\"\"^^xsd:string . \n}";
+                    + " ?o gadr:has_sequence_value \"\"\"" + singleLineSequence + "\"\"\"^^xsd:string . \n}";
             
         } else {
             where += "}";
@@ -199,6 +203,8 @@ public class QueryHelper {
         queryBuf.append (whereClause + where + 
                 "               }\n" + 
                 "               LIMIT 10");
+        
+        //System.out.println("query " + queryBuf.toString());
         return sparqlDAO.query(queryBuf.toString());
    }
    

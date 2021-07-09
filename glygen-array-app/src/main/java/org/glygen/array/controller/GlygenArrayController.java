@@ -2216,7 +2216,7 @@ public class GlygenArrayController {
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
 				if (slideLayouts == null || slideLayouts.isEmpty()) {
-					ErrorMessage errorMessage = new ErrorMessage();
+					ErrorMessage errorMessage = new ErrorMessage("No slide layouts provided");
 					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 					errorMessage.addError(new ObjectError("slideLayouts", "NoEmpty"));
 					throw new IllegalArgumentException("No slide layouts provided", errorMessage);
@@ -3721,7 +3721,11 @@ public class GlygenArrayController {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 			Glycan glycan= new Glycan();
-			glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
+			if (glycanView.getUri() != null && !glycanView.getUri().isEmpty()) {
+			    glycan.setUri(glycanView.getUri());
+			} else {
+			    glycan.setUri(GlygenArrayRepository.uriPrefix + glycanView.getId());
+			}
 			glycan.setInternalId(glycanView.getInternalId() != null ? glycanView.getInternalId().trim(): glycanView.getInternalId());
 			glycan.setDescription(glycanView.getDescription() != null ? glycanView.getDescription().trim() : glycanView.getDescription());
 			glycan.setName(glycanView.getName() != null ? glycanView.getName().trim() : null);		

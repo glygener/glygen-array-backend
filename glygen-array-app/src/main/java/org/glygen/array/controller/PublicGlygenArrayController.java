@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +13,23 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.Validator;
 
 import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
+import org.eurocarbdb.MolecularFramework.sugar.Sugar;
+import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEngine;
+import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEngineException;
+import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
+import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
-import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
@@ -47,6 +55,8 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
+import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
@@ -60,6 +70,7 @@ import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
 import org.glygen.array.view.SlideLayoutResultView;
+import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +89,7 @@ import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -359,6 +371,170 @@ public class PublicGlygenArrayController {
         }
         
         return result;
+    }
+    
+    @ApiOperation(value = "List glycans that match the given structure")
+    @RequestMapping(value="/listGlycansByStructure", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public GlycanSearchResultView listGlycansByStructure (
+            @ApiParam(required=true, value="structure to match") 
+            @RequestBody String sequence,
+            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
+            @RequestParam(value="sequenceFormat", required=true) String sequenceFormat) {
+        GlycanSearchResultView result = new GlycanSearchResultView();
+        try {
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            
+            GlycanSequenceFormat format = GlycanSequenceFormat.forValue(sequenceFormat.trim());
+            String searchSequence = null;
+            switch (format) {
+            case GLYCOCT:
+                boolean gwbError = false;
+                try {
+                    org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                            org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
+                    if (glycanObject == null) 
+                        gwbError = true;
+                    else 
+                        searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+                } catch (Exception e) {
+                    logger.error("Glycan builder parse error", e);
+                }
+                
+                if (gwbError) {
+                    // check to make sure GlycoCT valid without using GWB
+                    SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                    try {
+                        Sugar sugar = importer.parse(sequence.trim());
+                        if (sugar == null) {
+                            logger.error("Cannot get Sugar object for sequence:" + sequence.trim());
+                            errorMessage.addError(new ObjectError("sequence", "Invalid"));
+                        } else {
+                            SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                            exporter.start(sugar);
+                            searchSequence = exporter.getHashCode();
+                        }
+                    } catch (Exception pe) {
+                        logger.error("GlycoCT parsing failed", pe);
+                        errorMessage.addError(new ObjectError("sequence", pe.getMessage()));
+                    }
+                }
+                break;
+            case WURCS:
+                WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
+                wurcsConverter.start(sequence.trim());
+                searchSequence = wurcsConverter.getGlycoCT();
+                if (searchSequence == null) {
+                    searchSequence = sequence.trim();
+                }
+                break;
+            case IUPAC:
+                CFGMasterListParser parser = new CFGMasterListParser();
+                searchSequence = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequence.trim()));
+                break;
+            case GWS:
+                org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
+                        org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
+                if (glycanObject == null) 
+                    gwbError = true;
+                searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+                break;
+            }
+            
+            if (searchSequence == null) {
+                errorMessage.addError(new ObjectError("sequence", "Invalid"));
+            }
+            
+            if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                throw new IllegalArgumentException("Error in the arguments", errorMessage);
+            }
+            
+            int total = glycanRepository.getGlycanCountByUser (null);
+            
+            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
+            String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);
+            if (glycanURI != null) {
+                Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, null);
+                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
+                    byte[] image = getCartoonForGlycan(glycan.getId());
+                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
+                        if (t_image != null) {
+                            String filename = glycan.getId() + ".png";
+                            //save the image into a file
+                            logger.debug("Adding image to " + imageLocation);
+                            File imageFile = new File(imageLocation + File.separator + filename);
+                            try {
+                                ImageIO.write(t_image, "png", imageFile);
+                            } catch (IOException e) {
+                                logger.error ("Glycan image cannot be written", e);
+                            }
+                        }
+                        image = getCartoonForGlycan(glycan.getId());
+                    }
+                    glycan.setCartoon(image);
+                }
+                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                GlycanSearchResult r = new GlycanSearchResult();
+                r.setDatasetCount(count);
+                r.setGlycan(glycan);
+                searchGlycans.add(r);
+            }
+            
+            result.setRows(searchGlycans);
+            result.setTotal(total);
+            result.setFilteredTotal(searchGlycans.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    public List<String> subStructureSearch(String structure, List<SequenceDefinedGlycan> structures)
+            throws SugarImporterException, GlycoVisitorException, GlycoconjugateException, SearchEngineException {
+        SugarImporterGlycoCTCondensed t_importer = new SugarImporterGlycoCTCondensed();
+        Sugar t_sugarStructure = null;
+        List<String> matches = new ArrayList<String>();
+    
+        SearchEngine search = new SearchEngine ();
+        // parse the sequence
+        t_sugarStructure = t_importer.parse(structure);
+        search.setQueryStructure(t_sugarStructure);
+        
+        // test for each structure
+        for (SequenceDefinedGlycan s: structures) {
+            Sugar existingStructure = null;
+        
+            if (s.getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+                existingStructure = t_importer.parse(s.getSequence());
+            } else if (s.getSequenceType() == GlycanSequenceFormat.WURCS) {
+                try {
+                    existingStructure = GlytoucanUtil.getSugarFromWURCS(s.getSequence());
+                } catch (Exception e) {
+                    logger.debug("cannot convert " + s.getId() + "'s sequence to GlycoCT");
+                }
+            }
+            if (existingStructure != null) {
+                search.setQueriedStructure(existingStructure);
+                search.match();
+                if (search.isExactMatch())
+                {
+                    // found a match, return
+                    logger.debug("Found a match: {}", s.getId());
+                    matches.add(s.getId());
+                }
+            }
+        }
+        
+        return matches;
     }
     
     private byte[] getCartoonForGlycan (String glycanId) {

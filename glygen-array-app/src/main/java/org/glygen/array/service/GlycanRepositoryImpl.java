@@ -461,12 +461,20 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		if (results.isEmpty())
 			return null;
 		else {
-		    String glycanURI = results.get(0).getValue("s");
-		    if (glycanURI.contains("public")) {
-		        return getGlycanFromURI(glycanURI, null);
-		    }
-		    return getGlycanFromURI(glycanURI, user);
+		    //String glycanURI = results.get(0).getValue("s");
+		    //if (glycanURI.contains("public")) {
+		    //    return getGlycanFromURI(glycanURI, null);
+		    //}
+		    //return getGlycanFromURI(glycanURI, user);
+		    
+		    for (SparqlEntity result: results) {
+                String glycanURI = result.getValue("s");
+                if (user == null || !glycanURI.contains("public")) {
+                    return getGlycanFromURI(glycanURI, user);
+                }   
+            }
 		}
+		return null;
 	}
 		
 	/**
