@@ -7,6 +7,8 @@ import org.apache.commons.lang.StringUtils;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(value="sesameTransactionManager") 
 public class QueryHelper {
+    
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     @Autowired
     SesameSparqlDAO sparqlDAO;
@@ -144,6 +148,7 @@ public class QueryHelper {
                 ((limit == -1) ? " " : " LIMIT " + limit) +
                 " OFFSET " + offset);
         
+        logger.info("Glycan query: " + queryBuf.toString());
         return sparqlDAO.query(queryBuf.toString());
     }
     
