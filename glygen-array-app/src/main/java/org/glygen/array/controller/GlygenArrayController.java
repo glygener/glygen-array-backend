@@ -720,6 +720,9 @@ public class GlygenArrayController {
                     if (glycan.getOrigSequence() == null && (glycan.getClassification() == null || glycan.getClassification().isEmpty())) {
                         // this is not a glycan, it is either control or a flag
                         // do not create a glycan
+                        // give an error message
+                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". No information (sequence or classification) is found for the glycan");
+                        continue;
                     } else {
                         view = new UnknownGlycan();
                     }
