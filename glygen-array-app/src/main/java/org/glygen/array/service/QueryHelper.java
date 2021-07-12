@@ -55,7 +55,7 @@ public class QueryHelper {
     public String getSearchPredicate (String searchValue, String queryVariable) {
         String predicates = "";
         
-        predicates += queryVariable + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryVariable + " rdfs:label ?value1 }.\n";
         predicates += "OPTIONAL {" + queryVariable + " gadr:has_internal_id ?value2} \n";
         predicates += "OPTIONAL {" + queryVariable + " rdfs:comment ?value3} \n";
         predicates += "OPTIONAL {" + queryVariable + " gadr:has_alias ?value4} \n";
@@ -148,7 +148,7 @@ public class QueryHelper {
                 ((limit == -1) ? " " : " LIMIT " + limit) +
                 " OFFSET " + offset);
         
-        logger.info("Glycan query: " + queryBuf.toString());
+        //logger.info("Glycan query: " + queryBuf.toString());
         return sparqlDAO.query(queryBuf.toString());
     }
     
