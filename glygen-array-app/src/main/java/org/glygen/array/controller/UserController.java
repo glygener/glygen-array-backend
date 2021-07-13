@@ -244,7 +244,7 @@ public class UserController {
 		    }
 	    	
 		}
-		if ((user.getUserName() == null || user.getUserName().isEmpty()) || (!loginId.equals(user.getUserName()) && !loginId.equals(user.getEmail()))) {
+		if ((user.getUserName() == null || user.getUserName().isEmpty()) || (!loginId.equalsIgnoreCase(user.getUserName()) && !loginId.equalsIgnoreCase(user.getEmail()))) {
 			throw new IllegalArgumentException("userName (path variable) and the submitted user information do not match");
 		}
 		
@@ -295,7 +295,7 @@ public class UserController {
     		// a user can only update his/her own user information
     		// username of the authenticated user should match the username of the user retrieved from the db
     		
-    		if (auth.getName().equals(loginId) || auth.getName().equals(userEntity.getUsername())) {
+    		if (auth.getName().equalsIgnoreCase(loginId) || auth.getName().equalsIgnoreCase(userEntity.getUsername())) {
     			if (user.getEmail() != null && !user.getEmail().isEmpty() && !user.getEmail().trim().equals(userEntity.getEmail())) {
     				// send email confirmation
     		        try {
@@ -423,9 +423,9 @@ public class UserController {
     	    }
     		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
     			// no issues, the admin can access any profile
-    		} else if (auth.getName().equals(userName)) {
+    		} else if (auth.getName().equalsIgnoreCase(userName)) {
     			// the user can display his/her own details
-    		} else if (user.getEmail().equals(userName)) {
+    		} else if (user.getEmail().equalsIgnoreCase(userName)) {
     		    // the user can retrieve his/her own details
     		} else {
     			logger.info("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
