@@ -24,6 +24,7 @@ import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEng
 import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEngineException;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -471,7 +472,7 @@ public class PublicGlygenArrayController {
                     Sugar sugar = importer.parse(sequence.trim());
                     if (sugar == null) {
                         logger.error("Cannot get Sugar object for sequence:" + sequence.trim());
-                        errorMessage.addError(new ObjectError("sequence", "Invalid"));
+                        errorMessage.addError(new ObjectError("sequence", "NotValid"));
                     } else {
                         SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
                         exporter.start(sugar);
@@ -488,7 +489,16 @@ public class PublicGlygenArrayController {
             wurcsConverter.start(sequence.trim());
             searchSequence = wurcsConverter.getGlycoCT();
             if (searchSequence == null) {
-                searchSequence = sequence.trim();
+                // keep it as WURCS
+                // validate and re-code
+                WURCSValidator validator = new WURCSValidator();
+                validator.start(sequence.trim());
+                if (validator.getReport().hasError()) {
+                    String [] codes = validator.getReport().getErrors().toArray(new String[0]);
+                    errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
+                } else {
+                    searchSequence = validator.getReport().getStandardString();
+                }
             }
             break;
         case IUPAC:
@@ -498,14 +508,14 @@ public class PublicGlygenArrayController {
         case GWS:
             org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
                     org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
-            if (glycanObject == null) 
-                gwbError = true;
-            searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+            if (glycanObject != null) {
+                searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+            }
             break;
         }
         
-        if (searchSequence == null) {
-            errorMessage.addError(new ObjectError("sequence", "Invalid"));
+        if (searchSequence == null && (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())) {
+            errorMessage.addError(new ObjectError("sequence", "NotValid"));
         }
         
         return searchSequence;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum BatchGlycanFileType {
-    TABSEPARATED ("Tab separated"),
+    TABSEPARATED ("Tab separated Glycan file"),
     XML ("Library XML"),
     GWS ("GlycoWorkbench");
     
@@ -12,7 +12,7 @@ public enum BatchGlycanFileType {
     
     @JsonCreator
     public static BatchGlycanFileType forValue(String value) {
-        if (value.equalsIgnoreCase("Tab separated"))
+        if (value.toLowerCase().startsWith("tab separated"))
             return TABSEPARATED;
         else if (value.equalsIgnoreCase("GlycoWorkbench"))
             return GWS;

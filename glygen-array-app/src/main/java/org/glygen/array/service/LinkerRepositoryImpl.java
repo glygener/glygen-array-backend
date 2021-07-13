@@ -653,7 +653,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     public String getSearchPredicate(String searchValue, String queryLabel) {
         String predicates = "";
         
-        predicates += queryLabel + " rdfs:label ?value1 .\n";
+        predicates += "OPTIONAL {" + queryLabel + " rdfs:label ?value1 } \n";
         predicates += "OPTIONAL {" + queryLabel + " rdfs:comment ?value2} \n";
         predicates += "OPTIONAL {" + queryLabel + "  gadr:has_sequence ?value3} \n";
         predicates += "OPTIONAL {" + queryLabel + "  gadr:has_pdbId ?value4} \n";

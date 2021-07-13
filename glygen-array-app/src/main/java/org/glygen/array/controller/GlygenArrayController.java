@@ -46,6 +46,7 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.config.ValidationConstants;
@@ -589,14 +590,16 @@ public class GlygenArrayController {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
-					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+				    String[] codes = {local.getId()};
+					errorMessage.addError(new ObjectError("internalId", codes, null, "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
-					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				    String[] codes = {local.getId()};
+					errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
 				}
 			} 
 		} catch (SparqlException | SQLException e) {
@@ -721,10 +724,16 @@ public class GlygenArrayController {
                         // this is not a glycan, it is either control or a flag
                         // do not create a glycan
                         // give an error message
-                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". No information (sequence or classification) is found for the glycan");
+                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Not a glycan");
                         continue;
-                    } else {
+                    } else if (glycan.getOrigSequence() == null ) {  
+                        // unknown glycan
                         view = new UnknownGlycan();
+                    }
+                    if (glycan.getFilterSetting() != null) {
+                        // there is a glycan with composition, TODO we don't handle that right now
+                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Glycan Type not supported");
+                        continue;
                     }
                 } else {
                     view = new SequenceDefinedGlycan();
@@ -747,7 +756,7 @@ public class GlygenArrayController {
                             ErrorMessage error = (ErrorMessage)e.getCause();
                             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                                 ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes().length != 0) {
+                                if (err.getCodes() != null && err.getCodes().length != 0) {
                                     Glycan duplicateGlycan = new Glycan();
                                     try {
                                         duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
@@ -1041,14 +1050,16 @@ public class GlygenArrayController {
 				local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
-					errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+				    String[] codes = {local.getId()};
+					errorMessage.addError(new ObjectError("internalId", codes, null, "Duplicate"));
 				}
 			}
 			if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
 				local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
 				if (local != null) {
 				    glycan.setId(local.getId());
-					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				    String[] codes = {local.getId()};
+					errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
 				}
 			} 
 		} catch (SparqlException | SQLException e) {
@@ -1396,18 +1407,26 @@ public class GlygenArrayController {
 	                        g.setSequence(glycoCT);
 	                        g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 					    } else { // keep the sequence as WURCS
-					        g.setSequence(glycan.getSequence().trim());
-					        g.setSequenceType(GlycanSequenceFormat.WURCS);
-					        WURCS2Parser t_wurcsparser = new WURCS2Parser();
-					        MassOptions massOptions = new MassOptions();
-				            massOptions.setDerivatization(MassOptions.NO_DERIVATIZATION);
-				            massOptions.setIsotope(MassOptions.ISOTOPE_MONO);
-				            massOptions.ION_CLOUD = new IonCloud();
-				            massOptions.NEUTRAL_EXCHANGES = new IonCloud();
-				            ResidueType m_residueFreeEnd = ResidueDictionary.findResidueType("freeEnd");
-				            massOptions.setReducingEndType(m_residueFreeEnd);
-                            glycanObject = t_wurcsparser.readGlycan(g.getSequence(), massOptions);
-					        g.setMass(computeMass(glycanObject));
+					        // recode the sequence
+				            WURCSValidator validator = new WURCSValidator();
+				            validator.start(glycan.getSequence().trim());
+				            if (validator.getReport().hasError()) {
+				                String [] codes = validator.getReport().getErrors().toArray(new String[0]);
+				                errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
+				            } else {
+    				            g.setSequence(validator.getReport().getStandardString());
+    					        g.setSequenceType(GlycanSequenceFormat.WURCS);
+    					        WURCS2Parser t_wurcsparser = new WURCS2Parser();
+    					        MassOptions massOptions = new MassOptions();
+    				            massOptions.setDerivatization(MassOptions.NO_DERIVATIZATION);
+    				            massOptions.setIsotope(MassOptions.ISOTOPE_MONO);
+    				            massOptions.ION_CLOUD = new IonCloud();
+    				            massOptions.NEUTRAL_EXCHANGES = new IonCloud();
+    				            ResidueType m_residueFreeEnd = ResidueDictionary.findResidueType("freeEnd");
+    				            massOptions.setReducingEndType(m_residueFreeEnd);
+                                glycanObject = t_wurcsparser.readGlycan(g.getSequence(), massOptions);
+    					        g.setMass(computeMass(glycanObject));
+				            }
 					    }
 					    break;
                     case IUPAC:
