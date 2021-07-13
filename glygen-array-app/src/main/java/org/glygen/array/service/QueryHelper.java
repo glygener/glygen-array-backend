@@ -148,7 +148,7 @@ public class QueryHelper {
                 ((limit == -1) ? " " : " LIMIT " + limit) +
                 " OFFSET " + offset);
         
-        logger.info("Glycan query: " + queryBuf.toString());
+       // logger.info("Glycan query: " + queryBuf.toString());
         return sparqlDAO.query(queryBuf.toString());
     }
     
