@@ -10550,7 +10550,7 @@ Also time and temperature for each step</rdfs:comment>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1078"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1079"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1084"/>
-        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1090"/>
+        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1092"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1096"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1105"/>
         <rdfs:label>Micro-Organism Sample</rdfs:label>
@@ -10571,7 +10571,6 @@ Also time and temperature for each step</rdfs:comment>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1114"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1121"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1133"/>
-        <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1139"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1141"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1145"/>
         <template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext1154"/>
