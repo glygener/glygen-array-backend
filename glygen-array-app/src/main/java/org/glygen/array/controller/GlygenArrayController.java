@@ -729,7 +729,7 @@ public class GlygenArrayController {
                     } else if (glycan.getOrigSequence() == null ) {  
                         // unknown glycan
                         view = new UnknownGlycan();
-                    }
+                    } 
                     if (glycan.getFilterSetting() != null) {
                         // there is a glycan with composition, TODO we don't handle that right now
                         result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Glycan Type not supported");
@@ -740,6 +740,10 @@ public class GlygenArrayController {
                     ((SequenceDefinedGlycan) view).setGlytoucanId(glycan.getGlyTouCanId());
                     ((SequenceDefinedGlycan) view).setSequence(glycan.getSequence().trim());
                     ((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+                }
+                if (view == null) {
+                    result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Not a glycan");
+                    continue;
                 }
                 try {
                     view.setInternalId(glycan.getId()+ "");
