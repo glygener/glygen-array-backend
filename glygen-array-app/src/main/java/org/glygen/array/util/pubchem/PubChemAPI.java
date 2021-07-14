@@ -14,7 +14,7 @@ public class PubChemAPI {
 	final static String url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
 	final static String inchiUrl = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/";
 	final static String smilesUrl = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/";
-	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName,CanonicalSMILES/JSON";
+	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName,IsomericSMILES/JSON";
 	final static String classificationURL ="/classification/JSON?classification_type=simple";
 	public final static String CHEBI_URI = "http://purl.obolibrary.org/obo/CHEBI_";
 	
