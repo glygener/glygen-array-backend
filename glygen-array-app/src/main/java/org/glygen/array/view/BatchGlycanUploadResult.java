@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.ObjectError;
 
 public class BatchGlycanUploadResult {
 	
-	List<String> wrongSequences = new ArrayList<>();
+	List<GlycanUploadError> wrongSequences = new ArrayList<>();
 	List<Glycan> duplicateSequences = new ArrayList<Glycan>();
 	String successMessage;
 	List<Glycan> addedGlycans = new ArrayList<Glycan>();
 	
-	public void addWrongSequence (String seq) {
+	public void addWrongSequence (GlycanUploadError seq) {
 		if (!wrongSequences.contains(seq))
 			wrongSequences.add(seq);
 	}
@@ -30,11 +33,11 @@ public class BatchGlycanUploadResult {
 		return successMessage;
 	}
 	
-	public List<String> getWrongSequences() {
+	public List<GlycanUploadError> getWrongSequences() {
 		return wrongSequences;
 	}
 	
-	public void setWrongSequences(List<String> wrongSequences) {
+	public void setWrongSequences(List<GlycanUploadError> wrongSequences) {
 		this.wrongSequences = wrongSequences;
 	}
 	
@@ -54,4 +57,25 @@ public class BatchGlycanUploadResult {
 		return addedGlycans;
 	}
 
+    public void addWrongSequence(String id, int count, String sequence, 
+            String message) {
+        GlycanUploadError error = new GlycanUploadError();
+        if (sequence != null) {
+            Glycan g = new SequenceDefinedGlycan();
+            ((SequenceDefinedGlycan) g).setSequence (sequence);
+            g.setInternalId(id);
+            error.setGlycan(g);
+        } else {
+            Glycan g = new Glycan();
+            g.setInternalId(id);
+            error.setGlycan(g);
+        }
+        ErrorMessage errorMessage = new ErrorMessage(message);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        String[] codes = new String[] {count+""};
+        errorMessage.addError(new ObjectError("sequence", codes, null, message));
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        error.setError(errorMessage);
+        addWrongSequence(error);
+    }
 }

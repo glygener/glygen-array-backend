@@ -16,15 +16,12 @@ import javax.validation.Validator;
 
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
-import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEngine;
 import org.eurocarbdb.MolecularFramework.util.similiarity.SearchEngine.SearchEngineException;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
-import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
-import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -60,8 +57,8 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
-import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.GlytoucanUtil;
+import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
@@ -75,7 +72,6 @@ import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
 import org.glygen.array.view.SlideLayoutResultView;
-import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -400,7 +396,7 @@ public class PublicGlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             
-            String searchSequence = parseSequence(errorMessage, sequence, sequenceFormat);
+            String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
             
             if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Error in the arguments", errorMessage);
@@ -448,78 +444,7 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    String parseSequence (ErrorMessage errorMessage, String sequence, String sequenceFormat) {
-        GlycanSequenceFormat format = GlycanSequenceFormat.forValue(sequenceFormat.trim());
-        String searchSequence = null;
-        switch (format) {
-        case GLYCOCT:
-            boolean gwbError = false;
-            try {
-                org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                        org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
-                if (glycanObject == null) 
-                    gwbError = true;
-                else 
-                    searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
-            } catch (Exception e) {
-                logger.error("Glycan builder parse error", e);
-            }
-            
-            if (gwbError) {
-                // check to make sure GlycoCT valid without using GWB
-                SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
-                try {
-                    Sugar sugar = importer.parse(sequence.trim());
-                    if (sugar == null) {
-                        logger.error("Cannot get Sugar object for sequence:" + sequence.trim());
-                        errorMessage.addError(new ObjectError("sequence", "NotValid"));
-                    } else {
-                        SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
-                        exporter.start(sugar);
-                        searchSequence = exporter.getHashCode();
-                    }
-                } catch (Exception pe) {
-                    logger.error("GlycoCT parsing failed", pe);
-                    errorMessage.addError(new ObjectError("sequence", pe.getMessage()));
-                }
-            }
-            break;
-        case WURCS:
-            WURCSToGlycoCT wurcsConverter = new WURCSToGlycoCT();
-            wurcsConverter.start(sequence.trim());
-            searchSequence = wurcsConverter.getGlycoCT();
-            if (searchSequence == null) {
-                // keep it as WURCS
-                // validate and re-code
-                WURCSValidator validator = new WURCSValidator();
-                validator.start(sequence.trim());
-                if (validator.getReport().hasError()) {
-                    String [] codes = validator.getReport().getErrors().toArray(new String[0]);
-                    errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
-                } else {
-                    searchSequence = validator.getReport().getStandardString();
-                }
-            }
-            break;
-        case IUPAC:
-            CFGMasterListParser parser = new CFGMasterListParser();
-            searchSequence = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequence.trim()));
-            break;
-        case GWS:
-            org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                    org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
-            if (glycanObject != null) {
-                searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
-            }
-            break;
-        }
-        
-        if (searchSequence == null && (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())) {
-            errorMessage.addError(new ObjectError("sequence", "NotValid"));
-        }
-        
-        return searchSequence;
-    }
+    
     
     
     @ApiOperation(value = "List glycans that match the given substructure")
@@ -574,7 +499,7 @@ public class PublicGlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             
-            String searchSequence = parseSequence(errorMessage, sequence, sequenceFormat);
+            String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
             
             if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Error in the arguments", errorMessage);

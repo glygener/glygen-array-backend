@@ -85,6 +85,7 @@ import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.GalFileImportResult;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.ParserConfiguration;
+import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -660,7 +661,7 @@ public class GlygenArrayController {
 	        @RequestBody
 	        FileWrapper fileWrapper, Principal p, 
 	        @RequestParam Boolean noGlytoucanRegistration,
-	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated, Library XML, GlycoWorkbench") 
+	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated Glycan file, Library XML, GlycoWorkbench(.gws), WURCS, CFG IUPAC") 
 	        @RequestParam(required=true, value="filetype") String fileType) {
 	    BatchGlycanFileType type = BatchGlycanFileType.forValue(fileType);
 	    
@@ -685,6 +686,10 @@ public class GlygenArrayController {
                     return addGlycanFromLibraryFile(fileContent, noGlytoucanRegistration, p);
                 case TABSEPARATED:
                     return addGlycanFromCSVFile(fileContent, noGlytoucanRegistration, p);
+                case CFG:
+                    return addGlycanFromCFGFile(fileContent, noGlytoucanRegistration, p);
+                case WURCS:
+                    return addGlycanFromWURCSFile(fileContent, noGlytoucanRegistration, p);
                 }
                 ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -700,8 +705,8 @@ public class GlygenArrayController {
     	    
         }
 	}
-	
-	@SuppressWarnings("rawtypes")
+
+    @SuppressWarnings("rawtypes")
     private BatchGlycanUploadResult addGlycanFromLibraryFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
@@ -724,7 +729,8 @@ public class GlygenArrayController {
                         // this is not a glycan, it is either control or a flag
                         // do not create a glycan
                         // give an error message
-                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Not a glycan");
+                        result.addWrongSequence ((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, null, "Not a glycan");
+                  
                         continue;
                     } else if (glycan.getOrigSequence() == null ) {  
                         // unknown glycan
@@ -732,7 +738,8 @@ public class GlygenArrayController {
                     } 
                     if (glycan.getFilterSetting() != null) {
                         // there is a glycan with composition, TODO we don't handle that right now
-                        result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Glycan Type not supported");
+                        result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, glycan.getSequence(), "Glycan Type not supported");
+                 
                         continue;
                     }
                 } else {
@@ -742,7 +749,7 @@ public class GlygenArrayController {
                     ((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                 }
                 if (view == null) {
-                    result.addWrongSequence(count + ":" + (glycan.getName() != null ? glycan.getName() : glycan.getId()) + ". Not a glycan");
+                    result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), "Not a glycan");
                     continue;
                 }
                 try {
@@ -754,7 +761,6 @@ public class GlygenArrayController {
                     result.getAddedGlycans().add(addedGlycan);
                     countSuccess ++;
                 } catch (Exception e) {
-                    logger.error ("Exception adding the glycan: " + glycan.getName(), e);
                     if (e.getCause() instanceof ErrorMessage) {
                         if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
                             ErrorMessage error = (ErrorMessage)e.getCause();
@@ -767,17 +773,15 @@ public class GlygenArrayController {
                                         result.addDuplicateSequence(duplicateGlycan);
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
-                                        result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
                                     }
                                 }
-                            } else {
-                                result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
-                            }
+                            } 
                         } else {
-                            result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
+                            result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
                         }
                     } else { 
-                        result.addWrongSequence(count + ":" + glycan.getName());
+                        logger.error ("Exception adding the glycan: " + glycan.getName(), e);
+                        result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
                     }
                 } 
             }
@@ -838,11 +842,11 @@ public class GlygenArrayController {
                             ((MassOnlyGlycan) glycan).setMass(Double.parseDouble(mass.trim()));
                         } catch (NumberFormatException e) {
                             // add to error list
-                            result.addWrongSequence(count + ":" + mass);
+                            result.addWrongSequence(glycanName, count, null, e.getMessage());
                         }
                     } else {
                         // ERROR
-                        result.addWrongSequence(count + ": No sequence and mass information found");
+                        result.addWrongSequence(glycanName, count, sequence, "No sequence and mass information found");
                     }
                 } else {
                     // sequence defined glycan
@@ -884,17 +888,14 @@ public class GlygenArrayController {
                                         result.addDuplicateSequence(duplicateGlycan);
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
-                                        result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
                                     }
                                 }
-                            } else {
-                                result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
-                            }
+                            } 
                         } else {
-                            result.addWrongSequence(count + ":" + glycan.getName() + ". Reason: " + ((ErrorMessage)e.getCause()).toString());
+                            result.addWrongSequence(glycan.getName(), count, sequence, ((ErrorMessage)e.getCause()).toString());
                         }
                     } else { 
-                        result.addWrongSequence(count + ":" + glycan.getName());
+                        result.addWrongSequence(glycan.getName(), count, sequence, e.getMessage());
                     }
                 } 
             }
@@ -912,6 +913,20 @@ public class GlygenArrayController {
     }
 	
 	private BatchGlycanUploadResult addGlycanFromGWSFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
+	    return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.GWS.getLabel(), ";");
+	}
+	
+	private BatchGlycanUploadResult addGlycanFromWURCSFile(byte[] contents, Boolean noGlytoucanRegistration,
+            Principal p) {
+	    return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.WURCS.getLabel(), "\\n");
+    }
+
+    private BatchGlycanUploadResult addGlycanFromCFGFile(byte[] contents, Boolean noGlytoucanRegistration,
+            Principal p) {
+        return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.IUPAC.getLabel(), "\\n");
+    }
+	
+	private BatchGlycanUploadResult addGlycanFromTextFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p, String format, String delimeter) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
         try {
@@ -927,38 +942,39 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("File is not acceptable", errorMessage);
             }
             
-            String[] structures = fileAsString.split(";");
+            String[] structures = fileAsString.split(delimeter);
             int count = 0;
             int countSuccess = 0;
             for (String sequence: structures) {
                 count++;
                 try {
-                    org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                            org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence);
-                    if (glycanObject == null) {
-                        // sequence is not valid, ignore and add to the list of failed glycans
-                        result.addWrongSequence(count + ":" + sequence);
-                    } else {
-                        String glycoCT = glycanObject.toGlycoCTCondensed();
-                        if (glycoCT == null || glycoCT.isEmpty()) {
-                            result.addWrongSequence(count + ":" + sequence);
+                    ErrorMessage e = new ErrorMessage();
+                    String glycoCT = SequenceUtils.parseSequence(e, sequence, format);
+                    if (glycoCT == null || glycoCT.isEmpty()) {
+                        if (e.getErrors() != null && !e.getErrors().isEmpty()) {
+                            result.addWrongSequence(null, count, sequence, e.getErrors().get(0).getDefaultMessage());
                         } else {
-                            SequenceDefinedGlycan g = new SequenceDefinedGlycan();
-                            g.setSequence(glycoCT);
+                            result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
+                        }
+                    } else {
+                        SequenceDefinedGlycan g = new SequenceDefinedGlycan();
+                        g.setSequence(glycoCT);
+                        if (glycoCT.startsWith("RES"))
                             g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-                            g.setMass(computeMass(glycanObject));
-                            String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
-                            if (existing != null) {
-                                // duplicate, ignore
-                                String id = existing.substring(existing.lastIndexOf("/")+1);
-                                Glycan glycan = glycanRepository.getGlycanById(id, user);
-                                result.addDuplicateSequence(glycan);
-                            } else {
-                                String id = addGlycan(g, p, noGlytoucanRegistration);
-                                Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                                result.getAddedGlycans().add(addedGlycan);
-                                countSuccess ++;
-                            }
+                        else 
+                            g.setSequenceType(GlycanSequenceFormat.WURCS);
+                        
+                        String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
+                        if (existing != null) {
+                            // duplicate, ignore
+                            String id = existing.substring(existing.lastIndexOf("/")+1);
+                            Glycan glycan = glycanRepository.getGlycanById(id, user);
+                            result.addDuplicateSequence(glycan);
+                        } else {
+                            String id = addGlycan(g, p, noGlytoucanRegistration);
+                            Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                            result.getAddedGlycans().add(addedGlycan);
+                            countSuccess ++;
                         }
                     }
                 }
@@ -969,7 +985,7 @@ public class GlygenArrayController {
                 } catch (Exception e) {
                     logger.error ("Exception adding the sequence: " + sequence, e);
                     // sequence is not valid
-                    result.addWrongSequence(count + ":" + sequence);
+                    result.addWrongSequence(null, count, sequence, e.getMessage());
                 }
             }
             stream.close();

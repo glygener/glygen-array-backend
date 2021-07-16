@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 "CID",
 "MolecularFormula",
 "IsomericSMILES",
+"CanonicalSMILES",
 "InChI",
 "InChIKey",
 "IUPACName",
@@ -22,6 +23,8 @@ public class PubChemProperty {
 	@JsonProperty("MolecularFormula")
 	private String molecularFormula;
 	@JsonProperty("IsomericSMILES")
+    private String isomoericSmiles;
+	@JsonProperty("CanonicalMILES")
     private String smiles;
 	@JsonProperty("InChI")
 	private String inChI;
@@ -93,14 +96,30 @@ public class PubChemProperty {
 		this.mass = mass;
 	}
 	
-	@JsonProperty("IsomericSMILES")
+	@JsonProperty("CanonicalSMILES")
 	public String getSmiles() {
         return smiles;
     }
 	
-	@JsonProperty("IsomericSMILES")
+	@JsonProperty("CanonicalSMILES")
 	public void setSmiles(String smiles) {
         this.smiles = smiles;
+    }
+
+    /**
+     * @return the isomoericSmiles
+     */
+	@JsonProperty("IsomericSMILES")
+    public String getIsomoericSmiles() {
+        return isomoericSmiles;
+    }
+
+    /**
+     * @param isomoericSmiles the isomoericSmiles to set
+     */
+	@JsonProperty("IsomericSMILES")
+    public void setIsomoericSmiles(String isomoericSmiles) {
+        this.isomoericSmiles = isomoericSmiles;
     }
 
 }

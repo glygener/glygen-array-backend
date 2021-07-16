@@ -291,7 +291,7 @@ public class UtilityController {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
+                errorMessage.addError(new ObjectError("pubchemid", "NotFound"));
                 throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
             }
             return linker; 
@@ -299,18 +299,33 @@ public class UtilityController {
             try {
                 // try using as inchiKey 
                 Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
-                return linker;
-            } catch (Exception e1) {
-                // try using as smiles
-                Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
                 if (linker == null) {
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("pubchemid", "NotValid"));
+                    errorMessage.addError(new ObjectError("inchiKey", "NotFound"));
                     throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
                 }
                 return linker;
+            } catch (Exception e1) {
+                try {
+                    // try using as smiles
+                    Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
+                    if (linker == null) {
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("smiles", "NotFound"));
+                        throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
+                    }
+                    return linker;
+                } catch (Exception e2) {
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("smiles", "NotValid"));
+                    throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
+                }
             } 
         } catch (Exception e) {  // pubchem retrieval failed
             ErrorMessage errorMessage = new ErrorMessage();

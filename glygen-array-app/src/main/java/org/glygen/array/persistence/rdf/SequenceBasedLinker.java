@@ -4,8 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.validation.constraints.Size;
+
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
+import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 
@@ -57,6 +60,7 @@ public class SequenceBasedLinker extends Linker {
 		return positionMap;
 	}
 	
+	@Size(max=ValidationConstants.BIGSEQUENCE_LIMIT, message="Sequence cannot exceed " + ValidationConstants.BIGSEQUENCE_LIMIT + " characters")
 	public String getSequence() {
 		return sequence;
 	}

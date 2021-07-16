@@ -2,6 +2,10 @@ package org.glygen.array.persistence.rdf;
 
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
+import org.glygen.array.config.ValidationConstants;
+
 public class ProteinLinker extends SequenceBasedLinker {
 	
 	String uniProtId;
@@ -14,6 +18,7 @@ public class ProteinLinker extends SequenceBasedLinker {
 	/**
 	 * @return the uniProtId
 	 */
+	@Size(max=ValidationConstants.NAME_LIMIT, message="Uniprot ID cannot exceed " + ValidationConstants.NAME_LIMIT + " characters")
 	public String getUniProtId() {
 		return uniProtId;
 	}

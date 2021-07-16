@@ -1,11 +1,16 @@
 package org.glygen.array.persistence.rdf;
 
+import javax.validation.constraints.Size;
+
+import org.glygen.array.config.ValidationConstants;
+
 public class SmallMoleculeLinker extends Linker {
 	Long pubChemId;
 	String imageURL;
 	String inChiKey;
 	String inChiSequence;
 	String iupacName;
+	String isomericSmiles;
 	String smiles;
 	Double mass;
 	String molecularFormula;
@@ -42,6 +47,7 @@ public class SmallMoleculeLinker extends Linker {
 	/**
 	 * @return the inChiKey
 	 */
+	@Size(max=27, message="Inchikey cannot exceed 27 characters")
 	public String getInChiKey() {
 		return inChiKey;
 	}
@@ -54,6 +60,7 @@ public class SmallMoleculeLinker extends Linker {
 	/**
 	 * @return the inChiSequence
 	 */
+	@Size(max=ValidationConstants.SEQUENCE_LIMIT, message="InChiSequence cannot exceed " + ValidationConstants.SEQUENCE_LIMIT + " characters")
 	public String getInChiSequence() {
 		return inChiSequence;
 	}
@@ -66,6 +73,7 @@ public class SmallMoleculeLinker extends Linker {
 	/**
 	 * @return the iupacName
 	 */
+	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="InChiSequence cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
 	public String getIupacName() {
 		return iupacName;
 	}
@@ -90,6 +98,7 @@ public class SmallMoleculeLinker extends Linker {
 	/**
 	 * @return the molecularFormula
 	 */
+	@Size(max=256, message="InChiSequence cannot exceed 256 characters")
 	public String getMolecularFormula() {
 		return molecularFormula;
 	}
@@ -108,6 +117,7 @@ public class SmallMoleculeLinker extends Linker {
 		this.classification = classification;
 	}
 	
+	@Size(max=ValidationConstants.SEQUENCE_LIMIT, message="SMILES cannot exceed " + ValidationConstants.SEQUENCE_LIMIT + " characters")
 	public String getSmiles() {
         return smiles;
     }
@@ -132,4 +142,19 @@ public class SmallMoleculeLinker extends Linker {
 			return pubChemId.hashCode();
 		return super.hashCode();
 	}
+
+    /**
+     * @return the isomericSmiles
+     */
+	@Size(max=ValidationConstants.SEQUENCE_LIMIT, message="SMILES cannot exceed " + ValidationConstants.SEQUENCE_LIMIT + " characters")
+    public String getIsomericSmiles() {
+        return isomericSmiles;
+    }
+
+    /**
+     * @param isomericSmiles the isomericSmiles to set
+     */
+    public void setIsomericSmiles(String isomericSmiles) {
+        this.isomericSmiles = isomericSmiles;
+    }
 }

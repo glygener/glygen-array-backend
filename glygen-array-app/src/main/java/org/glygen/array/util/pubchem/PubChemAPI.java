@@ -14,7 +14,7 @@ public class PubChemAPI {
 	final static String url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/";
 	final static String inchiUrl = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/";
 	final static String smilesUrl = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/";
-	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName,IsomericSMILES/JSON";
+	final static String propertyURL = "/property/MolecularFormula,MonoisotopicMass,InChIKey,InChI,IUPACName,IsomericSMILES,CanonicalSMILES/JSON";
 	final static String classificationURL ="/classification/JSON?classification_type=simple";
 	public final static String CHEBI_URI = "http://purl.obolibrary.org/obo/CHEBI_";
 	
@@ -123,6 +123,10 @@ public class PubChemAPI {
 			linker.setImageURL(url + pubChemId + "/PNG");
 			linker.setPubChemId(pubChemId);
 			linker.setSmiles(prop.getSmiles());
+			if (prop.getSmiles() != null && prop.getSmiles().equalsIgnoreCase(prop.getIsomoericSmiles())) 
+			    linker.setIsomericSmiles(null);
+			else
+			    linker.setIsomericSmiles(prop.getIsomoericSmiles());
 			
 			return linker;
 		}
@@ -130,11 +134,12 @@ public class PubChemAPI {
 	}
 	
 	public static void main(String[] args) {
-		Linker linker = getLinkerDetailsFromPubChem (2444L);
+		Linker linker = getLinkerDetailsFromPubChem (9966836L);
 		System.out.println ("linker formula:"  + ((SmallMoleculeLinker)linker).getMolecularFormula());
 		System.out.println ("linker image URL:"  + ((SmallMoleculeLinker)linker).getImageURL());
 		System.out.println ("linker mass:"  + ((SmallMoleculeLinker)linker).getMass());
-		
+		System.out.println ("linker isomeric:"  + ((SmallMoleculeLinker)linker).getIsomericSmiles());
+		System.out.println ("linker canonical:"  + ((SmallMoleculeLinker)linker).getSmiles());
 	}
 	
 
