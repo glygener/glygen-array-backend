@@ -445,11 +445,62 @@ public class PublicGlygenArrayController {
     }
     
     
+    @ApiOperation(value = "Perform search on glycans that match the given substructure and return the search id")
+    @RequestMapping(value="/searchGlycansBySubstructure", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public String listGlycanBySubstructure (
+            @ApiParam(required=true, value="substructure to match") 
+            @RequestBody String sequence,
+            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
+            @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
+            @ApiParam(required=false, defaultValue = "false", value="restrict search to reducing end") 
+            @RequestParam(value="reducingEnd", defaultValue = "false", required=false)
+            Boolean reducingEnd) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
+        
+        if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Error in the arguments", errorMessage);
+        }
+        
+        try {
+            List<SequenceDefinedGlycan> glycans = glycanRepository.getAllSequenceDefinedGlycans();
+            List<String> matches = null;
+            try {
+                matches = subStructureSearch(searchSequence, glycans, reducingEnd);
+                try {
+                    GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                    searchResult.setSequence(searchSequence.hashCode()+"");
+                    searchResult.setIdList(String.join(",", matches));
+                    searchResultRepository.save(searchResult);
+                    return searchResult.getSequence();
+                } catch (Exception e) {
+                    logger.error("Cannot save the search result", e);
+                }
+            } catch (SugarImporterException | GlycoVisitorException | GlycoconjugateException
+                        | SearchEngineException e1) {
+                    errorMessage.addError(new ObjectError ("search", e1.getMessage()));
+                    throw new IllegalArgumentException("Error during search", errorMessage);
+    
+            }
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        }
+        return null;
+    }
     
     
     @ApiOperation(value = "List glycans that match the given substructure")
-    @RequestMapping(value="/listGlycansBySubstructure", method = RequestMethod.POST, 
-            consumes={"application/json", "application/xml"},
+    @RequestMapping(value="/listGlycansBySubstructure", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
@@ -464,16 +515,8 @@ public class PublicGlygenArrayController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=true, value="substructure to match") 
-            @RequestBody String sequence,
-            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
-            @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
-            @ApiParam(required=false, defaultValue = "false", value="restrict search to reducing end") 
-            @RequestParam(value="reducingEnd", defaultValue = "false", required=false)
-            Boolean reducingEnd,
-            @ApiParam(required=false, defaultValue = "false", value="perform search again to refresh the search results") 
-            @RequestParam(value="refresh", defaultValue = "false", required=false)
-            Boolean refreshResults) {
+            @ApiParam(required=true, value="the search id retrieved from \"searchGlycansBySubstructure\"") 
+            @RequestParam(value="searchId", required=true) String searchId) {
         GlycanSearchResultView result = new GlycanSearchResultView();
         try {
             if (offset == null)
@@ -484,8 +527,6 @@ public class PublicGlygenArrayController {
                 field = "id";
             if (order == null)
                 order = 0; // DESC
-            if (reducingEnd == null)
-                reducingEnd = false;
             
             if (order != 0 && order != 1) {
                 ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
@@ -495,49 +536,29 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            ErrorMessage errorMessage = new ErrorMessage();
+            ErrorMessage errorMessage = new ErrorMessage("Retrieval of search results failed");
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            
-            String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
-            
-            if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Error in the arguments", errorMessage);
-            }
             
             int total = glycanRepository.getGlycanCountByUser (null);
             
             List<GlycanSearchResult> searchGlycans = new ArrayList<>();
-            List<SequenceDefinedGlycan> glycans = glycanRepository.getAllSequenceDefinedGlycans();
             List<String> matches = null;
+            
+            String idList = null;
             try {
-                String idList = null;
-                try {
-                    GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchSequence);
-                    if (r != null)
-                        idList = r.getIdList();
-                } catch (Exception e) {
-                    logger.error("Cannot retrieve the search result", e);
-                }
-                if (idList == null || refreshResults) {
-                    matches = subStructureSearch(searchSequence, glycans, reducingEnd);
-                    try {
-                        GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
-                        searchResult.setSequence(searchSequence);
-                        searchResult.setIdList(String.join(",", matches));
-                        searchResultRepository.save(searchResult);
-                    } catch (Exception e) {
-                        logger.error("Cannot save the search result", e);
-                    }
-                } else {
-                    matches = Arrays.asList(idList.split(","));  
-                }
-            } catch (SugarImporterException | GlycoVisitorException | GlycoconjugateException
-                    | SearchEngineException e1) {
-                errorMessage.addError(new ObjectError ("search", e1.getMessage()));
-                throw new IllegalArgumentException("Error during search", errorMessage);
-
+                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId);
+                if (r != null)
+                    idList = r.getIdList();
+            } catch (Exception e) {
+                logger.error("Cannot retrieve the search result", e);
             }
+            if (idList != null) {
+                matches = Arrays.asList(idList.split(","));  
+            } else {
+                errorMessage.addError(new ObjectError ("searchId", "NotFound"));
+                throw new IllegalArgumentException("Search id should be obtained by a previous web service call", errorMessage);
+            }
+            
             if (matches != null) {
                 List<SequenceDefinedGlycan> loadedGlycans = new ArrayList<SequenceDefinedGlycan>();
                 for (String match: matches) {
@@ -609,38 +630,6 @@ public class PublicGlygenArrayController {
                     
                 }
             }
-            /*// sort the glycans according to the given order before sending
-            if (field == null || field.equalsIgnoreCase("name")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getName));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getName).reversed());
-            } else if (field.equalsIgnoreCase("comment")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDescription));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDescription).reversed());
-            } else if (field.equalsIgnoreCase("glytoucanId")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getGlytoucanId));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getGlytoucanId).reversed());
-            } else if (field.equalsIgnoreCase("dateModified")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDateModified));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDateModified).reversed());
-            } else if (field.equalsIgnoreCase("mass")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getMass));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getMass).reversed());
-            } else if (field.equalsIgnoreCase("id")) {
-                if (order == 1)
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getId));
-                else 
-                    searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getId).reversed());
-            }*/
             
             result.setRows(searchGlycans);
             result.setTotal(total);
