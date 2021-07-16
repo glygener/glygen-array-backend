@@ -1,38 +1,31 @@
 package org.glygen.array.view;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StatisticsView {
     
-    String apiVersion = "1.0.0";
-    String portalVersion = "1.0.0";
+    List<Version> version;
     Long userCount=0L;
     Long datasetCount=0L;
     Long sampleCount=0L;
     Long slideCount=0L;
     Long glycanCount=0L;
-    /**
-     * @return the apiVersion
-     */
-    public String getApiVersion() {
-        return apiVersion;
+    
+    public void addVersion(Version v) {
+        if (version == null)
+            version = new ArrayList<Version>();
+        version.add(v);
     }
-    /**
-     * @param apiVersion the apiVersion to set
-     */
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
+    
+    public List<Version> getVersion() {
+        return version;
     }
-    /**
-     * @return the portalVersion
-     */
-    public String getPortalVersion() {
-        return portalVersion;
+    
+    public void setVersion(List<Version> version) {
+        this.version = version;
     }
-    /**
-     * @param portalVersion the portalVersion to set
-     */
-    public void setPortalVersion(String portalVersion) {
-        this.portalVersion = portalVersion;
-    }
+    
     /**
      * @return the userCount
      */

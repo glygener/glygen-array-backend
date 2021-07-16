@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -44,6 +45,7 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
+import org.glygen.array.view.Version;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
@@ -631,12 +633,33 @@ public class UtilityController {
         StatisticsView stats = new StatisticsView();
         stats.setUserCount(userRepository.count());
         try {
+            Version api = new Version();
+            api.setComponent("API");
             SettingEntity entity = settingsRepository.findByName("apiVersion");
-            if (entity != null)
-                stats.setApiVersion(entity.getValue());
+            if (entity != null) {
+                api.setVersion(entity.getValue()); 
+            }
+            entity = settingsRepository.findByName("apiReleaseDate");
+            if (entity != null) {
+                api.setReleaseDate(entity.getValue()); 
+            } else {
+                api.setReleaseDate(new Date().toString());
+            }
+            stats.addVersion(api);
+            
+            Version portal = new Version();
+            portal.setComponent("Portal");
+            stats.addVersion(portal);
             entity = settingsRepository.findByName("portalVersion");
-            if (entity != null)
-                stats.setPortalVersion(entity.getValue());
+            if (entity != null) {
+                portal.setVersion(entity.getValue());
+            }
+            entity = settingsRepository.findByName("portalReleaseDate");
+            if (entity != null) {
+                portal.setReleaseDate(entity.getValue()); 
+            } else {
+                portal.setReleaseDate(new Date().toString());
+            }
         } catch (Exception e) {
             logger.warn ("cannot retrieve versions from the database", e);
         }
