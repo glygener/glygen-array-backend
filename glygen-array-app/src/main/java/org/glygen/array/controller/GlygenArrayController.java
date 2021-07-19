@@ -787,6 +787,7 @@ public class GlygenArrayController {
             }
             stream.close();
             result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
+            logger.info("Processed the file. " + countSuccess + " out of " + count + " glycans are added" );
             return result;
 	    } catch (Exception e) {
 	        ErrorMessage errorMessage = new ErrorMessage();
@@ -902,7 +903,6 @@ public class GlygenArrayController {
             scan.close();
             stream.close();
             result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
-            logger.info("Processed the file. " + countSuccess + " out of " + count + " glycans are added" );
             return result;
         } catch (IOException e) {
             ErrorMessage errorMessage = new ErrorMessage();
