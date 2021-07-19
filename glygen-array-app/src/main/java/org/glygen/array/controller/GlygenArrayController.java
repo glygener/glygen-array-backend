@@ -902,6 +902,7 @@ public class GlygenArrayController {
             scan.close();
             stream.close();
             result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
+            logger.info("Processed the file. " + countSuccess + " out of " + count + " glycans are added" );
             return result;
         } catch (IOException e) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -946,6 +947,8 @@ public class GlygenArrayController {
             int count = 0;
             int countSuccess = 0;
             for (String sequence: structures) {
+                if (sequence == null || sequence.trim().isEmpty())
+                    continue;
                 count++;
                 try {
                     ErrorMessage e = new ErrorMessage();
@@ -1718,7 +1721,7 @@ public class GlygenArrayController {
 							if (linker.getDescription() != null) l.setDescription(linker.getDescription().trim());
 							if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
 							if (((SmallMoleculeLinker)l).getClassification() == null)
-								((SmallMoleculeLinker)l).setClassification (linker.getClassification());
+				 				((SmallMoleculeLinker)l).setClassification (linker.getClassification());
 						}
 					} catch (Exception e) {
 						// could not get details from PubChem
