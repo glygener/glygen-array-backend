@@ -8,7 +8,8 @@ public enum BatchGlycanFileType {
     XML ("Library XML"),
     GWS ("GlycoWorkbench"),
     WURCS ("WURCS (line by line)"),
-    CFG ("CFG IUPAC (line by line)");
+    CFG ("CFG IUPAC (line by line)"),
+    REPOSITORYEXPORT ("Exported from Repository");
     
     String label;
     
@@ -24,6 +25,8 @@ public enum BatchGlycanFileType {
             return WURCS;
         else if (value.toLowerCase().startsWith("cfg"))
             return CFG;
+        else if (value.toLowerCase().startsWith("export"))
+            return REPOSITORYEXPORT;
         return GWS;
     }
     

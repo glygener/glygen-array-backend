@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -114,6 +115,8 @@ import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,6 +136,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -661,7 +667,7 @@ public class GlygenArrayController {
 	        @RequestBody
 	        FileWrapper fileWrapper, Principal p, 
 	        @RequestParam Boolean noGlytoucanRegistration,
-	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated Glycan file, Library XML, GlycoWorkbench(.gws), WURCS, CFG IUPAC") 
+	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated Glycan file, Library XML, GlycoWorkbench(.gws), WURCS, CFG IUPAC, Exported From Repository") 
 	        @RequestParam(required=true, value="filetype") String fileType) {
 	    BatchGlycanFileType type = BatchGlycanFileType.forValue(fileType);
 	    
@@ -690,6 +696,8 @@ public class GlygenArrayController {
                     return addGlycanFromCFGFile(fileContent, noGlytoucanRegistration, p);
                 case WURCS:
                     return addGlycanFromWURCSFile(fileContent, noGlytoucanRegistration, p);
+                case REPOSITORYEXPORT:
+                    return addGlycansFromExportFile (fileContent, noGlytoucanRegistration, p);
                 }
                 ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -705,6 +713,67 @@ public class GlygenArrayController {
     	    
         }
 	}
+
+    private BatchGlycanUploadResult addGlycansFromExportFile(byte[] contents, Boolean noGlytoucanRegistration,
+            Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        BatchGlycanUploadResult result = new BatchGlycanUploadResult();
+        try {
+            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
+            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            
+            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
+            if (!isTextFile) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            }
+            
+            JSONArray inputArray = new JSONArray(fileAsString);
+            int countSuccess = 0;
+            for (int i=0; i < inputArray.length(); i++) {
+                JSONObject jo = inputArray.getJSONObject(i);
+                ObjectMapper objectMapper = new ObjectMapper();
+                Glycan glycan = objectMapper.readValue(jo.toString(), Glycan.class);
+                try {  
+                    String id = addGlycan(glycan, p, noGlytoucanRegistration);
+                    Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                    result.getAddedGlycans().add(addedGlycan);
+                    countSuccess ++;
+                } catch (Exception e) {
+                    logger.error ("Exception adding the glycan: " + glycan.getName(), e);
+                    if (e.getCause() instanceof ErrorMessage) {
+                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                            ErrorMessage error = (ErrorMessage)e.getCause();
+                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                ObjectError err = error.getErrors().get(0);
+                                if (err.getCodes().length != 0) {
+                                    Glycan duplicateGlycan = new Glycan();
+                                    try {
+                                        duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
+                                        result.addDuplicateSequence(duplicateGlycan);
+                                    } catch (SparqlException | SQLException e1) {
+                                        logger.error("Error retrieving duplicate glycan", e1);
+                                    }
+                                }
+                            } 
+                        } else {
+                            result.addWrongSequence(glycan.getName(), i, null, ((ErrorMessage)e.getCause()).toString());
+                        }
+                    } else { 
+                        result.addWrongSequence(glycan.getName(), i, null, e.getMessage());
+                    }
+                }
+            }
+         
+            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " glycans are added");
+            return result;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+        }
+    }
 
     @SuppressWarnings("rawtypes")
     private BatchGlycanUploadResult addGlycanFromLibraryFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
@@ -3623,6 +3692,62 @@ public class GlygenArrayController {
         }
     }
 	
+	@ApiOperation(value = "Export glycans into a file")
+    @RequestMapping(value = "/exportglycans", method=RequestMethod.GET, 
+        produces={"application/json", "application/xml"})
+	@ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
+            @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to export glycans"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+	public @ResponseBody String exportGlycans (Principal p) {
+	    
+	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+	    try {
+            List<Glycan> myGlycans = glycanRepository.getGlycanByUser(user, 0, -1, null, 0, null);
+            ObjectMapper mapper = new ObjectMapper();         
+            String json = mapper.writeValueAsString(myGlycans);
+            return json;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Glycans cannot be retrieved for user " + p.getName(), e);
+        } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Cannot generate the glycan list");
+            errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot generate the glycan list", errorMessage);
+        }
+	}
+	
+	@ApiOperation(value = "Export linkers into a file")
+    @RequestMapping(value = "/exportlinkers", method=RequestMethod.GET, 
+        produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
+            @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to export glycans"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody String exportLinkers (Principal p) {
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            List<Linker> myLinkers = linkerRepository.getLinkerByUser(user, 0, -1, null, 0, null);
+            ObjectMapper mapper = new ObjectMapper();         
+            String json = mapper.writeValueAsString(myLinkers);
+            return json;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Linkers cannot be retrieved for user " + p.getName(), e);
+        } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Cannot generate the linker list");
+            errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot generate the linker list", errorMessage);
+        }
+    }
+	
 	@ApiOperation(value = "Check status for upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
@@ -4025,53 +4150,52 @@ public class GlygenArrayController {
 	}
 	
 	public static BufferedImage createImageForGlycan(SequenceDefinedGlycan glycan) {
-	     // try to create one
-	        BufferedImage t_image = null;
-	        org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = null;
-	        try {
-	            if (glycan.getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
-	                glycanObject = 
-	                        org.eurocarbdb.application.glycanbuilder.Glycan.
-	                        fromGlycoCTCondensed(glycan.getSequence().trim());
-	                if (glycanObject == null && glycan.getGlytoucanId() != null) {
-	                    String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
-	                    if (seq != null) {
-	                        try {
-    	                        WURCS2Parser t_wurcsparser = new WURCS2Parser();
-    	                        glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
-	                        } catch (Exception e) {
-	                            logger.error ("Glycan image cannot be generated with WURCS sequence", e);
-	                        }
-	                    }
-	                }
-	                
-	            } else if (glycan.getSequenceType() == GlycanSequenceFormat.WURCS) {
-	                WURCS2Parser t_wurcsparser = new WURCS2Parser();
-	                glycanObject = t_wurcsparser.readGlycan(glycan.getSequence().trim(), new MassOptions());
-	            }
-	            if (glycanObject != null) {
-	                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
-	            } 
-
-	        } catch (Exception e) {
-	            logger.error ("Glycan image cannot be generated", e);
-	            // check if there is glytoucan id
-	            if (glycan.getGlytoucanId() != null) {
-	                String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
-	                if (seq != null) {
-	                    WURCS2Parser t_wurcsparser = new WURCS2Parser();
-	                    try {
-                            glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
-                            if (glycanObject != null) {
-                                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
-                            }
-                        } catch (Exception e1) {
-                            logger.error ("Glycan image cannot be generated from WURCS", e);
+	    BufferedImage t_image = null;
+        org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = null;
+        try {
+            if (glycan.getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+                glycanObject = 
+                        org.eurocarbdb.application.glycanbuilder.Glycan.
+                        fromGlycoCTCondensed(glycan.getSequence().trim());
+                if (glycanObject == null && glycan.getGlytoucanId() != null) {
+                    String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
+                    if (seq != null) {
+                        try {
+	                        WURCS2Parser t_wurcsparser = new WURCS2Parser();
+	                        glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
+                        } catch (Exception e) {
+                            logger.error ("Glycan image cannot be generated with WURCS sequence", e);
                         }
-	                }
-	            }
-	            
-	        }
-	        return t_image;
-	    }
+                    }
+                }
+                
+            } else if (glycan.getSequenceType() == GlycanSequenceFormat.WURCS) {
+                WURCS2Parser t_wurcsparser = new WURCS2Parser();
+                glycanObject = t_wurcsparser.readGlycan(glycan.getSequence().trim(), new MassOptions());
+            }
+            if (glycanObject != null) {
+                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+            } 
+
+        } catch (Exception e) {
+            logger.error ("Glycan image cannot be generated", e);
+            // check if there is glytoucan id
+            if (glycan.getGlytoucanId() != null) {
+                String seq = GlytoucanUtil.getInstance().retrieveGlycan(glycan.getGlytoucanId());
+                if (seq != null) {
+                    WURCS2Parser t_wurcsparser = new WURCS2Parser();
+                    try {
+                        glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
+                        if (glycanObject != null) {
+                            t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+                        }
+                    } catch (Exception e1) {
+                        logger.error ("Glycan image cannot be generated from WURCS", e);
+                    }
+                }
+            }
+            
+        }
+        return t_image;
+    }
 }

@@ -536,7 +536,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 String glycanURI = sparqlEntity.getValue("s");
                 if (user == null || !glycanURI.contains("public")) {
                     Glycan glycan = getGlycanFromURI(glycanURI, user);
-                    if (glycan != null && i < limit) {
+                    if (glycan != null && (limit == -1 || i < limit)) {
                         glycans.add(glycan);    
                         i++;
                     }
