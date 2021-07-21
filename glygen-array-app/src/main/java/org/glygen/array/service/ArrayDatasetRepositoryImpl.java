@@ -1032,6 +1032,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     collab.setFirstName(entity.getFirstName());
                     collab.setLastName(entity.getLastName());
                     collab.setAffiliation(entity.getAffiliation());
+                    collab.setGroupName(entity.getGroupName());
+                    collab.setDepartment(entity.getDepartment());
                 }
                 datasetObject.getCollaborators().add(collab);       
             } else if (st.getPredicate().equals(hasGrantPred)) {
@@ -1081,6 +1083,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                             collab.setFirstName(entity.getFirstName());
                             collab.setLastName(entity.getLastName());
                             collab.setAffiliation(entity.getAffiliation());
+                            collab.setGroupName(entity.getGroupName());
+                            collab.setDepartment(entity.getDepartment());
                         }
                         datasetObject.getCollaborators().add(collab);       
                     } else if (stPublic.getPredicate().equals(hasGrantPred)) {

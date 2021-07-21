@@ -1380,7 +1380,7 @@ public class GlygenArrayController {
 					        else 
 					            glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
 					    } catch (Exception e) {
-					        logger.error("Glycan builder parse error", e);
+					        logger.error("Glycan builder parse error", e.getMessage());
 					        gwbError = true;
 					    }
 					    
@@ -1403,7 +1403,7 @@ public class GlygenArrayController {
                                     g.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
                                 }
                             } catch (Exception pe) {
-                                logger.error("GlycoCT parsing failed", pe);
+                                logger.error("GlycoCT parsing failed", pe.getMessage());
                                 parseError = true;
                                 gwbError = false;
                             }

@@ -19,8 +19,6 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import org.hibernate.annotations.Type;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -39,6 +37,8 @@ public class UserEntity {
 	private String firstName;
     private String lastName;
     private String email;
+    private String groupName;
+    private String department;
     private String affiliation;
     private String affiliationWebsite;
     private Boolean publicFlag;
@@ -210,4 +210,34 @@ public class UserEntity {
 	public void setLoginType(UserLoginType loginType) {
 		this.loginType = loginType;
 	}
+
+    /**
+     * @return the groupName
+     */
+	@Column(name="groupname")
+    public String getGroupName() {
+        return groupName;
+    }
+
+    /**
+     * @param groupName the groupName to set
+     */
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    /**
+     * @return the department
+     */
+    @Column(name="department")
+    public String getDepartment() {
+        return department;
+    }
+
+    /**
+     * @param department the department to set
+     */
+    public void setDepartment(String department) {
+        this.department = department;
+    }
 }

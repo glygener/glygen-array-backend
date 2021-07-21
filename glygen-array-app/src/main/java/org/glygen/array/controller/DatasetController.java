@@ -487,6 +487,8 @@ public class DatasetController {
             collaborator.setLastName(collaboratorEntity.getLastName());
             collaborator.setAffiliation(collaboratorEntity.getAffiliation());
             collaborator.setUserId(collaboratorEntity.getUserId());
+            collaborator.setGroupName(collaboratorEntity.getGroupName());
+            collaborator.setDepartment(collaboratorEntity.getDepartment());
             dataset.getCollaborators().add(collaborator);
             datasetRepository.updateArrayDataset(dataset, owner);
             return new Confirmation("Collaborator added successfully", HttpStatus.OK.value());
@@ -2819,6 +2821,8 @@ public class DatasetController {
             user.setFirstName(u.getFirstName());
             user.setLastName(u.getLastName());
             user.setAffiliation(u.getAffiliation());
+            user.setGroupName(u.getGroupName());
+            user.setDepartment(u.getDepartment());
             users.add(user);
         }
         return users;  

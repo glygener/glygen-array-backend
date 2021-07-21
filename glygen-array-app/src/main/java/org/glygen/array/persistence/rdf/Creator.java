@@ -7,6 +7,8 @@ public class Creator {
 	String firstName;
 	String lastName;
 	String affiliation;
+	String groupName;
+	String department;
 	
 	/**
 	 * @return the userId
@@ -68,5 +70,29 @@ public class Creator {
      */
     public void setAffiliation(String affiliation) {
         this.affiliation = affiliation;
+    }
+    /**
+     * @return the groupName
+     */
+    public String getGroupName() {
+        return groupName;
+    }
+    /**
+     * @param groupName the groupName to set
+     */
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+    /**
+     * @return the department
+     */
+    public String getDepartment() {
+        return department;
+    }
+    /**
+     * @param department the department to set
+     */
+    public void setDepartment(String department) {
+        this.department = department;
     }
 }

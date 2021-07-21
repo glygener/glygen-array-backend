@@ -614,6 +614,8 @@ public class UtilityController {
         
         User userView = new User();
         userView.setAffiliation(user.getAffiliation());
+        userView.setGroupName(user.getGroupName());
+        userView.setDepartment(user.getDepartment());
         userView.setAffiliationWebsite(user.getAffiliationWebsite());
         userView.setFirstName(user.getFirstName());
         userView.setLastName(user.getLastName());

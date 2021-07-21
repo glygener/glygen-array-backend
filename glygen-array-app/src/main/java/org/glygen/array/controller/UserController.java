@@ -142,6 +142,18 @@ public class UserController {
 					errorMessage.addError(new ObjectError("affiliation", "LengthExceeded"));
 				}		
 			}
+			if (user.getGroupName() != null) {
+                Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "groupName", user.getGroupName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("groupName", "LengthExceeded"));
+                }       
+            }
+			if (user.getDepartment() != null) {
+                Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "department", user.getDepartment());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("department", "LengthExceeded"));
+                }       
+            }
 			if (user.getAffiliationWebsite() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
 				if (!violations.isEmpty()) {
@@ -179,6 +191,8 @@ public class UserController {
 		newUser.setLastName(user.getLastName());
 		newUser.setEmail(user.getEmail());
 		newUser.setAffiliation(user.getAffiliation());
+		newUser.setGroupName(user.getGroupName());
+		newUser.setDepartment(user.getDepartment());
 		newUser.setAffiliationWebsite(user.getAffiliationWebsite()); 
 		newUser.setPublicFlag(user.getPublicFlag());
 		newUser.setRoles(Arrays.asList(roleRepository.findByRoleName("ROLE_USER")));
@@ -264,6 +278,18 @@ public class UserController {
 					errorMessage.addError(new ObjectError("affiliation", "LengthExceeded"));
 				}		
 			}
+			if (user.getGroupName() != null) {
+                Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "groupName", user.getGroupName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("groupName", "LengthExceeded"));
+                }       
+            }
+            if (user.getDepartment() != null) {
+                Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "department", user.getDepartment());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("department", "LengthExceeded"));
+                }       
+            }
 			if (user.getAffiliationWebsite() != null) {
 				Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "affiliationWebsite", user.getAffiliationWebsite());
 				if (!violations.isEmpty()) {
@@ -325,6 +351,8 @@ public class UserController {
     			}
     			
     			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
+    			if (user.getGroupName() != null) userEntity.setGroupName(user.getGroupName());
+    			if (user.getDepartment() != null) userEntity.setDepartment(user.getDepartment());
     			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
     			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) userEntity.setFirstName(user.getFirstName());
     			if (user.getLastName() != null && !user.getLastName().isEmpty()) userEntity.setLastName(user.getLastName());
@@ -445,6 +473,8 @@ public class UserController {
     	userView.setPublicFlag(user.getPublicFlag());
     	userView.setUserName(user.getUsername());
     	userView.setUserType(user.getLoginType().name());
+    	userView.setGroupName(user.getGroupName());
+    	userView.setDepartment(user.getDepartment());
     	return userView;
     }
 	

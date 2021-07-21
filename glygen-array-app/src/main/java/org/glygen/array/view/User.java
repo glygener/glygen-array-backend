@@ -14,6 +14,8 @@ public class User {
 	private String firstName;
     private String lastName;
     private String email;
+    private String groupName;
+    private String department;
     private String affiliation;
     private String affiliationWebsite;
     private Boolean publicFlag = false;
@@ -142,5 +144,31 @@ public class User {
 	public void setUserType(String userType) {
 		this.userType = userType;
 	}
+    /**
+     * @return the groupName
+     */
+	@Size(max=255, message="Group name cannot exceed 255 characters")
+    public String getGroupName() {
+        return groupName;
+    }
+    /**
+     * @param groupName the groupName to set
+     */
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+    /**
+     * @return the department
+     */
+    @Size(max=255, message="Department cannot exceed 255 characters")
+    public String getDepartment() {
+        return department;
+    }
+    /**
+     * @param department the department to set
+     */
+    public void setDepartment(String department) {
+        this.department = department;
+    }
 
 }

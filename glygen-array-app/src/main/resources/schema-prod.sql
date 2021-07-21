@@ -115,6 +115,8 @@ create table IF NOT EXISTS glycansearchresult (
 );
 
 ALTER TABLE permissions ADD COLUMN IF NOT EXISTS additiondate date;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS groupname varchar(256);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS department varchar(256);
        
 select create_constraint_if_not_exists(
         'graphs',
