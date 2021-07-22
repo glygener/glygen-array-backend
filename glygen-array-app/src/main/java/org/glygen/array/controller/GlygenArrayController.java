@@ -115,13 +115,14 @@ import org.grits.toolbox.glycanarray.library.om.layout.Block;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
@@ -770,7 +771,7 @@ public class GlygenArrayController {
          
             result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " glycans are added");
             return result;
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
         }
     }
