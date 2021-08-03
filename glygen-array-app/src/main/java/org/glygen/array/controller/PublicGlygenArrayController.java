@@ -61,6 +61,8 @@ import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
+import org.glygen.array.view.CompareByGlytoucanId;
+import org.glygen.array.view.CompareByMass;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
@@ -219,178 +221,86 @@ public class PublicGlygenArrayController {
     }
     
     
-    @ApiOperation(value = "List glycans that match one of the given glytoucan ids")
-    @RequestMapping(value="/listGlycansByGlytoucanIds", method = RequestMethod.GET, 
+    @ApiOperation(value = "Perform search on glycans that match one of the given glytoucan ids")
+    @RequestMapping(value="/searchGlycansByGlytoucanIds", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanSearchResultView listGlycansByGlytoucanIds (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
-            @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
-            @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
-            @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-            @RequestParam(value="order", required=false) Integer order, 
+    public String listGlycansByGlytoucanIds (
             @ApiParam(required=true, value="list of glytoucan ids to match") 
             @RequestParam(value="glytoucanids", required=true) List<String> ids) {
-        GlycanSearchResultView result = new GlycanSearchResultView();
         try {
-            if (offset == null)
-                offset = 0;
-            if (limit == null)
-                limit = -1;
-            if (field == null)
-                field = "id";
-            if (order == null)
-                order = 0; // DESC
-            
-            if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("order", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            List<String> matches = glycanRepository.getGlycanByGlytoucanIds(null, ids);
+            List<String> matchedIds = new ArrayList<String>();
+            for (String m: matches) {
+                matchedIds.add(m.substring(m.lastIndexOf("/")+1));
             }
-            
-            int total = glycanRepository.getGlycanCountByUser (null);
-            
-            List<Glycan> glycans = glycanRepository.getGlycanByGlytoucanIds(null, offset, limit, field, order, ids);
-            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
-            for (Glycan glycan : glycans) {
-                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
-                GlycanSearchResult r = new GlycanSearchResult();
-                r.setDatasetCount(count);
-                r.setGlycan(glycan);
-                searchGlycans.add(r);
-                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                    byte[] image = getCartoonForGlycan(glycan.getId());
-                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
-                        if (t_image != null) {
-                            String filename = glycan.getId() + ".png";
-                            //save the image into a file
-                            logger.debug("Adding image to " + imageLocation);
-                            File imageFile = new File(imageLocation + File.separator + filename);
-                            try {
-                                ImageIO.write(t_image, "png", imageFile);
-                            } catch (IOException e) {
-                                logger.error ("Glycan image cannot be written", e);
-                            }
-                        }
-                        image = getCartoonForGlycan(glycan.getId());
-                    }
-                    glycan.setCartoon(image);
-                }
+            try {
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(ids.hashCode()+"glytoucan");
+                searchResult.setIdList(String.join(",", matchedIds));
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } catch (Exception e) {
+                logger.error("Cannot save the search result", e);
             }
-            
-            result.setRows(searchGlycans);
-            result.setTotal(total);
-            result.setFilteredTotal(glycans.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }
         
-        return result;
+        return null;
     }
     
-    @ApiOperation(value = "List glycans that have masses in the given range")
-    @RequestMapping(value="/listGlycansByMass", method = RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
+    @ApiOperation(value = "Perform search on glycans that have masses in the given range")
+    @RequestMapping(value="/searchGlycansByMass", method = RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanSearchResultView listGlycansByMassRange (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
-            @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
-            @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
-            @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-            @RequestParam(value="order", required=false) Integer order, 
+    public String listGlycansByMassRange (
             @ApiParam(required=true, value="minimum mass") 
             @RequestParam(value="min", required=true) Double min,
             @ApiParam(required=true, value="maximum mass") 
             @RequestParam(value="max", required=true) Double max) {
-        GlycanSearchResultView result = new GlycanSearchResultView();
         try {
-            if (offset == null)
-                offset = 0;
-            if (limit == null)
-                limit = -1;
-            if (field == null)
-                field = "id";
-            if (order == null)
-                order = 0; // DESC
-            
-            if (order != 0 && order != 1) {
-                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("order", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            List<String> matches = glycanRepository.getGlycanByMass(null, min, max);
+            List<String> matchedIds = new ArrayList<String>();
+            for (String m: matches) {
+                matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+            }
+            try {
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(min+"mass"+max);
+                searchResult.setIdList(String.join(",", matchedIds));
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } catch (Exception e) {
+                logger.error("Cannot save the search result", e);
             }
             
-            int total = glycanRepository.getGlycanCountByUser (null);
-            
-            List<Glycan> glycans = glycanRepository.getGlycanByMass(null, offset, limit, field, order, min, max);
-            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
-            for (Glycan glycan : glycans) {
-                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
-                GlycanSearchResult r = new GlycanSearchResult();
-                r.setDatasetCount(count);
-                r.setGlycan(glycan);
-                searchGlycans.add(r);
-                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                    byte[] image = getCartoonForGlycan(glycan.getId());
-                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
-                        if (t_image != null) {
-                            String filename = glycan.getId() + ".png";
-                            //save the image into a file
-                            logger.debug("Adding image to " + imageLocation);
-                            File imageFile = new File(imageLocation + File.separator + filename);
-                            try {
-                                ImageIO.write(t_image, "png", imageFile);
-                            } catch (IOException e) {
-                                logger.error ("Glycan image cannot be written", e);
-                            }
-                        }
-                        image = getCartoonForGlycan(glycan.getId());
-                    }
-                    glycan.setCartoon(image);
-                }
-            }
-            
-            result.setRows(searchGlycans);
-            result.setTotal(total);
-            result.setFilteredTotal(searchGlycans.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }
         
-        return result;
+        return null;
     }
     
-    @ApiOperation(value = "List glycans that match the given structure")
-    @RequestMapping(value="/listGlycansByStructure", method = RequestMethod.POST, 
+    @ApiOperation(value = "Perform search on glycans that match the given structure")
+    @RequestMapping(value="/searchGlycansByStructure", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanSearchResultView listGlycansByStructure (
+    public String listGlycansByStructure (
             @ApiParam(required=true, value="structure to match") 
             @RequestBody String sequence,
             @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat) {
-        GlycanSearchResultView result = new GlycanSearchResultView();
+        
         try {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -402,46 +312,25 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Error in the arguments", errorMessage);
             }
             
-            int total = glycanRepository.getGlycanCountByUser (null);
-            
-            List<GlycanSearchResult> searchGlycans = new ArrayList<>();
-            String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);
+            String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);  
             if (glycanURI != null) {
-                Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, null);
-                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                    byte[] image = getCartoonForGlycan(glycan.getId());
-                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
-                        if (t_image != null) {
-                            String filename = glycan.getId() + ".png";
-                            //save the image into a file
-                            logger.debug("Adding image to " + imageLocation);
-                            File imageFile = new File(imageLocation + File.separator + filename);
-                            try {
-                                ImageIO.write(t_image, "png", imageFile);
-                            } catch (IOException e) {
-                                logger.error ("Glycan image cannot be written", e);
-                            }
-                        }
-                        image = getCartoonForGlycan(glycan.getId());
-                    }
-                    glycan.setCartoon(image);
+                try {
+                    List<String> matches = new ArrayList<String>();
+                    matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+                    GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                    searchResult.setSequence(searchSequence.hashCode()+"structure");
+                    searchResult.setIdList(String.join(",", matches));
+                    searchResultRepository.save(searchResult);
+                    return searchResult.getSequence();
+                } catch (Exception e) {
+                    logger.error("Cannot save the search result", e);
                 }
-                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
-                GlycanSearchResult r = new GlycanSearchResult();
-                r.setDatasetCount(count);
-                r.setGlycan(glycan);
-                searchGlycans.add(r);
-            }
-            
-            result.setRows(searchGlycans);
-            result.setTotal(total);
-            result.setFilteredTotal(searchGlycans.size());
-        } catch (SparqlException | SQLException e) {
+            } 
+        } catch (SparqlException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }
         
-        return result;
+        return null;
     }
     
     
@@ -479,7 +368,7 @@ public class PublicGlygenArrayController {
                 matches = subStructureSearch(searchSequence, glycans, reducingEnd);
                 try {
                     GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
-                    searchResult.setSequence(searchSequence.hashCode()+"");
+                    searchResult.setSequence(searchSequence.hashCode()+"substructure");
                     searchResult.setIdList(String.join(",", matches));
                     searchResultRepository.save(searchResult);
                     return searchResult.getSequence();
@@ -499,8 +388,8 @@ public class PublicGlygenArrayController {
     }
     
     
-    @ApiOperation(value = "List glycans that match the given substructure")
-    @RequestMapping(value="/listGlycansBySubstructure", method = RequestMethod.GET, 
+    @ApiOperation(value = "List glycans from the given search")
+    @RequestMapping(value="/listGlycansForSearch", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
@@ -515,7 +404,7 @@ public class PublicGlygenArrayController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=true, value="the search id retrieved from \"searchGlycansBySubstructure\"") 
+            @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
             @RequestParam(value="searchId", required=true) String searchId) {
         GlycanSearchResultView result = new GlycanSearchResultView();
         try {
@@ -560,42 +449,43 @@ public class PublicGlygenArrayController {
             }
             
             if (matches != null) {
-                List<SequenceDefinedGlycan> loadedGlycans = new ArrayList<SequenceDefinedGlycan>();
+                List<Glycan> loadedGlycans = new ArrayList<Glycan>();
                 for (String match: matches) {
                     Glycan glycan = glycanRepository.getGlycanById(match, null);
-                    loadedGlycans.add((SequenceDefinedGlycan)glycan);
+                    if (glycan != null)
+                        loadedGlycans.add(glycan);
                 }
                 // sort the glycans by the given order
                 if (field == null || field.equalsIgnoreCase("name")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getName));
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getName));
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getName).reversed());
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getName).reversed());
                 } else if (field.equalsIgnoreCase("comment")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDescription));
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getDescription));
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDescription).reversed());
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getDescription).reversed());
                 } else if (field.equalsIgnoreCase("glytoucanId")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getGlytoucanId));
+                        loadedGlycans.sort(new CompareByGlytoucanId());
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getGlytoucanId).reversed());
+                        loadedGlycans.sort(new CompareByGlytoucanId().reversed());
                 } else if (field.equalsIgnoreCase("dateModified")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDateModified));
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getDateModified));
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getDateModified).reversed());
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getDateModified).reversed());
                 } else if (field.equalsIgnoreCase("mass")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getMass));
+                        loadedGlycans.sort(new CompareByMass());
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getMass).reversed());
+                        loadedGlycans.sort(new CompareByMass().reversed());
                 } else if (field.equalsIgnoreCase("id")) {
                     if (order == 1)
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getId));
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getId));
                     else 
-                        loadedGlycans.sort(Comparator.comparing(SequenceDefinedGlycan::getId).reversed());
+                        loadedGlycans.sort(Comparator.comparing(Glycan::getId).reversed());
                 }
                 int i=0;
                 int added = 0;
@@ -608,23 +498,25 @@ public class PublicGlygenArrayController {
                     r.setGlycan(glycan);
                     searchGlycans.add(r);
                     added ++;
-                    byte[] image = getCartoonForGlycan(glycan.getId());
-                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                        BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
-                        if (t_image != null) {
-                            String filename = glycan.getId() + ".png";
-                            //save the image into a file
-                            logger.debug("Adding image to " + imageLocation);
-                            File imageFile = new File(imageLocation + File.separator + filename);
-                            try {
-                                ImageIO.write(t_image, "png", imageFile);
-                            } catch (IOException e) {
-                                logger.error ("Glycan image cannot be written", e);
+                    if (glycan instanceof SequenceDefinedGlycan) {
+                        byte[] image = getCartoonForGlycan(glycan.getId());
+                        if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                            BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
+                            if (t_image != null) {
+                                String filename = glycan.getId() + ".png";
+                                //save the image into a file
+                                logger.debug("Adding image to " + imageLocation);
+                                File imageFile = new File(imageLocation + File.separator + filename);
+                                try {
+                                    ImageIO.write(t_image, "png", imageFile);
+                                } catch (IOException e) {
+                                    logger.error ("Glycan image cannot be written", e);
+                                }
                             }
+                            image = getCartoonForGlycan(glycan.getId());
                         }
-                        image = getCartoonForGlycan(glycan.getId());
+                        glycan.setCartoon(image);
                     }
-                    glycan.setCartoon(image);
                     
                     if (added >= limit) break;
                     

@@ -59,12 +59,6 @@ public interface GlycanRepository {
 	List<Glycan> getGlycanByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	
 	List<Glycan> getSharedGlycansByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
-	
-	List<Glycan> getGlycanByGlytoucanIds(UserEntity user, int offset, int limit, String field, int order,
-            List<String> ids) throws SparqlException, SQLException;
-	
-	List<Glycan> getGlycanByMass (UserEntity user, int offset, int limit, String field, int order, 
-	        double min, double max) throws SparqlException, SQLException;
 
 	int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException;
 	void deleteGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
@@ -82,5 +76,7 @@ public interface GlycanRepository {
      * @throws SparqlException 
      */
     List<SequenceDefinedGlycan> getAllSequenceDefinedGlycans() throws SparqlException;
+    List<String> getGlycanByMass(UserEntity user, double min, double max) throws SparqlException, SQLException;
+    List<String> getGlycanByGlytoucanIds(UserEntity user, List<String> ids) throws SparqlException, SQLException;
     
 }
