@@ -64,10 +64,12 @@ public class BatchGlycanUploadResult {
             Glycan g = new SequenceDefinedGlycan();
             ((SequenceDefinedGlycan) g).setSequence (sequence);
             g.setInternalId(id);
+            g.setId(id);
             error.setGlycan(g);
         } else {
             Glycan g = new Glycan();
             g.setInternalId(id);
+            g.setId(id);
             error.setGlycan(g);
         }
         ErrorMessage errorMessage = new ErrorMessage(message);

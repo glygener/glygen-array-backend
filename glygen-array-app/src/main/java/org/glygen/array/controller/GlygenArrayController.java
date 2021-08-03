@@ -740,6 +740,10 @@ public class GlygenArrayController {
                 try {  
                     String id = addGlycan(glycan, p, noGlytoucanRegistration);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                    if (addedGlycan instanceof SequenceDefinedGlycan) {
+                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
+                        addedGlycan.setCartoon(image);
+                    }
                     result.getAddedGlycans().add(addedGlycan);
                     countSuccess ++;
                 } catch (Exception e) {
@@ -753,6 +757,10 @@ public class GlygenArrayController {
                                     Glycan duplicateGlycan = new Glycan();
                                     try {
                                         duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
+                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
+                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
+                                            duplicateGlycan.setCartoon(image);
+                                        }
                                         result.addDuplicateSequence(duplicateGlycan);
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
@@ -801,7 +809,7 @@ public class GlygenArrayController {
                         result.addWrongSequence ((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, null, "Not a glycan");
                   
                         continue;
-                    } else if (glycan.getOrigSequence() == null ) {  
+                    } else if (glycan.getOrigSequence() == null || (glycan.getOrigSequence() != null && glycan.getOriginalSequenceType().equalsIgnoreCase("other"))) {  
                         // unknown glycan
                         view = new UnknownGlycan();
                     } 
@@ -827,6 +835,10 @@ public class GlygenArrayController {
                     view.setDescription(glycan.getComment());   
                     String id = addGlycan(view, p, noGlytoucanRegistration);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                    if (addedGlycan instanceof SequenceDefinedGlycan) {
+                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
+                        addedGlycan.setCartoon(image);
+                    }
                     result.getAddedGlycans().add(addedGlycan);
                     countSuccess ++;
                 } catch (Exception e) {
@@ -839,6 +851,10 @@ public class GlygenArrayController {
                                     Glycan duplicateGlycan = new Glycan();
                                     try {
                                         duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
+                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
+                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
+                                            duplicateGlycan.setCartoon(image);
+                                        }
                                         result.addDuplicateSequence(duplicateGlycan);
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
@@ -942,6 +958,10 @@ public class GlygenArrayController {
                 try {  
                     String id = addGlycan(glycan, p, noGlytoucanRegistration);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                    if (addedGlycan instanceof SequenceDefinedGlycan) {
+                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
+                        addedGlycan.setCartoon(image);
+                    }
                     result.getAddedGlycans().add(addedGlycan);
                     countSuccess ++;
                 } catch (Exception e) {
@@ -955,6 +975,10 @@ public class GlygenArrayController {
                                     Glycan duplicateGlycan = new Glycan();
                                     try {
                                         duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
+                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
+                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
+                                            duplicateGlycan.setCartoon(image);
+                                        }
                                         result.addDuplicateSequence(duplicateGlycan);
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
@@ -1041,10 +1065,18 @@ public class GlygenArrayController {
                             // duplicate, ignore
                             String id = existing.substring(existing.lastIndexOf("/")+1);
                             Glycan glycan = glycanRepository.getGlycanById(id, user);
+                            if (glycan instanceof SequenceDefinedGlycan) {
+                                byte[] image = getCartoonForGlycan(glycan.getId());
+                                glycan.setCartoon(image);
+                            }
                             result.addDuplicateSequence(glycan);
                         } else {
                             String id = addGlycan(g, p, noGlytoucanRegistration);
                             Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                            if (addedGlycan instanceof SequenceDefinedGlycan) {
+                                byte[] image = getCartoonForGlycan(addedGlycan.getId());
+                                addedGlycan.setCartoon(image);
+                            }
                             result.getAddedGlycans().add(addedGlycan);
                             countSuccess ++;
                         }
