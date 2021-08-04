@@ -2061,6 +2061,10 @@ public class GlygenArrayController {
 	}
 	
 	private byte[] getCartoonForGlycan (String glycanId) {
+	    return getCartoonForGlycan(glycanId, imageLocation);
+    }
+	
+	public static byte[] getCartoonForGlycan (String glycanId, String imageLocation) {
 		try {
 			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
 			if (imageFile.exists()) {
