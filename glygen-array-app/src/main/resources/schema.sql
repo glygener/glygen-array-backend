@@ -104,7 +104,7 @@ create table IF NOT EXISTS email (
 
 create table IF NOT EXISTS glycansearchresult (
   sequence text not null,
-  idlist text not null
+  idlist text
 );
 
 alter table verification_token 

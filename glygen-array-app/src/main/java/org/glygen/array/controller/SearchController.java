@@ -7,7 +7,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -35,6 +40,7 @@ import org.glygen.array.view.CompareByGlytoucanId;
 import org.glygen.array.view.CompareByMass;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.GlycanSearchInput;
 import org.glygen.array.view.GlycanSearchResult;
 import org.glygen.array.view.GlycanSearchResultView;
 import org.slf4j.Logger;
@@ -78,6 +84,108 @@ public class SearchController {
     
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
+    
+    
+    @ApiOperation(value = "Perform search on glycans that match one of the given glytoucan ids")
+    @RequestMapping(value="/searchGlycans", method = RequestMethod.POST)
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public String searchGlycans (
+            @ApiParam(required=true, value="search terms") 
+            @RequestBody GlycanSearchInput searchInput) {
+        
+        Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
+        try {
+            if (searchInput.getGlytoucanIds() != null && !searchInput.getGlytoucanIds().isEmpty()) {
+                List<String> matches = glycanRepository.getGlycanByGlytoucanIds(null, searchInput.getGlytoucanIds());
+                List<String> matchedIds = new ArrayList<String>();
+                for (String m: matches) {
+                    matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                }
+                searchResultMap.put(searchInput.getGlytoucanIds().hashCode()+"glytoucan", matchedIds);
+            }
+            if (searchInput.getMinMass() != null && searchInput.getMaxMass() != null) {
+                List<String> matches = glycanRepository.getGlycanByMass(null, searchInput.getMinMass(), searchInput.getMaxMass());
+                List<String> matchedIds = new ArrayList<String>();
+                for (String m: matches) {
+                    matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                }
+                searchResultMap.put(searchInput.getMinMass()+"mass"+searchInput.getMaxMass(), matchedIds);
+            }
+            if (searchInput.getStructure() != null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                String searchSequence = SequenceUtils.parseSequence(errorMessage, searchInput.getStructure().getSequence(), 
+                        searchInput.getStructure().getFormat().getLabel());
+                
+                if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                    throw new IllegalArgumentException("Error in the arguments", errorMessage);
+                }
+                String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);  
+                if (glycanURI != null) {
+                    List<String> matches = new ArrayList<String>();
+                    matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+                    searchResultMap.put(searchSequence.hashCode()+"structure", matches);
+                }
+            }
+            if (searchInput.getSubstructure() != null) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                
+                String searchSequence = SequenceUtils.parseSequence(errorMessage, searchInput.getSubstructure().getSequence(), 
+                        searchInput.getSubstructure().getFormat().getLabel());
+                
+                if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                    throw new IllegalArgumentException("Error in the arguments", errorMessage);
+                }
+                
+                List<SequenceDefinedGlycan> glycans = glycanRepository.getAllSequenceDefinedGlycans();
+                List<String> matches = null;
+                try {
+                    matches = subStructureSearch(searchSequence, glycans, searchInput.getSubstructure().getReducingEnd());
+                    searchResultMap.put(searchSequence.hashCode()+"structure", matches);
+                } catch (SugarImporterException | GlycoVisitorException | GlycoconjugateException | SearchEngineException e) {
+                    errorMessage.addError(new ObjectError ("search", e.getMessage()));
+                    throw new IllegalArgumentException("Error during substructure search", errorMessage);
+                } 
+            }
+            
+            Set<String> finalMatches = new HashSet<String>();
+            int i=0;
+            String searchKey = "";
+            for (String key: searchResultMap.keySet()) {
+                searchKey += key;
+                List<String> matches = searchResultMap.get(key);
+                if (i == 0)
+                    finalMatches.addAll(matches);
+                else {
+                    // get the intersection
+                    finalMatches = matches.stream()
+                            .distinct()
+                            .filter(finalMatches::contains)
+                            .collect(Collectors.toSet());
+                    
+                }
+                i++;
+            }
+            
+            if (!searchKey.isEmpty()) {
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(searchKey);
+                searchResult.setIdList(String.join(",", finalMatches));
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } else {
+                return null;
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+        } 
+    }
     
     @ApiOperation(value = "Perform search on glycans that match one of the given glytoucan ids")
     @RequestMapping(value="/searchGlycansByGlytoucanIds", method = RequestMethod.GET)
@@ -154,7 +262,7 @@ public class SearchController {
     public String listGlycansByStructure (
             @ApiParam(required=true, value="structure to match") 
             @RequestBody String sequence,
-            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
+            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GlycoWorkbench") 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat) {
         
         try {
@@ -200,7 +308,7 @@ public class SearchController {
     public String listGlycanBySubstructure (
             @ApiParam(required=true, value="substructure to match") 
             @RequestBody String sequence,
-            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GWS") 
+            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GlycoWorkbench") 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
             @ApiParam(required=false, defaultValue = "false", value="restrict search to reducing end") 
             @RequestParam(value="reducingEnd", defaultValue = "false", required=false)
@@ -250,7 +358,7 @@ public class SearchController {
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public GlycanSearchResultView listGlycansBySubstructure (
+    public GlycanSearchResultView listGlycansForSearch (
             @ApiParam(required=true, value="offset for pagination, start from 0") 
             @RequestParam("offset") Integer offset,
             @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 

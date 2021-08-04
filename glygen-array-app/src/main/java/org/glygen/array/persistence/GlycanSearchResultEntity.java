@@ -41,8 +41,7 @@ public class GlycanSearchResultEntity {
     /**
      * @return the value
      */
-    @Column(name="idlist", nullable=false)
-    @NotEmpty
+    @Column(name="idlist", nullable=true)
     public String getIdList() {
         return idList;
     }
