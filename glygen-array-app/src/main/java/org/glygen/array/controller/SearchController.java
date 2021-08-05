@@ -86,7 +86,7 @@ public class SearchController {
     String imageLocation;
     
     
-    @ApiOperation(value = "Perform search on glycans that match one of the given glytoucan ids")
+    @ApiOperation(value = "Perform search on glycans that match all of the given criteria")
     @RequestMapping(value="/searchGlycans", method = RequestMethod.POST)
     @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
