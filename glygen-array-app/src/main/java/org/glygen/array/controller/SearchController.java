@@ -31,6 +31,7 @@ import org.glygen.array.persistence.dao.GlycanSearchResultRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -43,6 +44,8 @@ import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.GlycanSearchInput;
 import org.glygen.array.view.GlycanSearchResult;
 import org.glygen.array.view.GlycanSearchResultView;
+import org.glygen.array.view.GlycanSearchType;
+import org.glygen.array.view.Sequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +59,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -114,45 +120,6 @@ public class SearchController {
                 }
                 searchResultMap.put(searchInput.getMinMass()+"mass"+searchInput.getMaxMass(), matchedIds);
             }
-            if (searchInput.getStructure() != null) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                String searchSequence = SequenceUtils.parseSequence(errorMessage, searchInput.getStructure().getSequence(), 
-                        searchInput.getStructure().getFormat().getLabel());
-                
-                if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                    throw new IllegalArgumentException("Error in the arguments", errorMessage);
-                }
-                String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);  
-                if (glycanURI != null) {
-                    List<String> matches = new ArrayList<String>();
-                    matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
-                    searchResultMap.put(searchSequence.hashCode()+"structure", matches);
-                }
-            }
-            if (searchInput.getSubstructure() != null) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                
-                String searchSequence = SequenceUtils.parseSequence(errorMessage, searchInput.getSubstructure().getSequence(), 
-                        searchInput.getSubstructure().getFormat().getLabel());
-                
-                if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                    throw new IllegalArgumentException("Error in the arguments", errorMessage);
-                }
-                
-                List<SequenceDefinedGlycan> glycans = glycanRepository.getAllSequenceDefinedGlycans();
-                List<String> matches = null;
-                try {
-                    matches = subStructureSearch(searchSequence, glycans, searchInput.getSubstructure().getReducingEnd());
-                    searchResultMap.put(searchSequence.hashCode()+"structure", matches);
-                } catch (SugarImporterException | GlycoVisitorException | GlycoconjugateException | SearchEngineException e) {
-                    errorMessage.addError(new ObjectError ("search", e.getMessage()));
-                    throw new IllegalArgumentException("Error during substructure search", errorMessage);
-                } 
-            }
             
             Set<String> finalMatches = new HashSet<String>();
             int i=0;
@@ -177,6 +144,12 @@ public class SearchController {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(searchKey);
                 searchResult.setIdList(String.join(",", finalMatches));
+                searchResult.setSearchType(GlycanSearchType.COMBINED.name());
+                try {
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
                 searchResultRepository.save(searchResult);
                 return searchResult.getSequence();
             } else {
@@ -206,6 +179,14 @@ public class SearchController {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(ids.hashCode()+"glytoucan");
                 searchResult.setIdList(String.join(",", matchedIds));
+                searchResult.setSearchType(GlycanSearchType.IDLIST.name());
+                try {
+                    GlycanSearchInput searchInput = new GlycanSearchInput();
+                    searchInput.setGlytoucanIds(ids);
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
                 searchResultRepository.save(searchResult);
                 return searchResult.getSequence();
             } catch (Exception e) {
@@ -239,6 +220,15 @@ public class SearchController {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(min+"mass"+max);
                 searchResult.setIdList(String.join(",", matchedIds));
+                searchResult.setSearchType(GlycanSearchType.MASS.name());
+                try {
+                    GlycanSearchInput searchInput = new GlycanSearchInput();
+                    searchInput.setMinMass(min);
+                    searchInput.setMaxMass(max);
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
                 searchResultRepository.save(searchResult);
                 return searchResult.getSequence();
             } catch (Exception e) {
@@ -284,6 +274,17 @@ public class SearchController {
                     GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                     searchResult.setSequence(searchSequence.hashCode()+"structure");
                     searchResult.setIdList(String.join(",", matches));
+                    searchResult.setSearchType(GlycanSearchType.STRUCTURE.name());
+                    try {
+                        GlycanSearchInput searchInput = new GlycanSearchInput();
+                        Sequence s = new Sequence();
+                        s.setSequence(sequence);
+                        s.setFormat(GlycanSequenceFormat.forValue(sequenceFormat));
+                        searchInput.setStructure(s);
+                        searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                    } catch (JsonProcessingException e) {
+                        logger.warn("could not serialize the search input" + e.getMessage());
+                    }
                     searchResultRepository.save(searchResult);
                     return searchResult.getSequence();
                 } catch (Exception e) {
@@ -333,6 +334,18 @@ public class SearchController {
                     GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                     searchResult.setSequence(searchSequence.hashCode()+"substructure");
                     searchResult.setIdList(String.join(",", matches));
+                    searchResult.setSearchType(GlycanSearchType.SUBSTRUCTURE.name());
+                    try {
+                        GlycanSearchInput searchInput = new GlycanSearchInput();
+                        Sequence s = new Sequence();
+                        s.setSequence(sequence);
+                        s.setFormat(GlycanSequenceFormat.forValue(sequenceFormat));
+                        s.setReducingEnd(reducingEnd);
+                        searchInput.setStructure(s);
+                        searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                    } catch (JsonProcessingException e) {
+                        logger.warn("could not serialize the search input" + e.getMessage());
+                    }
                     searchResultRepository.save(searchResult);
                     return searchResult.getSequence();
                 } catch (Exception e) {
@@ -399,8 +412,11 @@ public class SearchController {
             String idList = null;
             try {
                 GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId);
-                if (r != null)
+                if (r != null) {
                     idList = r.getIdList();
+                    result.setType(GlycanSearchType.valueOf(r.getSearchType()));
+                    result.setInput(new ObjectMapper().readValue(r.getInput(), GlycanSearchInput.class));
+                }
             } catch (Exception e) {
                 logger.error("Cannot retrieve the search result", e);
             }

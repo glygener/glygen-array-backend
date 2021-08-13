@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class GlycanSearchResultEntity {
     String sequence;
     String idList;
+    String searchType;
+    String input;
     
     public GlycanSearchResultEntity() {
     }
@@ -50,6 +52,38 @@ public class GlycanSearchResultEntity {
      */
     public void setIdList(String idList) {
         this.idList = idList;
+    }
+
+    /**
+     * @return the searchType
+     */
+    @Column(name="type", nullable=false)
+    @NotEmpty
+    public String getSearchType() {
+        return searchType;
+    }
+
+    /**
+     * @param searchType the searchType to set
+     */
+    public void setSearchType(String searchType) {
+        this.searchType = searchType;
+    }
+
+    /**
+     * @return the input
+     */
+    @Column(name="input", nullable=false)
+    @NotEmpty
+    public String getInput() {
+        return input;
+    }
+
+    /**
+     * @param input the input to set
+     */
+    public void setInput(String input) {
+        this.input = input;
     }
 
 }

@@ -111,13 +111,17 @@ create table IF NOT EXISTS permissions (
 
 create table IF NOT EXISTS glycansearchresult (
   sequence text not null,
-  idlist text
+  idlist text,
+  input text not null,
+  type varchar(256) not null
 );
 
 ALTER TABLE permissions ADD COLUMN IF NOT EXISTS additiondate date;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS groupname varchar(256);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS department varchar(256);
 alter table glycansearchresult alter column idlist drop not null;
+alter table glycansearchresult add column if not exists type varchar(256);
+alter table glycansearchresult add column if not exists input text;
        
 select create_constraint_if_not_exists(
         'graphs',

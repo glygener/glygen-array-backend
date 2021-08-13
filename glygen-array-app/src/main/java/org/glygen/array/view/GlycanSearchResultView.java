@@ -4,6 +4,8 @@ import java.util.List;
 
 public class GlycanSearchResultView {
     
+    GlycanSearchType type;
+    GlycanSearchInput input;
     List<GlycanSearchResult> rows;
     int total;
     int filteredTotal;
@@ -44,6 +46,30 @@ public class GlycanSearchResultView {
      */
     public void setRows(List<GlycanSearchResult> rows) {
         this.rows = rows;
+    }
+    /**
+     * @return the type
+     */
+    public GlycanSearchType getType() {
+        return type;
+    }
+    /**
+     * @param type the type to set
+     */
+    public void setType(GlycanSearchType type) {
+        this.type = type;
+    }
+    /**
+     * @return the input
+     */
+    public GlycanSearchInput getInput() {
+        return input;
+    }
+    /**
+     * @param input the input to set
+     */
+    public void setInput(GlycanSearchInput input) {
+        this.input = input;
     }
 
 }
