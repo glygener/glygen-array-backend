@@ -267,30 +267,31 @@ public class SearchController {
             }
             
             String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);  
-            if (glycanURI != null) {
-                try {
-                    List<String> matches = new ArrayList<String>();
+            try {
+                List<String> matches = new ArrayList<String>();
+                if (glycanURI != null) {
                     matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
-                    GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
-                    searchResult.setSequence(searchSequence.hashCode()+"structure");
-                    searchResult.setIdList(String.join(",", matches));
-                    searchResult.setSearchType(GlycanSearchType.STRUCTURE.name());
-                    try {
-                        GlycanSearchInput searchInput = new GlycanSearchInput();
-                        Sequence s = new Sequence();
-                        s.setSequence(sequence);
-                        s.setFormat(GlycanSequenceFormat.forValue(sequenceFormat));
-                        searchInput.setStructure(s);
-                        searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
-                    } catch (JsonProcessingException e) {
-                        logger.warn("could not serialize the search input" + e.getMessage());
-                    }
-                    searchResultRepository.save(searchResult);
-                    return searchResult.getSequence();
-                } catch (Exception e) {
-                    logger.error("Cannot save the search result", e);
                 }
-            } 
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(searchSequence.hashCode()+"structure");
+                searchResult.setIdList(String.join(",", matches));
+                searchResult.setSearchType(GlycanSearchType.STRUCTURE.name());
+                try {
+                    GlycanSearchInput searchInput = new GlycanSearchInput();
+                    Sequence s = new Sequence();
+                    s.setSequence(sequence);
+                    s.setFormat(GlycanSequenceFormat.forValue(sequenceFormat));
+                    searchInput.setStructure(s);
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } catch (Exception e) {
+                logger.error("Cannot save the search result", e);
+            }
+            
         } catch (SparqlException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }
@@ -404,7 +405,7 @@ public class SearchController {
             ErrorMessage errorMessage = new ErrorMessage("Retrieval of search results failed");
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             
-            int total = glycanRepository.getGlycanCountByUser (null);
+            
             
             List<GlycanSearchResult> searchGlycans = new ArrayList<>();
             List<String> matches = null;
@@ -420,14 +421,16 @@ public class SearchController {
             } catch (Exception e) {
                 logger.error("Cannot retrieve the search result", e);
             }
-            if (idList != null) {
+            if (idList != null && !idList.isEmpty()) {
                 matches = Arrays.asList(idList.split(","));  
             } else {
                 errorMessage.addError(new ObjectError ("searchId", "NotFound"));
                 throw new IllegalArgumentException("Search id should be obtained by a previous web service call", errorMessage);
             }
             
+            int total=0;
             if (matches != null) {
+                total = matches.size();
                 List<Glycan> loadedGlycans = new ArrayList<Glycan>();
                 for (String match: matches) {
                     Glycan glycan = glycanRepository.getGlycanById(match, null);

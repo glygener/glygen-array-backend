@@ -189,7 +189,7 @@ public class QueryHelper {
         String where = " { " + 
                 "                   ?s gadr:has_sequence ?o .\n" +
                 "                    {?o gadr:has_sequence_value \"\"\"" + singleLineSequence + "\"\"\"^^xsd:string } "
-                        + "UNION { ?o gadr:has_sequence_value \"\"\"" + singleLineSequence2 + "\"\"\" } . \n";
+                        + "UNION { ?o gadr:has_sequence_value \"\"\"" + singleLineSequence2 + "\"\"\"^^xsd:string } . \n";
         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH)) {
             // check if the user's private graph has this glycan
             fromString += "FROM <" + graph + ">\n";
@@ -198,7 +198,7 @@ public class QueryHelper {
                     + " ?s gadr:has_public_uri ?p . \n" 
                     + " ?p gadr:has_sequence ?o . \n"
                     + " {?o gadr:has_sequence_value \"\"\"" + singleLineSequence + "\"\"\"^^xsd:string } "
-                            + "UNION { ?o gadr:has_sequence_value \"\"\"" + singleLineSequence2 + "\"\"\" } . \n}";
+                            + "UNION { ?o gadr:has_sequence_value \"\"\"" + singleLineSequence2 + "\"\"\"^^xsd:string } . \n}";
             
             
         } else {
