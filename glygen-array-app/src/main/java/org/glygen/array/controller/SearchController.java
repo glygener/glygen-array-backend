@@ -423,7 +423,7 @@ public class SearchController {
             }
             if (idList != null && !idList.isEmpty()) {
                 matches = Arrays.asList(idList.split(","));  
-            } else {
+            } else if (idList == null) {
                 errorMessage.addError(new ObjectError ("searchId", "NotFound"));
                 throw new IllegalArgumentException("Search id should be obtained by a previous web service call", errorMessage);
             }
