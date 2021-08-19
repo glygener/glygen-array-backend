@@ -301,19 +301,20 @@ public class SearchController {
             }
             
             String glycanURI = glycanRepository.getGlycanBySequence(searchSequence);  
+            List<String> matches = new ArrayList<String>();
+            if (glycanURI != null) {
+                matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+            }
+            
+            if (matches.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage2 = new ErrorMessage("No results found");
+                errorMessage2.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage2.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage2);
+            }
+            
             try {
-                List<String> matches = new ArrayList<String>();
-                if (glycanURI != null) {
-                    matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
-                }
-                
-                if (matches.isEmpty()) {
-                    // do not save the search results, return an error code
-                    ErrorMessage errorMessage2 = new ErrorMessage("No results found");
-                    errorMessage2.setStatus(HttpStatus.NOT_FOUND.value());
-                    errorMessage2.setErrorCode(ErrorCodes.NOT_FOUND);
-                    throw new IllegalArgumentException("No results found", errorMessage2);
-                }
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(searchSequence.hashCode()+"structure");
                 searchResult.setIdList(String.join(",", matches));
