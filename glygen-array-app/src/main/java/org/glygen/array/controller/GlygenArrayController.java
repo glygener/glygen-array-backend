@@ -2131,20 +2131,23 @@ public class GlygenArrayController {
 					}
 				}
 				
+				
 				// retrieve publication details
 				if (l != null && linker.getPublications() != null && !linker.getPublications().isEmpty()) {
+				    List<Publication> pubList = new ArrayList<Publication>();
 				    PubmedUtil util = new PubmedUtil();
 				    for (Publication pub: linker.getPublications()) {
 				        if (pub.getPubmedId() != null) {
 				            try {
                                 DTOPublication publication = util.createFromPubmedId(pub.getPubmedId());
-                                l.addPublication (UtilityController.getPublicationFrom(publication));
+                                pubList.add (UtilityController.getPublicationFrom(publication));
                             } catch (Exception e) {
                                 logger.error("Cannot retrieve details from PubMed", e);
                                 errorMessage.addError(new ObjectError("pubMedId", "NotValid"));
                             }
 				        }
 				    }
+				    l.setPublications(pubList);
 				}
 			} 
 			
