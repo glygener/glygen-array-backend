@@ -1,9 +1,7 @@
 package org.glygen.array.persistence.rdf;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.Size;
@@ -12,19 +10,37 @@ import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME, 
+        include = JsonTypeInfo.As.PROPERTY, 
+        property = "type")
+    @JsonSubTypes({ 
+        @Type(value = LinkedGlycan.class, name = "LINKEDGLYCAN"), 
+        @Type(value = GlycoLipid.class, name = "GLYCOLIPID"),
+        @Type(value = GlycoPeptide.class, name = "GLYCOPEPTIDE"),
+        @Type(value = GlycoProtein.class, name = "GLYCOPROTEIN"),
+        @Type(value = GPLinkedGlycoPeptide.class, name = "GPLINKEDGLYCOPEPTIDE"),
+        @Type(value = LandingLight.class, name = "LANDING_LIGHT"),
+        @Type(value = ControlFeature.class, name = "CONTROL"),
+        @Type(value = NegControlFeature.class, name = "NEGATIVE_CONTROL"),
+        @Type(value = CompoundFeature.class, name = "COMPOUND")
+    })
 public class Feature {
 	String id;
 	String uri;
 	String name;
 	String internalId;
-	List<Glycan> glycans;
 	Linker linker;
 	FeatureMetadata metadata;
 	
 	Map<String, String> positionMap = new HashMap<>(); // position to glycanId map
 	
-	FeatureType type = FeatureType.NORMAL;
+	FeatureType type;
 	
 	Date dateModified;
 	Date dateCreated;
@@ -62,24 +78,7 @@ public class Feature {
 	public String getGlycan (String position) {
 		return positionMap.get(position);
 	}
-	/**
-	 * @return the glycan
-	 */
-	public List<Glycan> getGlycans() {
-		return glycans;
-	}
-	/**
-	 * @param glycan the glycan to set
-	 */
-	public void setGlycans(List<Glycan>glycan) {
-		this.glycans = glycan;
-	}
 	
-	public void addGlycan (Glycan glycan) {
-		if (this.glycans == null)
-			glycans = new ArrayList<Glycan>();
-		glycans.add(glycan);
-	}
 	/**
 	 * @return the linker
 	 */

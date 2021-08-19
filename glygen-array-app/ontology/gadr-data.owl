@@ -189,6 +189,24 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_glycan -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_glycan">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/linked_glycan"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/glycan"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_glycopeptide -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_glycopeptide">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/GPlinked_glycopeptide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/glycopeptide"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_image -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_image">
@@ -230,13 +248,38 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_linked_glycan -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_linked_glycan">
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/glycolipid"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/glycopeptide"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/glycoprotein"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/linked_glycan"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_linker -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_linker">
-        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/linker"/>
         <rdfs:comment>Specifies the linker that is used for a feature.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_lipid -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_lipid">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycolipid"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Lipid"/>
     </owl:ObjectProperty>
     
 
@@ -254,7 +297,14 @@
     <!-- http://purl.org/gadr/data/has_molecule -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/feature"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/feature_context"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
         <rdfs:comment>Links a feature and its linker with a list of molecules that are on a spot with this linker.</rdfs:comment>
     </owl:ObjectProperty>
@@ -266,6 +316,15 @@
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_molecule_position">
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/feature_context"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_peptide -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_peptide">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/glycopeptide"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Peptide"/>
     </owl:ObjectProperty>
     
 
@@ -285,6 +344,22 @@
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/array_dataset"/>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/processed_data"/>
         <rdfs:comment>Links a processed data file to the array dataset.</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_protein -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_protein">
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/GPlinked_glycopeptide"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/glycoprotein"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Protein"/>
     </owl:ObjectProperty>
     
 
@@ -661,7 +736,7 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_key">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMolecule"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -671,7 +746,7 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_inChI_sequence">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMolecule"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -715,6 +790,16 @@ Inverse of created_by object property</rdfs:comment>
         <rdfs:domain rdf:resource="http://purl.org/gadr/data/chemical_entity"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
         <rdfs:comment>Mass of the compound</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_max -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_max">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>
     
 
@@ -763,6 +848,16 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_min -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_min">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_molecular_formula -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_molecular_formula">
@@ -787,7 +882,7 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pdbId">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Protein"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -837,7 +932,7 @@ Inverse of created_by object property</rdfs:comment>
     <!-- http://purl.org/gadr/data/has_pubmed_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubmed_id">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Peptide"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
         <rdfs:comment>a link to pubmed id of the publication describing this peptide or protein linker</rdfs:comment>
     </owl:DatatypeProperty>
@@ -898,7 +993,7 @@ Inverse of created_by object property</rdfs:comment>
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_smiles">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMoleculeLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/SmallMolecule"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -932,7 +1027,7 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_uniprot_id">
         <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/ProteinLinker"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Protein"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
     </owl:DatatypeProperty>
     
@@ -1042,18 +1137,35 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
-    <!-- http://purl.org/gadr/data/PeptideLinker -->
+    <!-- http://purl.org/gadr/data/GPlinked_glycopeptide -->
 
-    <owl:Class rdf:about="http://purl.org/gadr/data/PeptideLinker">
+    <owl:Class rdf:about="http://purl.org/gadr/data/GPlinked_glycopeptide">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:label>GPLinked GlycoPeptide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/Lipid -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Lipid">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/SmallMolecule"/>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/Peptide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Peptide">
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
     </owl:Class>
     
 
 
-    <!-- http://purl.org/gadr/data/ProteinLinker -->
+    <!-- http://purl.org/gadr/data/Protein -->
 
-    <owl:Class rdf:about="http://purl.org/gadr/data/ProteinLinker">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/PeptideLinker"/>
+    <owl:Class rdf:about="http://purl.org/gadr/data/Protein">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/Peptide"/>
     </owl:Class>
     
 
@@ -1067,9 +1179,9 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
-    <!-- http://purl.org/gadr/data/SmallMoleculeLinker -->
+    <!-- http://purl.org/gadr/data/SmallMolecule -->
 
-    <owl:Class rdf:about="http://purl.org/gadr/data/SmallMoleculeLinker">
+    <owl:Class rdf:about="http://purl.org/gadr/data/SmallMolecule">
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/linker"/>
     </owl:Class>
     
@@ -1177,6 +1289,33 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
+    <!-- http://purl.org/gadr/data/glycolipid -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/glycolipid">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:label>GlycoLipid</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/glycopeptide -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/glycopeptide">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:label>GlycoPeptide</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/glycoprotein -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/glycoprotein">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:label>GlycoProtein</rdfs:label>
+    </owl:Class>
+    
+
+
     <!-- http://purl.org/gadr/data/image -->
 
     <owl:Class rdf:about="http://purl.org/gadr/data/image">
@@ -1201,6 +1340,15 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     <owl:Class rdf:about="http://purl.org/gadr/data/intensity">
         <rdfs:comment>An value for the binding of the features on a spot with the sample. Derived by combining all statistic measurment (replicates) into a single value.</rdfs:comment>
         <rdfs:label>Intensity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/linked_glycan -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/linked_glycan">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:label>Linked Glycan</rdfs:label>
     </owl:Class>
     
 
@@ -1266,16 +1414,6 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     <owl:Class rdf:about="http://purl.org/gadr/data/processed_data">
         <rdfs:comment>The final data after data processing and statistics.</rdfs:comment>
         <rdfs:label>Processed Data</rdfs:label>
-    </owl:Class>
-    
-
-
-    <!-- http://purl.org/gadr/data/protein -->
-
-    <owl:Class rdf:about="http://purl.org/gadr/data/protein">
-        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/printed_molecule"/>
-        <rdfs:comment>Protein printed on an array.</rdfs:comment>
-        <rdfs:label>Protein</rdfs:label>
     </owl:Class>
     
 

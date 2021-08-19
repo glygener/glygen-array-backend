@@ -23,6 +23,8 @@ import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.Lipid;
+import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
@@ -71,10 +73,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		graph = getGraphForUser(user);
 		
 		switch (l.getType()) {
-		case SMALLMOLECULE_LINKER:
+		case SMALLMOLECULE:
 			return addSmallMoleculeLinker((SmallMoleculeLinker) l, graph);
-		case PEPTIDE_LINKER:
-		case PROTEIN_LINKER:
+		case PEPTIDE:
+		case PROTEIN:
 			return addSequenceBasedLinker (l, graph);
 		default:
 			throw new SparqlException(l.getType() + " type is not supported");
@@ -145,7 +147,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		// check if the linker already exists in "default-graph"
 		String existing = null;
 		String sequence = null;
-		if (l.getType() == LinkerType.PROTEIN_LINKER || l.getType() == LinkerType.PEPTIDE_LINKER) {
+		if (l.getType() == LinkerType.PROTEIN || l.getType() == LinkerType.PEPTIDE) {
 			sequence = ((SequenceBasedLinker)l).getSequence();
 		}
 		
@@ -194,7 +196,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasSequence, sequenceL, graphIRI));
 			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			
-			if (l.getType() == LinkerType.PROTEIN_LINKER) {
+			if (l.getType() == LinkerType.PROTEIN) {
 				if (((ProteinLinker)l).getUniProtId() != null) {
 					IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
 					Literal uniProt = f.createLiteral(((ProteinLinker)l).getUniProtId());
@@ -685,6 +687,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     @Override
     public List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException {
+        return getLinkerByUser(user, offset, limit, field, order, searchValue, null);
+    }
+        
+    @Override
+    public List<Linker> getLinkerByUser(UserEntity user, Integer offset, Integer limit, String field, Integer order,
+            String searchValue, LinkerType linkerType) throws SparqlException, SQLException {
         List<Linker> linkers = new ArrayList<Linker>();
         
         // get all linkerURIs from user's private graph
@@ -727,7 +735,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             queryBuf.append ("WHERE {\n {\n");
             queryBuf.append (
                     " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                            " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
+                            " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
+            if (linkerType != null) {
+                queryBuf.append("?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+            }
+            queryBuf.append (
                     " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
                             sortLine + searchPredicate + 
                     "}\n" );
@@ -735,7 +747,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                  queryBuf.append ("UNION {" +
                     "?s gadr:has_public_uri ?public . \n" +
                     "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
-                    " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n" +
+                    " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n");
+                 if (linkerType != null) {
+                     queryBuf.append("?public gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+                 }
+                 queryBuf.append(
                         publicSortLine + publicSearchPredicate + 
                     "}}\n"); 
              }
@@ -846,16 +862,23 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(linker, null, null, graphIRI);
 		if (statements.hasNext()) {
 			switch (type) {
-			case PEPTIDE_LINKER:
+			case PEPTIDE:
 				linkerObject = new PeptideLinker();
 				break;
-			case PROTEIN_LINKER:
+			case PROTEIN:
 				linkerObject = new ProteinLinker();
 				((ProteinLinker) linkerObject).setPdbIds(new ArrayList<String>());
 				break;
-			case SMALLMOLECULE_LINKER:
+			case SMALLMOLECULE:
 				linkerObject = new SmallMoleculeLinker();
 				break;
+            case LIPID:
+                linkerObject = new Lipid();
+                break;
+            case OTHER:
+            default:
+                linkerObject = new OtherLinker();
+                break;
 			}
 			
 			linkerObject.setUri(linkerURI);
@@ -874,7 +897,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        extractFromStatements (statements, linkerObject, graph);
 		}
 		
-		retrieveChangeLog(linkerObject, linkerObject.getUri(), graph);
+		if (linkerObject != null)
+		    retrieveChangeLog(linkerObject, linkerObject.getUri(), graph);
 		return linkerObject;
 	}
 	
@@ -1163,7 +1187,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         String existingURI = null;
         
         switch (linker.getType()) {
-        case SMALLMOLECULE_LINKER:
+        case SMALLMOLECULE:
+        case LIPID:
             if (((SmallMoleculeLinker) linker).getPubChemId() != null) {
                 existingURI = getLinkerByField(((SmallMoleculeLinker) linker).getPubChemId().toString(), "has_pubchem_compound_id", "long");
             } else if (((SmallMoleculeLinker) linker).getInChiKey() != null) {
@@ -1173,17 +1198,25 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             }
             
             break;
-        case PROTEIN_LINKER:
+        case PROTEIN:
             if (((SequenceBasedLinker) linker).getSequence() != null) {
                 existingURI = getLinkerByField(((SequenceBasedLinker) linker).getSequence(), "has_sequence", "string");
             } else if (((ProteinLinker) linker).getUniProtId() != null) {
                 existingURI = getLinkerByField(((ProteinLinker) linker).getUniProtId(), "has_uniProtId", "string");
             }
             break;
-        case PEPTIDE_LINKER:
+        case PEPTIDE:
             if (((SequenceBasedLinker) linker).getSequence() != null) {
                 existingURI = getLinkerByField(((SequenceBasedLinker) linker).getSequence(), "has_sequence", "string");
             }
+            break;
+        
+        case OTHER:
+        default:
+            //TODO do we allow duplicates???
+            Linker existing = getLinkerByLabel(linker.getName(), null);
+            if (existing != null)
+                existingURI = existing.getUri();
             break;
         }
         
@@ -1277,9 +1310,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         statements2.add(f.createStatement(local, RDF.TYPE, linkerType, graphIRI));
         
         if (!existing) {
-	        // add additionalInfo based on the type of Glycan
+	        // add additionalInfo based on the type of Linker
 	        switch (linker.getType()) {
-	        case SMALLMOLECULE_LINKER:
+	        case SMALLMOLECULE:
+	        case LIPID:    
 	            
 	            IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
 	            IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
@@ -1357,14 +1391,14 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            }
 	                        
 	            break;
-	        case PEPTIDE_LINKER:
-	        case PROTEIN_LINKER:
+	        case PEPTIDE:
+	        case PROTEIN:
 	            IRI hasSequence = f.createIRI(hasSequencePredicate);
 	            Literal sequenceL= f.createLiteral(((SequenceBasedLinker) linker).getSequence());
 	            statements.add(f.createStatement(publicLinker, hasSequence, sequenceL, publicGraphIRI));
 	            if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
 	            
-	            if (linker.getType() == LinkerType.PROTEIN_LINKER) {
+	            if (linker.getType() == LinkerType.PROTEIN) {
 	                if (((ProteinLinker)linker).getUniProtId() != null) {
 	                    IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
 	                    Literal uniProt = f.createLiteral(((ProteinLinker)linker).getUniProtId());
@@ -1380,6 +1414,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            }
 	            
 	            break;
+            default:
+                break;
 	        }
 	        
 	        if (linker.getUrls() != null) {
@@ -1397,5 +1433,49 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
         
         return publicURI;
+    }
+
+
+    @Override
+    public int getLinkerCountByUser(UserEntity user, LinkerType linkerType) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        int total = 0;
+        if (graph != null) {
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+            //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
+            queryBuf.append (" ?s rdf:type  <" + linkerTypePredicate + ">. ");
+            if (linkerType != null) {
+                queryBuf.append(" ?s gadr:has_type \"" + linkerType.toString() + "\" . \n");
+            }
+            queryBuf.append ("}");
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String count = sparqlEntity.getValue("count");
+                if (count == null) {
+                    logger.error("Cannot get the count from repository");
+                } 
+                else {
+                    try {
+                        total = Integer.parseInt(count);
+                        break;
+                    } catch (NumberFormatException e) {
+                        throw new SparqlException("Count query returned invalid result", e);
+                    }
+                }
+                
+            }
+        }
+        return total;
     }
 }

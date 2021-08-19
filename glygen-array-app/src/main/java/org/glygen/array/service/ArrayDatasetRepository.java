@@ -102,4 +102,6 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     
     int getDatasetCountByGlycan (String glycanId, UserEntity user) throws SparqlException, SQLException;
+    List<ArrayDataset> getDatasetByGlycan(String glycanId, int offset, int limit, String field, int order,
+            Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
 }

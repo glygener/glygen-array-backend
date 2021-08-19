@@ -15,6 +15,8 @@ import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
@@ -266,8 +268,10 @@ public class ExtendedGalFileParser {
                                     feature.setType(FeatureType.NEGATIVE_CONTROL);
                                 } else if (fType.equalsIgnoreCase("organic compound")) {
                                     feature.setType(FeatureType.COMPOUND);
-                                } else {
-                                    feature.setType(FeatureType.NORMAL);
+                                } else if (fType.equalsIgnoreCase("glycan")){
+                                    feature.setType(FeatureType.LINKEDGLYCAN);
+                                } else if (fType.equalsIgnoreCase("glycopeptide")) {
+                                    feature.setType(FeatureType.GLYCOPEPTIDE);
                                 }
                                 i++;
                                 spotFeatures.add(feature);
@@ -303,8 +307,10 @@ public class ExtendedGalFileParser {
                                     feature.setType(FeatureType.NEGATIVE_CONTROL);
                                 } else if (featureType.equalsIgnoreCase("organic compound")) {
                                     feature.setType(FeatureType.COMPOUND);
-                                } else {
-                                    feature.setType(FeatureType.NORMAL);
+                                } else if (featureType.equalsIgnoreCase("glycan")){
+                                    feature.setType(FeatureType.LINKEDGLYCAN);
+                                } else if (featureType.equalsIgnoreCase("glycopeptide")) {
+                                    feature.setType(FeatureType.GLYCOPEPTIDE);
                                 }
                                 spotFeatures.add(feature);
                                 if (groupId > maxGroup)
@@ -493,10 +499,10 @@ public class ExtendedGalFileParser {
                 glycanList.add(glycan);
                 List<Glycan> glycans = new ArrayList<Glycan>();
                 glycans.add(glycan);
-                Feature feature = new Feature();
-                feature.setType(FeatureType.NORMAL);
+                Feature feature = new LinkedGlycan();
+                feature.setType(FeatureType.LINKEDGLYCAN);
                 feature.setName(name);
-                feature.setGlycans(glycans);
+                ((LinkedGlycan) feature).setGlycans(glycans);
                 String linkerName = getLinker(sequence);
                 if (linkerName != null) {
                     SmallMoleculeLinker linker = new SmallMoleculeLinker();
@@ -519,11 +525,17 @@ public class ExtendedGalFileParser {
             // remove the glycan sequences from the peptide sequence
             // only position markers should be there
             linker.setSequence(replaceGlycans (sequence));
-            Feature feature = new Feature();
+            Feature feature = new GlycoPeptide();
             feature.setName(name);
-            feature.setType(FeatureType.NORMAL);
+            feature.setType(FeatureType.GLYCOPEPTIDE);
             feature.setLinker(linker);
-            feature.setGlycans(glycans);
+            List<LinkedGlycan> list = new ArrayList<LinkedGlycan>();
+            for (Glycan g: glycans) {
+                LinkedGlycan lg = new LinkedGlycan();
+                lg.addGlycan(g);
+                list.add(lg);
+            }
+            ((GlycoPeptide) feature).setGlycans(list);
             return feature;
         } else {
             // error in file format, the types should have been one of the previous ones

@@ -78,5 +78,5 @@ public interface GlycanRepository {
     List<SequenceDefinedGlycan> getAllSequenceDefinedGlycans() throws SparqlException;
     List<String> getGlycanByMass(UserEntity user, double min, double max) throws SparqlException, SQLException;
     List<String> getGlycanByGlytoucanIds(UserEntity user, List<String> ids) throws SparqlException, SQLException;
-    
+    List<String> getAllGlycans (UserEntity user) throws SparqlException, SQLException;
 }

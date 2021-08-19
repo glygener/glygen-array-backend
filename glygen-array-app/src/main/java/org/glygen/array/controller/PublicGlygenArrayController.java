@@ -17,8 +17,13 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanType;
+import org.glygen.array.persistence.rdf.GlycoLipid;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -220,6 +225,58 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("Glycan cannot be retrieved", e);
         }
         
+    }
+    
+    @ApiOperation(value = "Retrieve glycan with the given id")
+    @RequestMapping(value="/getdatasetforglycan/{glycanId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
+            @ApiResponse(code=404, message="Gycan with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ArrayDatasetListView getDatasetsForGlycan (
+            @ApiParam(required=true, value="id of the glycan to retrieve") 
+            @PathVariable("glycanId") String glycanId,
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load rawdata and processed data details or not, default= false to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll) {
+        ArrayDatasetListView result = new ArrayDatasetListView();
+        
+        if (loadAll == null) loadAll = false;
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            int total = datasetRepository.getArrayDatasetCountByUser(null);
+            
+            List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId, offset, limit, field, order, loadAll, null);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+            return result;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
     }
     
     @ApiOperation(value = "Retrieve linker with the given id")
@@ -1340,28 +1397,7 @@ public class PublicGlygenArrayController {
                     for (IntensityData data: dataList) {
                         Feature feature = data.getFeature();
                         if (feature != null) {
-                            for (Glycan glycan: feature.getGlycans()) {
-                                if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
-                                    byte[] image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
-                                    if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                                        // try to create one
-                                        BufferedImage t_image = GlygenArrayController.createImageForGlycan((SequenceDefinedGlycan) glycan);
-                                        if (t_image != null) {
-                                            String filename = glycan.getId() + ".png";
-                                            //save the image into a file
-                                            logger.debug("Adding image to " + imageLocation);
-                                            File imageFile = new File(imageLocation + File.separator + filename);
-                                            try {
-                                                ImageIO.write(t_image, "png", imageFile);
-                                            } catch (IOException e) {
-                                                logger.error ("Glycan image cannot be written", e);
-                                            }
-                                        }
-                                        image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
-                                    }
-                                    glycan.setCartoon(image);
-                                }
-                            }
+                            GlygenArrayController.populateFeatureGlycanImages(feature, imageLocation);
                         }
                     }
                     result.setRows(dataList);

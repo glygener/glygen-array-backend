@@ -1111,4 +1111,21 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         return glycans;
     }
+
+    @Override
+    public List<String> getAllGlycans(UserEntity user) throws SparqlException, SQLException {
+        List<String> glycans = new ArrayList<String>();
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        List<SparqlEntity> results = queryHelper.retrieveGlycanByUser(0, -1, null, 0, null, graph);
+        for (SparqlEntity result: results) {
+            String glycanURI = result.getValue("s");
+            glycans.add(glycanURI);
+            
+        }
+        return glycans;
+    }
 }

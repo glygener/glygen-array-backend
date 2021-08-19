@@ -1,7 +1,11 @@
 package org.glygen.array.persistence.rdf;
 
 public enum FeatureType {
-    NORMAL,
+    LINKEDGLYCAN,
+    GLYCOLIPID,
+    GLYCOPEPTIDE,
+    GLYCOPROTEIN,
+    GPLINKEDGLYCOPEPTIDE,
     CONTROL,
     NEGATIVE_CONTROL,
     COMPOUND,

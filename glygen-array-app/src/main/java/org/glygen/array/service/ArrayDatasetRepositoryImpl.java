@@ -3466,6 +3466,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             queryBuf.append ("FROM <" + graph + ">\n");
             queryBuf.append ("WHERE {\n");
             queryBuf.append (
+                    "?dataset rdf:type <http://purl.org/gadr/data#array_dataset> . \n" +
                     "?dataset gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . \n" +
                     "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
                     "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
@@ -3484,5 +3485,54 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         return total;
+    }
+    
+    
+    @Override
+    public List<ArrayDataset> getDatasetByGlycan(String glycanId, int offset, int limit, String field, int order,
+            Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        List<ArrayDataset> datasets = new ArrayList<ArrayDataset>();
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph != null) {
+            String sortPredicate = getSortPredicate (field);
+            
+            String sortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT distinct ?s \n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n {");
+            queryBuf.append (
+                    "?s rdf:type <http://purl.org/gadr/data#array_dataset> . \n" +
+                    "?s gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . \n" +
+                    "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
+                    "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
+                    "?spot gadr:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId + ">  . \n " + sortLine + "}"); 
+            queryBuf.append ("}" + 
+                    orderByLine + 
+                   ((limit == -1) ? " " : " LIMIT " + limit) +
+                   " OFFSET " + offset);
+                   
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            for (SparqlEntity sparqlEntity : results) {
+                String datasetURI = sparqlEntity.getValue("s");
+                datasets.add(getDatasetFromURI(datasetURI, loadAll, user));
+            }
+        }
+        return datasets;
     }
 }

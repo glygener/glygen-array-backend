@@ -28,7 +28,12 @@ import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycoLipid;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -1409,36 +1414,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			    String featureURI = null;
 			    String previous = feature.getUri();
 			    if (!processedFeatures.containsKey(previous)) {
-    				List<Glycan> publicGlycans = new ArrayList<>();
-    				for (Glycan g: feature.getGlycans()) {
-    				    if (g.getIsPublic()) {
-    				        // already public
-    				        if (!processedGlycans.containsKey(g.getUri())) {
-    				            publicGlycans.add(g); 
-    				            processedGlycans.put(g.getUri(), g);
-    				        }
-    				    } else {
-        				    String previousG = g.getUri();
-        				    if (!processedGlycans.containsKey(previousG)) {
-        						String glycanURI = glycanRepository.makePublic(g, user);
-        						if (glycanURI != null) {
-            						Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
-            						publicGlycans.add(newGlycan); // get the public one
-            						processedGlycans.put(previousG, newGlycan);
-        						} else {
-            						Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
-            						if (existing != null) {
-            						    publicGlycans.add(existing);
-            						    processedGlycans.put(previousG, existing);
-            						}
-            					} 
-        				    }
-        				    else {
-        				        publicGlycans.add(processedGlycans.get(previousG)); // get the public one
-        				    }
-    				    }
-    				}
-    				feature.setGlycans(publicGlycans);
+    				populatePublicGlycansForFeature(feature, processedGlycans, processedFeatures, processedLinkers, user);
     				Linker l = feature.getLinker();
     				if (l != null) {
     				    if (l.getIsPublic()) {
@@ -1544,7 +1520,162 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return blockLayoutURI;
 	}
 
-	@Override
+	private void populatePublicGlycansForFeature(Feature feature, Map<String, Glycan> processedGlycans, 
+	        Map<String, Feature> processedFeatures, 
+	        Map<String, Linker> processedLinkers, UserEntity user) throws SparqlException, SQLException {
+	    
+	    switch (feature.getType()) {
+	    case LINKEDGLYCAN:
+	        List<Glycan> publicGlycans = new ArrayList<>();
+	        for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+	            if (g.getIsPublic()) {
+	                // already public
+	                if (!processedGlycans.containsKey(g.getUri())) {
+	                    publicGlycans.add(g); 
+	                    processedGlycans.put(g.getUri(), g);
+	                }
+	            } else {
+	                String previousG = g.getUri();
+	                if (!processedGlycans.containsKey(previousG)) {
+	                    String glycanURI = glycanRepository.makePublic(g, user);
+	                    if (glycanURI != null) {
+	                        Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
+	                        publicGlycans.add(newGlycan); // get the public one
+	                        processedGlycans.put(previousG, newGlycan);
+	                    } else {
+	                        Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
+	                        if (existing != null) {
+	                            publicGlycans.add(existing);
+	                            processedGlycans.put(previousG, existing);
+	                        }
+	                    } 
+	                }
+	                else {
+	                    publicGlycans.add(processedGlycans.get(previousG)); // get the public one
+	                }
+	            }
+	        }
+	        ((LinkedGlycan)feature).setGlycans(publicGlycans);
+	        break;
+	    case GLYCOLIPID:
+	        List<LinkedGlycan> publicFeatures = new ArrayList<>();
+	        for (LinkedGlycan f: ((GlycoLipid)feature).getGlycans()) {
+	            if (f.getUri() != null && f.getUri().contains("public")) {
+	                // already public
+	                if (!processedFeatures.containsKey(f.getUri())) {
+	                    publicFeatures.add(f);
+	                    processedFeatures.put(f.getUri(), f);
+	                }
+	            } else {
+	                String previousG = f.getUri();
+                    if (!processedFeatures.containsKey(previousG)) {
+                        String glycanURI = featureRepository.addPublicFeature(f, user);
+                        if (glycanURI != null) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                            if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                processedFeatures.put(previousG, newLinkedGlycan);
+                            }
+                        } 
+                    }
+                    else {
+                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                    }
+	            }
+	        }
+	        ((GlycoLipid)feature).setGlycans(publicFeatures);
+	        break;
+        case GLYCOPEPTIDE:
+            publicFeatures = new ArrayList<>();
+            for (LinkedGlycan f: ((GlycoPeptide)feature).getGlycans()) {
+                if (f.getUri() != null && f.getUri().contains("public")) {
+                    // already public
+                    if (!processedFeatures.containsKey(f.getUri())) {
+                        publicFeatures.add(f);
+                        processedFeatures.put(f.getUri(), f);
+                    }
+                } else {
+                    String previousG = f.getUri();
+                    if (!processedFeatures.containsKey(previousG)) {
+                        String glycanURI = featureRepository.addPublicFeature(f, user);
+                        if (glycanURI != null) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                            if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                processedFeatures.put(previousG, newLinkedGlycan);
+                            }
+                        } 
+                    }
+                    else {
+                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                    }
+                }
+            }
+            ((GlycoPeptide)feature).setGlycans(publicFeatures);
+            break;
+        case GLYCOPROTEIN:
+            publicFeatures = new ArrayList<>();
+            for (LinkedGlycan f: ((GlycoProtein)feature).getGlycans()) {
+                if (f.getUri() != null && f.getUri().contains("public")) {
+                    // already public
+                    if (!processedFeatures.containsKey(f.getUri())) {
+                        publicFeatures.add(f);
+                        processedFeatures.put(f.getUri(), f);
+                    }
+                } else {
+                    String previousG = f.getUri();
+                    if (!processedFeatures.containsKey(previousG)) {
+                        String glycanURI = featureRepository.addPublicFeature(f, user);
+                        if (glycanURI != null) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                            if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                processedFeatures.put(previousG, newLinkedGlycan);
+                            }
+                        } 
+                    }
+                    else {
+                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                    }
+                }
+            }
+            ((GlycoProtein)feature).setGlycans(publicFeatures);
+            break;
+        case GPLINKEDGLYCOPEPTIDE:
+            List<GlycoPeptide> publicFeatures2 = new ArrayList<>();
+            for (GlycoPeptide f: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
+                if (f.getUri() != null && f.getUri().contains("public")) {
+                    // already public
+                    if (!processedFeatures.containsKey(f.getUri())) {
+                        publicFeatures2.add(f);
+                        processedFeatures.put(f.getUri(), f);
+                    }
+                } else {
+                    String previousG = f.getUri();
+                    if (!processedFeatures.containsKey(previousG)) {
+                        String glycanURI = featureRepository.addPublicFeature(f, user);
+                        if (glycanURI != null) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                            if (newLinkedGlycan != null && newLinkedGlycan instanceof GlycoPeptide) {
+                                publicFeatures2.add((GlycoPeptide) newLinkedGlycan); // get the public one
+                                processedFeatures.put(previousG, newLinkedGlycan);
+                            }
+                        } 
+                    }
+                    else {
+                        publicFeatures2.add((GlycoPeptide) processedFeatures.get(previousG)); // get the public one
+                    }
+                }
+            }
+            ((GPLinkedGlycoPeptide)feature).setPeptides(publicFeatures2);
+            break;
+        default:
+            break;
+	        
+	    }
+    }
+
+    @Override
 	public Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException {
 		String graph = null;
 		if (spotURI.contains("public"))

@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
+import javax.persistence.EntityNotFoundException;
 
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
@@ -31,7 +32,6 @@ import org.glygen.array.persistence.dao.GlycanSearchResultRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
-import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -140,6 +140,24 @@ public class SearchController {
                 i++;
             }
             
+            if ((searchInput.getGlytoucanIds() == null || searchInput.getGlytoucanIds().isEmpty()) 
+                    && (searchInput.getMinMass() == null && searchInput.getMaxMass() == null)) {
+                // no restrictions, return all glycans
+                searchKey = "allglycans";
+                List<String> matches = glycanRepository.getAllGlycans(null);
+                for (String m: matches) {
+                    finalMatches.add(m.substring(m.lastIndexOf("/")+1));
+                }
+            }
+            
+            if (finalMatches.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage = new ErrorMessage("No results found");
+                errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage);
+            }
+            
             if (!searchKey.isEmpty()) {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(searchKey);
@@ -174,6 +192,14 @@ public class SearchController {
             List<String> matchedIds = new ArrayList<String>();
             for (String m: matches) {
                 matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+            }
+            
+            if (matchedIds.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage = new ErrorMessage("No results found");
+                errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage);
             }
             try {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
@@ -215,6 +241,14 @@ public class SearchController {
             List<String> matchedIds = new ArrayList<String>();
             for (String m: matches) {
                 matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+            }
+            
+            if (matchedIds.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage = new ErrorMessage("No results found");
+                errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage);
             }
             try {
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
@@ -271,6 +305,14 @@ public class SearchController {
                 List<String> matches = new ArrayList<String>();
                 if (glycanURI != null) {
                     matches.add(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+                }
+                
+                if (matches.isEmpty()) {
+                    // do not save the search results, return an error code
+                    ErrorMessage errorMessage2 = new ErrorMessage("No results found");
+                    errorMessage2.setStatus(HttpStatus.NOT_FOUND.value());
+                    errorMessage2.setErrorCode(ErrorCodes.NOT_FOUND);
+                    throw new IllegalArgumentException("No results found", errorMessage2);
                 }
                 GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                 searchResult.setSequence(searchSequence.hashCode()+"structure");
@@ -331,6 +373,14 @@ public class SearchController {
             List<String> matches = null;
             try {
                 matches = subStructureSearch(searchSequence, glycans, reducingEnd);
+                
+                if (matches == null || matches.isEmpty()) {
+                    // do not save the search results, return an error code
+                    ErrorMessage errorMessage1 = new ErrorMessage("No results found");
+                    errorMessage1.setStatus(HttpStatus.NOT_FOUND.value());
+                    errorMessage1.setErrorCode(ErrorCodes.NOT_FOUND);
+                    throw new IllegalArgumentException("No results found", errorMessage1);
+                }
                 try {
                     GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
                     searchResult.setSequence(searchSequence.hashCode()+"substructure");
@@ -404,8 +454,6 @@ public class SearchController {
             
             ErrorMessage errorMessage = new ErrorMessage("Retrieval of search results failed");
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            
-            
             
             List<GlycanSearchResult> searchGlycans = new ArrayList<>();
             List<String> matches = null;

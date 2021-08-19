@@ -21,12 +21,24 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.CompoundFeature;
+import org.glygen.array.persistence.rdf.ControlFeature;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycoLipid;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
+import org.glygen.array.persistence.rdf.LandingLight;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.Lipid;
+import org.glygen.array.persistence.rdf.NegControlFeature;
+import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.Range;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
-import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +50,16 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	
 	final static String featureTypePredicate = ontPrefix + "Feature";
 	final static String hasLinkerPredicate = ontPrefix + "has_linker";
+	final static String hasLipidPredicate = ontPrefix + "has_lipid";
+	final static String hasProteinPredicate = ontPrefix + "has_protein";
+	final static String hasPeptidePredicate = ontPrefix + "has_peptide";
 	final static String hasMoleculePredicate = ontPrefix + "has_molecule";
+	final static String hasLinkedGlycanPredicate = ontPrefix + "has_linked_glycan";
+	final static String hasGlycoPeptidePredicate = ontPrefix + "has_glycopeptide";
+	final static String hasMaxPredicate = ontPrefix + "has_max";
+	final static String hasMinPredicate = ontPrefix + "has_min";
+	
+	
 	
 	final static String hasPositionPredicate = ontPrefix + "has_molecule_position";
 	final static String hasPositionValuePredicate = ontPrefix + "has_position";
@@ -57,7 +78,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public String addFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
 		String graph = null;
-		if (feature == null || feature.getLinker() == null)
+		if (feature == null)
 			// cannot add 
 			throw new SparqlException ("Not enough information is provided to register a feature");
 		
@@ -76,18 +97,26 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		IRI hasLinker = f.createIRI(hasLinkerPredicate);
 		IRI hasMolecule = f.createIRI(hasMoleculePredicate);
-		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
-		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+		IRI hasLinkedGlycan = f.createIRI(hasLinkedGlycanPredicate);
+        IRI hasGlycoPeptide = f.createIRI(hasGlycoPeptidePredicate);
+        IRI hasLipid = f.createIRI(hasLipidPredicate);
+        IRI hasProtein = f.createIRI(hasProteinPredicate);
+        IRI hasPeptide = f.createIRI(hasPeptidePredicate);
+        IRI hasPositionContext = f.createIRI(hasPositionPredicate);
+        IRI hasPosition = f.createIRI(hasPositionValuePredicate);
+        IRI hasMax = f.createIRI(hasMaxPredicate);
+        IRI hasMin = f.createIRI(hasMinPredicate);
 		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
-        Literal internalId = feature.getInternalId() == null ? f.createLiteral(feature.getName()) : f.createLiteral(feature.getInternalId());
+        Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId());
         
 		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
 		    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
 		}
+		
 		Literal label = f.createLiteral(feature.getName());
 		
 		List<Statement> statements = new ArrayList<Statement>();
@@ -98,36 +127,176 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
 		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
-		statements.add(f.createStatement(feat, hasInternalId, internalId, graphIRI));
+		if (internalId != null) statements.add(f.createStatement(feat, hasInternalId, internalId, graphIRI));
 		
 		Linker linker = feature.getLinker();
-		if (linker.getUri() == null) {
-		    if (linker.getId() != null)
-		        linker.setUri(uriPrefix + linker.getId());
-		    else {
-		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
-		    }
-		}
-		
-		IRI linkerIRI = f.createIRI(linker.getUri());
-		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
-		
-		if (feature.getGlycans() != null) {
-    		for (Glycan g: feature.getGlycans()) {
-    			if (g.getUri() == null) {
-    				if (g.getId() != null) {
-    					g.setUri(uriPrefix + g.getId());
-    				} else {
-    				    throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
-
-    				}
-    			}
-    			
-    			IRI glycanIRI = f.createIRI(g.getUri());
-    			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+		if (linker != null) {   // linker is optional for some feature types
+    		if (linker.getUri() == null) {
+    		    if (linker.getId() != null)
+    		        linker.setUri(uriPrefix + linker.getId());
+    		    else {
+    		        throw new SparqlException ("No enough information is provided to add the feature, linker cannot be found!"); 
+    		    }
     		}
+    		
+    		IRI linkerIRI = f.createIRI(linker.getUri());
+    		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
 		}
 		
+		switch (feature.getType()) {
+		case LINKEDGLYCAN:
+		    if (((LinkedGlycan) feature).getGlycans() != null) {
+	            for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+	                if (g.getUri() == null) {
+	                    if (g.getId() != null) {
+	                        g.setUri(uriPrefix + g.getId());
+	                    } else {
+	                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
+	                    }
+	                }
+	                
+	                IRI glycanIRI = f.createIRI(g.getUri());
+	                statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+	            }
+	        }
+            break;
+        case GLYCOLIPID:
+            if (((GlycoLipid)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoLipid)feature).getGlycans()) {
+                    if (g.getUri() == null) {
+                        if (g.getId() != null) {
+                            g.setUri(uriPrefix + g.getId());
+                        } else {
+                            throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+    
+                        }
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoLipid)feature).getLipid() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, lipid should be provided");
+            } else {
+                Lipid lipid = ((GlycoLipid)feature).getLipid();
+                if (lipid.getUri() == null) {
+                    if (lipid.getId() != null) {
+                        lipid.setUri(uriPrefix + lipid.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, lipid " + lipid.getName() + " cannot be found!");
+
+                    }   
+                }
+                IRI lipidIRI = f.createIRI(lipid.getUri());
+                statements.add(f.createStatement(feat, hasLipid, lipidIRI, graphIRI));
+            }
+            break;
+        case GLYCOPEPTIDE:
+            if (((GlycoPeptide)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                    if (g.getUri() == null) {
+                        if (g.getId() != null) {
+                            g.setUri(uriPrefix + g.getId());
+                        } else {
+                            throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+    
+                        }
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoPeptide)feature).getPeptide() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, peptide should be provided");
+            } else {
+                PeptideLinker pl = ((GlycoPeptide)feature).getPeptide();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, peptide " + pl.getName() + " cannot be found!");
+
+                    }
+                }
+                IRI peptideIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasPeptide, peptideIRI, graphIRI));
+            }
+            break;
+        case GLYCOPROTEIN:
+            if (((GlycoProtein)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoProtein)feature).getGlycans()) {
+                    if (g.getUri() == null) {
+                        if (g.getId() != null) {
+                            g.setUri(uriPrefix + g.getId());
+                        } else {
+                            throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+    
+                        }
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoProtein)feature).getProtein() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
+            } else {
+                ProteinLinker pl = ((GlycoProtein)feature).getProtein();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
+
+                    }
+                }
+                IRI proteinIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+            }
+            break;
+        case GPLINKEDGLYCOPEPTIDE:
+            if (((GPLinkedGlycoPeptide)feature).getPeptides() != null) {
+                for (GlycoPeptide g: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
+                    if (g.getUri() == null) {
+                        if (g.getId() != null) {
+                            g.setUri(uriPrefix + g.getId());
+                        } else {
+                            throw new SparqlException ("No enough information is provided to add the feature, glycopeptide " + g.getName() + " cannot be found!");
+    
+                        }
+                    }
+                    
+                    IRI glycoPeptideIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasGlycoPeptide, glycoPeptideIRI, graphIRI));
+                }
+            }
+            if (((GPLinkedGlycoPeptide)feature).getProtein() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
+            } else {
+                ProteinLinker pl = ((GPLinkedGlycoPeptide)feature).getProtein();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
+
+                    }
+                }
+                IRI proteinIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+            }
+            break;
+        
+        default:
+            break;
+		
+		}
+		
+		String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+        IRI positionContext = f.createIRI(positionContextURI);
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
 			    // need to check if the position is valid
@@ -140,12 +309,24 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
 				Literal pos = f.createLiteral(position);
-				String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
-				IRI positionContext = f.createIRI(positionContextURI);
+				
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
+		}
+		
+		Range range = null;
+		if (feature.getType() == FeatureType.LINKEDGLYCAN) {
+		    range = ((LinkedGlycan) feature).getRange();
+		} else if (feature.getType() == FeatureType.GLYCOPEPTIDE) {
+            range = ((GlycoPeptide) feature).getRange();
+        }
+		if (range != null) {
+		    IRI max = f.createIRI(range.getMax()+"");
+		    IRI min = f.createIRI(range.getMin()+"");
+		    statements.add(f.createStatement(positionContext, hasMax, max, graphIRI));
+		    statements.add(f.createStatement(positionContext, hasMin, min, graphIRI));
 		}
 		
 		if (feature.getMetadata() != null) {
@@ -231,12 +412,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	@Override
 	public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order)
 			throws SparqlException, SQLException {
-	    return getFeatureByUser(user, offset, limit, field, order, null);
+	    return getFeatureByUser(user, offset, limit, field, order, null, null);
 	}
 	
 	@Override
     public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException {
+        return getFeatureByUser(user, offset, limit, field, order, searchValue, null);
+    }	
+	
+    @Override
+    public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, FeatureType featureType) throws SparqlException, SQLException {
 		List<Feature> features = new ArrayList<Feature>();
 		
 		// get all featureURIs from user's private graph
@@ -279,7 +466,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             queryBuf.append ("WHERE {\n {\n");
             queryBuf.append (
                     " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                    " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+                    " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n"); 
+            if (featureType != null) {
+                queryBuf.append("?s gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
+            }
+            queryBuf.append(
                     " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
                             sortLine + searchPredicate + 
                     "}\n" );
@@ -287,7 +478,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                  queryBuf.append ("UNION {" +
                     "?s gadr:has_public_uri ?public . \n" +
                     "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
-                    " ?public rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+                    " ?public rdf:type  <http://purl.org/gadr/data#Feature>. \n"); 
+                 if (featureType != null) {
+                     queryBuf.append("?public gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
+                 }
+                 queryBuf.append(
                         publicSortLine + publicSearchPredicate + 
                     "}}\n"); 
              }
@@ -304,8 +499,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				Feature feature = getFeatureFromURI(featureURI, user);
 				features.add(feature);	
 			}
-			
-			//logger.info("Done retrieving features");
 		}
 		
 		return features;
@@ -361,6 +554,49 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         }
 		return getCountByUserByType(graph, featureTypePredicate);
 	}
+    
+    @Override
+    public int getFeatureCountByUser(UserEntity user, FeatureType featureType) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        int total = 0;
+        if (graph != null) {
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+            //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
+            queryBuf.append (" ?s rdf:type  <" + featureTypePredicate + ">. ");
+            if (featureType != null) {
+                queryBuf.append(" ?s gadr:has_type \"" + featureType.toString() + "\" . \n");
+            }
+            queryBuf.append ("}");
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String count = sparqlEntity.getValue("count");
+                if (count == null) {
+                    logger.error("Cannot get the count from repository");
+                } 
+                else {
+                    try {
+                        total = Integer.parseInt(count);
+                        break;
+                    } catch (NumberFormatException e) {
+                        throw new SparqlException("Count query returned invalid result", e);
+                    }
+                }
+                
+            }
+        }
+        return total;
+    }
 
 	@Override
 	public void deleteFeature(String featureId, UserEntity user) throws SparqlException, SQLException {
@@ -412,6 +648,23 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	    
 	    return canDelete;
 	}
+	
+	private FeatureType getFeatureTypeForFeature (String featureURI, String graph) throws SparqlException {
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?t \n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("<" +  featureURI + "> gadr:has_type ?t . }");
+
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            String type = results.get(0).getValue("t");
+            return FeatureType.valueOf(type);
+        }
+    }
 
 	@Override
 	public Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException {
@@ -450,15 +703,61 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
+		IRI hasLinkedGlycan = f.createIRI(hasLinkedGlycanPredicate);
+        IRI hasGlycoPeptide = f.createIRI(hasGlycoPeptidePredicate);
+        IRI hasLipid = f.createIRI(hasLipidPredicate);
+        IRI hasProtein = f.createIRI(hasProteinPredicate);
+        IRI hasPeptide = f.createIRI(hasPeptidePredicate);
+        IRI hasMax = f.createIRI(hasMaxPredicate);
+        IRI hasMin = f.createIRI(hasMinPredicate);
 		
+		
+		FeatureType featureType = getFeatureTypeForFeature (featureURI, graph);
+		Map<String, Range> rangeMap = new HashMap<String, Range>();
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
-		List<Glycan> glycans = new ArrayList<Glycan>();
 		Map<String, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
-			featureObject = new Feature();
+		    
+		    switch (featureType) {
+            case LINKEDGLYCAN:
+                featureObject = new LinkedGlycan();
+                ((LinkedGlycan) featureObject).setGlycans(new ArrayList<Glycan>());
+                break;
+            case COMPOUND:
+                featureObject = new CompoundFeature();
+                break;
+            case CONTROL:
+                featureObject = new ControlFeature();
+                break;
+            case GLYCOLIPID:
+                featureObject = new GlycoLipid();
+                ((GlycoLipid) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                break;
+            case GLYCOPEPTIDE:
+                featureObject = new GlycoPeptide();
+                ((GlycoPeptide) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                break;
+            case GLYCOPROTEIN:
+                featureObject = new GlycoProtein();
+                ((GlycoProtein) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                break;
+            case GPLINKEDGLYCOPEPTIDE:
+                featureObject = new GPLinkedGlycoPeptide();
+                ((GPLinkedGlycoPeptide) featureObject).setPeptides(new ArrayList<GlycoPeptide>());
+                break;
+            case LANDING_LIGHT:
+                featureObject = new LandingLight();
+                break;
+            case NEGATIVE_CONTROL:
+                featureObject = new NegControlFeature();
+                break;
+            default:
+                featureObject = new ControlFeature();
+                break;
+            
+            }
 			featureObject.setUri(featureURI);
 			featureObject.setId(featureURI.substring(featureURI.lastIndexOf("/")+1));
-			featureObject.setGlycans(glycans);
 			featureObject.setPositionMap(positionMap);
 		}
 		while (statements.hasNext()) {
@@ -482,14 +781,68 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
 					featureObject.setLinker(linker);
 				}
-			} else if (st.getPredicate().equals(hasMolecule)) {
+			} else if (st.getPredicate().equals(hasLipid)) {
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String linkerURI = value.stringValue();
+                    Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                    if (featureObject instanceof GlycoLipid && linker != null && linker instanceof Lipid) 
+                        ((GlycoLipid) featureObject).setLipid((Lipid) linker);
+                }
+            } else if (st.getPredicate().equals(hasPeptide)) {
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String linkerURI = value.stringValue();
+                    Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                    if (featureObject instanceof GlycoPeptide && linker != null && linker instanceof PeptideLinker) 
+                        ((GlycoPeptide) featureObject).setPeptide((PeptideLinker) linker);
+                }
+            } else if (st.getPredicate().equals(hasProtein)) {
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String linkerURI = value.stringValue();
+                    Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                    if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
+                        ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
+                }
+            } else if (st.getPredicate().equals(hasMolecule)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
 					String glycanURI = value.stringValue();
-					Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-					glycans.add(glycan);
+					if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
+					    Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+					    ((LinkedGlycan) featureObject).getGlycans().add(glycan);
+					}
 				}
-			} else if (st.getPredicate().equals(hasCreatedDate)) {
+			} else if (st.getPredicate().equals(hasLinkedGlycan)) {
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String glycanURI = value.stringValue();
+                    if (featureObject.getType() == FeatureType.GLYCOLIPID) {
+                        Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                        if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                            ((GlycoLipid) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                    } else if (featureObject.getType() == FeatureType.GLYCOPEPTIDE) {
+                        Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                        if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                            ((GlycoPeptide) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                    } else if (featureObject.getType() == FeatureType.GLYCOPROTEIN) {
+                        Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                        if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                            ((GlycoProtein) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                    }
+                }
+            } else if (st.getPredicate().equals(hasGlycoPeptide)) {
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String peptideURI = value.stringValue();
+                    if (featureObject instanceof GPLinkedGlycoPeptide) {
+                        Feature glycoPeptide = getFeatureFromURI(peptideURI, user);
+                        if (glycoPeptide != null && glycoPeptide instanceof GlycoPeptide)
+                            ((GPLinkedGlycoPeptide) featureObject).getPeptides().add((GlycoPeptide) glycoPeptide);
+                    }
+                }
+            } else if (st.getPredicate().equals(hasCreatedDate)) {
 				Value value = st.getObject();
 			    if (value instanceof Literal) {
 			    	Literal literal = (Literal)value;
@@ -519,7 +872,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				IRI ctx = f.createIRI(contextURI);
 				RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
 				Integer position = null;
-				Glycan glycanInContext = null;
+				String moleculeInContextURI = null;
+				Range range = new Range();
 				while (statements2.hasNext()) {
 					Statement st2 = statements2.next();
 					if (st2.getPredicate().equals(hasPosition)) {
@@ -533,11 +887,31 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 						}	
 					} else if (st2.getPredicate().equals(hasMolecule)) {
 						Value val = st2.getObject();
-						glycanInContext = glycanRepository.getGlycanFromURI(val.stringValue(), user);
-					}  
+						moleculeInContextURI = val.stringValue();
+						
+					} else if (st2.getPredicate().equals(hasMax)) {
+					    Value val = st2.getObject();
+					    try {
+					        Integer max = Integer.parseInt(val.stringValue());
+					        range.setMax(max);
+					    } catch (NumberFormatException e) {
+					        logger.error("glycan range is invalid");
+					    }
+                    } else if (st2.getPredicate().equals(hasMin)) {
+                        Value val = st2.getObject();
+                        try {
+                            Integer min = Integer.parseInt(val.stringValue());
+                            range.setMin(min);
+                        } catch (NumberFormatException e) {
+                            logger.error("glycan range is invalid");
+                        }
+                    }
 				}
-				if (position != null && glycanInContext != null) {
-					positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
+				if (position != null && moleculeInContextURI != null) {
+					positionMap.put (position +"", moleculeInContextURI.substring(moleculeInContextURI.lastIndexOf("/")+1));
+				}
+				if (range.getMax() != null && moleculeInContextURI != null) {
+				    rangeMap.put(moleculeInContextURI, range);
 				}
 			} else if (st.getPredicate().equals(hasFeatureMetadata)) {
                 Value uriValue = st.getObject();
@@ -565,12 +939,66 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
                             featureObject.setLinker(linker);
                         }
+                    } else if (stPublic.getPredicate().equals(hasLipid)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String linkerURI = value.stringValue();
+                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                            if (featureObject instanceof GlycoLipid && linker != null && linker instanceof Lipid) 
+                                ((GlycoLipid) featureObject).setLipid((Lipid) linker);
+                        }
+                    } else if (stPublic.getPredicate().equals(hasPeptide)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String linkerURI = value.stringValue();
+                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                            if (featureObject instanceof GlycoPeptide && linker != null && linker instanceof PeptideLinker) 
+                                ((GlycoPeptide) featureObject).setPeptide((PeptideLinker) linker);
+                        }
+                    } else if (stPublic.getPredicate().equals(hasProtein)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String linkerURI = value.stringValue();
+                            Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
+                            if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
+                                ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
+                        }
                     } else if (stPublic.getPredicate().equals(hasMolecule)) {
                         value = stPublic.getObject();
                         if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
                             String glycanURI = value.stringValue();
-                            Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-                            glycans.add(glycan);
+                            if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
+                                Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                                ((LinkedGlycan) featureObject).getGlycans().add(glycan);
+                            }
+                        }
+                    } else if (stPublic.getPredicate().equals(hasLinkedGlycan)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String glycanURI = value.stringValue();
+                            if (featureObject.getType() == FeatureType.GLYCOLIPID) {
+                                Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                                if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                                    ((GlycoLipid) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                            } else if (featureObject.getType() == FeatureType.GLYCOPEPTIDE) {
+                                Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                                if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                                    ((GlycoPeptide) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                            } else if (featureObject.getType() == FeatureType.GLYCOPROTEIN) {
+                                Feature linkedGlycan = getFeatureFromURI(glycanURI, user);
+                                if (linkedGlycan != null && linkedGlycan instanceof LinkedGlycan)
+                                    ((GlycoProtein) featureObject).getGlycans().add((LinkedGlycan) linkedGlycan);
+                            }
+                        }
+                    } else if (stPublic.getPredicate().equals(hasGlycoPeptide)) {
+                        value = stPublic.getObject();
+                        if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                            String peptideURI = value.stringValue();
+                            if (featureObject instanceof GPLinkedGlycoPeptide) {
+                                Feature glycoPeptide = getFeatureFromURI(peptideURI, user);
+                                if (glycoPeptide != null && glycoPeptide instanceof GlycoPeptide)
+                                    ((GPLinkedGlycoPeptide) featureObject).getPeptides().add((GlycoPeptide) glycoPeptide);
+                            }
                         }
                     } else if (stPublic.getPredicate().equals(hasPositionContext)) {
                         Value positionContext = stPublic.getObject();
@@ -578,7 +1006,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                         IRI ctx = f.createIRI(contextURI);
                         RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, defaultGraphIRI);
                         Integer position = null;
-                        Glycan glycanInContext = null;
+                        Range range = new Range();
+                        String moleculeInContextURI = null;
                         while (statements2.hasNext()) {
                             Statement st2 = statements2.next();
                             if (st2.getPredicate().equals(hasPosition)) {
@@ -592,11 +1021,30 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                 }   
                             } else if (st2.getPredicate().equals(hasMolecule)) {
                                 Value val = st2.getObject();
-                                glycanInContext = glycanRepository.getGlycanFromURI(val.stringValue(), user);
-                            }  
+                                moleculeInContextURI = val.stringValue();
+                            } else if (st2.getPredicate().equals(hasMax)) {
+                                Value val = st2.getObject();
+                                try {
+                                    Integer max = Integer.parseInt(val.stringValue());
+                                    range.setMax(max);
+                                } catch (NumberFormatException e) {
+                                    logger.error("glycan range is invalid");
+                                }
+                            } else if (st2.getPredicate().equals(hasMin)) {
+                                Value val = st2.getObject();
+                                try {
+                                    Integer min = Integer.parseInt(val.stringValue());
+                                    range.setMin(min);
+                                } catch (NumberFormatException e) {
+                                    logger.error("glycan range is invalid");
+                                }
+                            }
                         }
-                        if (position != null && glycanInContext != null) {
-                            positionMap.put (position +"", glycanInContext.getUri().substring(glycanInContext.getUri().lastIndexOf("/")+1));
+                        if (position != null && moleculeInContextURI != null) {
+                            positionMap.put (position +"", moleculeInContextURI.substring(moleculeInContextURI.lastIndexOf("/")+1));
+                        }
+                        if (range.getMax() != null && moleculeInContextURI != null) {
+                            rangeMap.put(moleculeInContextURI, range);
                         }
                     } else if (stPublic.getPredicate().equals(hasFeatureMetadata)) {
                         Value uriValue = stPublic.getObject();
@@ -604,18 +1052,78 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     }
                 }
 			}
-			logger.info("done");
+			//logger.info("done");
 		}
+		
+		// for features with optional ranges, go through their lists and update the ranges
+		if (featureObject instanceof GlycoProtein) {
+		    List<LinkedGlycan> glycans = ((GlycoProtein) featureObject).getGlycans();
+		    for (LinkedGlycan g: glycans) {
+		        Range r = rangeMap.get(g.getUri());
+		        g.setRange(r);
+		    }
+		} else if (featureObject instanceof GPLinkedGlycoPeptide) {
+            List<GlycoPeptide> peptides = ((GPLinkedGlycoPeptide) featureObject).getPeptides();
+            for (GlycoPeptide g: peptides) {
+                Range r = rangeMap.get(g.getUri());
+                g.setRange(r);
+            }
+        }
 		
 		// for the private graph retrievals, only keep the non-public ones
 		if (user != null && !graph.equals(DEFAULT_GRAPH) && featureObject != null) {
-		    List<Glycan> finalGlycans = new ArrayList<Glycan>();
-		    for (Glycan glycan: featureObject.getGlycans()) {
-		        if (glycan.getUri().contains("public"))
-		             continue;
-		        finalGlycans.add(glycan);
+		    List<LinkedGlycan> finalGlycans;
+		    
+            switch (featureObject.getType()) {
+            case GLYCOLIPID:
+                finalGlycans = new ArrayList<LinkedGlycan>();
+                for (LinkedGlycan glycan: ((GlycoLipid) featureObject).getGlycans()) {
+                    if (glycan.getUri().contains("public"))
+                         continue;
+                    finalGlycans.add(glycan);
+                }
+                ((GlycoLipid) featureObject).setGlycans(finalGlycans);
+                break;
+            case GLYCOPEPTIDE:
+                finalGlycans = new ArrayList<LinkedGlycan>();
+                for (LinkedGlycan glycan: ((GlycoPeptide) featureObject).getGlycans()) {
+                    if (glycan.getUri().contains("public"))
+                         continue;
+                    finalGlycans.add(glycan);
+                }
+                ((GlycoPeptide) featureObject).setGlycans(finalGlycans);
+                break;
+            case GLYCOPROTEIN:
+                finalGlycans = new ArrayList<LinkedGlycan>();
+                for (LinkedGlycan glycan: ((GlycoProtein) featureObject).getGlycans()) {
+                    if (glycan.getUri().contains("public"))
+                         continue;
+                    finalGlycans.add(glycan);
+                }
+                ((GlycoProtein) featureObject).setGlycans(finalGlycans);
+                break;
+            case GPLINKEDGLYCOPEPTIDE:
+                ArrayList<GlycoPeptide> finalPeptides = new ArrayList<GlycoPeptide>();
+                for (GlycoPeptide glycan: ((GPLinkedGlycoPeptide) featureObject).getPeptides()) {
+                    if (glycan.getUri().contains("public"))
+                         continue;
+                    finalPeptides.add(glycan);
+                }
+                ((GPLinkedGlycoPeptide) featureObject).setPeptides(finalPeptides);
+                break;
+            case LINKEDGLYCAN:
+                ArrayList<Glycan> finalGlycans2 = new ArrayList<Glycan>();
+                for (Glycan glycan: ((LinkedGlycan) featureObject).getGlycans()) {
+                    if (glycan.getUri().contains("public"))
+                         continue;
+                    finalGlycans2.add(glycan);
+                }
+                ((LinkedGlycan) featureObject).setGlycans(finalGlycans2);
+                break;
+            default:
+                break;
+		    
 		    }
-		    featureObject.setGlycans(finalGlycans);
 		}
 		
 		featureCache.put(featureURI, featureObject);
@@ -643,6 +1151,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasPositionContext = f.createIRI(hasPositionPredicate);
 		IRI hasPosition = f.createIRI(hasPositionValuePredicate);
 		IRI hasFeatureMetadata = f.createIRI(featureMetadataPredicate);
+		IRI hasLinkedGlycan = f.createIRI(hasLinkedGlycanPredicate);
+        IRI hasGlycoPeptide = f.createIRI(hasGlycoPeptidePredicate);
+        IRI hasLipid = f.createIRI(hasLipidPredicate);
+        IRI hasProtein = f.createIRI(hasProteinPredicate);
+        IRI hasPeptide = f.createIRI(hasPeptidePredicate);
+        IRI hasMax = f.createIRI(hasMaxPredicate);
+        IRI hasMin = f.createIRI(hasMinPredicate);
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
@@ -662,12 +1177,156 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     		statements.add(f.createStatement(feat, hasLinker, linkerIRI, graphIRI));
 		}
 		
-    		
-		for (Glycan g: feature.getGlycans()) {
-			IRI glycanIRI = f.createIRI(g.getUri());
-			statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
-		}
+		switch (feature.getType()) {
+        case LINKEDGLYCAN:
+            if (((LinkedGlycan) feature).getGlycans() != null) {
+                for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+                    if (g.getUri() == null) {
+                        if (g.getId() != null) {
+                            g.setUri(uriPrefix + g.getId());
+                        } else {
+                            throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
+                        }
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+                }
+            }
+            break;
+        case GLYCOLIPID:
+            if (((GlycoLipid)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoLipid)feature).getGlycans()) {
+                    if (g.getId() != null) {
+                        g.setUri(uriPrefix + g.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoLipid)feature).getLipid() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, lipid should be provided");
+            } else {
+                Lipid lipid = ((GlycoLipid)feature).getLipid();
+                if (lipid.getUri() == null) {
+                    if (lipid.getId() != null) {
+                        lipid.setUri(uriPrefix + lipid.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, lipid " + lipid.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI lipidIRI = f.createIRI(lipid.getUri());
+                    statements.add(f.createStatement(feat, hasLipid, lipidIRI, graphIRI));
+                }
+            }
+            break;
+        case GLYCOPEPTIDE:
+            if (((GlycoPeptide)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                    if (g.getId() != null) {
+                        g.setUri(uriPrefix + g.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoPeptide)feature).getPeptide() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, peptide should be provided");
+            } else {
+                PeptideLinker pl = ((GlycoPeptide)feature).getPeptide();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, peptide " + pl.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI peptideIRI = f.createIRI(pl.getUri());
+                    statements.add(f.createStatement(feat, hasPeptide, peptideIRI, graphIRI));
+                }
+            }
+            break;
+        case GLYCOPROTEIN:
+            if (((GlycoProtein)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoProtein)feature).getGlycans()) {
+                    if (g.getId() != null) {
+                        g.setUri(uriPrefix + g.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI glycanIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
+                }
+            }
+            if (((GlycoProtein)feature).getProtein() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
+            } else {
+                ProteinLinker pl = ((GlycoProtein)feature).getProtein();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI proteinIRI = f.createIRI(pl.getUri());
+                    statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+                }
+            }
+            break;
+        case GPLINKEDGLYCOPEPTIDE:
+            if (((GPLinkedGlycoPeptide)feature).getPeptides() != null) {
+                for (GlycoPeptide g: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
+                    if (g.getId() != null) {
+                        g.setUri(uriPrefix + g.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, glycopeptide " + g.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI glycoPeptideIRI = f.createIRI(g.getUri());
+                    statements.add(f.createStatement(feat, hasGlycoPeptide, glycoPeptideIRI, graphIRI));
+                }
+            }
+            if (((GPLinkedGlycoPeptide)feature).getProtein() == null) {
+                throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
+            } else {
+                ProteinLinker pl = ((GPLinkedGlycoPeptide)feature).getProtein();
+                if (pl.getUri() == null) {
+                    if (pl.getId() != null) {
+                        pl.setUri(uriPrefix + pl.getId());
+                    } else {
+                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
+
+                    }
+                    
+                    IRI proteinIRI = f.createIRI(pl.getUri());
+                    statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+                }
+            }
+            break;
+        
+        default:
+            break;
+        
+        }
 		
+		String positionContextURI = generateUniqueURI(uriPrefixPublic + "PC");
+        IRI positionContext = f.createIRI(positionContextURI);
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
 			    // need to check if the position is valid
@@ -680,13 +1339,25 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 				String glycanId = feature.getPositionMap().get(position);
 				IRI glycanIRI = f.createIRI(uriPrefixPublic + glycanId);
 				Literal pos = f.createLiteral(position);
-				String positionContextURI = generateUniqueURI(uriPrefixPublic + "PC");
-				IRI positionContext = f.createIRI(positionContextURI);
+				
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
 				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
 				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
 			}
 		}
+		
+		Range range = null;
+        if (feature.getType() == FeatureType.LINKEDGLYCAN) {
+            range = ((LinkedGlycan) feature).getRange();
+        } else if (feature.getType() == FeatureType.GLYCOPEPTIDE) {
+            range = ((GlycoPeptide) feature).getRange();
+        }
+        if (range != null) {
+            IRI max = f.createIRI(range.getMax()+"");
+            IRI min = f.createIRI(range.getMin()+"");
+            statements.add(f.createStatement(positionContext, hasMax, max, graphIRI));
+            statements.add(f.createStatement(positionContext, hasMin, min, graphIRI));
+        }
 		
 		if (feature.getMetadata() != null) {
 		    if (feature.getMetadata().getUri() != null) {

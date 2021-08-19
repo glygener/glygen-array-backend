@@ -16,6 +16,8 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.Publication;
@@ -304,6 +306,12 @@ public class GlygenArrayRepositoryTest {
 			String linkerId2 = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 			
 			BlockLayout blockLayout= addTestBlockLayout(user, g1, g, linker1, l);
+			// add features first
+			for (Spot s: blockLayout.getSpots()) {
+			    for (Feature f: s.getFeatures()) {
+			        featureRepository.addFeature(f, user);
+			    }
+			}
 			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
 			BlockLayout existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
@@ -381,6 +389,12 @@ public class GlygenArrayRepositoryTest {
 			String linkerId2 = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 			
 			BlockLayout blockLayout= addTestBlockLayout(user, g1, g, linker1, l);
+			// add features first
+            for (Spot s: blockLayout.getSpots()) {
+                for (Feature f: s.getFeatures()) {
+                    featureRepository.addFeature(f, user);
+                }
+            }
 			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
 			SlideLayout slideLayout = addTestSlideLayout(user, blockLayout);
@@ -448,9 +462,9 @@ public class GlygenArrayRepositoryTest {
     }
 	
 	public Feature addTestFeature (UserEntity user, Glycan g1, Glycan g, Linker linker1) throws SparqlException, SQLException {
-		Feature feature = new Feature();
-		if (g != null) feature.addGlycan(g);
-		if (g1 != null)feature.addGlycan(g1);
+		Feature feature = new LinkedGlycan();
+		if (g != null) ((LinkedGlycan) feature).addGlycan(g);
+		if (g1 != null)((LinkedGlycan) feature).addGlycan(g1);
 		feature.setLinker(linker1);
 		
 		String uri = featureRepository.addFeature(feature, user);
@@ -509,17 +523,17 @@ public class GlygenArrayRepositoryTest {
 			for (Feature f: features) {
 				if (f.getUri().equals(added.getUri())) {
 					found = true;
-					assertTrue("feature has 2 glycans", f.getGlycans().size() == 2);
+					assertTrue("feature has 2 glycans", f instanceof LinkedGlycan && ((LinkedGlycan) f).getGlycans().size() == 2);
 					assertTrue("feature has the added linker", f.getLinker().getUri().equals(linker1.getUri()));
 				}
 			}
 			assertTrue ("added feature is in the list", found);
 				
 			// delete created linkers and glycans and the feature
+			featureRepository.deleteFeature(featureId, user);
 			linkerRepository.deleteLinker(linkerId1, user);
 			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
-			featureRepository.deleteFeature(featureId, user);
 		} catch (SparqlException | SQLException e) {
 			e.printStackTrace();
 			assertFalse("Failed to create feature", true);
@@ -547,7 +561,18 @@ public class GlygenArrayRepositoryTest {
 			String linkerURI = linkerRepository.addLinker(linker1, user);
 			linker1.setUri(linkerURI);
 			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
-			Feature added = addTestFeature(user, null, null, linker1);
+			
+			GlycoPeptide added = new GlycoPeptide();
+			added.setName("test glycopeptide");
+			added.setPeptide(linker1);
+			LinkedGlycan lg = new LinkedGlycan();
+			lg.addGlycan(g);
+			added.addGlycan(lg);
+			String lgURI = featureRepository.addFeature(lg, user);
+			lg.setUri(lgURI);
+			
+			String uri = featureRepository.addFeature(added, user);
+			added.setUri(uri);
 			
 			String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
 			
@@ -557,8 +582,8 @@ public class GlygenArrayRepositoryTest {
 			for (Feature f: features) {
 				if (f.getUri().equals(added.getUri())) {
 					found = true;
-					assertTrue("feature has 1 glycan", f.getGlycans().size() == 1);
-					assertTrue("feature has the added linker", f.getLinker().getUri().equals(linker1.getUri()));
+					assertTrue("feature has 1 glycan", f instanceof GlycoPeptide && ((GlycoPeptide) f).getGlycans().size() == 1);
+					assertTrue("feature has the added linker", f instanceof GlycoPeptide && ((GlycoPeptide) f).getPeptide().getUri().equals(linker1.getUri()));
 					assertTrue("feature has position map", f.getPositionMap().size() >= 0);
 					break;
 				}
@@ -566,9 +591,11 @@ public class GlygenArrayRepositoryTest {
 			assertTrue ("added feature is in the list", found);
 				
 			// delete created linkers and glycans and the feature
-			linkerRepository.deleteLinker(linkerId1, user);
-			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 			featureRepository.deleteFeature(featureId, user);
+			linkerRepository.deleteLinker(linkerId1, user);
+			featureRepository.deleteFeature(lgURI.substring(lgURI.lastIndexOf("/")+1), user);
+			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			
 		} catch (SparqlException | SQLException e) {
 			e.printStackTrace();
 			assertFalse("Failed to create feature", true);
@@ -588,13 +615,13 @@ public class GlygenArrayRepositoryTest {
 		
 		List<Spot> spots = new ArrayList<Spot> ();
 		for (int i=0; i < blockLayout.getWidth(); i++) {
-			Feature feature = new Feature();
+			Feature feature = new LinkedGlycan();
 			if (i==0) {
-				feature.addGlycan(g1);
+				((LinkedGlycan) feature).addGlycan(g1);
 				feature.setLinker(linker1);
 			}
 			if (i==1) {
-				feature.addGlycan(g);
+				((LinkedGlycan) feature).addGlycan(g);
 				feature.setLinker(l);
 			}
 			for (int j=0; j < blockLayout.getHeight(); j++) {
