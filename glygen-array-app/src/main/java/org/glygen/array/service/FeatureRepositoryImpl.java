@@ -574,7 +574,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
             queryBuf.append (" ?s rdf:type  <" + featureTypePredicate + ">. ");
             if (featureType != null) {
-                queryBuf.append(" ?s gadr:has_type \"" + featureType.toString() + "\" . \n");
+                queryBuf.append(" ?s gadr:has_type \"" + featureType.toString() + "\"^^xsd:string . \n");
             }
             queryBuf.append ("}");
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());

@@ -1455,7 +1455,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
             queryBuf.append (" ?s rdf:type  <" + linkerTypePredicate + ">. ");
             if (linkerType != null) {
-                queryBuf.append(" ?s gadr:has_type \"" + linkerType.toString() + "\" . \n");
+                queryBuf.append(" ?s gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
             }
             queryBuf.append ("}");
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
