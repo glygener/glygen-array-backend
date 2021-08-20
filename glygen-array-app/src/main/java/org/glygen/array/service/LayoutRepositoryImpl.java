@@ -35,6 +35,7 @@ import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
@@ -1432,7 +1433,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 					processedLinkers.put(previousL, newLinker);
             					} else {
                 					// retrieve the existing one
-                					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), null);
+                					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), l.getType(), null);
                 					if (existing != null) {
                 					    feature.setLinker(existing);
                 					    processedLinkers.put(previousL, existing);

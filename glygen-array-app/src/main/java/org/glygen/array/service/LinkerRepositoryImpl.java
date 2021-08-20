@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.Size;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.eclipse.rdf4j.common.iteration.Iterations;
@@ -97,7 +98,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
         
         // check if the linker already exists in "default-graph"
-        Linker existing = getLinkerByLabel(l.getName(), null);
+        Linker existing = getLinkerByLabel(l.getName(), l.getType(), null);
         
         String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         if (existing == null) {
@@ -626,18 +627,25 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         return canDelete;
     }
 	
-	private String findLinkerInGraphByField (String field, String predicate, String type, String graph) throws SparqlException {
+	private String findLinkerInGraphByField (String field, String predicate, String type, LinkerType linkerType, String graph) throws SparqlException {
 		String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
 		String whereClause = "WHERE {";
 		String where = " { " + 
 				"				    ?s gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n";
+		if (linkerType != null) {
+		    where += " ?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n";
+		}
 		if (!graph.equals(DEFAULT_GRAPH)) {
 			// check if the user's private graph has this glycan
 			fromString += "FROM <" + graph + ">\n";
 			where += "              ?s gadr:has_date_addedtolibrary ?d .\n }";
 			where += "  UNION { ?s gadr:has_date_addedtolibrary ?d .\n"
 					+ " ?s gadr:has_public_uri ?p . \n" 
-					+ "?p gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n}";
+					+ "?p gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n";
+			if (linkerType != null) {
+	            where += " ?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n";
+	        }
+			where += "}";
 			
 		} else {
 			where += "}";
@@ -680,37 +688,43 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 	}
 
+	
 	@Override
-	public Linker getLinkerByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-		if (label == null || label.isEmpty())
-			return null;
-		String graph = null;
+    public Linker getLinkerByLabel(String label, LinkerType type, UserEntity user) throws SparqlException, SQLException {
+	    if (label == null || label.isEmpty())
+            return null;
+        String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-		List<SparqlEntity> results = retrieveLinkerByLabel(label, graph);
-		if (results.isEmpty())
-			return null;
-		else {
-		    for (SparqlEntity result: results) {
-    		    String linkerURI = result.getValue("s");
-    		    if (!linkerURI.contains("public"))
-    		        return getLinkerFromURI(linkerURI, user);
-		    }
-		    
-		    // if there is only the public one, we should come to this part
-		    for (SparqlEntity result: results) {
+        List<SparqlEntity> results = retrieveLinkerByLabel(label, type, graph);
+        if (results.isEmpty())
+            return null;
+        else {
+            for (SparqlEntity result: results) {
+                String linkerURI = result.getValue("s");
+                if (!linkerURI.contains("public"))
+                    return getLinkerFromURI(linkerURI, user);
+            }
+            
+            // if there is only the public one, we should come to this part
+            for (SparqlEntity result: results) {
                 String linkerURI = result.getValue("s");
                 if (linkerURI.contains("public"))
                     return getLinkerFromURI(linkerURI, null);
             } 
-		}
-		return null;
+        }
+        return null;
 	}
 	
-	List<SparqlEntity> retrieveLinkerByLabel (String label, String graph) throws SparqlException {
+	@Override
+	public Linker getLinkerByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+		return getLinkerByLabel(label, null, user);
+	}
+	
+	List<SparqlEntity> retrieveLinkerByLabel (String label, LinkerType type, String graph) throws SparqlException {
 	    StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -719,6 +733,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
+        if (type != null) {
+            queryBuf.append ( " ?s gadr:has_type \"" + type.name() + "\"^^xsd:string . \n");
+        }
         queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
                 + "}\n");
         return sparqlDAO.query(queryBuf.toString());
@@ -727,14 +744,22 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
 	@Override
 	public String getLinkerByField(String field, String predicate, String type) throws SparqlException {
-		return findLinkerInGraphByField(field, predicate, type, DEFAULT_GRAPH);
+		return findLinkerInGraphByField(field, predicate, type, null, DEFAULT_GRAPH);
 	}
 	
 	@Override
 	public String getLinkerByField (String field, String predicate, String type, UserEntity user) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-		return findLinkerInGraphByField (field, predicate, type, graph);
+		return findLinkerInGraphByField (field, predicate, type, null, graph);
 	}
+	
+
+    @Override
+    public String getLinkerByField(
+            String field, String predicate, String type, LinkerType linkerType, UserEntity user) throws SQLException, SparqlException {
+        String graph = getGraphForUser(user);
+        return findLinkerInGraphByField (field, predicate, type, linkerType, graph);
+    }
 	
 	/**
 	 * {@inheritDoc}
@@ -1315,7 +1340,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         case OTHER:
         default:
             //TODO do we allow duplicates???
-            Linker existing = getLinkerByLabel(linker.getName(), null);
+            Linker existing = getLinkerByLabel(linker.getName(), linker.getType(), null);
             if (existing != null)
                 existingURI = existing.getUri();
             break;

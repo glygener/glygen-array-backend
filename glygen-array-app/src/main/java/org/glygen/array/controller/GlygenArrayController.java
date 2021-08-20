@@ -1402,8 +1402,8 @@ public class GlygenArrayController {
         
         try {
             if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-                Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-                if (local != null) {
+                Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
+                if (local != null && local.getType() == linker.getType()) {
                     linker.setId(local.getId());
                     errorMessage.addError(new ObjectError("name", "Duplicate"));    
                 }
@@ -1538,7 +1538,7 @@ public class GlygenArrayController {
                 } catch (Exception e) {
                     errorMessage.addError(new ObjectError("sequence", "NotValid"));
                 }
-				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
+				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
 					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
@@ -1549,8 +1549,8 @@ public class GlygenArrayController {
 			l = linker;
 			l.setUri(linkerURI);
 			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-				if (local != null) {
+				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
+				if (local != null && local.getType() == linker.getType()) {
 				    linker.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));	
 				}
@@ -1616,14 +1616,14 @@ public class GlygenArrayController {
                 } catch (Exception e) {
                     errorMessage.addError(new ObjectError("sequence", "NotValid"));
                 }
-				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", user);
+				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
 				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 				}
 			}
 			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
-				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", user);
+				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", linker.getType(), user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
 				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
@@ -1633,8 +1633,8 @@ public class GlygenArrayController {
 			l = linker;
 			l.setUri(linkerURI);
 			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
-				if (local != null) {
+				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
+				if (local != null && local.getType() == linker.getType()) {
 				    linker.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));	
 				}
@@ -2133,7 +2133,7 @@ public class GlygenArrayController {
 				}
 				
 				if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
 					if (local != null) {
 					    linker.setId(local.getId());
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
@@ -4399,7 +4399,7 @@ public class GlygenArrayController {
 			Linker local = null;
 			// check if name is unique
 			if (linker.getName() != null && !linker.getName().isEmpty()) {
-				local = linkerRepository.getLinkerByLabel(linker.getName().trim(), user);
+				local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
 				if (local != null && !local.getUri().equals(linker.getUri())) {   // there is another with the same name
 					errorMessage.addError(new ObjectError("name", "Duplicate"));
 				}

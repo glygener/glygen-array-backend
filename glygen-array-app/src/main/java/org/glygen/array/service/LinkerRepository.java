@@ -3,6 +3,8 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Linker;
@@ -35,5 +37,7 @@ public interface LinkerRepository {
     List<Linker> getLinkerByUser(UserEntity user, Integer offset, Integer limit, String field, Integer order,
             String searchValue, LinkerType linkerType) throws SparqlException, SQLException;
     int getLinkerCountByUser(UserEntity user, LinkerType linkerType) throws SparqlException, SQLException;
+    String getLinkerByField(String field, String predicate, String type, LinkerType linkerType, UserEntity user) throws SQLException, SparqlException;
+    Linker getLinkerByLabel(String label, LinkerType type, UserEntity user) throws SparqlException, SQLException;
 
 }

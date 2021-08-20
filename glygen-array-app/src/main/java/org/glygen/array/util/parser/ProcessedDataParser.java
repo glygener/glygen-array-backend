@@ -24,6 +24,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.service.FeatureRepository;
@@ -202,11 +203,11 @@ public class ProcessedDataParser {
                         glycan.setUri(glycanURI);
                         Linker linker = linkerCache.get(linkerName.trim());
                         if (linker == null) {
-                            linker = linkerRepository.getLinkerByLabel(linkerName.trim(), user);
+                            linker = linkerRepository.getLinkerByLabel(linkerName.trim(), LinkerType.SMALLMOLECULE, user);
                             if (linker != null)
                                 linkerCache.put(linkerName.trim(), linker);
                             else {
-                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
+                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", LinkerType.SMALLMOLECULE, user);
                                 if (linker != null)
                                     linkerCache.put(linkerName+"B", linker);
                             }
@@ -232,7 +233,7 @@ public class ProcessedDataParser {
                             // try finding as SpxxB
                             linker = linkerCache.get(linkerName+"B");
                             if (linker == null) {
-                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", user);
+                                linker = linkerRepository.getLinkerByLabel(linkerName+"B", LinkerType.SMALLMOLECULE, user);
                                 if (linker != null)
                                     linkerCache.put(linkerName+"B", linker);
                             }
