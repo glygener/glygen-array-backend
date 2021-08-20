@@ -74,17 +74,118 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		switch (l.getType()) {
 		case SMALLMOLECULE:
+		case LIPID:
 			return addSmallMoleculeLinker((SmallMoleculeLinker) l, graph);
 		case PEPTIDE:
 		case PROTEIN:
 			return addSequenceBasedLinker (l, graph);
+		case OTHER:
+		    return addOtherLinker ((OtherLinker)l, graph);
 		default:
 			throw new SparqlException(l.getType() + " type is not supported");
 		}
 	}
 		
 	
-	private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException {
+	private String addOtherLinker(OtherLinker l, String graph) throws SparqlException, SQLException {
+	    String linkerURI;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        
+        if (l.getName() == null) {
+            // cannot add 
+            throw new SparqlException ("Not enough information is provided to register a linker");
+        }
+        
+        // check if the linker already exists in "default-graph"
+        Linker existing = getLinkerByLabel(l.getName(), null);
+        
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        if (existing == null) {
+            linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
+            
+            IRI linker = f.createIRI(linkerURI);
+            IRI graphIRI = f.createIRI(graph);
+            IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
+            IRI opensRing = f.createIRI(opensRingPredicate);
+            IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+            IRI linkerType = f.createIRI(linkerTypePredicate);
+            IRI hasLinkerType = f.createIRI(hasTypePredicate);
+            IRI hasUrl = f.createIRI(hasURLPredicate);
+            Literal type = f.createLiteral(l.getType().name());
+            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
+            Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+            Literal description = null;
+            if (l.getDescription() != null)
+                description = f.createLiteral(l.getDescription());
+            
+            IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+            IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+            Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
+            Literal date = f.createLiteral(new Date());
+            
+            List<Statement> statements = new ArrayList<Statement>();
+            statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
+            statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
+            statements.add(f.createStatement(linker, RDFS.LABEL, label, graphIRI));
+            statements.add(f.createStatement(linker, RDFS.COMMENT, comment, graphIRI));
+            statements.add(f.createStatement(linker, hasAddedToLibrary, date, graphIRI));
+            statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
+            statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
+            statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
+            if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
+            
+            if (l.getUrls() != null) {
+                for (String url: l.getUrls()) {
+                    Literal urlLit = f.createLiteral(url);
+                    statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+                }
+            }
+            
+            sparqlDAO.addStatements(statements, graphIRI);
+            
+            if (l.getPublications() != null && !l.getPublications().isEmpty()) {
+                addLinkerPublications(l, linkerURI, graph);
+            }
+        } else {
+            logger.debug("The linker already exists in global repository. URI: " + existing);
+            linkerURI = existing.getUri();
+            // add has_public_uri to point to the global one, add details to local
+            
+            IRI linker = f.createIRI(linkerURI);
+            
+            linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
+            IRI localLinker = f.createIRI(linkerURI);
+            IRI graphIRI = f.createIRI(graph);
+            IRI hasPublicURI = f.createIRI(hasPublicURIPredicate);
+            Literal date = f.createLiteral(new Date());
+            IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
+            IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
+            Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+            
+            List<Statement> statements = new ArrayList<Statement>();
+            
+            IRI linkerType = f.createIRI(linkerTypePredicate);
+            IRI hasLinkerType = f.createIRI(hasTypePredicate);
+            Literal type = f.createLiteral(l.getType().name());
+            
+            statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
+            statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
+            statements.add(f.createStatement(localLinker, hasPublicURI, linker, graphIRI));
+            statements.add(f.createStatement(localLinker, hasAddedToLibrary, date, graphIRI));
+            statements.add(f.createStatement(localLinker, hasModifiedDate, date, graphIRI));
+            statements.add(f.createStatement(localLinker, RDFS.LABEL, label, graphIRI));
+            statements.add(f.createStatement(localLinker, RDFS.COMMENT, comment, graphIRI));
+            
+            sparqlDAO.addStatements(statements, graphIRI);
+            // TODO add this linker's name as an alias to the global one???
+        }
+        
+        return linkerURI;
+    }
+
+
+    private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException {
 	    String uriPre = uriPrefix;
 	    if (graph.equals(DEFAULT_GRAPH)) {
 	        uriPre = uriPrefixPublic;
