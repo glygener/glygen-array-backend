@@ -70,6 +70,7 @@ import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
@@ -2098,9 +2099,17 @@ public class GlygenArrayController {
 						if (linker.getPubChemId() != null) {
 						    err = new ObjectError("pubChemId", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
+						    if (l != null && linker.getType() == LinkerType.LIPID) {
+						        // need to create Lipid object
+						        l = new Lipid ((SmallMoleculeLinker)l);
+						    }
 						} else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
 						    err = new ObjectError("inchiKey", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey());
+						    if (l != null && linker.getType() == LinkerType.LIPID) {
+                                // need to create Lipid object
+                                l = new Lipid ((SmallMoleculeLinker)l);
+                            }
 						}
 						if (l == null) {
 							// could not get details from PubChem
