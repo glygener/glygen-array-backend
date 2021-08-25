@@ -191,8 +191,10 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         IRI type = f.createIRI(complexDescriptionTypePredicate);
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
         IRI hasOrder = f.createIRI(orderPredicate);
+        IRI notRecorded = f.createIRI(notRecordedPredicate);
         
         Literal order = descriptorGroup.getOrder() == null || descriptorGroup.getOrder() == -1 ? null : f.createLiteral(descriptorGroup.getOrder());
+        Literal notRec = descriptorGroup.getNotRecorded() == null ? f.createLiteral(false) : f.createLiteral(descriptorGroup.getNotRecorded());
         
         if (descriptorGroup.getKey().getUri() == null) {
             // try to get the uri from id
@@ -220,6 +222,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         statements.add(f.createStatement(descrGroup, RDF.TYPE, type, graphIRI)); 
         statements.add(f.createStatement(descrGroup, hasKey, templateIRI, graphIRI));
         if (order != null) statements.add(f.createStatement(descrGroup, hasOrder, order, graphIRI));
+        statements.add(f.createStatement(descrGroup, notRecorded, notRec, graphIRI));
         
         for (Description descriptor: descriptorGroup.getDescriptors()) {
             if (descriptor == null) {
@@ -253,9 +256,11 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         IRI hasKey = f.createIRI(keyPredicate);
         IRI hasUnit = f.createIRI(unitPredicate);
         IRI hasOrder = f.createIRI(orderPredicate);
+        IRI notRecorded = f.createIRI(notRecordedPredicate);
         
         Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
         Literal order = descriptor.getOrder() == null || descriptor.getOrder() == -1 ? null : f.createLiteral(descriptor.getOrder());
+        Literal notRec = descriptor.getNotRecorded() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotRecorded());
         
         if (descriptor.getKey().getUri() == null) {
             // try to get the uri from id
@@ -286,6 +291,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
         if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
         if (order != null) statements.add(f.createStatement(descr, hasOrder, order, graphIRI));
+        statements.add(f.createStatement(descr, notRecorded, notRec, graphIRI));
         
         return descrURI;     
     }
@@ -491,6 +497,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         IRI hasUnit = f.createIRI(unitPredicate);
         IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
         IRI hasOrder = f.createIRI(orderPredicate);
+        IRI notRecorded = f.createIRI(notRecordedPredicate);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -520,6 +527,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             } else if (st.getPredicate().equals(hasUnit)) {
                 String val = st.getObject().stringValue();
                 ((Descriptor)descriptorObject).setUnit(val);
+            } else if (st.getPredicate().equals(notRecorded)) {
+                String val = st.getObject().stringValue();
+                ((Descriptor)descriptorObject).setNotRecorded(Boolean.parseBoolean(val));
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 String descURI = st.getObject().stringValue();
                 Description d = getDescriptionFromURI(descURI, graph);

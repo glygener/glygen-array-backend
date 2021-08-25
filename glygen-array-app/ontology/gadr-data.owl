@@ -1100,6 +1100,23 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
+    <!-- http://purl.org/gadr/data/is_not_recorded -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/is_not_recorded">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/complex_description"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/simple_description"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/opens_ring -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/opens_ring">

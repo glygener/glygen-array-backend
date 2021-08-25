@@ -3700,6 +3700,15 @@ public class DatasetController {
                                 for (ObjectError err: error.getErrors())
                                     errorMessage.addError(err);
                             } 
+                        } else {
+                            // need to check the value 
+                            if (t.isMandatory()) {
+                                if (d.getNotRecorded()) {
+                                    // fine
+                                } else if (((Descriptor) d).getValue() == null || ((Descriptor) d).getValue().isEmpty()) {
+                                    errorMessage.addError(new ObjectError (t.getName() + "-value", "NotFound"));
+                                }
+                            }
                         }
                     }
                 } else if (t.getUri() != null) {
@@ -3712,6 +3721,15 @@ public class DatasetController {
                                 for (ObjectError err: error.getErrors())
                                     errorMessage.addError(err);
                             } 
+                        } else {
+                            // need to check the value 
+                            if (t.isMandatory()) {
+                                if (d.getNotRecorded()) {
+                                    // fine
+                                } else if (((Descriptor) d).getValue() == null || ((Descriptor) d).getValue().isEmpty()) {
+                                    errorMessage.addError(new ObjectError (t.getName() + "-value", "NotFound"));
+                                }
+                            }
                         }
                     }
                 }
@@ -3752,12 +3770,18 @@ public class DatasetController {
                             if (((Descriptor)d).getValue() != null && !((Descriptor)d).getValue().isEmpty()) {
                                 valueExists = true;
                             }
+                            if (((Descriptor)d).getNotRecorded()) { // treat it as exists
+                                valueExists = true;
+                            }
                         }
                     } else if (t.getUri() != null) {
                         if (t.getUri().equals(descTemplate.getUri())) {
                             exists = true;
                             count++;
                             if (((Descriptor)d).getValue() != null && !((Descriptor)d).getValue().isEmpty()) {
+                                valueExists = true;
+                            }
+                            if (((Descriptor)d).getNotRecorded()) { // treat it as exists
                                 valueExists = true;
                             }
                         }
@@ -3770,6 +3794,9 @@ public class DatasetController {
                         if (t.getId().equals(descTemplate.getId())) {
                             exists = true;
                             count ++;
+                            if (((DescriptorGroup)d).getNotRecorded()) {
+                                continue;
+                            }
                             ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
                             if (error != null) {
                                 for (ObjectError err: error.getErrors())
@@ -3781,6 +3808,9 @@ public class DatasetController {
                         if (t.getUri().equals(descTemplate.getUri())) {
                             exists = true;
                             count++;
+                            if (((DescriptorGroup)d).getNotRecorded()) {
+                                continue;
+                            }
                             ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
                             if (error != null) {
                                 for (ObjectError err: error.getErrors())
