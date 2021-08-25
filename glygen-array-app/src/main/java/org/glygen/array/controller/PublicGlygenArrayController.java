@@ -244,12 +244,9 @@ public class PublicGlygenArrayController {
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
-            @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= false to load all the details") 
-            @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll) {
+            @RequestParam(value="order", required=false) Integer order) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         
-        if (loadAll == null) loadAll = false;
         try {
             if (offset == null)
                 offset = 0;
@@ -269,8 +266,15 @@ public class PublicGlygenArrayController {
             }
             int total = datasetRepository.getArrayDatasetCountByUser(null);
             
-            List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId, offset, limit, field, order, loadAll, null);
-            result.setRows(resultList);
+            List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId, offset, limit, field, order, false, null);
+            // need to clear rawdata, processed data etc.
+            for (ArrayDataset dataset: resultList) {
+                dataset.setImages(null);
+                dataset.setRawDataList(null);
+                dataset.setProcessedData(null);
+                dataset.setSlides(null);
+            }
+            result.setRows(resultList); 
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
             return result;
