@@ -19,7 +19,7 @@ public class Lipid extends SmallMoleculeLinker {
         this.iupacName = l.iupacName;
         this.mass = l.mass;
         this.molecularFormula = l.molecularFormula;
-        this.opensRing = l.opensRing;
+        //this.opensRing = l.opensRing;
         this.pubChemId = l.pubChemId;
         this.publications = l.publications;
         this.smiles = l.smiles;

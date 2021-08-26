@@ -120,6 +120,15 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
     public final static String describedbyPredicate = ontPrefix + "described_by";
     
+    static final String hasGlycanContextPredicate = ontPrefix + "has_glycan_info";
+    static final String hasSourcePredicate = ontPrefix + "has_source";
+    static final String hasReducingEndConfigPredicate = ontPrefix + "has_reducing_end_configuration";
+    static final String hasBatchIdPredicate = ontPrefix + "has_batch_id";
+    static final String hasVendorPredicate = ontPrefix + "has_vendor";
+    static final String hasProviderLabPredicate = ontPrefix + "has_provider_lab";
+    static final String hasCatalogueNumberPredicate = ontPrefix + "has_catalogue_number";
+    static final String hasMethodPredicate = ontPrefix + "has_method";
+    
     // Template ontology stuff
     public final static String hasSampleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_sample_template";
     public final static String hasSlideTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_slide_template";
@@ -467,13 +476,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public void retrieveChangeLog(ChangeTrackable entity, String entityUri, String graph) throws SparqlException, SQLException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI entityIRI = f.createIRI(entityUri);
+        IRI hasChangeLog = f.createIRI(hasChangeLogPredicate);
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI createdBy = f.createIRI(createdByPredicate);
         IRI hasType = f.createIRI(hasChangeTypePredicate);
         IRI hasFieldChange = f.createIRI(hasChangeFieldPredicate);
         IRI graphIRI = f.createIRI(graph);
         
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(entityIRI, null, null, graphIRI);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(entityIRI, hasChangeLog, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
             ChangeLog change = new ChangeLog();

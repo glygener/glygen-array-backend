@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.validation.constraints.Size;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.eclipse.rdf4j.common.iteration.Iterations;
@@ -20,17 +19,21 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.CommercialSource;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Lipid;
+import org.glygen.array.persistence.rdf.NonCommercialSource;
 import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.persistence.rdf.Source;
+import org.glygen.array.persistence.rdf.SourceType;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +89,56 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			throw new SparqlException(l.getType() + " type is not supported");
 		}
 	}
+	
+	private void addSource (Linker l, IRI linker, List<Statement> statements, String graph) throws SparqlException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasSource = f.createIRI(hasSourcePredicate);
+        IRI hasBatchId = f.createIRI(hasBatchIdPredicate);
+        IRI hasVendor = f.createIRI(hasVendorPredicate);
+        IRI hasProviderLab = f.createIRI(hasProviderLabPredicate);
+        IRI hasCatalogNumber = f.createIRI(hasCatalogueNumberPredicate);
+        IRI hasMethod = f.createIRI(hasMethodPredicate);
+        IRI hasType = f.createIRI(hasTypePredicate);
+        if (l.getSource() != null) {
+            String sourceURI = generateUniqueURI(uriPrefix + "SO", graph);
+            IRI source = f.createIRI(sourceURI);
+            statements.add(f.createStatement(linker, hasSource, source, graphIRI));
+            statements.add(f.createStatement(source, hasType, f.createLiteral(l.getSource().getType().name()), graphIRI));
+            switch (l.getSource().getType()) {
+            case COMMERCIAL:
+                Literal vendor = ((CommercialSource) l.getSource()).getVendor() != null ? 
+                        f.createLiteral(((CommercialSource) l.getSource()).getVendor()) : null;
+                Literal batchId = ((CommercialSource) l.getSource()).getBatchId() != null ? 
+                        f.createLiteral(((CommercialSource) l.getSource()).getBatchId()) : null;
+                Literal catalogNo = ((CommercialSource) l.getSource()).getCatalogueNumber() != null ? 
+                        f.createLiteral(((CommercialSource) l.getSource()).getCatalogueNumber()) : null;
+                        
+                if (vendor != null) statements.add(f.createStatement(source, hasVendor, vendor, graphIRI));
+                if (batchId != null) statements.add(f.createStatement(source, hasBatchId, batchId, graphIRI));
+                if (catalogNo != null) statements.add(f.createStatement(source, hasCatalogNumber, catalogNo, graphIRI));
+                break;
+            case NONCOMMERCIAL:
+                Literal providerLab = ((NonCommercialSource) l.getSource()).getProviderLab() != null ? 
+                        f.createLiteral(((NonCommercialSource) l.getSource()).getProviderLab()) : null;
+                batchId = ((NonCommercialSource) l.getSource()).getBatchId() != null ? 
+                        f.createLiteral(((NonCommercialSource) l.getSource()).getBatchId()) : null;
+                Literal method = ((NonCommercialSource) l.getSource()).getMethod() != null ? 
+                        f.createLiteral(((NonCommercialSource) l.getSource()).getMethod()) : null;
+                Literal comment = ((NonCommercialSource) l.getSource()).getComment() != null ? 
+                        f.createLiteral(((NonCommercialSource) l.getSource()).getComment()) : null;
+                if (providerLab != null) statements.add(f.createStatement(source, hasProviderLab, providerLab, graphIRI));
+                if (batchId != null) statements.add(f.createStatement(source, hasBatchId, batchId, graphIRI));
+                if (method != null) statements.add(f.createStatement(source, hasMethod, method, graphIRI));
+                if (comment != null) statements.add(f.createStatement(source, RDFS.COMMENT, comment, graphIRI));
+                break;
+            case NOTRECORDED:
+            default:
+                break;
+            
+            }
+        }
+	}
 		
 	
 	private String addOtherLinker(OtherLinker l, String graph) throws SparqlException, SQLException {
@@ -107,7 +160,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             IRI linker = f.createIRI(linkerURI);
             IRI graphIRI = f.createIRI(graph);
             IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
-            IRI opensRing = f.createIRI(opensRingPredicate);
+            //IRI opensRing = f.createIRI(opensRingPredicate);
             IRI hasDescription = f.createIRI(hasDescriptionPredicate);
             IRI linkerType = f.createIRI(linkerTypePredicate);
             IRI hasLinkerType = f.createIRI(hasTypePredicate);
@@ -121,7 +174,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             
             IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-            Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
+            //Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
             Literal date = f.createLiteral(new Date());
             
             List<Statement> statements = new ArrayList<Statement>();
@@ -132,7 +185,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             statements.add(f.createStatement(linker, hasAddedToLibrary, date, graphIRI));
             statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
             statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
-            statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
+            //statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
             if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
             
             if (l.getUrls() != null) {
@@ -141,12 +194,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
                 }
             }
+            if (l.getSource() != null) {
+                addSource(l, linker, statements, graph);
+            }
             
             sparqlDAO.addStatements(statements, graphIRI);
             
             if (l.getPublications() != null && !l.getPublications().isEmpty()) {
                 addLinkerPublications(l, linkerURI, graph);
             }
+            
         } else {
             logger.debug("The linker already exists in global repository. URI: " + existing);
             linkerURI = existing.getUri();
@@ -266,7 +323,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI linker = f.createIRI(linkerURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
-			IRI opensRing = f.createIRI(opensRingPredicate);
+			//IRI opensRing = f.createIRI(opensRingPredicate);
 			IRI hasDescription = f.createIRI(hasDescriptionPredicate);
 			IRI linkerType = f.createIRI(linkerTypePredicate);
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
@@ -281,7 +338,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-			Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
+			//Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
 			Literal sequenceL= f.createLiteral(sequence);
@@ -294,7 +351,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 			statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
-			statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
+			//statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
 			statements.add(f.createStatement(linker, hasSequence, sequenceL, graphIRI));
 			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			
@@ -319,6 +376,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
 				}
 			}
+			
+			if (l.getSource() != null) {
+                addSource(l, linker, statements, graph);
+            }
 			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
@@ -394,7 +455,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasClassification = f.createIRI(hasClassificationPredicate);
 			IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
 			IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
-			IRI opensRing = f.createIRI(opensRingPredicate);
+			//IRI opensRing = f.createIRI(opensRingPredicate);
 			IRI hasDescription = f.createIRI(hasDescriptionPredicate);
 			IRI hasUrl = f.createIRI(hasURLPredicate);
 			
@@ -435,7 +496,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (l.getIupacName() != null) 
 				iupacName = f.createLiteral(l.getIupacName());
 		
-			Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
+			//Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
 			List<Statement> statements = new ArrayList<Statement>();
@@ -446,7 +507,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 			statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
-			statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
+			//statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
 			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			if (inchiSequence != null) statements.add(f.createStatement(linker, hasInchiSequence, inchiSequence, graphIRI));
 			if (inchiKey != null) statements.add(f.createStatement(linker, hasInchiKey, inchiKey, graphIRI));
@@ -494,12 +555,15 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				}
 			}
 			
+			if (l.getSource() != null) {
+                addSource(l, linker, statements, graph);
+            }
+			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
 			if (l.getPublications() != null && !l.getPublications().isEmpty()) {
 	            addLinkerPublications(l, linkerURI, graph);
 	        }
-			
 		} else {
 			logger.debug("The linker already exists in global repository. URI: " + existing);
 			linkerURI = existing;
@@ -1047,7 +1111,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasClassification = f.createIRI(hasClassificationPredicate);
         IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
         IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
-        IRI opensRing = f.createIRI(opensRingPredicate);
+        //IRI opensRing = f.createIRI(opensRingPredicate);
         IRI hasDescription = f.createIRI(hasDescriptionPredicate);
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
@@ -1066,6 +1130,14 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasDOI = f.createIRI(hasDOIPredicate);
         IRI hasPubMed = f.createIRI(hasPubMedPredicate);
         IRI createdBy= f.createIRI(createdByPredicate);
+        
+        IRI hasSource = f.createIRI(hasSourcePredicate);
+        IRI hasBatchId = f.createIRI(hasBatchIdPredicate);
+        IRI hasVendor = f.createIRI(hasVendorPredicate);
+        IRI hasProviderLab = f.createIRI(hasProviderLabPredicate);
+        IRI hasCatalogNumber = f.createIRI(hasCatalogueNumberPredicate);
+        IRI hasMethod = f.createIRI(hasMethodPredicate);
+        IRI hasType = f.createIRI(hasTypePredicate);
         
 	    while (statements.hasNext()) {
             Statement st = statements.next();
@@ -1145,12 +1217,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             } else if (st.getPredicate().equals(hasDescription)) {
                 Value comment = st.getObject();
                 linkerObject.setDescription(comment.stringValue());
-            } else if (st.getPredicate().equals(opensRing)) {
+            } /* else if (st.getPredicate().equals(opensRing)) {
                 Value val = st.getObject();
                 if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
                     linkerObject.setOpensRing(Integer.parseInt(val.stringValue()));
                 }
-            } else if (st.getPredicate().equals(hasUrl)) {
+            } */else if (st.getPredicate().equals(hasUrl)) {
                 Value val = st.getObject();
                 if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
                     linkerObject.getUrls().add(val.stringValue());
@@ -1264,6 +1336,57 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 IRI publicLinker = f.createIRI(publicLinkerURI);
                 RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicLinker, null, null, defaultGraphIRI);
                 extractFromStatements (statementsPublic, linkerObject, DEFAULT_GRAPH);
+            } else if (st.getPredicate().equals(hasSource)) {
+                Value value = st.getObject();
+                IRI sourceIRI = f.createIRI(value.stringValue());
+                RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(sourceIRI, hasType, null, graphIRI);
+                Source source = null;
+                // get the source type first
+                if (statements3.hasNext()) {
+                    Statement st3 = statements3.next();
+                    String type = st3.getObject().stringValue();
+                    SourceType sourceType = SourceType.valueOf(type);
+                    switch (sourceType) {
+                    case COMMERCIAL:
+                        source = new CommercialSource();
+                        break;
+                    case NONCOMMERCIAL:
+                        source = new NonCommercialSource();
+                        break;
+                    case NOTRECORDED:
+                        source = new Source();
+                        break;
+                    default:
+                        source = new Source();
+                        break;
+                    }
+                }
+                
+                if (source != null) {
+                    statements3 = sparqlDAO.getStatements(sourceIRI, null, null, graphIRI);
+                    while (statements3.hasNext()) {
+                        Statement st3 = statements3.next();
+                        if (st3.getPredicate().equals(hasBatchId)) {
+                            source.setBatchId(st3.getObject().stringValue());
+                        } else if (st3.getPredicate().equals(hasVendor)) {
+                            if (source instanceof CommercialSource) 
+                                ((CommercialSource) source).setVendor(st3.getObject().stringValue());
+                        } else if (st3.getPredicate().equals(hasProviderLab)) {
+                            if (source instanceof NonCommercialSource) 
+                                ((NonCommercialSource) source).setProviderLab(st3.getObject().stringValue());
+                        } else if (st3.getPredicate().equals(hasCatalogNumber)) {
+                            if (source instanceof CommercialSource) 
+                                ((CommercialSource) source).setCatalogueNumber(st3.getObject().stringValue());
+                        } else if (st3.getPredicate().equals(hasMethod)) {
+                            if (source instanceof NonCommercialSource) 
+                                ((NonCommercialSource) source).setMethod(st3.getObject().stringValue());
+                        } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
+                            if (source instanceof NonCommercialSource) 
+                                ((NonCommercialSource) source).setComment(st3.getObject().stringValue());
+                        } 
+                    }
+                    linkerObject.setSource(source);
+                }
             }
 	    }
 	}
@@ -1393,7 +1516,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
         Literal date = f.createLiteral(new Date());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
-        IRI opensRing = f.createIRI(opensRingPredicate);
+        //IRI opensRing = f.createIRI(opensRingPredicate);
         IRI hasDescription = f.createIRI(hasDescriptionPredicate);
         IRI linkerType = f.createIRI(linkerTypePredicate);
         IRI hasLinkerType = f.createIRI(hasTypePredicate);
@@ -1410,7 +1533,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-        Literal opensRingValue = linker.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(linker.getOpensRing());
+        //Literal opensRingValue = linker.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(linker.getOpensRing());
         Literal dateAdded = f.createLiteral(linker.getDateAddedToLibrary());
         
         List<Statement> statements = new ArrayList<Statement>();
@@ -1423,7 +1546,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        statements.add(f.createStatement(publicLinker, hasAddedToLibrary, dateAdded, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, hasModifiedDate, date, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, hasCreatedDate, date, publicGraphIRI));
-	        statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));
+	        //statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, createdBy, user, publicGraphIRI));
 	        if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
         }
@@ -1556,6 +1679,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         if (!existing && linker.getPublications() != null && !linker.getPublications().isEmpty()) {
             addLinkerPublications(linker, publicURI, DEFAULT_GRAPH);
+        }
+        
+        if (!existing && linker.getSource() != null) {
+            addSource(linker, publicLinker, statements, DEFAULT_GRAPH);
         }
         
         return publicURI;

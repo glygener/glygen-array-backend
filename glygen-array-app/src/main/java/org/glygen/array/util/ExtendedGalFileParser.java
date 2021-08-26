@@ -14,6 +14,7 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
@@ -497,8 +498,10 @@ public class ExtendedGalFileParser {
                     return null;
                 }
                 glycanList.add(glycan);
-                List<Glycan> glycans = new ArrayList<Glycan>();
-                glycans.add(glycan);
+                List<GlycanInFeature> glycans = new ArrayList<GlycanInFeature>();
+                GlycanInFeature glycanFeature = new GlycanInFeature();
+                glycan.copyTo(glycanFeature);
+                glycans.add(glycanFeature);
                 Feature feature = new LinkedGlycan();
                 feature.setType(FeatureType.LINKEDGLYCAN);
                 feature.setName(name);
@@ -532,7 +535,10 @@ public class ExtendedGalFileParser {
             List<LinkedGlycan> list = new ArrayList<LinkedGlycan>();
             for (Glycan g: glycans) {
                 LinkedGlycan lg = new LinkedGlycan();
-                lg.addGlycan(g);
+                GlycanInFeature glycanFeature = new GlycanInFeature();
+                //TODO where do we get the source info?
+                g.copyTo(glycanFeature);
+                lg.addGlycan(glycanFeature);
                 list.add(lg);
             }
             ((GlycoPeptide) feature).setGlycans(list);

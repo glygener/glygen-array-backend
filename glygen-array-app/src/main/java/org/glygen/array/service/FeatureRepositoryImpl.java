@@ -21,12 +21,14 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.CommercialSource;
 import org.glygen.array.persistence.rdf.CompoundFeature;
 import org.glygen.array.persistence.rdf.ControlFeature;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycoLipid;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.GlycoProtein;
@@ -35,9 +37,14 @@ import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.NegControlFeature;
+import org.glygen.array.persistence.rdf.NonCommercialSource;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Range;
+import org.glygen.array.persistence.rdf.ReducingEndConfiguration;
+import org.glygen.array.persistence.rdf.ReducingEndType;
+import org.glygen.array.persistence.rdf.Source;
+import org.glygen.array.persistence.rdf.SourceType;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +70,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	
 	final static String hasPositionPredicate = ontPrefix + "has_molecule_position";
 	final static String hasPositionValuePredicate = ontPrefix + "has_position";
+    
 	
 	@Autowired
 	GlycanRepository glycanRepository;
@@ -146,7 +154,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		switch (feature.getType()) {
 		case LINKEDGLYCAN:
 		    if (((LinkedGlycan) feature).getGlycans() != null) {
-	            for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+	            for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
 	                if (g.getUri() == null) {
 	                    if (g.getId() != null) {
 	                        g.setUri(uriPrefix + g.getId());
@@ -158,6 +166,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	                
 	                IRI glycanIRI = f.createIRI(g.getUri());
 	                statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+	                addSourceContext (g, feat, glycanIRI, statements, graph);
 	            }
 	        }
             break;
@@ -343,7 +352,76 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		return featureURI;
 	}
 	
-	@Override
+	private void addSourceContext(GlycanInFeature g, IRI feat, IRI glycanIRI, List<Statement> statements, String graph) throws SparqlException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+	    IRI graphIRI = f.createIRI(graph);
+	    IRI hasGlycanContext = f.createIRI(hasGlycanContextPredicate);
+        IRI hasSource = f.createIRI(hasSourcePredicate);
+        IRI hasReducingEndConfig = f.createIRI(hasReducingEndConfigPredicate);
+        IRI hasBatchId = f.createIRI(hasBatchIdPredicate);
+        IRI hasVendor = f.createIRI(hasVendorPredicate);
+        IRI hasProviderLab = f.createIRI(hasProviderLabPredicate);
+        IRI hasCatalogNumber = f.createIRI(hasCatalogueNumberPredicate);
+        IRI hasMethod = f.createIRI(hasMethodPredicate);
+        IRI hasType = f.createIRI(hasTypePredicate);
+        IRI hasMolecule = f.createIRI(hasMoleculePredicate);
+        String glycanContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+        IRI glycanContext = f.createIRI(glycanContextURI);
+        if (g.getSource() != null) {
+            statements.add(f.createStatement(feat, hasGlycanContext, glycanContext, graphIRI));
+            statements.add(f.createStatement(glycanContext, hasMolecule, glycanIRI, graphIRI));
+            String sourceURI = generateUniqueURI(uriPrefix + "SO", graph);
+            IRI source = f.createIRI(sourceURI);
+            statements.add(f.createStatement(glycanContext, hasSource, source, graphIRI));
+            statements.add(f.createStatement(source, hasType, f.createLiteral(g.getSource().getType().name()), graphIRI));
+            switch (g.getSource().getType()) {
+            case COMMERCIAL:
+                Literal vendor = ((CommercialSource) g.getSource()).getVendor() != null ? 
+                        f.createLiteral(((CommercialSource) g.getSource()).getVendor()) : null;
+                Literal batchId = ((CommercialSource) g.getSource()).getBatchId() != null ? 
+                        f.createLiteral(((CommercialSource) g.getSource()).getBatchId()) : null;
+                Literal catalogNo = ((CommercialSource) g.getSource()).getCatalogueNumber() != null ? 
+                        f.createLiteral(((CommercialSource) g.getSource()).getCatalogueNumber()) : null;
+                        
+                if (vendor != null) statements.add(f.createStatement(source, hasVendor, vendor, graphIRI));
+                if (batchId != null) statements.add(f.createStatement(source, hasBatchId, batchId, graphIRI));
+                if (catalogNo != null) statements.add(f.createStatement(source, hasCatalogNumber, catalogNo, graphIRI));
+                break;
+            case NONCOMMERCIAL:
+                Literal providerLab = ((NonCommercialSource) g.getSource()).getProviderLab() != null ? 
+                        f.createLiteral(((NonCommercialSource) g.getSource()).getProviderLab()) : null;
+                batchId = ((NonCommercialSource) g.getSource()).getBatchId() != null ? 
+                        f.createLiteral(((NonCommercialSource) g.getSource()).getBatchId()) : null;
+                Literal method = ((NonCommercialSource) g.getSource()).getMethod() != null ? 
+                        f.createLiteral(((NonCommercialSource) g.getSource()).getMethod()) : null;
+                Literal comment = ((NonCommercialSource) g.getSource()).getComment() != null ? 
+                        f.createLiteral(((NonCommercialSource) g.getSource()).getComment()) : null;
+                if (providerLab != null) statements.add(f.createStatement(source, hasProviderLab, providerLab, graphIRI));
+                if (batchId != null) statements.add(f.createStatement(source, hasBatchId, batchId, graphIRI));
+                if (method != null) statements.add(f.createStatement(source, hasMethod, method, graphIRI));
+                if (comment != null) statements.add(f.createStatement(source, RDFS.COMMENT, comment, graphIRI));
+                break;
+            case NOTRECORDED:
+            default:
+                break;
+            
+            }
+        }
+        if (g.getReducingEndConfiguration() != null) {
+            String redEndConURI = generateUniqueURI(uriPrefix + "REC", graph);
+            IRI redEndCon = f.createIRI(redEndConURI);
+            statements.add(f.createStatement(glycanContext, hasReducingEndConfig, redEndCon, graphIRI));
+            Literal redEndType = f.createLiteral(g.getReducingEndConfiguration().getType().name());
+            Literal redEndComment = g.getReducingEndConfiguration().getComment() != null ? 
+                            f.createLiteral(g.getReducingEndConfiguration().getComment()) : null;
+            statements.add(f.createStatement(redEndCon, hasType, redEndType, graphIRI));
+            if (redEndComment != null)
+                statements.add(f.createStatement(redEndCon, RDFS.COMMENT, redEndComment, graphIRI));
+        }
+        
+    }
+
+    @Override
     public Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException {
         // make sure the glycan belongs to this user
 	    String graph = null;
@@ -710,7 +788,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasPeptide = f.createIRI(hasPeptidePredicate);
         IRI hasMax = f.createIRI(hasMaxPredicate);
         IRI hasMin = f.createIRI(hasMinPredicate);
-		
+        IRI hasGlycanContext = f.createIRI(hasGlycanContextPredicate);
+        IRI hasSource = f.createIRI(hasSourcePredicate);
+        IRI hasReducingEndConfig = f.createIRI(hasReducingEndConfigPredicate);
+		IRI hasBatchId = f.createIRI(hasBatchIdPredicate);
+		IRI hasVendor = f.createIRI(hasVendorPredicate);
+		IRI hasProviderLab = f.createIRI(hasProviderLabPredicate);
+		IRI hasCatalogNumber = f.createIRI(hasCatalogueNumberPredicate);
+		IRI hasMethod = f.createIRI(hasMethodPredicate);
+		IRI hasType = f.createIRI(hasTypePredicate);
 		
 		FeatureType featureType = getFeatureTypeForFeature (featureURI, graph);
 		Map<String, Range> rangeMap = new HashMap<String, Range>();
@@ -721,7 +807,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		    switch (featureType) {
             case LINKEDGLYCAN:
                 featureObject = new LinkedGlycan();
-                ((LinkedGlycan) featureObject).setGlycans(new ArrayList<Glycan>());
+                ((LinkedGlycan) featureObject).setGlycans(new ArrayList<GlycanInFeature>());
                 break;
             case COMPOUND:
                 featureObject = new CompoundFeature();
@@ -805,14 +891,91 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
                         ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
                 }
-            } else if (st.getPredicate().equals(hasMolecule)) {
+            } else if (st.getPredicate().equals(hasGlycanContext)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
-					String glycanURI = value.stringValue();
-					if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
-					    Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-					    ((LinkedGlycan) featureObject).getGlycans().add(glycan);
-					}
+					String contextURI = value.stringValue();
+					IRI ctx = f.createIRI(contextURI);
+	                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
+	                GlycanInFeature glycanFeature = new GlycanInFeature();
+	                while (statements2.hasNext()) {
+	                    Statement st2 = statements2.next();
+	                    if (st2.getPredicate().equals(hasMolecule)) {
+	                        value = st2.getObject();
+	                        String glycanURI = value.stringValue();
+        					if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
+        					    Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+        					    // copy info from Glycan into glycanFeature
+        					    glycan.copyTo(glycanFeature);
+        					    ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
+        					}
+	                    } else if (st2.getPredicate().equals(hasSource)) {
+                            value = st2.getObject();
+                            IRI sourceIRI = f.createIRI(value.stringValue());
+                            RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(sourceIRI, hasType, null, graphIRI);
+                            Source source = null;
+                            // get the source type first
+                            if (statements3.hasNext()) {
+                                Statement st3 = statements3.next();
+                                String type = st3.getObject().stringValue();
+                                SourceType sourceType = SourceType.valueOf(type);
+                                switch (sourceType) {
+                                case COMMERCIAL:
+                                    source = new CommercialSource();
+                                    break;
+                                case NONCOMMERCIAL:
+                                    source = new NonCommercialSource();
+                                    break;
+                                case NOTRECORDED:
+                                    source = new Source();
+                                    break;
+                                default:
+                                    source = new Source();
+                                    break;
+                                }
+                            }
+                            
+                            if (source != null) {
+                                statements3 = sparqlDAO.getStatements(sourceIRI, null, null, graphIRI);
+                                while (statements3.hasNext()) {
+                                    Statement st3 = statements3.next();
+                                    if (st3.getPredicate().equals(hasBatchId)) {
+                                        source.setBatchId(st3.getObject().stringValue());
+                                    } else if (st3.getPredicate().equals(hasVendor)) {
+                                        if (source instanceof CommercialSource) 
+                                            ((CommercialSource) source).setVendor(st3.getObject().stringValue());
+                                    } else if (st3.getPredicate().equals(hasProviderLab)) {
+                                        if (source instanceof NonCommercialSource) 
+                                            ((NonCommercialSource) source).setProviderLab(st3.getObject().stringValue());
+                                    } else if (st3.getPredicate().equals(hasCatalogNumber)) {
+                                        if (source instanceof CommercialSource) 
+                                            ((CommercialSource) source).setCatalogueNumber(st3.getObject().stringValue());
+                                    } else if (st3.getPredicate().equals(hasMethod)) {
+                                        if (source instanceof NonCommercialSource) 
+                                            ((NonCommercialSource) source).setMethod(st3.getObject().stringValue());
+                                    } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
+                                        if (source instanceof NonCommercialSource) 
+                                            ((NonCommercialSource) source).setComment(st3.getObject().stringValue());
+                                    } 
+                                }
+                                glycanFeature.setSource(source);
+                            }
+	                    } else if (st2.getPredicate().equals(hasReducingEndConfig)) {
+                            value = st2.getObject();
+                            IRI redEndIRI = f.createIRI(value.stringValue());
+                            RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(redEndIRI, null, null, graphIRI);
+                            ReducingEndConfiguration config = new ReducingEndConfiguration();
+                            while (statements3.hasNext()) {
+                                Statement st3 = statements3.next();
+                                if (st3.getPredicate().equals(hasType)) {
+                                    config.setType(ReducingEndType.valueOf(st3.getObject().stringValue()));
+                                } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
+                                    config.setComment(st3.getObject().stringValue());
+                                }
+                            }
+                            glycanFeature.setReducingEndConfiguration(config);
+	                    }
+	                }
 				}
 			} else if (st.getPredicate().equals(hasLinkedGlycan)) {
                 Value value = st.getObject();
@@ -963,13 +1126,90 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
                                 ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
                         }
-                    } else if (stPublic.getPredicate().equals(hasMolecule)) {
+                    } else if (stPublic.getPredicate().equals(hasGlycanContext)) {
                         value = stPublic.getObject();
                         if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
-                            String glycanURI = value.stringValue();
-                            if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
-                                Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-                                ((LinkedGlycan) featureObject).getGlycans().add(glycan);
+                            String contextURI = value.stringValue();
+                            IRI ctx = f.createIRI(contextURI);
+                            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, defaultGraphIRI);
+                            GlycanInFeature glycanFeature = new GlycanInFeature();
+                            while (statements2.hasNext()) {
+                                Statement st2 = statements2.next();
+                                if (st2.getPredicate().equals(hasMolecule)) {
+                                    value = st2.getObject();
+                                    String glycanURI = value.stringValue();
+                                    if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
+                                        Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                                        // copy info from Glycan into glycanFeature
+                                        glycan.copyTo(glycanFeature);
+                                        ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
+                                    }
+                                } else if (st2.getPredicate().equals(hasSource)) {
+                                    value = st2.getObject();
+                                    IRI sourceIRI = f.createIRI(value.stringValue());
+                                    RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(sourceIRI, hasType, null, defaultGraphIRI);
+                                    Source source = null;
+                                    // get the source type first
+                                    if (statements3.hasNext()) {
+                                        Statement st3 = statements3.next();
+                                        String type = st3.getObject().stringValue();
+                                        SourceType sourceType = SourceType.valueOf(type);
+                                        switch (sourceType) {
+                                        case COMMERCIAL:
+                                            source = new CommercialSource();
+                                            break;
+                                        case NONCOMMERCIAL:
+                                            source = new NonCommercialSource();
+                                            break;
+                                        case NOTRECORDED:
+                                            source = new Source();
+                                            break;
+                                        default:
+                                            source = new Source();
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (source != null) {
+                                        statements3 = sparqlDAO.getStatements(sourceIRI, null, null, defaultGraphIRI);
+                                        while (statements3.hasNext()) {
+                                            Statement st3 = statements3.next();
+                                            if (st3.getPredicate().equals(hasBatchId)) {
+                                                source.setBatchId(st3.getObject().stringValue());
+                                            } else if (st3.getPredicate().equals(hasVendor)) {
+                                                if (source instanceof CommercialSource) 
+                                                    ((CommercialSource) source).setVendor(st3.getObject().stringValue());
+                                            } else if (st3.getPredicate().equals(hasProviderLab)) {
+                                                if (source instanceof NonCommercialSource) 
+                                                    ((NonCommercialSource) source).setProviderLab(st3.getObject().stringValue());
+                                            } else if (st3.getPredicate().equals(hasCatalogNumber)) {
+                                                if (source instanceof CommercialSource) 
+                                                    ((CommercialSource) source).setCatalogueNumber(st3.getObject().stringValue());
+                                            } else if (st3.getPredicate().equals(hasMethod)) {
+                                                if (source instanceof NonCommercialSource) 
+                                                    ((NonCommercialSource) source).setMethod(st3.getObject().stringValue());
+                                            } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
+                                                if (source instanceof NonCommercialSource) 
+                                                    ((NonCommercialSource) source).setComment(st3.getObject().stringValue());
+                                            } 
+                                        }
+                                        glycanFeature.setSource(source);
+                                    }
+                                } else if (st2.getPredicate().equals(hasReducingEndConfig)) {
+                                    value = st2.getObject();
+                                    IRI redEndIRI = f.createIRI(value.stringValue());
+                                    RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(redEndIRI, null, null, defaultGraphIRI);
+                                    ReducingEndConfiguration config = new ReducingEndConfiguration();
+                                    while (statements3.hasNext()) {
+                                        Statement st3 = statements3.next();
+                                        if (st3.getPredicate().equals(hasType)) {
+                                            config.setType(ReducingEndType.valueOf(st3.getObject().stringValue()));
+                                        } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
+                                            config.setComment(st3.getObject().stringValue());
+                                        }
+                                    }
+                                    glycanFeature.setReducingEndConfiguration(config);
+                                }
                             }
                         }
                     } else if (stPublic.getPredicate().equals(hasLinkedGlycan)) {
@@ -1112,8 +1352,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 ((GPLinkedGlycoPeptide) featureObject).setPeptides(finalPeptides);
                 break;
             case LINKEDGLYCAN:
-                ArrayList<Glycan> finalGlycans2 = new ArrayList<Glycan>();
-                for (Glycan glycan: ((LinkedGlycan) featureObject).getGlycans()) {
+                ArrayList<GlycanInFeature> finalGlycans2 = new ArrayList<GlycanInFeature>();
+                for (GlycanInFeature glycan: ((LinkedGlycan) featureObject).getGlycans()) {
                     if (glycan.getUri().contains("public"))
                          continue;
                     finalGlycans2.add(glycan);
@@ -1180,7 +1420,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		switch (feature.getType()) {
         case LINKEDGLYCAN:
             if (((LinkedGlycan) feature).getGlycans() != null) {
-                for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+                for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
                     if (g.getUri() == null) {
                         if (g.getId() != null) {
                             g.setUri(uriPrefix + g.getId());
@@ -1192,6 +1432,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     
                     IRI glycanIRI = f.createIRI(g.getUri());
                     statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
+                    //add source info etc. 
+                    addSourceContext (g, feat, glycanIRI, statements, DEFAULT_GRAPH);
                 }
             }
             break;

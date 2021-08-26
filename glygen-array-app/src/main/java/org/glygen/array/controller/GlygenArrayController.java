@@ -62,6 +62,7 @@ import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.GlycoLipid;
@@ -692,7 +693,7 @@ public class GlygenArrayController {
         return id;   
     }
 
-    @ApiOperation(value = "Add given feature, provided only with sequence based linker for the user")
+  /*  @ApiOperation(value = "Add given feature, provided only with sequence based linker for the user")
 	@RequestMapping(value="/addfeatureFromSequence", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
@@ -782,7 +783,7 @@ public class GlygenArrayController {
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Feature cannot be added for user " + p.getName(), e);
 		}		
-	}
+	}*/
 	
 	
 	private String addGenericGlycan(Glycan glycan, Principal p) {
@@ -2118,9 +2119,10 @@ public class GlygenArrayController {
 							if (linker.getName() != null) l.setName(linker.getName().trim());
 							if (linker.getComment() != null) l.setComment(linker.getComment().trim());
 							if (linker.getDescription() != null) l.setDescription(linker.getDescription().trim());
-							if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
+							//if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
 							if (((SmallMoleculeLinker)l).getClassification() == null)
 				 				((SmallMoleculeLinker)l).setClassification (linker.getClassification());
+							l.setSource(linker.getSource());
 						}
 					} catch (Exception e) {
 						// could not get details from PubChem
@@ -2340,7 +2342,12 @@ public class GlygenArrayController {
 	    List<Glycan> glycanList = null;
         switch (feature.getType()) {
         case LINKEDGLYCAN:
-            glycanList = ((LinkedGlycan) feature).getGlycans();
+            if (((LinkedGlycan) feature).getGlycans() != null) {
+                glycanList = new ArrayList<Glycan>();
+                for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
+                    glycanList.add(g);
+                }
+            }
             break;
         case GLYCOLIPID:
             if (((GlycoLipid) feature).getGlycans() != null) {
@@ -3278,7 +3285,7 @@ public class GlygenArrayController {
         			if (probe != null) {
         				for (Ratio r1 : probe.getRatio()) {
         					LinkedGlycan myFeature = new LinkedGlycan();
-        					myFeature.setGlycans(new ArrayList<Glycan>());
+        					myFeature.setGlycans(new ArrayList<GlycanInFeature>());
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
 		        				SequenceDefinedGlycan myGlycan = new SequenceDefinedGlycan();
@@ -3288,7 +3295,9 @@ public class GlygenArrayController {
 		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
 		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
-		        				myFeature.getGlycans().add(myGlycan);
+		        				GlycanInFeature glycanFeature = new GlycanInFeature();
+		        				myGlycan.copyTo(glycanFeature);
+		        				myFeature.getGlycans().add(glycanFeature);
         					} else {
         					    // should have been there
                                 errorMessage.addError(new ObjectError("glycan:" + r1.getItemId(), "NotFound"));

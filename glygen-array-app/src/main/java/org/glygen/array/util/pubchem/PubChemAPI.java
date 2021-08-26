@@ -85,7 +85,7 @@ public class PubChemAPI {
 							if (node.getInformation().getChildID() == null || node.getInformation().getChildID().isEmpty()) {
 								// leaf node
 								String url = node.getInformation().getURL();
-								if (url.contains("chebiId=CHEBI:")) {
+								if (url != null && url.contains("chebiId=CHEBI:")) {
 									LinkerClassification classification = new LinkerClassification();
 									classification.setClassification(node.getInformation().getName());
 									String chEBIId = url.substring(url.lastIndexOf(":")+1);

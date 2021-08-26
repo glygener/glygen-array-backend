@@ -5,7 +5,7 @@ import java.util.List;
 
 public class LinkedGlycan extends Feature {
     
-    List<Glycan> glycans;
+    List<GlycanInFeature> glycans;
     
     Range range; // only used when this linkedGlycan is part of a glycoprotein
     
@@ -16,19 +16,19 @@ public class LinkedGlycan extends Feature {
     /**
      * @return the glycan
      */
-    public List<Glycan> getGlycans() {
+    public List<GlycanInFeature> getGlycans() {
         return glycans;
     }
     /**
      * @param glycan the glycan to set
      */
-    public void setGlycans(List<Glycan>glycan) {
+    public void setGlycans(List<GlycanInFeature>glycan) {
         this.glycans = glycan;
     }
     
-    public void addGlycan (Glycan glycan) {
+    public void addGlycan (GlycanInFeature glycan) {
         if (this.glycans == null)
-            glycans = new ArrayList<Glycan>();
+            glycans = new ArrayList<GlycanInFeature>();
         glycans.add(glycan);
     }
 

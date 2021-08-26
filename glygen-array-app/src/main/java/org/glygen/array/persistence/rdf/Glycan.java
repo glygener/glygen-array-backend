@@ -223,4 +223,22 @@ public class Glycan implements ChangeTrackable{
     public void addChange(ChangeLog change) {
         this.changes.add(change);
     }
+    
+    public void copyTo (Glycan glycan) {
+        glycan.aliases = this.aliases;
+        glycan.cartoon = this.cartoon;
+        glycan.changes = this.changes;
+        glycan.dateAddedToLibrary = this.dateAddedToLibrary;
+        glycan.dateCreated = this.dateCreated;
+        glycan.dateModified = this.dateModified;
+        glycan.description = this.description;
+        glycan.id = this.id;
+        glycan.internalId = this.internalId;
+        glycan.inUse = this.inUse;
+        glycan.isPublic = this.isPublic;
+        glycan.name = this.name;
+        glycan.owner = this.owner;
+        glycan.type = this.type;
+        glycan.uri = this.uri;
+    }
 }

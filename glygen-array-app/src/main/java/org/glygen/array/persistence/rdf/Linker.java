@@ -31,7 +31,6 @@ public abstract class Linker implements ChangeTrackable {
 	String name;
 	String comment;
 	String description;
-	Integer opensRing;    /* 0 does not open ring, 1 opens ring, 2 unknown */
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
@@ -40,8 +39,7 @@ public abstract class Linker implements ChangeTrackable {
 	LinkerType type;
 	Creator user;
     Boolean isPublic = false;
-    
-    Boolean inUse = false;
+    Source source;
 	
     List<ChangeLog> changes = new ArrayList<ChangeLog>();
     
@@ -145,14 +143,6 @@ public abstract class Linker implements ChangeTrackable {
 		this.dateAddedToLibrary = dateAddedToLibrary;
 	}
 	
-	public void setOpensRing(Integer opensRing) {
-		this.opensRing = opensRing;
-	}
-	
-	public Integer getOpensRing() {
-		return opensRing;
-	}
-	
 	public LinkerType getType() {
 		return type;
 	}
@@ -234,6 +224,20 @@ public abstract class Linker implements ChangeTrackable {
     @Override
     public void addChange(ChangeLog change) {
         this.changes.add(change);
+    }
+
+    /**
+     * @return the source
+     */
+    public Source getSource() {
+        return source;
+    }
+
+    /**
+     * @param source the source to set
+     */
+    public void setSource(Source source) {
+        this.source = source;
     }
 
 }

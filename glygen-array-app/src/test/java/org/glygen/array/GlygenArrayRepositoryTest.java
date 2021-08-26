@@ -15,6 +15,7 @@ import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
@@ -463,8 +464,16 @@ public class GlygenArrayRepositoryTest {
 	
 	public Feature addTestFeature (UserEntity user, Glycan g1, Glycan g, Linker linker1) throws SparqlException, SQLException {
 		Feature feature = new LinkedGlycan();
-		if (g != null) ((LinkedGlycan) feature).addGlycan(g);
-		if (g1 != null)((LinkedGlycan) feature).addGlycan(g1);
+		if (g != null) {
+		    GlycanInFeature featureGlycan = new GlycanInFeature();
+		    g.copyTo(featureGlycan);
+		    ((LinkedGlycan) feature).addGlycan(featureGlycan);
+		}
+		if (g1 != null) {
+		    GlycanInFeature featureGlycan = new GlycanInFeature();
+            g1.copyTo(featureGlycan);
+		    ((LinkedGlycan) feature).addGlycan(featureGlycan);
+		}
 		feature.setLinker(linker1);
 		
 		String uri = featureRepository.addFeature(feature, user);
@@ -566,7 +575,9 @@ public class GlygenArrayRepositoryTest {
 			added.setName("test glycopeptide");
 			added.setPeptide(linker1);
 			LinkedGlycan lg = new LinkedGlycan();
-			lg.addGlycan(g);
+			GlycanInFeature featureGlycan = new GlycanInFeature();
+	        g.copyTo(featureGlycan);
+			lg.addGlycan(featureGlycan);
 			added.addGlycan(lg);
 			String lgURI = featureRepository.addFeature(lg, user);
 			lg.setUri(lgURI);
@@ -617,11 +628,15 @@ public class GlygenArrayRepositoryTest {
 		for (int i=0; i < blockLayout.getWidth(); i++) {
 			Feature feature = new LinkedGlycan();
 			if (i==0) {
-				((LinkedGlycan) feature).addGlycan(g1);
+			    GlycanInFeature featureGlycan = new GlycanInFeature();
+	            g1.copyTo(featureGlycan);
+				((LinkedGlycan) feature).addGlycan(featureGlycan);
 				feature.setLinker(linker1);
 			}
 			if (i==1) {
-				((LinkedGlycan) feature).addGlycan(g);
+			    GlycanInFeature featureGlycan = new GlycanInFeature();
+	            g.copyTo(featureGlycan);
+				((LinkedGlycan) feature).addGlycan(featureGlycan);
 				feature.setLinker(l);
 			}
 			for (int j=0; j < blockLayout.getHeight(); j++) {
