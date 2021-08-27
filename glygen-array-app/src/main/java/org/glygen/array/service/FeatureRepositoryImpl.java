@@ -154,7 +154,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		switch (feature.getType()) {
 		case LINKEDGLYCAN:
 		    if (((LinkedGlycan) feature).getGlycans() != null) {
-	            for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
+	            for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+	                Glycan g = gf.getGlycan();
 	                if (g.getUri() == null) {
 	                    if (g.getId() != null) {
 	                        g.setUri(uriPrefix + g.getId());
@@ -166,7 +167,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	                
 	                IRI glycanIRI = f.createIRI(g.getUri());
 	                statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
-	                addSourceContext (g, feat, glycanIRI, statements, graph);
+	                addSourceContext (gf, feat, glycanIRI, statements, graph);
 	            }
 	        }
             break;
@@ -746,7 +747,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 
 	@Override
 	public Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException {
-	    // check the cache first
+	     //check the cache first
 	    if (featureCache.get(featureURI) != null)
 	        return featureCache.get(featureURI);
 	    
@@ -760,11 +761,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             else 
                 graph = DEFAULT_GRAPH;
         }
-        /*if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }*/
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI feature = f.createIRI(featureURI);
@@ -846,6 +842,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			featureObject.setId(featureURI.substring(featureURI.lastIndexOf("/")+1));
 			featureObject.setPositionMap(positionMap);
 		}
+		
+		boolean legacy = true;
+		// check if this is a feature without glycanContext
+		RepositoryResult<Statement> statementsContext = sparqlDAO.getStatements(feature, hasGlycanContext, null, graphIRI);
+		if (statementsContext.hasNext()) {
+		    legacy = false;
+		}
+		
 		while (statements.hasNext()) {
 			Statement st = statements.next();
 			if (st.getPredicate().equals(RDFS.LABEL)) {
@@ -891,6 +895,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
                         ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
                 }
+            } else if (legacy && st.getPredicate().equals(hasMolecule)) { 
+                // handle the old way!!!
+                Value value = st.getObject();
+                if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
+                    String glycanURI = value.stringValue();
+                    if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
+                        Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
+                        GlycanInFeature glycanFeature = new GlycanInFeature();
+                        glycanFeature.setGlycan(glycan);
+                        ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
+                    }
+                }
             } else if (st.getPredicate().equals(hasGlycanContext)) {
 				Value value = st.getObject();
 				if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
@@ -905,8 +921,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	                        String glycanURI = value.stringValue();
         					if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
         					    Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-        					    // copy info from Glycan into glycanFeature
-        					    glycan.copyTo(glycanFeature);
+        					    glycanFeature.setGlycan(glycan);
         					    ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
         					}
 	                    } else if (st2.getPredicate().equals(hasSource)) {
@@ -1140,8 +1155,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                     String glycanURI = value.stringValue();
                                     if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
                                         Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
-                                        // copy info from Glycan into glycanFeature
-                                        glycan.copyTo(glycanFeature);
+                                        glycanFeature.setGlycan(glycan);
                                         ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
                                     }
                                 } else if (st2.getPredicate().equals(hasSource)) {
@@ -1353,10 +1367,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 break;
             case LINKEDGLYCAN:
                 ArrayList<GlycanInFeature> finalGlycans2 = new ArrayList<GlycanInFeature>();
-                for (GlycanInFeature glycan: ((LinkedGlycan) featureObject).getGlycans()) {
+                for (GlycanInFeature glycanF: ((LinkedGlycan) featureObject).getGlycans()) {
+                    Glycan glycan = glycanF.getGlycan();
                     if (glycan.getUri().contains("public"))
                          continue;
-                    finalGlycans2.add(glycan);
+                    finalGlycans2.add(glycanF);
                 }
                 ((LinkedGlycan) featureObject).setGlycans(finalGlycans2);
                 break;
@@ -1420,7 +1435,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		switch (feature.getType()) {
         case LINKEDGLYCAN:
             if (((LinkedGlycan) feature).getGlycans() != null) {
-                for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
+                for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+                    Glycan g = gf.getGlycan();
                     if (g.getUri() == null) {
                         if (g.getId() != null) {
                             g.setUri(uriPrefix + g.getId());
@@ -1433,7 +1449,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     IRI glycanIRI = f.createIRI(g.getUri());
                     statements.add(f.createStatement(feat, hasMolecule, glycanIRI, graphIRI));
                     //add source info etc. 
-                    addSourceContext (g, feat, glycanIRI, statements, DEFAULT_GRAPH);
+                    addSourceContext (gf, feat, glycanIRI, statements, DEFAULT_GRAPH);
                 }
             }
             break;

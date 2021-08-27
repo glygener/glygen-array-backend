@@ -78,14 +78,4 @@ public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	public void setGlytoucanHash(String glytoucanHash) {
         this.glytoucanHash = glytoucanHash;
     }
-	
-	public void copyTo (Glycan glycan) {
-	    super.copyTo (glycan);
-	    if (glycan instanceof SequenceDefinedGlycan) {
-	        ((SequenceDefinedGlycan) glycan).glytoucanHash = this.glytoucanHash;
-	        ((SequenceDefinedGlycan) glycan).glytoucanId = this.glytoucanId;
-	        ((SequenceDefinedGlycan) glycan).sequence = this.sequence;
-	        ((SequenceDefinedGlycan) glycan).sequenceType = this.sequenceType;
-	    }
-	}
 }

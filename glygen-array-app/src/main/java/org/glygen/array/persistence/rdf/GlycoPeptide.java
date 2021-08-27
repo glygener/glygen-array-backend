@@ -8,7 +8,7 @@ public class GlycoPeptide extends Feature {
     List<LinkedGlycan> glycans;
     PeptideLinker peptide;
     
-    Range range; // only used when this glycopeptide is part of a gplinkedglycipeptide
+    Range range; // only used when this glycopeptide is part of a gplinkedglycopeptide
     
     public GlycoPeptide() {
         this.type = FeatureType.GLYCOPEPTIDE;

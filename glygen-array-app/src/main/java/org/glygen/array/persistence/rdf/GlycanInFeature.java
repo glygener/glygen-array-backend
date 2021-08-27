@@ -1,6 +1,7 @@
 package org.glygen.array.persistence.rdf;
 
-public class GlycanInFeature extends Glycan {
+public class GlycanInFeature  {
+    Glycan glycan;
     Source source;
     ReducingEndConfiguration reducingEndConfiguration;
     
@@ -28,15 +29,18 @@ public class GlycanInFeature extends Glycan {
     public void setReducingEndConfiguration(ReducingEndConfiguration ringInfo) {
         this.reducingEndConfiguration = ringInfo;
     }
-    
-    @Override
-    public void copyTo (Glycan glycan) {
-        super.copyTo (glycan);
-        if (glycan instanceof GlycanInFeature) {
-            ((GlycanInFeature) glycan).source = this.source;
-            ((GlycanInFeature) glycan).reducingEndConfiguration = this.reducingEndConfiguration;
-        }
-         
+
+    /**
+     * @return the glycan
+     */
+    public Glycan getGlycan() {
+        return glycan;
+    }
+    /**
+     * @param glycan the glycan to set
+     */
+    public void setGlycan(Glycan glycan) {
+        this.glycan = glycan;
     }
 
 }

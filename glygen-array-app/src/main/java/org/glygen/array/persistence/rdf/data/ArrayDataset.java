@@ -34,6 +34,8 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     Date dateCreated;
     Date dateAddedToLibrary;
     
+    String publicURI;
+    
     List<ChangeLog> changes = new ArrayList<>();
 
     /**
@@ -310,6 +312,20 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     @Override
     public void addChange(ChangeLog change) {
         this.changes.add(change);
+    }
+
+    /**
+     * @return the publicURI
+     */
+    public String getPublicURI() {
+        return publicURI;
+    }
+
+    /**
+     * @param publicURI the publicURI to set
+     */
+    public void setPublicURI(String publicURI) {
+        this.publicURI = publicURI;
     }
 
 }

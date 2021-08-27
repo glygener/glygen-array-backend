@@ -1529,11 +1529,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	    switch (feature.getType()) {
 	    case LINKEDGLYCAN:
 	        List<GlycanInFeature> publicGlycans = new ArrayList<>();
-	        for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
+	        for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+	            Glycan g = gf.getGlycan();
 	            if (g.getIsPublic()) {
 	                // already public
 	                if (!processedGlycans.containsKey(g.getUri())) {
-	                    publicGlycans.add(g); 
+	                    publicGlycans.add(gf); 
 	                    processedGlycans.put(g.getUri(), g);
 	                }
 	            } else {
@@ -1542,27 +1543,21 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                    String glycanURI = glycanRepository.makePublic(g, user);
 	                    if (glycanURI != null) {
 	                        Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
-	                        GlycanInFeature newFeatureGlycan = new GlycanInFeature();
-	                        newGlycan.copyTo(newFeatureGlycan);
-	                        newFeatureGlycan.setSource(g.getSource());
-	                        newFeatureGlycan.setReducingEndConfiguration(g.getReducingEndConfiguration());
-	                        publicGlycans.add(newFeatureGlycan); // get the public one
+	                        gf.setGlycan(g);
+	                        publicGlycans.add(gf); // get the public one
 	                        processedGlycans.put(previousG, newGlycan);
 	                    } else {
 	                        Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
 	                        if (existing != null) {
-	                            GlycanInFeature newFeatureGlycan = new GlycanInFeature();
-	                            existing.copyTo(newFeatureGlycan);
-	                            newFeatureGlycan.setSource(g.getSource());
-	                            newFeatureGlycan.setReducingEndConfiguration(g.getReducingEndConfiguration());
-	                            publicGlycans.add(newFeatureGlycan);
+	                            gf.setGlycan(existing);
+	                            publicGlycans.add(gf);
 	                            processedGlycans.put(previousG, existing);
 	                        }
 	                    } 
 	                }
 	                else {
-	                    if (processedGlycans.get(previousG) instanceof GlycanInFeature) // it must be
-	                        publicGlycans.add((GlycanInFeature) processedGlycans.get(previousG)); // get the public one
+	                    gf.setGlycan(processedGlycans.get(previousG));
+	                    publicGlycans.add(gf); // get the public one
 	                }
 	            }
 	        }

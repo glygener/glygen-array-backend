@@ -1051,6 +1051,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.setIsPublic(true);  
                 Value uriValue = st.getObject();
                 String publicURI = uriValue.stringValue();
+                datasetObject.setPublicURI(publicURI);
                 IRI publicIRI = f.createIRI(publicURI);
                 RepositoryResult<Statement> statementsPublic = sparqlDAO.getStatements(publicIRI, null, null, defaultGraphIRI);
                 while (statementsPublic.hasNext()) {

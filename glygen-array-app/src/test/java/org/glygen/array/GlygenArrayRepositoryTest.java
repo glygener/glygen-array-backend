@@ -466,12 +466,12 @@ public class GlygenArrayRepositoryTest {
 		Feature feature = new LinkedGlycan();
 		if (g != null) {
 		    GlycanInFeature featureGlycan = new GlycanInFeature();
-		    g.copyTo(featureGlycan);
+		    featureGlycan.setGlycan(g);
 		    ((LinkedGlycan) feature).addGlycan(featureGlycan);
 		}
 		if (g1 != null) {
 		    GlycanInFeature featureGlycan = new GlycanInFeature();
-            g1.copyTo(featureGlycan);
+            featureGlycan.setGlycan(g1);;
 		    ((LinkedGlycan) feature).addGlycan(featureGlycan);
 		}
 		feature.setLinker(linker1);
@@ -576,7 +576,7 @@ public class GlygenArrayRepositoryTest {
 			added.setPeptide(linker1);
 			LinkedGlycan lg = new LinkedGlycan();
 			GlycanInFeature featureGlycan = new GlycanInFeature();
-	        g.copyTo(featureGlycan);
+	        featureGlycan.setGlycan(g);
 			lg.addGlycan(featureGlycan);
 			added.addGlycan(lg);
 			String lgURI = featureRepository.addFeature(lg, user);
@@ -629,13 +629,13 @@ public class GlygenArrayRepositoryTest {
 			Feature feature = new LinkedGlycan();
 			if (i==0) {
 			    GlycanInFeature featureGlycan = new GlycanInFeature();
-	            g1.copyTo(featureGlycan);
+	            featureGlycan.setGlycan(g1);
 				((LinkedGlycan) feature).addGlycan(featureGlycan);
 				feature.setLinker(linker1);
 			}
 			if (i==1) {
 			    GlycanInFeature featureGlycan = new GlycanInFeature();
-	            g.copyTo(featureGlycan);
+	            featureGlycan.setGlycan(g);
 				((LinkedGlycan) feature).addGlycan(featureGlycan);
 				feature.setLinker(l);
 			}

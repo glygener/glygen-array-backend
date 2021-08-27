@@ -500,7 +500,7 @@ public class ExtendedGalFileParser {
                 glycanList.add(glycan);
                 List<GlycanInFeature> glycans = new ArrayList<GlycanInFeature>();
                 GlycanInFeature glycanFeature = new GlycanInFeature();
-                glycan.copyTo(glycanFeature);
+                glycanFeature.setGlycan(glycan);
                 glycans.add(glycanFeature);
                 Feature feature = new LinkedGlycan();
                 feature.setType(FeatureType.LINKEDGLYCAN);
@@ -536,8 +536,7 @@ public class ExtendedGalFileParser {
             for (Glycan g: glycans) {
                 LinkedGlycan lg = new LinkedGlycan();
                 GlycanInFeature glycanFeature = new GlycanInFeature();
-                //TODO where do we get the source info?
-                g.copyTo(glycanFeature);
+                glycanFeature.setGlycan(g);
                 lg.addGlycan(glycanFeature);
                 list.add(lg);
             }

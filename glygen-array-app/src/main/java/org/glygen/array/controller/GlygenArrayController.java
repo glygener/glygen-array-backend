@@ -662,7 +662,8 @@ public class GlygenArrayController {
 	    // check its glycans
         if (feature.getGlycans() != null) {
             
-            for (Glycan g: feature.getGlycans()) {
+            for (GlycanInFeature gf: feature.getGlycans()) {
+                Glycan g = gf.getGlycan();
                 if (g.getUri() == null && g.getId() == null) {
                     try {
                         g.setId(addGlycan(g, p, true));
@@ -2345,7 +2346,7 @@ public class GlygenArrayController {
             if (((LinkedGlycan) feature).getGlycans() != null) {
                 glycanList = new ArrayList<Glycan>();
                 for (GlycanInFeature g: ((LinkedGlycan) feature).getGlycans()) {
-                    glycanList.add(g);
+                    glycanList.add(g.getGlycan());
                 }
             }
             break;
@@ -2353,7 +2354,9 @@ public class GlygenArrayController {
             if (((GlycoLipid) feature).getGlycans() != null) {
                 glycanList = new ArrayList<Glycan>();
                 for (LinkedGlycan g: ((GlycoLipid) feature).getGlycans()) {
-                    glycanList.addAll(g.getGlycans());
+                    for (GlycanInFeature glycan: ((LinkedGlycan) g).getGlycans()) {
+                        glycanList.add(glycan.getGlycan());
+                    }
                 }
             }
             break;
@@ -2361,7 +2364,9 @@ public class GlygenArrayController {
             if (((GlycoPeptide) feature).getGlycans() != null) {
                 glycanList = new ArrayList<Glycan>();
                 for (LinkedGlycan g: ((GlycoPeptide) feature).getGlycans()) {
-                    glycanList.addAll(g.getGlycans());
+                    for (GlycanInFeature glycan: ((LinkedGlycan) g).getGlycans()) {
+                        glycanList.add(glycan.getGlycan());
+                    }
                 }
             }
             break;
@@ -2369,7 +2374,9 @@ public class GlygenArrayController {
             if (((GlycoProtein) feature).getGlycans() != null) {
                 glycanList = new ArrayList<Glycan>();
                 for (LinkedGlycan g: ((GlycoProtein) feature).getGlycans()) {
-                    glycanList.addAll(g.getGlycans());
+                    for (GlycanInFeature glycan: ((LinkedGlycan) g).getGlycans()) {
+                        glycanList.add(glycan.getGlycan());
+                    }
                 }
             }
             break;
@@ -2378,7 +2385,9 @@ public class GlygenArrayController {
                 glycanList = new ArrayList<Glycan>();
                 for (GlycoPeptide gp: ((GPLinkedGlycoPeptide) feature).getPeptides()) {
                     for (LinkedGlycan g: gp.getGlycans()) {
-                        glycanList.addAll(g.getGlycans());
+                        for (GlycanInFeature glycan: ((LinkedGlycan) g).getGlycans()) {
+                            glycanList.add(glycan.getGlycan());
+                        }
                     }
                 }
             }
@@ -2794,7 +2803,8 @@ public class GlygenArrayController {
 											for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
 											    if (feature.getType() == FeatureType.LINKEDGLYCAN) {
     												if (((LinkedGlycan) feature).getGlycans() != null) {
-    												    for (Glycan g: ((LinkedGlycan) feature).getGlycans()) {
+    												    for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+    												        Glycan g = gf.getGlycan();
         													if (!glycanCache.contains(g)) {
         														glycanCache.add(g);
         														try {	
@@ -3296,7 +3306,7 @@ public class GlygenArrayController {
 		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
 		        				GlycanInFeature glycanFeature = new GlycanInFeature();
-		        				myGlycan.copyTo(glycanFeature);
+		        				glycanFeature.setGlycan(myGlycan);
 		        				myFeature.getGlycans().add(glycanFeature);
         					} else {
         					    // should have been there
