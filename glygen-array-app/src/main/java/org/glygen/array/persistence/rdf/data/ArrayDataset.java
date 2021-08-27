@@ -35,6 +35,7 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     Date dateAddedToLibrary;
     
     String publicURI;
+    String publicId;
     
     List<ChangeLog> changes = new ArrayList<>();
 
@@ -326,6 +327,23 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
      */
     public void setPublicURI(String publicURI) {
         this.publicURI = publicURI;
+    }
+
+    /**
+     * @return the publicId
+     */
+    public String getPublicId() {
+        if (publicURI != null) {
+            return publicURI.substring(publicURI.lastIndexOf("/")+1);
+        }
+        return publicId;
+    }
+
+    /**
+     * @param publicId the publicId to set
+     */
+    public void setPublicId(String publicId) {
+        this.publicId = publicId;
     }
 
 }
