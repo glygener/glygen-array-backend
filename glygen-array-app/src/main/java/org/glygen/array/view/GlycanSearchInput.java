@@ -22,13 +22,13 @@ public class GlycanSearchInput {
         this.glytoucanIds = glytoucanIds;
     }
     /**
-     * @return the minMass
+     * @return the minGlycanMass
      */
     public Double getMinMass() {
         return minMass;
     }
     /**
-     * @param minMass the minMass to set
+     * @param minGlycanMass the minGlycanMass to set
      */
     public void setMinMass(Double minMass) {
         this.minMass = minMass;

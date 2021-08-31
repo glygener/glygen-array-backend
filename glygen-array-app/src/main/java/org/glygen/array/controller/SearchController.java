@@ -45,6 +45,7 @@ import org.glygen.array.view.GlycanSearchInput;
 import org.glygen.array.view.GlycanSearchResult;
 import org.glygen.array.view.GlycanSearchResultView;
 import org.glygen.array.view.GlycanSearchType;
+import org.glygen.array.view.SearchInitView;
 import org.glygen.array.view.Sequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,30 @@ public class SearchController {
     
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
+    
+    @ApiOperation(value = "Retrieve search initialization values")
+    @RequestMapping(value="/initSearch", method = RequestMethod.GET, produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="The initial search parameters", response = SearchInitView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public SearchInitView initSearch () {
+        SearchInitView view = new SearchInitView();
+        try {
+            Double minMass = glycanRepository.getMinMaxGlycanMass(null, true);
+            Double maxMass = glycanRepository.getMinMaxGlycanMass(null, false);
+            if (minMass != null) {
+                view.setMinGlycanMass(minMass);
+            }
+            if (maxMass != null) {
+                view.setMaxGlycanMass(maxMass);
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve initial values for search. Reason: " + e.getMessage());
+        }
+        
+        return view;
+    }
     
     
     @ApiOperation(value = "Perform search on glycans that match all of the given criteria")

@@ -264,7 +264,7 @@ public class PublicGlygenArrayController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
-            int total = datasetRepository.getArrayDatasetCountByUser(null);
+            int total = datasetRepository.getDatasetCountByGlycan(glycanId, null);
             
             List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId, offset, limit, field, order, false, null);
             // need to clear rawdata, processed data etc.

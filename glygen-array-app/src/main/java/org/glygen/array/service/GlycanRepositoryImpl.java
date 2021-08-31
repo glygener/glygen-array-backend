@@ -1128,4 +1128,38 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         }
         return glycans;
     }
+
+    @Override
+    public Double getMinMaxGlycanMass(UserEntity user, boolean min) throws SparqlException, SQLException {
+        Double mass = null;
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?mass\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + "> \n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        queryBuf.append ( " ?s gadr:has_mass ?mass  . \n");
+        queryBuf.append("} ORDER BY " + (min ? "ASC" : "DESC") + "(?mass) LIMIT 1\n");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String massString = result.getValue("mass");
+            try {
+                mass = Double.parseDouble(massString);
+            } catch (NumberFormatException e) {
+                logger.error("Wrong mass value in the repository");
+            }
+        }
+        
+        return mass;
+    }
 }
