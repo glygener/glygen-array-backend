@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
-import javax.persistence.EntityNotFoundException;
 
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
@@ -28,17 +27,25 @@ import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.GlycanSearchResultEntity;
+import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.GlycanSearchResultRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
+import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.service.ArrayDatasetRepository;
+import org.glygen.array.service.ArrayDatasetRepositoryImpl;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.service.GlygenArrayRepositoryImpl;
+import org.glygen.array.service.QueryHelper;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.CompareByGlytoucanId;
 import org.glygen.array.view.CompareByMass;
+import org.glygen.array.view.DatasetSearchInput;
+import org.glygen.array.view.DatasetSearchResultView;
+import org.glygen.array.view.DatasetSearchType;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.GlycanSearchInput;
@@ -92,13 +99,16 @@ public class SearchController {
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
     
-    @ApiOperation(value = "Retrieve search initialization values")
-    @RequestMapping(value="/initSearch", method = RequestMethod.GET, produces={"application/json", "application/xml"})
+    @Autowired
+    QueryHelper queryHelper;
+    
+    @ApiOperation(value = "Retrieve glycan search initialization values")
+    @RequestMapping(value="/initGlycanSearch", method = RequestMethod.GET, produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="The initial search parameters", response = SearchInitView.class), 
             @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
-    public SearchInitView initSearch () {
+    public SearchInitView initGlycanSearch () {
         SearchInitView view = new SearchInitView();
         try {
             Double minMass = glycanRepository.getMinMaxGlycanMass(null, true);
@@ -631,6 +641,222 @@ public class SearchController {
         }
         
         return matches;
+    }
+    
+    
+    @ApiOperation(value = "Perform search on datasets that match all of the given criteria")
+    @RequestMapping(value="/searchDatasets", method = RequestMethod.POST)
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public String searchDatasets (
+            @ApiParam(required=true, value="search terms") 
+            @RequestBody DatasetSearchInput searchInput) {
+        
+        Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
+        try {
+            if (searchInput.getDatasetName() != null && !searchInput.getDatasetName().isEmpty()) {
+                List<SparqlEntity> results = queryHelper.retrieveByLabel(
+                        searchInput.getDatasetName(), ArrayDatasetRepositoryImpl.datasetTypePredicate, GlygenArrayRepository.DEFAULT_GRAPH);
+                List<String> matchedIds = new ArrayList<String>();
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                    }
+                }
+                searchResultMap.put(searchInput.getDatasetName().hashCode()+"n", matchedIds);
+            }
+            if (searchInput.getPrintedSlideName() != null && !searchInput.getPrintedSlideName().isEmpty()) {
+                List<SparqlEntity> results = queryHelper.retrieveDatasetBySlideName(
+                        searchInput.getPrintedSlideName(), GlygenArrayRepository.DEFAULT_GRAPH);
+                List<String> matchedIds = new ArrayList<String>();
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                    }
+                }
+                searchResultMap.put(searchInput.getPrintedSlideName().hashCode()+"s", matchedIds);
+            }
+            
+            if (searchInput.getPmid() != null && !searchInput.getPmid().isEmpty()) {
+                List<SparqlEntity> results = queryHelper.retrieveDatasetByPublication(
+                        searchInput.getPmid(), GlygenArrayRepository.DEFAULT_GRAPH);
+                List<String> matchedIds = new ArrayList<String>();
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                    }
+                }
+                searchResultMap.put(searchInput.getPmid().hashCode()+"p", matchedIds);
+            }
+            
+            Set<String> finalMatches = new HashSet<String>();
+            int i=0;
+            String searchKey = "";
+            for (String key: searchResultMap.keySet()) {
+                searchKey += key;
+                List<String> matches = searchResultMap.get(key);
+                if (i == 0)
+                    finalMatches.addAll(matches);
+                else {
+                    // get the intersection
+                    finalMatches = matches.stream()
+                            .distinct()
+                            .filter(finalMatches::contains)
+                            .collect(Collectors.toSet());
+                    
+                }
+                i++;
+            }
+            
+            
+            if (finalMatches.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage = new ErrorMessage("No results found");
+                errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage);
+            }
+            
+            if (!searchKey.isEmpty()) {
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(searchKey);
+                searchResult.setIdList(String.join(",", finalMatches));
+                searchResult.setSearchType(DatasetSearchType.GENERAL.name());
+                try {
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } else {
+                return null;
+            }
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for search. Reason: " + e.getMessage());
+        } 
+    }
+    
+    
+    @ApiOperation(value = "List datasets from the given search")
+    @RequestMapping(value="/listDatasetsForSearch", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Datasets retrieved successfully", response = DatasetSearchResultView.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public DatasetSearchResultView listDatasetsForSearch (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
+            @RequestParam(value="searchId", required=true) String searchId) {
+        DatasetSearchResultView result = new DatasetSearchResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            ErrorMessage errorMessage = new ErrorMessage("Retrieval of search results failed");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            
+            List<String> matches = null;
+            List<ArrayDataset> searchDatasets = new ArrayList<ArrayDataset>();
+            String idList = null;
+            try {
+                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId);
+                if (r != null) {
+                    idList = r.getIdList();
+                    result.setType(DatasetSearchType.valueOf(r.getSearchType()));
+                    result.setInput(new ObjectMapper().readValue(r.getInput(), DatasetSearchInput.class));
+                }
+            } catch (Exception e) {
+                logger.error("Cannot retrieve the search result", e);
+            }
+            if (idList != null && !idList.isEmpty()) {
+                matches = Arrays.asList(idList.split(","));  
+            } else if (idList == null) {
+                errorMessage.addError(new ObjectError ("searchId", "NotFound"));
+                throw new IllegalArgumentException("Search id should be obtained by a previous web service call", errorMessage);
+            }
+            
+            int total=0;
+            
+            if (matches != null) {
+                total = matches.size();
+                List<ArrayDataset> loadedDatasets = new ArrayList<ArrayDataset>();
+                for (String match: matches) {
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(match, false, null);
+                    if (dataset != null)
+                        loadedDatasets.add(dataset);
+                }
+                // sort the datasets by the given order
+                if (field == null || field.equalsIgnoreCase("name")) {
+                    if (order == 1)
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getName));
+                    else 
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getName).reversed());
+                } else if (field.equalsIgnoreCase("comment")) {
+                    if (order == 1)
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDescription));
+                    else 
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDescription).reversed());
+                } else if (field.equalsIgnoreCase("dateModified")) {
+                    if (order == 1)
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDateModified));
+                    else 
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDateModified).reversed());
+                } else if (field.equalsIgnoreCase("id")) {
+                    if (order == 1)
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getId));
+                    else 
+                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getId).reversed());
+                }
+                int i=0;
+                int added = 0;
+                
+                for (ArrayDataset dataset: loadedDatasets) {
+                    i++;
+                    if (i <= offset) continue;
+                    searchDatasets.add(dataset);
+                    added ++;
+                    
+                    if (added >= limit) break;
+                    
+                }
+            }
+            
+            result.setRows(searchDatasets);
+            result.setTotal(total);
+            result.setFilteredTotal(searchDatasets.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve datasets for search. Reason: " + e.getMessage());
+        }
+        
+        return result;
     }
 
 }
