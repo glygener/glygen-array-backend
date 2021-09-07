@@ -28,7 +28,9 @@ import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.GlycanSearchResultEntity;
 import org.glygen.array.persistence.SparqlEntity;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.GlycanSearchResultRepository;
+import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
@@ -95,6 +97,9 @@ public class SearchController {
     
     @Autowired
     ArrayDatasetRepository datasetRepository;
+    
+    @Autowired
+    UserRepository userRepository;
     
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
@@ -727,6 +732,133 @@ public class SearchController {
                 searchResult.setSequence(searchKey);
                 searchResult.setIdList(String.join(",", finalMatches));
                 searchResult.setSearchType(DatasetSearchType.GENERAL.name());
+                try {
+                    searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
+                } catch (JsonProcessingException e) {
+                    logger.warn("could not serialize the search input" + e.getMessage());
+                }
+                searchResultRepository.save(searchResult);
+                return searchResult.getSequence();
+            } else {
+                return null;
+            }
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Cannot retrieve glycans for search. Reason: " + e.getMessage());
+        } 
+    }
+    
+    
+    @ApiOperation(value = "Perform search on datasets that match all of the given user criteria")
+    @RequestMapping(value="/searchDatasetsByUser", method = RequestMethod.POST)
+    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public String searchDatasetsByUser (
+            @ApiParam(required=true, value="search terms") 
+            @RequestBody DatasetSearchInput searchInput) {
+        
+        Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
+        try {
+            if (searchInput.getUsername() != null && !searchInput.getUsername().isEmpty()) {
+                // search by owner
+                List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(searchInput.getUsername().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
+                List<String> matchedIds = new ArrayList<String>();
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                    }
+                }
+                searchResultMap.put(searchInput.getUsername().hashCode()+"user", matchedIds);
+            }
+            
+            // lastname - find the username belonging to that lastname and search by owner
+            if (searchInput.getLastName() != null && !searchInput.getLastName().isEmpty()) {
+                List<UserEntity> users = userRepository.findAllByLastNameIgnoreCase(searchInput.getLastName().trim());
+                List<String> matchedIds = new ArrayList<String>();
+                for (UserEntity user: users) {
+                    // search by owner
+                    List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(user.getUsername(), GlygenArrayRepository.DEFAULT_GRAPH);
+                    if (results != null) {
+                        for (SparqlEntity r: results) {
+                            String m = r.getValue("s");
+                            matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                        }
+                    }
+                }
+                
+                searchResultMap.put(searchInput.getLastName().hashCode()+"last", matchedIds);
+            }
+            
+            if (searchInput.getGroupName() != null && !searchInput.getGroupName().isEmpty()) {
+                List<UserEntity> users = userRepository.findAllByGroupNameIgnoreCase(searchInput.getGroupName().trim());
+                List<String> matchedIds = new ArrayList<String>();
+                for (UserEntity user: users) {
+                    // search by owner
+                    List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(user.getUsername(), GlygenArrayRepository.DEFAULT_GRAPH);
+                    if (results != null) {
+                        for (SparqlEntity r: results) {
+                            String m = r.getValue("s");
+                            matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                        }
+                    }
+                }
+                
+                searchResultMap.put(searchInput.getGroupName().hashCode()+"gr", matchedIds);
+            }
+            
+            if (searchInput.getInstitution() != null && !searchInput.getInstitution().isEmpty()) {
+                List<UserEntity> users = userRepository.findAllByAffiliationIgnoreCase(searchInput.getInstitution().trim());
+                List<String> matchedIds = new ArrayList<String>();
+                for (UserEntity user: users) {
+                    // search by owner
+                    List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(user.getUsername(), GlygenArrayRepository.DEFAULT_GRAPH);
+                    if (results != null) {
+                        for (SparqlEntity r: results) {
+                            String m = r.getValue("s");
+                            matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                        }
+                    }
+                }
+                
+                searchResultMap.put(searchInput.getInstitution().hashCode()+"org", matchedIds);
+            }
+            
+            
+            Set<String> finalMatches = new HashSet<String>();
+            int i=0;
+            String searchKey = "";
+            for (String key: searchResultMap.keySet()) {
+                searchKey += key;
+                List<String> matches = searchResultMap.get(key);
+                if (i == 0)
+                    finalMatches.addAll(matches);
+                else {
+                    // get the intersection
+                    finalMatches = matches.stream()
+                            .distinct()
+                            .filter(finalMatches::contains)
+                            .collect(Collectors.toSet());
+                    
+                }
+                i++;
+            }
+            
+            
+            if (finalMatches.isEmpty()) {
+                // do not save the search results, return an error code
+                ErrorMessage errorMessage = new ErrorMessage("No results found");
+                errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                throw new IllegalArgumentException("No results found", errorMessage);
+            }
+            
+            if (!searchKey.isEmpty()) {
+                GlycanSearchResultEntity searchResult = new GlycanSearchResultEntity();
+                searchResult.setSequence(searchKey);
+                searchResult.setIdList(String.join(",", finalMatches));
+                searchResult.setSearchType(DatasetSearchType.USER.name());
                 try {
                     searchResult.setInput(new ObjectMapper().writeValueAsString(searchInput));
                 } catch (JsonProcessingException e) {

@@ -297,7 +297,7 @@ public class QueryHelper {
        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
        queryBuf.append ( " ?s gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . ?ps rdfs:label ?l"
-               + " ?l FILTER (lcase(str(?l)) = \"\"\"" + printedSlideName.toLowerCase() + "\"\"\" "
+               + " FILTER (lcase(str(?l)) = \"\"\"" + printedSlideName.toLowerCase() + "\"\"\" "
                        + "|| contains(?ps,\""+ printedSlideName + "\") ) \n"
                + "}\n");
        
@@ -321,7 +321,23 @@ public class QueryHelper {
        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
        queryBuf.append ( " ?s gadr:has_publication ?pub . ?pub gadr:has_pubmed_id ?pmid . "
-               + " ?pmid FILTER (lcase(str(?pmid)) = \"\"\"" + pmid.toLowerCase() + "\"\"\") \n"
+               + " FILTER (lcase(str(?pmid)) = \"\"\"" + pmid.toLowerCase() + "\"\"\") \n"
+               + "}\n");
+       
+       return sparqlDAO.query(queryBuf.toString());
+   }
+   
+   
+   public List<SparqlEntity> retrieveDatasetByOwner(String username, String graph) throws SparqlException {
+       StringBuffer queryBuf = new StringBuffer();
+       queryBuf.append (prefix + "\n");
+       queryBuf.append ("SELECT DISTINCT ?s \n");
+       queryBuf.append ("FROM <" + graph + ">\n");
+       queryBuf.append ("WHERE {\n");
+       queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+       queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
+       queryBuf.append ( " ?s gadr:created_by ?owner . "
+               + " FILTER (lcase(str(?owner)) = \"\"\"" + username.toLowerCase() + "\"\"\") \n"
                + "}\n");
        
        return sparqlDAO.query(queryBuf.toString());

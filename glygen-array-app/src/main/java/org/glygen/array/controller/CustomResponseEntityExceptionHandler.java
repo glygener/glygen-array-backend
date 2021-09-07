@@ -232,7 +232,12 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         		}
         		if (ex.getCause() != null && ex.getCause() instanceof ErrorMessage) {
         			errorMessage = (ErrorMessage) ex.getCause();
-        			errorMessage.setErrorCode(code);
+        			errorMessage.setErrorCode(((ErrorMessage) ex.getCause()).getErrorCode());
+        			try {
+        			    status = HttpStatus.valueOf(((ErrorMessage) ex.getCause()).getStatusCode());
+        			} catch (Exception e) {
+        			    // ignore
+        			}
         		} else {
         			errorMessage = new ErrorMessage (ex.getMessage());
         			errorMessage.setErrorCode(code);
