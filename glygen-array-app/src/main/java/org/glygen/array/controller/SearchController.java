@@ -761,6 +761,7 @@ public class SearchController {
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
         try {
             if (searchInput.getUsername() != null && !searchInput.getUsername().isEmpty()) {
+                UserEntity user = userRepository.findByUsernameIgnoreCase(searchInput.getUsername().trim());
                 // search by owner
                 List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(searchInput.getUsername().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
                 List<String> matchedIds = new ArrayList<String>();
@@ -769,6 +770,15 @@ public class SearchController {
                         String m = r.getValue("s");
                         matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                     }
+                }
+                if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
+                    // add datasets co-owned
+                   List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+                   for (ArrayDataset d: coowned) {
+                       if (d.getIsPublic()) {
+                           matchedIds.add(d.getPublicId());
+                       }
+                   }
                 }
                 searchResultMap.put(searchInput.getUsername().hashCode()+"user", matchedIds);
             }
@@ -785,6 +795,15 @@ public class SearchController {
                             String m = r.getValue("s");
                             matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                         }
+                    }
+                    if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
+                        // add datasets co-owned
+                       List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+                       for (ArrayDataset d: coowned) {
+                           if (d.getIsPublic()) {
+                               matchedIds.add(d.getPublicId());
+                           }
+                       }
                     }
                 }
                 
@@ -803,6 +822,15 @@ public class SearchController {
                             matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                         }
                     }
+                    if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
+                        // add datasets co-owned
+                       List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+                       for (ArrayDataset d: coowned) {
+                           if (d.getIsPublic()) {
+                               matchedIds.add(d.getPublicId());
+                           }
+                       }
+                    }
                 }
                 
                 searchResultMap.put(searchInput.getGroupName().hashCode()+"gr", matchedIds);
@@ -819,6 +847,15 @@ public class SearchController {
                             String m = r.getValue("s");
                             matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                         }
+                    }
+                    if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
+                        // add datasets co-owned
+                       List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+                       for (ArrayDataset d: coowned) {
+                           if (d.getIsPublic()) {
+                               matchedIds.add(d.getPublicId());
+                           }
+                       }
                     }
                 }
                 
@@ -869,7 +906,7 @@ public class SearchController {
             } else {
                 return null;
             }
-        } catch (SparqlException e) {
+        } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for search. Reason: " + e.getMessage());
         } 
     }
