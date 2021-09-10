@@ -501,6 +501,54 @@ public class UserController {
         PatriciaTrie<String> trie = NamespaceHandler.createNamespaceFromList(userNames);
         return UtilityController.getSuggestions(trie, key, limit);
     }
+    
+    @RequestMapping(value="/listorganizations", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the list of organizations matching the entered organization value")
+    @ApiResponses (value ={@ApiResponse(code=200, message="Organization list retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody List<String> getOrganizationsWithTypeAhead (
+            @ApiParam(required=true, value="value to match") 
+            @RequestParam("value")
+            String key, 
+            @ApiParam(required=false, value="limit of number of matches") 
+            @RequestParam(name="limit", required=false)
+            Integer limit) {
+        List<UserEntity> userList = userRepository.findAll();
+        List<String> organizationNames = new ArrayList<String>();
+        for (UserEntity user: userList) {
+            if (user.getAffiliation() != null && !user.getAffiliation().isEmpty())
+                organizationNames.add(user.getAffiliation());
+        }
+        PatriciaTrie<String> trie = NamespaceHandler.createNamespaceFromList(organizationNames);
+        return UtilityController.getSuggestions(trie, key, limit);
+    }
+    
+    @RequestMapping(value="/listgroups", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the list of user groups matching the entered group value")
+    @ApiResponses (value ={@ApiResponse(code=200, message="Group list retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody List<String> getGroupsWithTypeAhead (
+            @ApiParam(required=true, value="value to match") 
+            @RequestParam("value")
+            String key, 
+            @ApiParam(required=false, value="limit of number of matches") 
+            @RequestParam(name="limit", required=false)
+            Integer limit) {
+        List<UserEntity> userList = userRepository.findAll();
+        List<String> groupNames = new ArrayList<String>();
+        for (UserEntity user: userList) {
+            if (user.getGroupName() != null && !user.getGroupName().isEmpty()) 
+                groupNames.add(user.getGroupName());
+        }
+        PatriciaTrie<String> trie = NamespaceHandler.createNamespaceFromList(groupNames);
+        return UtilityController.getSuggestions(trie, key, limit);
+    }
 	
 	@RequestMapping(value="/recover", method = RequestMethod.GET)
     @ApiOperation(value="Recovers the user's username. Sends an email to the email provided by the user if it has valid account", response=String.class)

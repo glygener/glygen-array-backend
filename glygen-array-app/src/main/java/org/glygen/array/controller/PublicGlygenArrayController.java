@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -14,6 +15,8 @@ import javax.validation.Validator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SparqlEntity;
+import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -48,6 +51,7 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
+import org.glygen.array.service.QueryHelper;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
@@ -125,6 +129,9 @@ public class PublicGlygenArrayController {
     
     @Autowired
     ResourceLoader resourceLoader;
+    
+    @Autowired
+    QueryHelper queryHelper;
     
     @ApiOperation(value = "List all public glycans")
     @RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
@@ -582,7 +589,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
-            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
+            @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
             @ApiParam(required=true, value="user name") 
@@ -606,22 +613,157 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getArrayDatasetCountByUser(null);
-            List<ArrayDataset> totalList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, false);
             List<ArrayDataset> resultList = new ArrayList<ArrayDataset>();
-            // filter by owner and retrieve only those with the given username
-            for (ArrayDataset dataset: totalList) {
-                if (dataset.getUser() != null && username.equals(dataset.getUser().getName())) {
-                    if (loadAll) {
-                        resultList.add(datasetRepository.getArrayDataset(dataset.getId(), null));
-                    } else {
-                        resultList.add(dataset);
-                    }
+            
+            List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(username.trim(), GlygenArrayRepository.DEFAULT_GRAPH);
+            int total = results.size();
+            if (results != null) {
+                for (SparqlEntity r: results) {
+                    String m = r.getValue("s");
+                    resultList.add(datasetRepository.getArrayDataset(m.substring(m.lastIndexOf("/")+1), loadAll, null));
+                }
+                // sort the datasets by the given order
+                if (field == null || field.equalsIgnoreCase("name")) {
+                    if (order == 1)
+                        resultList.sort(Comparator.comparing(ArrayDataset::getName));
+                    else 
+                        resultList.sort(Comparator.comparing(ArrayDataset::getName).reversed());
+                } else if (field.equalsIgnoreCase("comment")) {
+                    if (order == 1)
+                        resultList.sort(Comparator.comparing(ArrayDataset::getDescription));
+                    else 
+                        resultList.sort(Comparator.comparing(ArrayDataset::getDescription).reversed());
+                } else if (field.equalsIgnoreCase("dateModified")) {
+                    if (order == 1)
+                        resultList.sort(Comparator.comparing(ArrayDataset::getDateModified));
+                    else 
+                        resultList.sort(Comparator.comparing(ArrayDataset::getDateModified).reversed());
+                } else if (field.equalsIgnoreCase("id")) {
+                    if (order == 1)
+                        resultList.sort(Comparator.comparing(ArrayDataset::getId));
+                    else 
+                        resultList.sort(Comparator.comparing(ArrayDataset::getId).reversed());
+                }
+                
+            }
+            
+            int i=0;
+            int added = 0;
+            List<ArrayDataset> searchDatasets = new ArrayList<ArrayDataset>();
+            for (ArrayDataset dataset: resultList) {
+                i++;
+                if (i <= offset) continue;
+                searchDatasets.add(dataset);
+                added ++;
+                
+                if (added >= limit) break;
+                
+            }
+    
+            result.setRows(searchDatasets);
+            result.setTotal(total);
+            result.setFilteredTotal(searchDatasets.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    
+    @ApiOperation(value = "List all public datasets submitted by the given user as a coowner")
+    @RequestMapping(value="/listArrayDatasetByCoOwner", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public ArrayDatasetListView listArrayDatasetByCoOwner (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+            @ApiParam(required=true, value="coowner name") 
+            @RequestParam("user") String username) {
+        ArrayDatasetListView result = new ArrayDatasetListView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage("Order should be 0 (Descending) or 1 (Ascending)");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            List<ArrayDataset> resultList = new ArrayList<ArrayDataset>();
+            UserEntity user = userRepository.findByUsernameIgnoreCase(username);
+            // get datasets co-owned
+            List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+            for (ArrayDataset d: coowned) {
+                if (d.getIsPublic()) {
+                    resultList.add(datasetRepository.getArrayDataset(d.getPublicId(), loadAll, null));
                 }
             }
-            result.setRows(resultList);
+            int total = resultList.size();
+            
+            // sort the datasets by the given order
+            if (field == null || field.equalsIgnoreCase("name")) {
+                if (order == 1)
+                    resultList.sort(Comparator.comparing(ArrayDataset::getName));
+                else 
+                    resultList.sort(Comparator.comparing(ArrayDataset::getName).reversed());
+            } else if (field.equalsIgnoreCase("comment")) {
+                if (order == 1)
+                    resultList.sort(Comparator.comparing(ArrayDataset::getDescription));
+                else 
+                    resultList.sort(Comparator.comparing(ArrayDataset::getDescription).reversed());
+            } else if (field.equalsIgnoreCase("dateModified")) {
+                if (order == 1)
+                    resultList.sort(Comparator.comparing(ArrayDataset::getDateModified));
+                else 
+                    resultList.sort(Comparator.comparing(ArrayDataset::getDateModified).reversed());
+            } else if (field.equalsIgnoreCase("id")) {
+                if (order == 1)
+                    resultList.sort(Comparator.comparing(ArrayDataset::getId));
+                else 
+                    resultList.sort(Comparator.comparing(ArrayDataset::getId).reversed());
+            }
+                
+            int i=0;
+            int added = 0;
+            List<ArrayDataset> searchDatasets = new ArrayList<ArrayDataset>();
+            for (ArrayDataset dataset: resultList) {
+                i++;
+                if (i <= offset) continue;
+                searchDatasets.add(dataset);
+                added ++;
+                
+                if (added >= limit) break;
+                
+            }
+    
+            result.setRows(searchDatasets);
             result.setTotal(total);
-            result.setFilteredTotal(resultList.size());
+            result.setFilteredTotal(searchDatasets.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
         }

@@ -772,7 +772,7 @@ public class SearchController {
                     }
                 }
                 if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
-                    // add datasets co-owned
+                   // add datasets co-owned
                    List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
                    for (ArrayDataset d: coowned) {
                        if (d.getIsPublic()) {

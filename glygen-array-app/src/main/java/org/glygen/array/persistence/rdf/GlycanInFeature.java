@@ -1,9 +1,13 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.List;
+
 public class GlycanInFeature  {
     Glycan glycan;
     Source source;
     ReducingEndConfiguration reducingEndConfiguration;
+    List<Publication> publications;
+    List<String> urls;
     
     /**
      * @return the source
@@ -41,6 +45,30 @@ public class GlycanInFeature  {
      */
     public void setGlycan(Glycan glycan) {
         this.glycan = glycan;
+    }
+    /**
+     * @return the publications
+     */
+    public List<Publication> getPublications() {
+        return publications;
+    }
+    /**
+     * @param publications the publications to set
+     */
+    public void setPublications(List<Publication> publications) {
+        this.publications = publications;
+    }
+    /**
+     * @return the urls
+     */
+    public List<String> getUrls() {
+        return urls;
+    }
+    /**
+     * @param urls the urls to set
+     */
+    public void setUrls(List<String> urls) {
+        this.urls = urls;
     }
 
 }

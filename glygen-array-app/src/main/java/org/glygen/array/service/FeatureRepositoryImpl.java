@@ -40,6 +40,7 @@ import org.glygen.array.persistence.rdf.NegControlFeature;
 import org.glygen.array.persistence.rdf.NonCommercialSource;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.Range;
 import org.glygen.array.persistence.rdf.ReducingEndConfiguration;
 import org.glygen.array.persistence.rdf.ReducingEndType;
@@ -368,6 +369,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasMolecule = f.createIRI(hasMoleculePredicate);
         String glycanContextURI = generateUniqueURI(uriPrefix + "PC", graph);
         IRI glycanContext = f.createIRI(glycanContextURI);
+        IRI hasUrl = f.createIRI(hasURLPredicate);
         if (g.getSource() != null) {
             statements.add(f.createStatement(feat, hasGlycanContext, glycanContext, graphIRI));
             statements.add(f.createStatement(glycanContext, hasMolecule, glycanIRI, graphIRI));
@@ -419,8 +421,70 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             if (redEndComment != null)
                 statements.add(f.createStatement(redEndCon, RDFS.COMMENT, redEndComment, graphIRI));
         }
+         
+        addGlycanInFeaturePublications (g, glycanContext, graph);
         
+        if (g.getUrls() != null) {
+            for (String url: g.getUrls()) {
+                Literal urlLit = f.createLiteral(url);
+                statements.add(f.createStatement(glycanContext, hasUrl, urlLit, graphIRI));
+            }
+        }
     }
+	
+	
+	void addGlycanInFeaturePublications (GlycanInFeature g, IRI glycan, String graph) throws SparqlException {
+	    String uriPre = uriPrefix;
+        if (graph.equals(DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+        
+	    ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+	    IRI hasTitle = f.createIRI(hasTitlePredicate);
+        IRI hasAuthor = f.createIRI(hasAuthorPredicate);
+        IRI hasYear = f.createIRI(hasYearPredicate);
+        IRI hasVolume = f.createIRI(hasVolumePredicate);
+        IRI hasJournal = f.createIRI(hasJournalPredicate);
+        IRI hasNumber = f.createIRI(hasNumberPredicate);
+        IRI hasStartPage = f.createIRI(hasStartPagePredicate);
+        IRI hasEndPage = f.createIRI(hasEndPagePredicate);
+        IRI hasDOI = f.createIRI(hasDOIPredicate);
+        IRI hasPubMed = f.createIRI(hasPubMedPredicate);
+        IRI hasPub = f.createIRI(hasPublication);
+        
+        if (g.getPublications() != null) {
+            for (Publication pub : g.getPublications()) {
+                List<Statement> statements = new ArrayList<Statement>();
+                String publicationURI = generateUniqueURI(uriPre + "P", graph);
+                IRI publication = f.createIRI(publicationURI);
+                Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
+                Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
+                Literal number = pub.getNumber() == null ? f.createLiteral("") : f.createLiteral(pub.getNumber());
+                Literal volume = pub.getVolume() == null ? f.createLiteral("") : f.createLiteral(pub.getVolume());
+                Literal year = pub.getYear() == null ? f.createLiteral("") : f.createLiteral(pub.getYear());
+                Literal journal = pub.getJournal() == null ? f.createLiteral("") : f.createLiteral(pub.getJournal());
+                Literal startPage = pub.getStartPage() == null ? f.createLiteral("") : f.createLiteral(pub.getStartPage());
+                Literal endPage = pub.getEndPage() == null ? f.createLiteral("") : f.createLiteral(pub.getEndPage());
+                Literal pubMed = pub.getPubmedId() == null ? f.createLiteral("") : f.createLiteral(pub.getPubmedId());
+                Literal doi = pub.getDoiId() == null ? f.createLiteral("") : f.createLiteral(pub.getDoiId());
+                
+                if (title != null) statements.add(f.createStatement(publication, hasTitle, title, graphIRI));
+                if (authors != null) statements.add(f.createStatement(publication, hasAuthor, authors, graphIRI));
+                if (number != null) statements.add(f.createStatement(publication, hasNumber, number, graphIRI));
+                if (volume != null) statements.add(f.createStatement(publication, hasVolume, volume, graphIRI));
+                if (journal != null) statements.add(f.createStatement(publication, hasJournal, journal, graphIRI));
+                if (startPage != null) statements.add(f.createStatement(publication, hasStartPage, startPage, graphIRI));
+                if (endPage != null) statements.add(f.createStatement(publication, hasEndPage, endPage, graphIRI));
+                if (year != null) statements.add(f.createStatement(publication, hasYear, year, graphIRI));
+                if (pubMed != null) statements.add(f.createStatement(publication, hasPubMed, pubMed, graphIRI));
+                if (doi != null) statements.add(f.createStatement(publication, hasDOI, doi, graphIRI));
+                
+                statements.add(f.createStatement(glycan, hasPub, publication, graphIRI));
+                sparqlDAO.addStatements(statements, graphIRI);
+            }
+        }
+	}
 
     @Override
     public Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException {
@@ -794,6 +858,21 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasMethod = f.createIRI(hasMethodPredicate);
 		IRI hasType = f.createIRI(hasTypePredicate);
 		
+		IRI hasUrl = f.createIRI(hasURLPredicate);
+        IRI hasPub = f.createIRI(hasPublication);
+        
+        IRI hasTitle = f.createIRI(hasTitlePredicate);
+        IRI hasAuthor = f.createIRI(hasAuthorPredicate);
+        IRI hasYear = f.createIRI(hasYearPredicate);
+        IRI hasVolume = f.createIRI(hasVolumePredicate);
+        IRI hasJournal = f.createIRI(hasJournalPredicate);
+        IRI hasNumber = f.createIRI(hasNumberPredicate);
+        IRI hasStartPage = f.createIRI(hasStartPagePredicate);
+        IRI hasEndPage = f.createIRI(hasEndPagePredicate);
+        IRI hasDOI = f.createIRI(hasDOIPredicate);
+        IRI hasPubMed = f.createIRI(hasPubMedPredicate);
+        IRI createdBy= f.createIRI(createdByPredicate);
+		
 		FeatureType featureType = getFeatureTypeForFeature (featureURI, graph);
 		Map<String, Range> rangeMap = new HashMap<String, Range>();
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(feature, null, null, graphIRI);
@@ -914,6 +993,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 					IRI ctx = f.createIRI(contextURI);
 	                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
 	                GlycanInFeature glycanFeature = new GlycanInFeature();
+	                glycanFeature.setUrls(new ArrayList<String>());
+	                glycanFeature.setPublications(new ArrayList<Publication>());
 	                while (statements2.hasNext()) {
 	                    Statement st2 = statements2.next();
 	                    if (st2.getPredicate().equals(hasMolecule)) {
@@ -989,6 +1070,74 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                 }
                             }
                             glycanFeature.setReducingEndConfiguration(config);
+	                    } else if (st2.getPredicate().equals(hasUrl)) {
+	                        Value val = st2.getObject();
+	                        if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                            glycanFeature.getUrls().add(val.stringValue());
+	                        }
+	                    } else if (st2.getPredicate().equals(hasPub)) {
+	                        Value pub = st2.getObject();
+	                        String pubURI = pub.stringValue();
+	                        IRI p = f.createIRI(pubURI);
+	                        Publication publication = new Publication();
+	                        publication.setUri(pubURI);
+	                        publication.setId(pubURI.substring(pubURI.lastIndexOf("/")+1));
+	                        glycanFeature.getPublications().add(publication);
+	                        RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(p, null, null, graphIRI);
+	                        while (statements3.hasNext()) {
+	                            Statement st3 = statements2.next();
+	                            if (st3.getPredicate().equals(hasTitle)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setTitle(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasAuthor)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setAuthors(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasYear)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setYear(Integer.parseInt(val.stringValue()));
+	                                }
+	                            } else if (st3.getPredicate().equals(hasDOI)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setDoiId(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasVolume)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setVolume(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasJournal)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setJournal(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasNumber)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setNumber(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasStartPage)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setStartPage(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasEndPage)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setEndPage(val.stringValue());
+	                                }
+	                            } else if (st3.getPredicate().equals(hasPubMed)) {
+	                                Value val = st3.getObject();
+	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+	                                    publication.setPubmedId(Integer.parseInt(val.stringValue()));
+	                                }
+	                            } 
+	                        }
 	                    }
 	                }
 				}
@@ -1223,6 +1372,74 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                         }
                                     }
                                     glycanFeature.setReducingEndConfiguration(config);
+                                } else if (st2.getPredicate().equals(hasUrl)) {
+                                    Value val = st2.getObject();
+                                    if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                        glycanFeature.getUrls().add(val.stringValue());
+                                    }
+                                } else if (st2.getPredicate().equals(hasPub)) {
+                                    Value pub = st2.getObject();
+                                    String pubURI = pub.stringValue();
+                                    IRI p = f.createIRI(pubURI);
+                                    Publication publication = new Publication();
+                                    publication.setUri(pubURI);
+                                    publication.setId(pubURI.substring(pubURI.lastIndexOf("/")+1));
+                                    glycanFeature.getPublications().add(publication);
+                                    RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(p, null, null, graphIRI);
+                                    while (statements3.hasNext()) {
+                                        Statement st3 = statements2.next();
+                                        if (st3.getPredicate().equals(hasTitle)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setTitle(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasAuthor)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setAuthors(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasYear)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setYear(Integer.parseInt(val.stringValue()));
+                                            }
+                                        } else if (st3.getPredicate().equals(hasDOI)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setDoiId(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasVolume)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setVolume(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasJournal)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setJournal(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasNumber)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setNumber(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasStartPage)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setStartPage(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasEndPage)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setEndPage(val.stringValue());
+                                            }
+                                        } else if (st3.getPredicate().equals(hasPubMed)) {
+                                            Value val = st3.getObject();
+                                            if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
+                                                publication.setPubmedId(Integer.parseInt(val.stringValue()));
+                                            }
+                                        } 
+                                    }
                                 }
                             }
                         }
