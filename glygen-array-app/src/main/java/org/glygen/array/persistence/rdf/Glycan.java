@@ -25,7 +25,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 		@Type(value = UnknownGlycan.class, name = "UNKNOWN"),
 		@Type(value = Glycan.class, name = "COMPOSITION_BASED"),
 		@Type(value = Glycan.class, name = "CLASSIFICATION_BASED"),
-		@Type(value = Glycan.class, name = "FRAGMENT_ONLY")
+		@Type(value = Glycan.class, name = "FRAGMENT_ONLY"),
+		@Type(value = OtherGlycan.class, name = "OTHER")
 	})
 public class Glycan implements ChangeTrackable{
 	String id;

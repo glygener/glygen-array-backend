@@ -73,6 +73,7 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.OtherGlycan;
 import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
@@ -521,7 +522,7 @@ public class GlygenArrayController {
             for (GlycoPeptide g: feature.getPeptides()) {
                 if (g.getUri() == null && g.getId() == null) {
                     try {
-                        g.setId(addFeature(g, p));
+                        g.setId(addGlycoPeptide(g, errorMessage, p));
                     } catch (Exception e) {
                         logger.debug("Ignoring error: " + e.getMessage());
                     }
@@ -557,7 +558,7 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     try {
-                        g.setId(addFeature(g, p));
+                        g.setId(addLinkedGlycan(g, errorMessage, p));
                     } catch (Exception e) {
                         logger.debug("Ignoring error: " + e.getMessage());
                     }
@@ -593,7 +594,7 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     try {
-                        g.setId(addFeature(g, p));
+                        g.setId(addLinkedGlycan(g, errorMessage, p));
                     } catch (Exception e) {
                         logger.debug("Ignoring error: " + e.getMessage());
                     }
@@ -629,7 +630,7 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     try {
-                        g.setId(addFeature(g, p));
+                        g.setId(addLinkedGlycan(g, errorMessage, p));
                     } catch (Exception e) {
                         logger.debug("Ignoring error: " + e.getMessage());
                     }
@@ -687,6 +688,27 @@ public class GlygenArrayController {
                     }
                 }
             } 
+        }
+        
+        if (feature.getLinker() != null) {
+            if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                feature.getLinker().setId(addLinker(feature.getLinker(), p));
+            } else {
+                // check to make sure it is an existing linker
+                String linkerId = feature.getLinker().getId();
+                if (linkerId == null) {
+                    // get it from uri
+                    linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                }
+                Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                if (existing == null) {
+                    errorMessage = new ErrorMessage();
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("linker", "NotValid"));
+                    throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+                }
+            }
         }
         
         String featureURI = featureRepository.addFeature(feature, user);
@@ -880,13 +902,86 @@ public class GlygenArrayController {
 			return addSequenceDefinedGlycan((SequenceDefinedGlycan)glycan, p, noGlytoucanRegistration);
 		case MASS_ONLY:
 			return addMassOnlyGlycan ((MassOnlyGlycan) glycan, p);
+		case OTHER:
+		    return addOtherGlycan ((OtherGlycan) glycan, p);
 		case UNKNOWN:
 		default:
 			return addGenericGlycan(glycan, p);
 		}
 	}
 	
-	@ApiOperation(value = "Register all glycans listed in a file")
+	private String addOtherGlycan(OtherGlycan glycan, Principal p) {
+	    if (glycan.getSequence() == null) {
+            ErrorMessage errorMessage = new ErrorMessage("sequence cannot be empty");
+            errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+        }
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (glycan.getName() != null) {
+                Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "name", glycan.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            if (glycan.getDescription() != null) {
+                Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "description", glycan.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+            if (glycan.getInternalId() != null && !glycan.getInternalId().isEmpty()) {
+                Set<ConstraintViolation<Glycan>> violations = validator.validateValue(Glycan.class, "internalId", glycan.getInternalId());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
+                }       
+            }
+            
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = null;
+        try {
+            user = userRepository.findByUsernameIgnoreCase(p.getName());
+            Glycan local = null;
+            // check if internalid and label are unique
+            if (glycan.getInternalId() != null && !glycan.getInternalId().trim().isEmpty()) {
+                local = glycanRepository.getGlycanByInternalId(glycan.getInternalId().trim(), user);
+                if (local != null) {
+                    glycan.setId(local.getId());
+                    String[] codes = {local.getId()};
+                    errorMessage.addError(new ObjectError("internalId", codes, null, "Duplicate"));
+                }
+            }
+            if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
+                local = glycanRepository.getGlycanByLabel(glycan.getName().trim(), user);
+                if (local != null) {
+                    glycan.setId(local.getId());
+                    String[] codes = {local.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
+                }
+            } 
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+        }
+                
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+                throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+        try {   
+            // no errors add the glycan
+            String glycanURI = glycanRepository.addGlycan(glycan, user);
+            return glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+        }
+    }
+
+    @ApiOperation(value = "Register all glycans listed in a file")
 	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, 
 			consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 

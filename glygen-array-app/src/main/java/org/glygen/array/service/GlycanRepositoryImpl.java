@@ -28,6 +28,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.OtherGlycan;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
@@ -100,12 +101,74 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				return addUnknownGlycan(g, user);	
 			case MASS_ONLY:
 				return addMassOnlyGlycan ((MassOnlyGlycan)g, user);
+			case OTHER:
+			    return addOtherGlycan ((OtherGlycan)g, user);
 			default:
 				throw new SparqlException (g.getType() + " type is not supported yet!");	
 		}
 	}
 	
-	private String addMassOnlyGlycan(MassOnlyGlycan g, UserEntity user) throws SparqlException, SQLException {
+	private String addOtherGlycan(OtherGlycan g, UserEntity user) throws SparqlException, SQLException {
+	    String graph = null;
+        if (g == null || g.getSequence() == null)
+            // cannot add 
+            throw new SparqlException ("Not enough information is provided to register a glycan");
+        
+        // check if there is already a private graph for user
+        graph = getGraphForUser(user);
+        
+        // check if there is a glycan with the same name
+        // if so, do not add
+        if (g.getName() != null && !g.getName().isEmpty()) { 
+            Glycan existing = getGlycanByLabel(g.getName(), user);
+            if (existing != null)
+                return existing.getUri();
+        }
+        
+        String glycanURI = addBasicInfoForGlycan(g, graph);
+	    
+	    ValueFactory f = sparqlDAO.getValueFactory();
+	    IRI glycan = f.createIRI(glycanURI);
+        IRI graphIRI = f.createIRI(graph);
+	    IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+        IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+        String seqURI = generateUniqueURI(uriPrefix + "Seq", graph);
+        IRI sequence = f.createIRI(seqURI);
+        IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+        IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+        IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+        IRI hasSmiles = f.createIRI(hasSmilesPredicate);
+        IRI hasMolFile = f.createIRI(hasMolfilePredicate);
+        
+        Literal inchiSequence = null;
+        if (g.getInChiSequence() != null)
+            inchiSequence = f.createLiteral(g.getInChiSequence());
+        Literal inchiKey = null;
+        if (g.getInChiKey() != null)
+            inchiKey = f.createLiteral(g.getInChiKey());
+        Literal molFile = null;
+        if (g.getMolFile() != null)
+            molFile = f.createLiteral(g.getMolFile());
+        Literal smiles = null;
+        if (g.getSmiles() != null) 
+            smiles = f.createLiteral(g.getSmiles());
+        Literal sequenceValue = g.getSequence() == null ? null : f.createLiteral(g.getSequence());
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, graphIRI));
+        statements.add(f.createStatement(glycan, hasSequence, sequence, graphIRI));
+        if (inchiSequence != null) statements.add(f.createStatement(glycan, hasInchiSequence, inchiSequence, graphIRI));
+        if (inchiKey != null) statements.add(f.createStatement(glycan, hasInchiKey, inchiKey, graphIRI));
+        if (molFile != null) statements.add(f.createStatement(glycan, hasMolFile, molFile, graphIRI));
+        if (smiles != null) statements.add(f.createStatement(glycan, hasSmiles, smiles, graphIRI));
+        statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, graphIRI));
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+        return glycanURI;
+       
+    }
+
+    private String addMassOnlyGlycan(MassOnlyGlycan g, UserEntity user) throws SparqlException, SQLException {
 		
 		String graph = null;
 		if (g == null || g.getMass() == null)
@@ -611,6 +674,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI createdBy= f.createIRI(ontPrefix + "created_by");
 		
+		IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+        IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+        IRI hasSmiles = f.createIRI(hasSmilesPredicate);
+        IRI hasMolFile = f.createIRI(hasMolfilePredicate);
+		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		
 		
@@ -630,6 +698,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			case FRAGMENT_ONLY:
 				glycanObject = new Glycan();
 				break;
+            case OTHER:
+                glycanObject = new OtherGlycan();
+                break;
+            default:
+                break;
 			}
 			glycanObject.setUri(glycanURI);
 			glycanObject.setId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
@@ -681,8 +754,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 					Statement st2 = statements2.next();
 					if (st2.getPredicate().equals(hasSequenceValue)) {
 						Value seqString = st2.getObject();
-						if (glycanObject instanceof SequenceDefinedGlycan)
+						if (glycanObject instanceof SequenceDefinedGlycan) {
 							((SequenceDefinedGlycan)glycanObject).setSequence(seqString.stringValue());
+						} else if (glycanObject instanceof OtherGlycan) {
+						    ((OtherGlycan)glycanObject).setSequence(seqString.stringValue());
+						}
 					} else if (st2.getPredicate().equals(hasSequenceFormat)) {
 						Value formatString = st2.getObject();
 						if (glycanObject instanceof SequenceDefinedGlycan)
@@ -722,7 +798,27 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			    	Date date = calendar.toGregorianCalendar().getTime();
 			    	glycanObject.setDateAddedToLibrary(date);
 			    }
-			}  else if (st.getPredicate().equals(hasPublicURI)) {
+			} else if (st.getPredicate().equals(hasInchiKey)) {
+                Value val = st.getObject();
+                if (glycanObject instanceof OtherGlycan) {
+                    ((OtherGlycan) glycanObject).setInChiKey(val.stringValue());
+                }
+            } else if (st.getPredicate().equals(hasInchiSequence)) {
+                Value val = st.getObject();
+                if (glycanObject instanceof OtherGlycan) {
+                    ((OtherGlycan) glycanObject).setInChiSequence(val.stringValue());
+                }
+            } else if (st.getPredicate().equals(hasSmiles)) {
+                Value val = st.getObject();
+                if (glycanObject instanceof OtherGlycan) {
+                    ((OtherGlycan) glycanObject).setSmiles(val.stringValue());
+                }
+            } else if (st.getPredicate().equals(hasMolFile)) {
+                Value val = st.getObject();
+                if (glycanObject instanceof OtherGlycan) {
+                    ((OtherGlycan) glycanObject).setMolFile(val.stringValue());
+                }
+            } else if (st.getPredicate().equals(hasPublicURI)) {
 				// need to retrieve additional information from DEFAULT graph
 				// that means the glycan is already make public
 				glycanObject.setIsPublic(true);  
@@ -746,7 +842,27 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 						} catch (NumberFormatException e) {
 							logger.warn ("Glycan mass is invalid", e);
 						}
-					} else if (stPublic.getPredicate().equals(hasSequence)) {
+					} else if (stPublic.getPredicate().equals(hasInchiKey)) {
+		                Value val = stPublic.getObject();
+		                if (glycanObject instanceof OtherGlycan) {
+		                    ((OtherGlycan) glycanObject).setInChiKey(val.stringValue());
+		                }
+		            } else if (stPublic.getPredicate().equals(hasInchiSequence)) {
+		                Value val = stPublic.getObject();
+		                if (glycanObject instanceof OtherGlycan) {
+		                    ((OtherGlycan) glycanObject).setInChiSequence(val.stringValue());
+		                }
+		            } else if (stPublic.getPredicate().equals(hasSmiles)) {
+		                Value val = stPublic.getObject();
+		                if (glycanObject instanceof OtherGlycan) {
+		                    ((OtherGlycan) glycanObject).setSmiles(val.stringValue());
+		                }
+		            } else if (stPublic.getPredicate().equals(hasMolFile)) {
+		                Value val = stPublic.getObject();
+		                if (glycanObject instanceof OtherGlycan) {
+		                    ((OtherGlycan) glycanObject).setMolFile(val.stringValue());
+		                }
+		            } else if (stPublic.getPredicate().equals(hasSequence)) {
 						Value sequence = stPublic.getObject();
 						String sequenceURI = sequence.stringValue();
 						IRI seq = f.createIRI(sequenceURI);
@@ -755,8 +871,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 							Statement st2 = statements2.next();
 							if (st2.getPredicate().equals(hasSequenceValue)) {
 								Value seqString = st2.getObject();
-								if (glycanObject instanceof SequenceDefinedGlycan)
+								if (glycanObject instanceof SequenceDefinedGlycan) {
 									((SequenceDefinedGlycan)glycanObject).setSequence(seqString.stringValue());
+								} else if (glycanObject instanceof OtherGlycan) {
+		                            ((OtherGlycan)glycanObject).setSequence(seqString.stringValue());
+		                        }
 							} else if (st2.getPredicate().equals(hasSequenceFormat)) {
 								Value formatString = st2.getObject();
 								if (glycanObject instanceof SequenceDefinedGlycan)
@@ -1036,6 +1155,41 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            hasMass = f.createIRI(ontPrefix + "has_mass");
 	            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
 	            break;
+	        case OTHER:
+	            // add sequence and chemical properties
+                seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
+                sequence = f.createIRI(seqURI);
+                sequenceValue = f.createLiteral(((OtherGlycan) glycan).getSequence());
+                hasSequence = f.createIRI(ontPrefix + "has_sequence");
+                hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
+                sequenceType = f.createIRI(ontPrefix + "Sequence");
+                
+                IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
+                IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
+                IRI hasSmiles = f.createIRI(hasSmilesPredicate);
+                IRI hasMolFile = f.createIRI(hasMolfilePredicate);
+                
+                Literal inchiSequence = null;
+                if (((OtherGlycan) glycan).getInChiSequence() != null)
+                    inchiSequence = f.createLiteral(((OtherGlycan) glycan).getInChiSequence());
+                Literal inchiKey = null;
+                if (((OtherGlycan) glycan).getInChiKey() != null)
+                    inchiKey = f.createLiteral(((OtherGlycan) glycan).getInChiKey());
+                Literal molFile = null;
+                if (((OtherGlycan) glycan).getMolFile() != null)
+                    molFile = f.createLiteral(((OtherGlycan) glycan).getMolFile());
+                Literal smiles = null;
+                if (((OtherGlycan) glycan).getSmiles() != null) 
+                    smiles = f.createLiteral(((OtherGlycan) glycan).getSmiles());
+                
+                statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
+                statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));
+                if (inchiSequence != null) statements.add(f.createStatement(publicGlycan, hasInchiSequence, inchiSequence, publicGraphIRI));
+                if (inchiKey != null) statements.add(f.createStatement(publicGlycan, hasInchiKey, inchiKey, publicGraphIRI));
+                if (molFile != null) statements.add(f.createStatement(publicGlycan, hasMolFile, molFile, publicGraphIRI));
+                if (smiles != null) statements.add(f.createStatement(publicGlycan, hasSmiles, smiles, publicGraphIRI));
+                statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, publicGraphIRI));
+                
 	        default:
 	            break;
 	        }
@@ -1105,7 +1259,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             glycan.setUri(uri);
             glycan.setId(uri.substring(uri.lastIndexOf("/")+1));
             glycan.setSequence(sequence);
-            glycan.setSequenceType(GlycanSequenceFormat.forValue(sequenceFormat));
+            if (sequenceFormat != null) glycan.setSequenceType(GlycanSequenceFormat.forValue(sequenceFormat));
             glycans.add(glycan);
         }
         

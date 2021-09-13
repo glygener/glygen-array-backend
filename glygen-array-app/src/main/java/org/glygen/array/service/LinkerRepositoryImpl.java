@@ -43,15 +43,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements LinkerRepository {
 	
 	public final static String hasPubChemIdProperty = "has_pubchem_compound_id";
-	public final static String hasInchiKeyProperty = "has_inChI_key";
 	
 	final static String hasSequencePredicate = ontPrefix + "has_sequence";
 	final static String hasPdbIdPredicate = ontPrefix + "has_pdbId";
 	final static String hasUniprotIdPredicate = ontPrefix + "has_uniProtId";
-	final static String hasInchiSequencePredicate = ontPrefix + "has_inChI_sequence";
-	final static String hasInchiKeyPredicate = ontPrefix + hasInchiKeyProperty;
 	final static String hasIupacNamePredicate = ontPrefix + "has_iupac_name";
-	final static String hasSmilesPredicate = ontPrefix + "has_smiles";
 	final static String hasMassPredicate = ontPrefix + "has_mass";
 	final static String hasImageUrlPredicate = ontPrefix + "has_image_url";
 	final static String hasPubChemIdPredicate = ontPrefix + hasPubChemIdProperty;

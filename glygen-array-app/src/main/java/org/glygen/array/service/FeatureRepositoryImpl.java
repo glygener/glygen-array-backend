@@ -122,15 +122,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
         Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId());
         
-		if (feature.getName() == null || feature.getName().trim().isEmpty()) {
-		    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
-		}
+		//if (feature.getName() == null || feature.getName().trim().isEmpty()) {
+		//    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
+		//}
 		
-		Literal label = f.createLiteral(feature.getName());
+		Literal label = feature.getName() == null ? null : f.createLiteral(feature.getName());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		
-		statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
+		if (label != null) statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
 		statements.add(f.createStatement(feat, RDF.TYPE, featureType, graphIRI));
 		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
@@ -609,7 +609,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             queryBuf.append ("WHERE {\n {\n");
             queryBuf.append (
                     " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                    " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n"); 
+                    " ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n" +
+                    " ?s rdfs:label ?name . \n"); 
             if (featureType != null) {
                 queryBuf.append("?s gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
             }
@@ -621,7 +622,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                  queryBuf.append ("UNION {" +
                     "?s gadr:has_public_uri ?public . \n" +
                     "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
-                    " ?public rdf:type  <http://purl.org/gadr/data#Feature>. \n"); 
+                    " ?public rdf:type  <http://purl.org/gadr/data#Feature>. \n" + 
+                    " ?public rdfs:label ?name . \n"); 
                  if (featureType != null) {
                      queryBuf.append("?public gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
                  }

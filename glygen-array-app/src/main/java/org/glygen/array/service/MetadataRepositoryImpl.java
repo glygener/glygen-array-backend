@@ -529,7 +529,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 ((Descriptor)descriptorObject).setUnit(val);
             } else if (st.getPredicate().equals(notRecorded)) {
                 String val = st.getObject().stringValue();
-                ((Descriptor)descriptorObject).setNotRecorded(Boolean.parseBoolean(val));
+                descriptorObject.setNotRecorded(Boolean.parseBoolean(val));
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 String descURI = st.getObject().stringValue();
                 Description d = getDescriptionFromURI(descURI, graph);

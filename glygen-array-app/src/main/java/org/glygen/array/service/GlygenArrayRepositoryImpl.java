@@ -89,6 +89,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     final static String hasDOIPredicate = ontPrefix + "has_doi";
     final static String hasPubMedPredicate = ontPrefix + "has_pubmed_id";
     
+    public final static String hasInchiKeyProperty = "has_inChI_key";
+    final static String hasInchiSequencePredicate = ontPrefix + "has_inChI_sequence";
+    final static String hasInchiKeyPredicate = ontPrefix + hasInchiKeyProperty;
+    final static String hasMolfilePredicate = ontPrefix + "has_molfile";
+    final static String hasSmilesPredicate = ontPrefix + "has_smiles";
+    
     
     public final static String sampleTypePredicate = ontPrefix + "sample";
    
