@@ -298,7 +298,7 @@ public class QueryHelper {
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
        queryBuf.append ( " ?s gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . ?ps rdfs:label ?l"
                + " FILTER (lcase(str(?l)) = \"\"\"" + printedSlideName.toLowerCase() + "\"\"\" "
-                       + "|| contains(?ps,\""+ printedSlideName + "\") ) \n"
+                       + "|| contains(str(?ps),\""+ printedSlideName + "\") ) \n"
                + "}\n");
        
        return sparqlDAO.query(queryBuf.toString());
