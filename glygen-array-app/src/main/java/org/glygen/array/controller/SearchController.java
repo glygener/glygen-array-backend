@@ -1011,6 +1011,12 @@ public class SearchController {
                     i++;
                     if (i <= offset) continue;
                     searchDatasets.add(dataset);
+                    // need to clear unused parts
+                    dataset.setImages(null);
+                    dataset.setRawDataList(null);
+                    dataset.setProcessedData(null);
+                    dataset.setSlides(null);
+                    
                     added ++;
                     
                     if (added >= limit) break;
