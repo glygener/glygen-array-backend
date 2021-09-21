@@ -718,6 +718,17 @@ public class SearchController {
                 i++;
             }
             
+            if ((searchInput.getDatasetName() == null || searchInput.getDatasetName().isEmpty()) 
+                    && ((searchInput.getPmid() == null || searchInput.getPmid().isEmpty()) 
+                            && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().isEmpty()))) {
+                // no restrictions, return all datasets
+                searchKey = "alldatasets";
+                List<String> matches = datasetRepository.getAllDatasets(null);
+                for (String m: matches) {
+                    finalMatches.add(m.substring(m.lastIndexOf("/")+1));
+                }
+            }
+            
             
             if (finalMatches.isEmpty()) {
                 // do not save the search results, return an error code
@@ -742,8 +753,8 @@ public class SearchController {
             } else {
                 return null;
             }
-        } catch (SparqlException e) {
-            throw new GlycanRepositoryException("Cannot retrieve glycans for search. Reason: " + e.getMessage());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve datasets for search. Reason: " + e.getMessage());
         } 
     }
     
@@ -882,6 +893,18 @@ public class SearchController {
                 i++;
             }
             
+            if ((searchInput.getUsername() == null || searchInput.getUsername().isEmpty()) 
+                    && (searchInput.getLastName() == null || searchInput.getLastName().isEmpty())
+                    && (searchInput.getGroupName() == null || searchInput.getGroupName().isEmpty())
+                    && (searchInput.getInstitution() == null || searchInput.getInstitution().isEmpty())) {
+                // no restrictions, return all datasets
+                searchKey = "alldatasets";
+                List<String> matches = datasetRepository.getAllDatasets(null);
+                for (String m: matches) {
+                    finalMatches.add(m.substring(m.lastIndexOf("/")+1));
+                }
+            }
+            
             
             if (finalMatches.isEmpty()) {
                 // do not save the search results, return an error code
@@ -907,7 +930,7 @@ public class SearchController {
                 return null;
             }
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve glycans for search. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve datasets for search. Reason: " + e.getMessage());
         } 
     }
     

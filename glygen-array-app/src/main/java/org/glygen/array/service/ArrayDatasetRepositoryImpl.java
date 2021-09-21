@@ -3536,4 +3536,21 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         return datasets;
     }
+
+    @Override
+    public List<String> getAllDatasets(UserEntity user) throws SparqlException, SQLException {
+        List<String> datasets = new ArrayList<String>();
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        List<SparqlEntity> results = retrieveByTypeAndUser(0, -1, null, 0, null, graph, datasetTypePredicate);
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("s");
+            datasets.add(uri);
+            
+        }
+        return datasets;
+    }
 }

@@ -48,7 +48,7 @@ public class SequenceUtils {
                     }
                 } catch (Exception pe) {
                     logger.error("GlycoCT parsing failed", pe);
-                    errorMessage.addError(new ObjectError("sequence", pe.getMessage()));
+                    errorMessage.addError(new ObjectError("sequence", "Failed to parse the sequence. " + pe.getMessage()));
                 }
             }
             break;
@@ -76,9 +76,9 @@ public class SequenceUtils {
             break;
         case GWS:
             org.eurocarbdb.application.glycanbuilder.Glycan glycanObject = 
-                    org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(sequence.trim());
+                org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence.trim());
             if (glycanObject != null) {
-                searchSequence = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+                searchSequence = glycanObject.toGlycoCTCondensed(); 
             }
             break;
         }
