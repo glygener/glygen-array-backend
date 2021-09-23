@@ -475,7 +475,7 @@ public class GlygenArrayRepositoryTest {
 		    ((LinkedGlycan) feature).addGlycan(featureGlycan);
 		}
 		feature.setLinker(linker1);
-		
+		feature.setName("testFeature");
 		String uri = featureRepository.addFeature(feature, user);
 		feature.setUri(uri);
 		return feature;
@@ -575,6 +575,7 @@ public class GlygenArrayRepositoryTest {
 			added.setName("test glycopeptide");
 			added.setPeptide(linker1);
 			LinkedGlycan lg = new LinkedGlycan();
+			lg.setName("testPeptideFeature");
 			GlycanInFeature featureGlycan = new GlycanInFeature();
 	        featureGlycan.setGlycan(g);
 			lg.addGlycan(featureGlycan);
@@ -627,6 +628,7 @@ public class GlygenArrayRepositoryTest {
 		List<Spot> spots = new ArrayList<Spot> ();
 		for (int i=0; i < blockLayout.getWidth(); i++) {
 			Feature feature = new LinkedGlycan();
+			feature.setName("feature-" + i);
 			if (i==0) {
 			    GlycanInFeature featureGlycan = new GlycanInFeature();
 	            featureGlycan.setGlycan(g1);

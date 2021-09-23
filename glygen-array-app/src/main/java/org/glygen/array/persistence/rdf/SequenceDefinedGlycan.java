@@ -9,6 +9,7 @@ public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	String sequence;
 	GlycanSequenceFormat sequenceType;
 	String glytoucanHash;
+	GlycanSubsumtionType subType = GlycanSubsumtionType.BASE;
 	
 	public SequenceDefinedGlycan() {
 		this.type = GlycanType.SEQUENCE_DEFINED;
@@ -77,5 +78,19 @@ public class SequenceDefinedGlycan extends MassOnlyGlycan {
 	
 	public void setGlytoucanHash(String glytoucanHash) {
         this.glytoucanHash = glytoucanHash;
+    }
+
+    /**
+     * @return the subType
+     */
+    public GlycanSubsumtionType getSubType() {
+        return subType;
+    }
+
+    /**
+     * @param subType the subType to set
+     */
+    public void setSubType(GlycanSubsumtionType subType) {
+        this.subType = subType;
     }
 }

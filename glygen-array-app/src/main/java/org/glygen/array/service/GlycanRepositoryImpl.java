@@ -26,6 +26,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.OtherGlycan;
@@ -254,6 +255,37 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return addBasicInfoForGlycan(g, graph);
 	}
 
+	@Override
+	public String addSequenceDefinedGlycan(SequenceDefinedGlycan g, SequenceDefinedGlycan baseGlycan, UserEntity user, boolean noGlytoucanRegistration) throws SparqlException, SQLException {
+	    String uri = addSequenceDefinedGlycan(g, user, noGlytoucanRegistration);
+	    
+	    // check if there is already a private graph for user
+        String graph = getGraphForUser(user);
+        
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+	    // create relationship to the baseGlycan
+	    if (baseGlycan != null) {
+	        IRI baseGlycanIRI = null;
+	        if (baseGlycan.getUri() != null) {
+	            baseGlycanIRI = f.createIRI(baseGlycan.getUri());
+	        } else if (baseGlycan.getId() != null) {
+	            baseGlycanIRI = f.createIRI(uriPrefix + baseGlycan.getId());
+	        }
+	        IRI isRelated = f.createIRI(ontPrefix + "is_related");
+	        IRI glycan = f.createIRI(uri);
+	        if (baseGlycanIRI != null) {
+	            List<Statement> statements = new ArrayList<Statement>();
+	            
+	            statements.add(f.createStatement(baseGlycanIRI, isRelated, glycan, graphIRI));
+	            sparqlDAO.addStatements(statements, graphIRI);
+	        }
+	        
+	    }
+	    
+	    return uri;
+	}
 	private String addSequenceDefinedGlycan(SequenceDefinedGlycan g, UserEntity user, boolean noGlytoucanRegistration) throws SparqlException, SQLException {
 		String graph = null;
 		if (g == null || g.getSequence() == null || g.getSequence().isEmpty())
@@ -290,8 +322,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         wurcs = g.getSequence();
                     }
                     if (wurcs != null) {
-    					glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
-    					logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
+                        // before registering, check if it exists in glytoucan
+                        glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+                        if (glyToucanId == null) { // register
+                            glyToucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+                            logger.info("Got glytoucan id after registering the glycan:" + glyToucanId);
+                        }
     					if (glyToucanId == null || glyToucanId.length() > 10) {
     					    // this is new registration, hash returned
     					    glyToucanHash = glyToucanId;
@@ -341,9 +377,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
 			IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
 			IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
+			IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
 			IRI graphIRI = f.createIRI(graph);
 			Literal mass = g.getMass() == null ? null : f.createLiteral(g.getMass());
 			IRI hasMass = f.createIRI(ontPrefix + "has_mass");
+			Literal subType = f.createLiteral(g.getSubType().name());
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			
@@ -354,6 +392,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			statements.add(f.createStatement(sequence, hasSequenceValue, sequenceValue, graphIRI));
 			statements.add(f.createStatement(sequence, hasSequenceFormat, format, graphIRI));
 			if (mass != null) statements.add(f.createStatement(glycan, hasMass, mass, graphIRI));
+			statements.add(f.createStatement(glycan, hasSubType, subType, graphIRI));
 			
 			sparqlDAO.addStatements(statements, graphIRI);
 		} else {
@@ -673,6 +712,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI createdBy= f.createIRI(ontPrefix + "created_by");
+		IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
 		
 		IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
         IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
@@ -721,7 +761,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				Value glytoucanId = st.getObject();
 				if (glycanObject instanceof SequenceDefinedGlycan)
 					((SequenceDefinedGlycan)glycanObject).setGlytoucanId(glytoucanId.stringValue()); 
-			} else if (st.getPredicate().equals(hasGlytoucanHash)) {
+			} else if (st.getPredicate().equals(hasSubType)) {
+                Value subType = st.getObject();
+                if (glycanObject instanceof SequenceDefinedGlycan) {
+                    try {
+                        ((SequenceDefinedGlycan)glycanObject).setSubType(GlycanSubsumtionType.valueOf(subType.stringValue())); 
+                    } catch (Exception e) {
+                        logger.warn("invalid subtype " + subType.stringValue(), e);
+                    }
+                }
+            } else if (st.getPredicate().equals(hasGlytoucanHash)) {
 			    // need to check if the accession number is available and update glycan
 			    Value glytoucanHash = st.getObject();
 			    if (glycanObject instanceof SequenceDefinedGlycan) {
@@ -1315,5 +1364,37 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         }
         
         return mass;
+    }
+
+    @Override
+    public Glycan retrieveOtherSubType(Glycan baseType, GlycanSubsumtionType subType, UserEntity user)
+            throws SparqlException, SQLException {
+        Glycan glycan = null;
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + "> \n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " <" + baseType.getUri() + "> gadr:is_related ?s . \n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        queryBuf.append ( " ?s gadr:has_subtype \""+  subType.name() + "\"^^xsd:string . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            String uri = results.get(0).getValue("s");
+            glycan = getGlycanFromURI(uri, user);
+        }
+        
+        return glycan;
+        
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 
@@ -81,4 +82,8 @@ public interface GlycanRepository {
     List<String> getAllGlycans (UserEntity user) throws SparqlException, SQLException;
     
     Double getMinMaxGlycanMass (UserEntity user, boolean min) throws SparqlException, SQLException;
+    String addSequenceDefinedGlycan(SequenceDefinedGlycan g, SequenceDefinedGlycan baseGlycan, UserEntity user,
+            boolean noGlytoucanRegistration) throws SparqlException, SQLException;
+    
+    Glycan retrieveOtherSubType (Glycan baseType, GlycanSubsumtionType subType, UserEntity user) throws SparqlException, SQLException;
 }

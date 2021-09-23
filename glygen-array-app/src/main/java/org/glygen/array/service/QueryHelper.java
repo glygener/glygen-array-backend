@@ -131,7 +131,11 @@ public class QueryHelper {
         queryBuf.append ("WHERE {\n {\n");
         queryBuf.append (
                 " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            queryBuf.append(" ?s gadr:has_subtype \"BASE\"^^xsd:string .  \n");
+        }
+        queryBuf.append(
                 " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
                         sortLine + searchPredicate + 
                 "}\n" );
@@ -140,6 +144,7 @@ public class QueryHelper {
                 "?s gadr:has_public_uri ?public . \n" +
                 "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
                 " ?public rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                " ?public gadr:has_subtype \"BASE\"^^xsd:string . \n" +
                     publicSortLine + publicSearchPredicate + 
                 "}}\n"); 
          }

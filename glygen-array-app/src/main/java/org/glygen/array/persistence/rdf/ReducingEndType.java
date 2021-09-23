@@ -1,7 +1,7 @@
 package org.glygen.array.persistence.rdf;
 
 public enum ReducingEndType {
-    OPEMSRING,
+    OPENSRING,
     ALPHA,
     BETA,
     UNKNOWN,

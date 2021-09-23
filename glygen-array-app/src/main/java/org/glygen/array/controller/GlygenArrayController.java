@@ -35,10 +35,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
+import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.analytical.mass.GlycoVisitorMass;
+import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -47,6 +50,8 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
+import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.glygen.array.config.SesameTransactionConfig;
@@ -64,6 +69,7 @@ import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.GlycoLipid;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
@@ -93,6 +99,7 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.GalFileImportResult;
+import org.glygen.array.util.GlycanBaseTypeUtil;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.ParserConfiguration;
 import org.glygen.array.util.SequenceUtils;
@@ -669,7 +676,7 @@ public class GlygenArrayController {
                     try {
                         g.setId(addGlycan(g, p, true));
                     } catch (Exception e) {
-                        logger.debug("Ignoring error: " + e.getMessage());
+                        throw e;
                     }
                 } else {
                     // check to make sure it is an existing glycan
@@ -685,6 +692,45 @@ public class GlygenArrayController {
                         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                         errorMessage.addError(new ObjectError("glycan", "NotValid"));
                         throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                    }
+                }
+                
+                if (g instanceof SequenceDefinedGlycan) {
+                    // based on the reducing end configuration 
+                    if (gf.getReducingEndConfiguration() != null) {
+                        switch (gf.getReducingEndConfiguration().getType()) {
+                        case ALPHA:
+                            // get alpha version of the glycan
+                            Glycan alpha = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.ALPHA, user);
+                            if (alpha != null)
+                                gf.setGlycan(alpha);
+                            break;
+                        case BETA:
+                            // get beta version of the glycan
+                            Glycan beta = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.BETA, user);
+                            if (beta != null)
+                                gf.setGlycan(beta);
+                            break;
+                        case OPENSRING:
+                            // get alditol version of the glycan
+                            Glycan open = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.ALDITOL, user);
+                            if (open != null)
+                                gf.setGlycan(open);
+                            break;
+                        case EQUILIBRIUM:
+                        case UNKNOWN:
+                        default:
+                            if (((SequenceDefinedGlycan) g).getSubType() != GlycanSubsumtionType.BASE) {
+                                // error
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("glycan", "NotBaseType"));
+                                throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                            }
+                            break;
+                            
+                        }
                     }
                 }
             } 
@@ -1800,15 +1846,37 @@ public class GlygenArrayController {
     }
 
     private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, Principal p, Boolean noGlytoucanRegistration) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        Boolean checkGlytoucan = false;
 		if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
-			ErrorMessage errorMessage = new ErrorMessage("Sequence cannot be empty");
-			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
-			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		    // accept if there is glytoucanId
+		    if (glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
+		        String sequence = getSequenceFromGlytoucan(glycan.getGlytoucanId());
+		        if (sequence == null) {
+		            errorMessage = new ErrorMessage("GlytoucanId is not valid");
+	                errorMessage.addError(new ObjectError("glytoucanId", "NotValid"));
+	                throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		        } else {
+		            glycan.setSequence(sequence);
+		        }
+		    } else {
+    			errorMessage = new ErrorMessage("Sequence cannot be empty");
+    			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+    			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+		    }
+		} else {
+		    // check if both sequence and glytoucanId is provided
+		    // in such a case, we need to confirm they match
+		    if (glycan.getSequence() != null && !glycan.getSequence().isEmpty() 
+		            && glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
+		        checkGlytoucan = true;
+		    }
 		}
 		
-		ErrorMessage errorMessage = new ErrorMessage();
-		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
 		// validate first
 		if (validator != null) {
 			if  (glycan.getName() != null) {
@@ -1850,6 +1918,7 @@ public class GlygenArrayController {
 		String glycoCT = glycan.getSequence().trim();
 		UserEntity user;
 		boolean gwbError = false;
+		Sugar sugar = null;
 		try {
 			user = userRepository.findByUsernameIgnoreCase(p.getName());
 			
@@ -1876,7 +1945,7 @@ public class GlygenArrayController {
 					        // check to make sure GlycoCT valid without using GWB
                             SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
                             try {
-                                Sugar sugar = importer.parse(glycan.getSequence().trim());
+                                sugar = importer.parse(glycan.getSequence().trim());
                                 if (sugar == null) {
                                     logger.error("Cannot get Sugar object for sequence:" + glycan.getSequence().trim());
                                     parseError = true;
@@ -1997,48 +2066,172 @@ public class GlygenArrayController {
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
 		}
-				
-		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-			throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
 		
 		try {	
 			// no errors add the glycan
 			if (glycanObject != null || gwbError) {
-				//if (!gwbError) g.setMass(computeMass(glycanObject));
-				//g.setSequence(glycoCT);
-				//g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-				
-				String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
-				String id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
-				Glycan added = glycanRepository.getGlycanById(id, user);
-				if (added != null) {
-				    BufferedImage t_image = createImageForGlycan(g);
-	                if (t_image != null) {
-						String filename = id + ".png";
-						//save the image into a file
-						logger.debug("Adding image to " + imageLocation);
-						File imageFile = new File(imageLocation + File.separator + filename);
-						ImageIO.write(t_image, "png", imageFile);
-	                } else {
-	                    logger.warn ("Glycan image cannot be generated for glycan " + g.getName());
-	                }
-				} else {
-					logger.error("Added glycan cannot be retrieved back");
-					throw new GlycanRepositoryException("Glycan could not be added");
-				}
-				return id;
+			    boolean correctBase = false;
+			    if (gwbError) {
+			        if (sugar != null) {
+			            correctBase = GlycanBaseTypeUtil.isMakeBaseTypePossible(sugar);
+			        }
+			    } else {
+			        SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+			        if (g.getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
+			            sugar = importer.parse(g.getSequence());
+			            if (sugar != null) {
+	                        correctBase = GlycanBaseTypeUtil.isMakeBaseTypePossible(sugar);
+	                    }
+			        } 
+			    }
+			    
+			    if (g.getSequenceType() == GlycanSequenceFormat.GLYCOCT && !correctBase) {
+			        // error
+			        errorMessage.addError(new ObjectError("sequence", null, null, "NotBaseType"));
+			    }
+			    
+			    if (g.getSequenceType() == GlycanSequenceFormat.WURCS) {
+			        // cannot get the Sugar object since it cannot be converted to GlycoCT
+			        // for now, only add the base version
+			        // TODO figure out how to calculate the other versions
+			        if (checkGlytoucan) {
+			            // need to check if the sequence and the given glytoucan match
+			            String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(glycan.getSequence());
+			            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId())) {
+			                // error
+			                errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+			            }
+			        }
+			        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+			            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+			        return addGlycan(g, null, user, noGlytoucanRegistration);        
+			    } else {
+			        if (checkGlytoucan) {
+			            try {
+                            // need to check if the sequence and the given glytoucan match
+    			            WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
+                            exporter.start(glycan.getSequence());
+                            String wurcs = exporter.getWURCS();
+                            String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+                            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId())) {
+                                // error
+                                errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+                            }
+			            } catch (WURCSException | SugarImporterException | GlycoVisitorException e) {
+			                logger.warn ("cannot convert sequence into Wurcs to check glytoucan", e);
+			            }
+                    }
+			        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+			            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+			        return addAllConfigurations (g, sugar, noGlytoucanRegistration, user);
+			    }
 			}
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
 		} catch (IOException e) {
 			logger.error("Glycan image cannot be generated", e);
 			throw new GlycanRepositoryException("Glycan image cannot be generated", e);
-		} catch (Exception e) {
-			throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
-		}
+		} catch (GlycoconjugateException | GlycoVisitorException e) {
+		    // should not happen
+		    throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+		} catch (SugarImporterException e) {
+		    // should not happen
+		    throw new GlycanRepositoryException("Glycan cannot be added for user " + p.getName(), e);
+        }
 		return null;
 	}
     
+    private String addAllConfigurations(SequenceDefinedGlycan baseGlycan, 
+            Sugar sugar, Boolean noGlytoucanRegistration, UserEntity user) 
+                    throws GlycoVisitorException, GlycoconjugateException, SparqlException, SQLException, IOException {
+        SugarExporterGlycoCTCondensed t_exporter = new SugarExporterGlycoCTCondensed();
+        
+        // make basetype (unknown anomer)
+        GlycanBaseTypeUtil.makeBaseType(sugar);
+        t_exporter.start(sugar);
+        SequenceDefinedGlycan glycan1 = new SequenceDefinedGlycan();
+        glycan1.setName(baseGlycan.getName());
+        glycan1.setDescription(baseGlycan.getDescription());
+        glycan1.setInternalId(baseGlycan.getInternalId());
+        glycan1.setSequence(t_exporter.getHashCode());
+        glycan1.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+        glycan1.setSubType(GlycanSubsumtionType.BASE);
+        // calculate mass
+        GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+        massVisitor.start(sugar);
+        glycan1.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        String baseId = addGlycan(glycan1, null, user, noGlytoucanRegistration);
+        
+        // make alpha version
+        GlycanBaseTypeUtil.makeAlpha(sugar);
+        t_exporter.start(sugar);
+        SequenceDefinedGlycan glycan2 = new SequenceDefinedGlycan();
+        glycan2.setSequence(t_exporter.getHashCode());
+        glycan2.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+        glycan2.setSubType(GlycanSubsumtionType.ALPHA);
+        // calculate mass
+        massVisitor.start(sugar);
+        glycan2.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        addGlycan(glycan2, glycan1, user, noGlytoucanRegistration);
+     
+        // make beta version
+        GlycanBaseTypeUtil.makeBeta(sugar);
+        t_exporter.start(sugar);
+        SequenceDefinedGlycan glycan3 = new SequenceDefinedGlycan();
+        glycan3.setSequence(t_exporter.getHashCode());
+        glycan3.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+        glycan3.setSubType(GlycanSubsumtionType.BETA);
+        // calculate mass
+        massVisitor.start(sugar);
+        glycan3.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        addGlycan(glycan3, glycan1, user, noGlytoucanRegistration);
+      
+        // make alditol version
+        GlycanBaseTypeUtil.makeAlditol(sugar);
+        t_exporter.start(sugar);
+        SequenceDefinedGlycan glycan4 = new SequenceDefinedGlycan();
+        glycan4.setSequence(t_exporter.getHashCode());
+        glycan4.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+        glycan4.setSubType(GlycanSubsumtionType.ALDITOL);
+        // calculate mass
+        massVisitor.start(sugar);
+        glycan4.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        addGlycan(glycan4, glycan1, user, noGlytoucanRegistration);
+        
+        return baseId;
+    }
+        
+    private String addGlycan (SequenceDefinedGlycan g, SequenceDefinedGlycan baseGlycan, UserEntity user, Boolean noGlytoucanRegistration) throws SparqlException, SQLException, IOException {
+        String id = null;
+        if (baseGlycan == null) {
+            String glycanURI = glycanRepository.addGlycan(g, user, noGlytoucanRegistration);
+            id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+            g.setId(id);
+        } else {
+            String glycanURI = glycanRepository.addSequenceDefinedGlycan(g, baseGlycan, user, noGlytoucanRegistration);
+            id = glycanURI.substring(glycanURI.lastIndexOf("/")+1);
+            g.setId(id);
+        }
+        
+        Glycan added = glycanRepository.getGlycanById(id, user);
+        if (added != null) {
+            BufferedImage t_image = createImageForGlycan(g);
+            if (t_image != null) {
+                String filename = id + ".png";
+                //save the image into a file
+                logger.debug("Adding image to " + imageLocation);
+                File imageFile = new File(imageLocation + File.separator + filename);
+                ImageIO.write(t_image, "png", imageFile);
+            } else {
+                logger.warn ("Glycan image cannot be generated for glycan " + g.getName());
+            }
+        } else {
+            logger.error("Added glycan cannot be retrieved back");
+            throw new GlycanRepositoryException("Glycan could not be added");
+        }
+        return id;
+    }
+
     Double computeMass (org.eurocarbdb.application.glycanbuilder.Glycan glycanObject) {
         if (glycanObject != null) {
             MassOptions massOptions = new MassOptions();
@@ -3419,6 +3612,7 @@ public class GlygenArrayController {
 		        			    // should have been there
                                 errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
                             }
+		        			myFeature.setName (feature.getName());
 		        			ratioMap.put(myFeature, r1.getItemRatio());
 		        			features.add(myFeature);
         				}
