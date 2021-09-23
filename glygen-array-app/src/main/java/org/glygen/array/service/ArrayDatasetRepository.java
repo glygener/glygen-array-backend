@@ -107,4 +107,7 @@ public interface ArrayDatasetRepository {
     
     
     List<String> getAllDatasets (UserEntity user) throws SparqlException, SQLException;
+    List<String> getAllPublicDatasetsNames() throws SparqlException;
+    List<String> getAllPublicPrintedSlideNames() throws SparqlException;
+    List<String> getAllPublicPmids() throws SparqlException;;
 }

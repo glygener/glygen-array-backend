@@ -556,9 +556,60 @@ public class UtilityController {
             @ApiParam(required=false, value="limit of number of matches") 
             @RequestParam(name="limit", required=false)
             Integer limit) {
-        // find the exact match if exists and put it as the first proposal
-        PatriciaTrie<String> trie = NamespaceHandler.getTrieForNamespace(namespace);
-        return UtilityController.getSuggestions(trie, key, limit);
+        
+        try {
+            PatriciaTrie<String> trie = null;
+            if (namespace.equalsIgnoreCase("dataset")) {
+                List<String> datasetNames = datasetRepository.getAllPublicDatasetsNames();
+                trie = NamespaceHandler.createNamespaceFromList(datasetNames);
+                
+            } else if (namespace.equalsIgnoreCase("printedslide")) {
+                List<String> printedSlideNames = datasetRepository.getAllPublicPrintedSlideNames();
+                trie = NamespaceHandler.createNamespaceFromList(printedSlideNames);
+                
+            } else if (namespace.equalsIgnoreCase("pmid")) {
+                List<String> pmids = datasetRepository.getAllPublicPmids();
+                trie = NamespaceHandler.createNamespaceFromList(pmids);
+                
+            } else if (namespace.equalsIgnoreCase("username")) {
+                List<UserEntity> userList = userRepository.findAll();
+                List<String> userNames = new ArrayList<String>();
+                for (UserEntity user: userList) {
+                    userNames.add(user.getUsername());
+                }
+                trie = NamespaceHandler.createNamespaceFromList(userNames);
+            } else if (namespace.equalsIgnoreCase("organization")) {
+                List<UserEntity> userList = userRepository.findAll();
+                List<String> organizationNames = new ArrayList<String>();
+                for (UserEntity user: userList) {
+                    if (user.getAffiliation() != null && !user.getAffiliation().isEmpty())
+                        organizationNames.add(user.getAffiliation());
+                }
+                trie = NamespaceHandler.createNamespaceFromList(organizationNames);
+            } else if (namespace.equalsIgnoreCase("group")) {
+                List<UserEntity> userList = userRepository.findAll();
+                List<String> groupNames = new ArrayList<String>();
+                for (UserEntity user: userList) {
+                    if (user.getGroupName() != null && !user.getGroupName().isEmpty())
+                        groupNames.add(user.getAffiliation());
+                }
+                trie = NamespaceHandler.createNamespaceFromList(groupNames);
+            } else if (namespace.equalsIgnoreCase("lastname")) {
+                List<UserEntity> userList = userRepository.findAll();
+                List<String> lastNames = new ArrayList<String>();
+                for (UserEntity user: userList) {
+                    if (user.getLastName() != null && !user.getLastName().isEmpty())
+                        lastNames.add(user.getAffiliation());
+                }
+                trie = NamespaceHandler.createNamespaceFromList(lastNames);
+            } else {
+                // find the exact match if exists and put it as the first proposal
+                trie = NamespaceHandler.getTrieForNamespace(namespace);
+            }
+            return UtilityController.getSuggestions(trie, key, limit);
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Type ahead failed", e);
+        }
     }
     
     public static List<String> getSuggestions (PatriciaTrie<String> trie, String key, Integer limit) {

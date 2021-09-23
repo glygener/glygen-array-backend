@@ -3553,4 +3553,65 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         return datasets;
     }
+
+    @Override
+    public List<String> getAllPublicDatasetsNames() throws SparqlException {
+        List<String> names = new ArrayList<>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT distinct ?label \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH  + ">\n");
+        queryBuf.append ("WHERE {\n ");
+        queryBuf.append (
+                "?s rdf:type <http://purl.org/gadr/data#array_dataset> . \n" +
+                "?s rdfs:label ?label . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("label");
+            names.add(uri);
+            
+        }
+        return names;
+    }
+
+    @Override
+    public List<String> getAllPublicPrintedSlideNames() throws SparqlException {     
+        List<String> names = new ArrayList<>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT distinct ?label \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (
+                "?ps rdf:type <http://purl.org/gadr/data#printed_slide> . \n" +
+                "?ps rdfs:label ?label }"); 
+               
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("label");
+            names.add(uri);
+            
+        }
+        return names;
+    }
+
+    @Override
+    public List<String> getAllPublicPmids() throws SparqlException {
+        List<String> names = new ArrayList<>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT distinct ?pmid \n");
+        queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?s gadr:has_pubmed_id ?pmid . }"); 
+               
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("pmid");
+            names.add(uri);
+            
+        }
+        return names;
+    }
 }
