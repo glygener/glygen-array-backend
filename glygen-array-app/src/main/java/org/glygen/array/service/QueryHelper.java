@@ -145,7 +145,8 @@ public class QueryHelper {
                 "?s gadr:has_public_uri ?public . \n" +
                 "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
                 " ?public rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
-                " ?public gadr:has_subtype \"BASE\"^^xsd:string . \n" +
+                "OPTIONAL {?s gadr:has_subtype ?subtype } .  \n" +
+                "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\")" +
                     publicSortLine + publicSearchPredicate + 
                 "}}\n"); 
          }
