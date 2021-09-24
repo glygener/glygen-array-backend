@@ -589,7 +589,7 @@ public class SearchController {
                         glycan.setCartoon(image);
                     }
                     
-                    if (added >= limit) break;
+                    if (limit != -1 && added >= limit) break;
                     
                 }
             }
@@ -1042,7 +1042,7 @@ public class SearchController {
                     
                     added ++;
                     
-                    if (added >= limit) break;
+                    if (limit != -1 && added >= limit) break;
                     
                 }
             }
