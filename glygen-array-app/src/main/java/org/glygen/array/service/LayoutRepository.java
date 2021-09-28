@@ -31,7 +31,7 @@ public interface LayoutRepository {
 	
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user, int offset, int limit, String field, int order)
 			throws SparqlException, SQLException;
-	int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException;
+	int getBlockLayoutCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
 
 	List<SlideLayout> getSlideLayoutByUser(UserEntity user) throws SparqlException, SQLException;
 
@@ -43,7 +43,7 @@ public interface LayoutRepository {
 			throws SparqlException, SQLException;
 	
 	
-	int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException;
+	int getSlideLayoutCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
 
 	List<BlockLayout> getBlockLayoutByUser(UserEntity user, Integer offset, Integer limit, String field,
 			Boolean loadAll, Integer order) throws SparqlException, SQLException;

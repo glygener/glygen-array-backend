@@ -700,15 +700,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	@Override
-	public int getBlockLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
+	public int getBlockLayoutCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
 	    String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
+        
+        return getCountByUserByType(graph, "http://purl.org/gadr/template#block_layout", searchValue);
 		
-		int total = 0;
+	/*	int total = 0;
 		if (graph != null) {
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
@@ -728,7 +730,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				
 			}
 		}
-		return total;
+		return total;*/
 	}
 	
 	@Override
@@ -993,15 +995,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 
 	@Override
-	public int getSlideLayoutCountByUser(UserEntity user) throws SQLException, SparqlException {
+	public int getSlideLayoutCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
 	    String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
+        
+        return getCountByUserByType(graph, "http://purl.org/gadr/template#slide_layout", searchValue);
 		
-		int total = 0;
+		/*int total = 0;
 		if (graph != null) {
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
@@ -1021,7 +1025,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				
 			}
 		}
-		return total;
+		return total;*/
 	}
 
 	@Override
@@ -1249,6 +1253,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return null;
 	}
 	
+	@Override
     public String getSearchPredicate (String searchValue, String queryLabel) {
         String predicates = "";
         

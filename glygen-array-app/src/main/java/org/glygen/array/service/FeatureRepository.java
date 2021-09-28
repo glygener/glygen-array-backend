@@ -15,8 +15,7 @@ public interface FeatureRepository {
 	List<Feature> getFeatureByUser (UserEntity user) throws SparqlException, SQLException;
 	List<Feature> getFeatureByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
 	
-	int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException;
-	int getFeatureCountByUser(UserEntity user, FeatureType featureType) throws SQLException, SparqlException;
+	int getFeatureCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
 	void deleteFeature (String featureId, UserEntity user) throws SparqlException, SQLException;
 	Feature getFeatureFromURI(String featureURI, UserEntity user) throws SparqlException, SQLException;
 	Feature getFeatureByLabel(String label, UserEntity user) throws SparqlException, SQLException;
@@ -30,4 +29,7 @@ public interface FeatureRepository {
     Feature getFeatureByGlycanLinker(Glycan glycan, Linker linker, String slideLayoutURI, String blockLayoutURI,
             UserEntity user) throws SparqlException, SQLException;
     Feature getFeatureByLabel(String label, String predicate, UserEntity user) throws SparqlException, SQLException;
+    int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue)
+            throws SQLException, SparqlException;
+    
 }

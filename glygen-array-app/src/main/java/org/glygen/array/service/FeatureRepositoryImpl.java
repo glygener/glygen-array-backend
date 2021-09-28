@@ -690,38 +690,75 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     }
 
     @Override
-	public int getFeatureCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getFeatureCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-		return getCountByUserByType(graph, featureTypePredicate);
+		return getCountByUserByType(graph, featureTypePredicate, searchValue);
 	}
     
     @Override
-    public int getFeatureCountByUser(UserEntity user, FeatureType featureType) throws SQLException, SparqlException {
+    public int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
+        
         int total = 0;
         if (graph != null) {
+            String sortPredicate = getSortPredicate (null);
+            
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public) ) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
             queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
             //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
             queryBuf.append ("FROM <" + graph + ">\n");
-            queryBuf.append ("WHERE {\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
-            queryBuf.append (" ?s rdf:type  <" + featureTypePredicate + ">. ");
+            queryBuf.append (" ?s rdf:type  <" + featureTypePredicate +">. ");
             if (featureType != null) {
                 queryBuf.append(" ?s gadr:has_type \"" + featureType.toString() + "\"^^xsd:string . \n");
             }
-            queryBuf.append ("}");
+            queryBuf.append(
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n");
+            queryBuf.append (sortLine + searchPredicate + "} ");
+            
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                 queryBuf.append (" ?public rdf:type  <" + featureTypePredicate +">. ");
+                 if (featureType != null) {
+                     queryBuf.append(" ?public gadr:has_type \"" + featureType.toString() + "\"^^xsd:string . \n");
+                 }
+                 queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
+            }
+            queryBuf.append("}");
+                    
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
             
             for (SparqlEntity sparqlEntity : results) {

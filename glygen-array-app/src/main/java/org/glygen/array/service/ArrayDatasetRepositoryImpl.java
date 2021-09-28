@@ -1151,19 +1151,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     @Override
-    public int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getArrayDatasetCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, datasetTypePredicate);
+        return getCountByUserByType(graph, datasetTypePredicate, searchValue);
     }
-
-    
-
-    
     
     /**
      * raw data must have been added already 
@@ -2114,16 +2110,20 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return slideObject;
     }
 
+    //@Override
+    //public int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException {
+    //    return getPrintedSlideCountByUser(user, null);
+    //}
 
     @Override
-    public int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getPrintedSlideCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, printedSlideTypePredicate);
+        return getCountByUserByType(graph, printedSlideTypePredicate, searchValue);
     }
     
     @Override

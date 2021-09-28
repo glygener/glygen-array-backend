@@ -134,7 +134,7 @@ public class QueryHelper {
                 " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
             queryBuf.append("OPTIONAL {?s gadr:has_subtype ?subtype } .  \n");
-            queryBuf.append("FILTER (!bound(?subtype) || str(?subtype) = \"BASE\")");
+            queryBuf.append("FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
         }
         queryBuf.append(
                 " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
@@ -145,8 +145,8 @@ public class QueryHelper {
                 "?s gadr:has_public_uri ?public . \n" +
                 "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
                 " ?public rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
-                "OPTIONAL {?s gadr:has_subtype ?subtype } .  \n" +
-                "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\")" +
+                "OPTIONAL {?public gadr:has_subtype ?subtype } .  \n" +
+                "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") " +
                     publicSortLine + publicSearchPredicate + 
                 "}}\n"); 
          }

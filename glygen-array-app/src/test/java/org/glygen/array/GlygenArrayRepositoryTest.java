@@ -107,7 +107,7 @@ public class GlygenArrayRepositoryTest {
 		try {
 			//add a test glycan first
 			Glycan g = addTestGlycan(user);
-			int total = glycanRepository.getGlycanCountByUser(user);
+			int total = glycanRepository.getGlycanCountByUser(user, null);
 			assertTrue ("total > 0", total > 0);
 			
 			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
@@ -123,7 +123,7 @@ public class GlygenArrayRepositoryTest {
 		try {
 			//add a test linker first
 			Linker g = addTestLinker(user);
-			int total = linkerRepository.getLinkerCountByUser(user);
+			int total = linkerRepository.getLinkerCountByUser(user, null);
 			assertTrue ("total > 0", total > 0);
 			
 			linkerRepository.deleteLinker(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
@@ -410,7 +410,7 @@ public class GlygenArrayRepositoryTest {
 			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user);
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
 			
-			int count = layoutRepository.getSlideLayoutCountByUser(user);
+			int count = layoutRepository.getSlideLayoutCountByUser(user, null);
 			assertTrue(count >= 1);
 			
 			// delete the glycans and linker and the block layout and slide layout

@@ -33,7 +33,8 @@ public interface ArrayDatasetRepository {
             String searchValue, boolean loadAll) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByCoOwner(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, boolean loadAll) throws SparqlException, SQLException;
-    int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException;
+    //int getArrayDatasetCountByUser(UserEntity user) throws SQLException, SparqlException;
+    int getArrayDatasetCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     int getArrayDatasetCountByCoOwner(UserEntity user) throws SQLException, SparqlException;
     
     void deleteArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
@@ -55,7 +56,7 @@ public interface ArrayDatasetRepository {
     List<PrintedSlide> getPrintedSlideByUser (UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI (String uri, UserEntity user) throws SparqlException, SQLException;
-    int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException;
+    //int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException;
     void deletePrintedSlide(String slideId, UserEntity user) throws SparqlException, SQLException;
     void updatePrintedSlide (PrintedSlide slide, UserEntity user) throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideByLabel (String label, UserEntity user) throws SparqlException, SQLException;
@@ -109,5 +110,7 @@ public interface ArrayDatasetRepository {
     List<String> getAllDatasets (UserEntity user) throws SparqlException, SQLException;
     List<String> getAllPublicDatasetsNames() throws SparqlException;
     List<String> getAllPublicPrintedSlideNames() throws SparqlException;
-    List<String> getAllPublicPmids() throws SparqlException;;
+    List<String> getAllPublicPmids() throws SparqlException;
+    int getPrintedSlideCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
+    
 }

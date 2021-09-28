@@ -3675,7 +3675,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = layoutRepository.getBlockLayoutCountByUser (user);
+			int total = layoutRepository.getBlockLayoutCountByUser (user, searchValue);
 			List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(user, offset, limit, field, loadAll, order, searchValue);
 			result.setRows(layouts);
 			result.setTotal(total);
@@ -3743,7 +3743,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = featureRepository.getFeatureCountByUser (user);
+			int total = featureRepository.getFeatureCountByUser (user, searchValue);
 			
 			List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(user, offset, limit, field, order, searchValue);
 			result.setRows(features);
@@ -3815,7 +3815,7 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Incorrect feature type", errorMessage);
             }
             
-            int total = featureRepository.getFeatureCountByUser (user, featureType);
+            int total = featureRepository.getFeatureCountByUserByType (user, featureType, searchValue);
             
             List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(user, offset, limit, field, order, searchValue, featureType);
             result.setRows(features);
@@ -3873,7 +3873,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = glycanRepository.getGlycanCountByUser (user);
+			int total = glycanRepository.getGlycanCountByUser (user, searchValue);
 			
 			List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
 			for (Glycan glycan : glycans) {
@@ -3950,12 +3950,12 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = glycanRepository.getGlycanCountByUser (user);
+            int total = glycanRepository.getGlycanCountByUser (user, searchValue);
             List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
             List<Glycan> totalResultList = new ArrayList<>();
             totalResultList.addAll(glycans);
             
-            int totalPublic = glycanRepository.getGlycanCountByUser (null);
+            int totalPublic = glycanRepository.getGlycanCountByUser (null, searchValue);
             
             List<Glycan> publicResultList = glycanRepository.getGlycanByUser(null, offset, limit, field, order, searchValue);
             for (Glycan g1: publicResultList) {
@@ -4044,12 +4044,12 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = linkerRepository.getLinkerCountByUser (user);
+			int total = linkerRepository.getLinkerCountByUser (user, searchValue);
 			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
             List<Linker> totalResultList = new ArrayList<>();
             totalResultList.addAll(linkers);
             
-            int totalPublic = linkerRepository.getLinkerCountByUser (null);
+            int totalPublic = linkerRepository.getLinkerCountByUser (null, searchValue);
             
             List<Linker> publicResultList = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue);
             for (Linker g1: publicResultList) {
@@ -4114,7 +4114,7 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = linkerRepository.getLinkerCountByUser (user);
+            int total = linkerRepository.getLinkerCountByUser (user, searchValue);
             
             List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
             result.setRows(linkers);
@@ -4179,7 +4179,7 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
             }
             
-            int total = linkerRepository.getLinkerCountByUser (user, linkerType);
+            int total = linkerRepository.getLinkerCountByUserByType (user, linkerType, searchValue);
             
             List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue, linkerType);
             
@@ -4245,12 +4245,12 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
             }
             
-            int total = linkerRepository.getLinkerCountByUser (user, linkerType);
+            int total = linkerRepository.getLinkerCountByUserByType (user, linkerType, searchValue);
             List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue, linkerType);
             List<Linker> totalResultList = new ArrayList<>();
             totalResultList.addAll(linkers);
             
-            int totalPublic = linkerRepository.getLinkerCountByUser (null, linkerType);
+            int totalPublic = linkerRepository.getLinkerCountByUserByType (null, linkerType, searchValue);
             
             List<Linker> publicResultList = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue, linkerType);
             for (Linker g1: publicResultList) {
@@ -4318,7 +4318,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = layoutRepository.getSlideLayoutCountByUser (user);
+			int total = layoutRepository.getSlideLayoutCountByUser (user, searchValue);
 			List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, offset, limit, field, loadAll, order, searchValue);
 			result.setRows(layouts);
 			result.setTotal(total);

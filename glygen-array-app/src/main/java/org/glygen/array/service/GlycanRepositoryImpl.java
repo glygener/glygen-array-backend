@@ -617,8 +617,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		return getGlycanByUser(user, offset, limit, field, order, null);
 	}
 	
-	
-	
+	@Override
+	protected String getSearchPredicate(String searchValue, String queryLabel) {
+	    return queryHelper.getSearchPredicate(searchValue, queryLabel);
+	}
 	
 	@Override
     public List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue) throws SparqlException, SQLException {
@@ -656,14 +658,89 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	}
 	
 	@Override
-	public int getGlycanCountByUser(UserEntity user) throws SQLException, SparqlException {
+	public int getGlycanCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
 		String graph = null;
 		if (user == null)
 		    graph = DEFAULT_GRAPH;
 		else
 		    graph = getGraphForUser(user);
-		return getCountByUserByType(graph, ontPrefix + "Glycan");
+		return getCountByUserByType(graph, ontPrefix + "Glycan", searchValue);
 	}
+	
+	
+	@Override
+    protected int getCountByUserByType (String graph, String type, String searchValue) throws SparqlException {
+        int total = 0;
+        if (graph != null) {
+            String sortPredicate = getSortPredicate (null);
+            
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public) ) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+            //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
+            queryBuf.append (" ?s rdf:type  <" + type +">. ");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append("OPTIONAL {?s gadr:has_subtype ?subtype } .  \n");
+                queryBuf.append("FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
+            }
+            queryBuf.append(
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n");
+            queryBuf.append (sortLine + searchPredicate + "} ");
+            
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                 queryBuf.append (" ?public rdf:type  <" + type +">. ");
+                 queryBuf.append ("OPTIONAL {?public gadr:has_subtype ?subtype } .  \n" +
+                 "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
+                 queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
+            }
+            queryBuf.append("}");
+                    
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String count = sparqlEntity.getValue("count");
+                if (count == null) {
+                    logger.error("Cannot get the count from repository");
+                } 
+                else {
+                    try {
+                        total = Integer.parseInt(count);
+                        break;
+                    } catch (NumberFormatException e) {
+                        throw new SparqlException("Count query returned invalid result", e);
+                    }
+                }
+                
+            }
+        }
+        return total;
+    }
+	
 	
 	private GlycanType getGlycanTypeForGlycan (String glycanURI, String graph) throws SparqlException {
 		List<SparqlEntity> results = queryHelper.retrieveGlycanTypeByGlycan(glycanURI, graph);

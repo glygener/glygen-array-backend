@@ -595,14 +595,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getSampleCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getSampleCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, sampleTypePredicate);
+        return getCountByUserByType(graph, sampleTypePredicate, searchValue);
     }
 
 
@@ -639,14 +639,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getPrinterCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getPrinterCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, printerTypePredicate);
+        return getCountByUserByType(graph, printerTypePredicate, searchValue);
     }
 
 
@@ -683,14 +683,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getScannerMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getScannerMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, scannerTypePredicate);
+        return getCountByUserByType(graph, scannerTypePredicate, searchValue);
     }
 
 
@@ -727,14 +727,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getSlideMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getSlideMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, slideTemplateTypePredicate);
+        return getCountByUserByType(graph, slideTemplateTypePredicate, searchValue);
     }
 
 
@@ -773,14 +773,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getImageAnalysisSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getImageAnalysisSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, imageAnalysisTypePredicate);
+        return getCountByUserByType(graph, imageAnalysisTypePredicate, searchValue);
     }
 
 
@@ -851,25 +851,25 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
     
     @Override
-    public int getDataProcessingSoftwareCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getDataProcessingSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, dataProcessingTypePredicate);
+        return getCountByUserByType(graph, dataProcessingTypePredicate, searchValue);
     }
     
     @Override
-    public int getAssayMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getAssayMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, assayTypePredicate);
+        return getCountByUserByType(graph, assayTypePredicate, searchValue);
     }
     
 
@@ -1261,14 +1261,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
     @Override
-    public int getSpotMetadataCountByUser(UserEntity user) throws SQLException, SparqlException {
+    public int getSpotMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate);
+        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, searchValue);
     }
 
 

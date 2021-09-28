@@ -171,7 +171,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = glycanRepository.getGlycanCountByUser (null);
+            int total = glycanRepository.getGlycanCountByUser (null, searchValue);
             
             List<Glycan> glycans = glycanRepository.getGlycanByUser(null, offset, limit, field, order, searchValue);
             for (Glycan glycan : glycans) {
@@ -349,7 +349,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = linkerRepository.getLinkerCountByUser (null);
+            int total = linkerRepository.getLinkerCountByUser (null, searchValue);
             
             List<Linker> linkers = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue);
             result.setRows(linkers);
@@ -401,7 +401,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = layoutRepository.getSlideLayoutCountByUser (null);
+            int total = layoutRepository.getSlideLayoutCountByUser (null, searchValue);
             List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(null, offset, limit, field, loadAll, order, searchValue);
             result.setRows(layouts);
             result.setTotal(total);
@@ -453,7 +453,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = layoutRepository.getBlockLayoutCountByUser (null);
+            int total = layoutRepository.getBlockLayoutCountByUser (null, searchValue);
             List<BlockLayout> layouts = layoutRepository.getBlockLayoutByUser(null, offset, limit, field, loadAll, order, searchValue);
             result.setRows(layouts);
             result.setTotal(total);
@@ -503,7 +503,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = featureRepository.getFeatureCountByUser (null);
+            int total = featureRepository.getFeatureCountByUser (null, searchValue);
             
             List<org.glygen.array.persistence.rdf.Feature> features = featureRepository.getFeatureByUser(null, offset, limit, field, order, searchValue);
             result.setRows(features);
@@ -557,7 +557,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getArrayDatasetCountByUser(null);
+            int total = datasetRepository.getArrayDatasetCountByUser(null, searchValue);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, loadAll);
             result.setRows(resultList);
@@ -810,7 +810,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrintedSlideCountByUser(null);
+            int total = datasetRepository.getPrintedSlideCountByUser(null, searchValue);
             
             List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue);
             // clear unnecessary fields before sending the results back
@@ -875,7 +875,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getDataProcessingSoftwareCountByUser(null);
+            int total = metadataRepository.getDataProcessingSoftwareCountByUser(null, searchValue);
             
             List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -929,7 +929,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(null);
+            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(null, searchValue);
             
             List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -983,7 +983,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getPrinterCountByUser(null);
+            int total = metadataRepository.getPrinterCountByUser(null, searchValue);
             
             List<Printer> metadataList = metadataRepository.getPrinterByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -1037,7 +1037,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSampleCountByUser (null);
+            int total = metadataRepository.getSampleCountByUser (null, searchValue);
             
             List<Sample> metadataList = metadataRepository.getSampleByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -1091,7 +1091,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getScannerMetadataCountByUser(null);
+            int total = metadataRepository.getScannerMetadataCountByUser(null, searchValue);
             
             List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -1145,7 +1145,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSlideMetadataCountByUser (null);
+            int total = metadataRepository.getSlideMetadataCountByUser (null, searchValue);
             
             List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -1199,7 +1199,7 @@ public class PublicGlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getAssayMetadataCountByUser(null);
+            int total = metadataRepository.getAssayMetadataCountByUser(null, searchValue);
             
             List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(null, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();

@@ -2729,7 +2729,7 @@ public class DatasetController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
-            int total = datasetRepository.getArrayDatasetCountByUser(user);
+            int total = datasetRepository.getArrayDatasetCountByUser(user, searchValue);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue, loadAll);
             result.setRows(resultList);
@@ -2895,7 +2895,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrintedSlideCountByUser(owner);
+            int total = datasetRepository.getPrintedSlideCountByUser(owner, searchValue);
             
             List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue, false);
             // clear unnecessary fields before sending the results back
@@ -2989,12 +2989,12 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = datasetRepository.getPrintedSlideCountByUser(owner);
+            int total = datasetRepository.getPrintedSlideCountByUser(owner, searchValue);
             List<PrintedSlide> resultList = datasetRepository.getPrintedSlideByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<PrintedSlide> totalResultList = new ArrayList<PrintedSlide>();
             totalResultList.addAll(resultList);
             
-            int totalPublic = datasetRepository.getPrintedSlideCountByUser(null);
+            int totalPublic = datasetRepository.getPrintedSlideCountByUser(null, searchValue);
             
             List<PrintedSlide> publicResultList = datasetRepository.getPrintedSlideByUser(null, offset, limit, field, order, searchValue, loadAll);
             for (PrintedSlide slide: publicResultList) {
@@ -3098,7 +3098,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getDataProcessingSoftwareCountByUser(owner);
+            int total = metadataRepository.getDataProcessingSoftwareCountByUser(owner, searchValue);
             
             List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3179,7 +3179,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(owner);
+            int total = metadataRepository.getImageAnalysisSoftwareCountByUser(owner, searchValue);
             
             List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3260,7 +3260,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getPrinterCountByUser(owner);
+            int total = metadataRepository.getPrinterCountByUser(owner, searchValue);
             
             List<Printer> metadataList = metadataRepository.getPrinterByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3341,7 +3341,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSampleCountByUser (owner);
+            int total = metadataRepository.getSampleCountByUser (owner, searchValue);
             
             List<Sample> metadataList = metadataRepository.getSampleByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3422,7 +3422,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getScannerMetadataCountByUser(owner);
+            int total = metadataRepository.getScannerMetadataCountByUser(owner, searchValue);
             
             List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3503,7 +3503,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSlideMetadataCountByUser (owner);
+            int total = metadataRepository.getSlideMetadataCountByUser (owner, searchValue);
             
             List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3584,7 +3584,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getAssayMetadataCountByUser(owner);
+            int total = metadataRepository.getAssayMetadataCountByUser(owner, searchValue);
             
             List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
@@ -3665,7 +3665,7 @@ public class DatasetController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = metadataRepository.getSpotMetadataCountByUser(owner);
+            int total = metadataRepository.getSpotMetadataCountByUser(owner, searchValue);
             
             List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();

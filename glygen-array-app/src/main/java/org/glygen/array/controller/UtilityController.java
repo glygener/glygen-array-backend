@@ -717,10 +717,10 @@ public class UtilityController {
             logger.warn ("cannot retrieve versions from the database", e);
         }
         try {
-            stats.setDatasetCount((long) datasetRepository.getArrayDatasetCountByUser(null));
-            stats.setSlideCount((long) layoutRepository.getSlideLayoutCountByUser(null));
-            stats.setSampleCount((long) metadataRepository.getSampleCountByUser(null));
-            stats.setGlycanCount((long)glycanRepository.getGlycanCountByUser(null));
+            stats.setDatasetCount((long) datasetRepository.getArrayDatasetCountByUser(null, null));
+            stats.setSlideCount((long) layoutRepository.getSlideLayoutCountByUser(null, null));
+            stats.setSampleCount((long) metadataRepository.getSampleCountByUser(null, null));
+            stats.setGlycanCount((long)glycanRepository.getGlycanCountByUser(null, null));
         } catch (SQLException | SparqlException e) {
             throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
         }
