@@ -591,7 +591,7 @@ public class UtilityController {
                 List<String> groupNames = new ArrayList<String>();
                 for (UserEntity user: userList) {
                     if (user.getGroupName() != null && !user.getGroupName().isEmpty())
-                        groupNames.add(user.getAffiliation());
+                        groupNames.add(user.getGroupName());
                 }
                 trie = NamespaceHandler.createNamespaceFromList(groupNames);
             } else if (namespace.equalsIgnoreCase("lastname")) {
@@ -599,7 +599,7 @@ public class UtilityController {
                 List<String> lastNames = new ArrayList<String>();
                 for (UserEntity user: userList) {
                     if (user.getLastName() != null && !user.getLastName().isEmpty())
-                        lastNames.add(user.getAffiliation());
+                        lastNames.add(user.getLastName());
                 }
                 trie = NamespaceHandler.createNamespaceFromList(lastNames);
             } else {
