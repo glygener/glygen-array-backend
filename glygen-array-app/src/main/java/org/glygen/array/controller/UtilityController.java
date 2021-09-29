@@ -547,7 +547,7 @@ public class UtilityController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public List<String> getTypeAheadSuggestions (
-            @ApiParam(required=true, value="Name of the namespace to retrieve matches") 
+            @ApiParam(required=true, value="Name of the namespace to retrieve matches")
             @RequestParam("namespace")
             String namespace, 
             @ApiParam(required=true, value="value to match") 
@@ -602,6 +602,14 @@ public class UtilityController {
                         lastNames.add(user.getLastName());
                 }
                 trie = NamespaceHandler.createNamespaceFromList(lastNames);
+            } else if (namespace.equalsIgnoreCase("firstname")) {
+                List<UserEntity> userList = userRepository.findAll();
+                List<String> firstNames = new ArrayList<String>();
+                for (UserEntity user: userList) {
+                    if (user.getFirstName() != null && !user.getFirstName().isEmpty())
+                        firstNames.add(user.getFirstName());
+                }
+                trie = NamespaceHandler.createNamespaceFromList(firstNames);
             } else {
                 // find the exact match if exists and put it as the first proposal
                 trie = NamespaceHandler.getTrieForNamespace(namespace);
@@ -617,11 +625,11 @@ public class UtilityController {
         SortedMap<String, String> resultMap = trie.prefixMap(key.toLowerCase());
         List<String> result = new ArrayList<String>();
         int i=0;
-        if (entry != null && !resultMap.containsValue(entry.getValue())) {
+       /* if (entry != null && !resultMap.containsValue(entry.getValue())) {
             result.add(entry.getValue());
             i++;
         }
-        
+        */   // do not put the best match
         for (Iterator<Entry<String, String>> iterator = resultMap.entrySet().iterator(); iterator.hasNext();) {
             Entry<String, String> match = iterator.next();
             if (limit != null && i >= limit)

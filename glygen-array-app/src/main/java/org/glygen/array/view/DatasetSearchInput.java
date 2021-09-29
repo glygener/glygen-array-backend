@@ -7,6 +7,7 @@ public class DatasetSearchInput {
     String printedSlideName;
     String username;
     String lastName;
+    String firstName;
     String institution;
     String groupName;
     Boolean coOwner;
@@ -106,6 +107,18 @@ public class DatasetSearchInput {
      */
     public void setCoOwner(Boolean coOwner) {
         this.coOwner = coOwner;
+    }
+    /**
+     * @return the firstName
+     */
+    public String getFirstName() {
+        return firstName;
+    }
+    /**
+     * @param firstName the firstName to set
+     */
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
     
     

@@ -821,6 +821,33 @@ public class SearchController {
                 searchResultMap.put(searchInput.getLastName().hashCode()+"last", matchedIds);
             }
             
+            // firstname - find the username belonging to that firstname and search by owner
+            if (searchInput.getFirstName() != null && !searchInput.getFirstName().isEmpty()) {
+                List<UserEntity> users = userRepository.findAllByFirstNameIgnoreCase(searchInput.getFirstName().trim());
+                List<String> matchedIds = new ArrayList<String>();
+                for (UserEntity user: users) {
+                    // search by owner
+                    List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(user.getUsername(), GlygenArrayRepository.DEFAULT_GRAPH);
+                    if (results != null) {
+                        for (SparqlEntity r: results) {
+                            String m = r.getValue("s");
+                            matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                        }
+                    }
+                    if (searchInput.getCoOwner() != null && searchInput.getCoOwner()) {
+                        // add datasets co-owned
+                       List<ArrayDataset> coowned = datasetRepository.getArrayDatasetByCoOwner(user, 0, -1, null, 0, null, false);
+                       for (ArrayDataset d: coowned) {
+                           if (d.getIsPublic()) {
+                               matchedIds.add(d.getPublicId());
+                           }
+                       }
+                    }
+                }
+                
+                searchResultMap.put(searchInput.getFirstName().hashCode()+"first", matchedIds);
+            }
+            
             if (searchInput.getGroupName() != null && !searchInput.getGroupName().isEmpty()) {
                 List<UserEntity> users = userRepository.findAllByGroupNameIgnoreCase(searchInput.getGroupName().trim());
                 List<String> matchedIds = new ArrayList<String>();
@@ -895,6 +922,7 @@ public class SearchController {
             
             if ((searchInput.getUsername() == null || searchInput.getUsername().isEmpty()) 
                     && (searchInput.getLastName() == null || searchInput.getLastName().isEmpty())
+                    && (searchInput.getFirstName() == null || searchInput.getFirstName().isEmpty())
                     && (searchInput.getGroupName() == null || searchInput.getGroupName().isEmpty())
                     && (searchInput.getInstitution() == null || searchInput.getInstitution().isEmpty())) {
                 // no restrictions, return all datasets

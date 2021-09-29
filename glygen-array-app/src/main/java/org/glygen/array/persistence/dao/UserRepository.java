@@ -10,6 +10,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 	public UserEntity findByEmailIgnoreCase(String email);
 	public UserEntity findByUsernameIgnoreCase(String username);
 	public List<UserEntity> findAllByLastNameIgnoreCase (String lastName);
+	public List<UserEntity> findAllByFirstNameIgnoreCase (String firstName);
 	public List<UserEntity> findAllByGroupNameIgnoreCase (String groupName);
 	public List<UserEntity> findAllByAffiliationIgnoreCase (String affiliation);
 }
