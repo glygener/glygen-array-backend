@@ -23,6 +23,10 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 		@Type(value = PeptideLinker.class, name = "PEPTIDE"),
 		@Type(value = ProteinLinker.class, name = "PROTEIN"),
 		@Type(value = Lipid.class, name = "LIPID"),
+		@Type(value = SmallMoleculeLinker.class, name = "UNKNOWN_SMALLMOLECULE"), 
+        @Type(value = PeptideLinker.class, name = "UNKNOWN_PEPTIDE"),
+        @Type(value = ProteinLinker.class, name = "UNKNOWN_PROTEIN"),
+        @Type(value = Lipid.class, name = "UNKNOWN_LIPID"),
 		@Type(value = OtherLinker.class, name = "OTHER")
 	})
 public abstract class Linker implements ChangeTrackable {

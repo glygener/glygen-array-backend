@@ -376,8 +376,8 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addFeature (
-			@ApiParam(required=false, value="Feature to be added, a linker and an at least one glycan are mandatory") 
-			@RequestBody(required=false) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
+			@ApiParam(required=true, value="Feature to be added, a linker and an at least one glycan are mandatory") 
+			@RequestBody(required=true) org.glygen.array.persistence.rdf.Feature feature, Principal p) {
 	    
 	    ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -472,7 +472,8 @@ public class GlygenArrayController {
 		    try {
 		        if (feature.getLinker() != null) {
         		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
-            		    feature.getLinker().setId(addLinker(feature.getLinker(), p));
+            		    feature.getLinker().setId(addLinker(feature.getLinker(), 
+            		            feature.getLinker().getType().name().startsWith("UNKNOWN"), p));
         		    } else {
         		        // check to make sure it is an existing linker
         		        String linkerId = feature.getLinker().getId();
@@ -738,7 +739,7 @@ public class GlygenArrayController {
         
         if (feature.getLinker() != null) {
             if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
-                feature.getLinker().setId(addLinker(feature.getLinker(), p));
+                feature.getLinker().setId(addLinker(feature.getLinker(), feature.getLinker().getType().name().startsWith("UNKNOWN"), p));
             } else {
                 // check to make sure it is an existing linker
                 String linkerId = feature.getLinker().getId();
@@ -936,7 +937,8 @@ public class GlygenArrayController {
 			@ApiResponse(code=409, message="A glycan with the given sequence already exists!"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public String addGlycan (@RequestBody Glycan glycan, Principal p, @RequestParam("noGlytoucanRegistration") Boolean noGlytoucanRegistration) {
+	public String addGlycan (@RequestBody Glycan glycan, Principal p, 
+	        @RequestParam("noGlytoucanRegistration") Boolean noGlytoucanRegistration) {
 		if (glycan.getType() == null) {
 			// assume sequenceDefinedGlycan
 			glycan.setType(GlycanType.SEQUENCE_DEFINED);
@@ -1486,25 +1488,37 @@ public class GlygenArrayController {
 	public String addLinker (
 			@ApiParam(required=true, value="Linker to be added, type needs to be set correctly, pubChemId is required for small molecule and lipid, "
 			        + "sequence is required for protein and peptide, other fields are optional") 
-			@RequestBody Linker linker, Principal p) {
+			@RequestBody Linker linker, 
+			@RequestParam(value="unknown", required=false)
+			@ApiParam(required=false, value="true, if the linker is of unknown type. The default is false")
+			Boolean unknown, Principal p) {
 		
 		if (linker.getType() == null) {
 			// assume OTHER
 			linker.setType(LinkerType.OTHER);
 		}
 		
+		if (unknown == null)
+		    unknown = false;
+		
+		
 		switch (linker.getType()) {
 		case SMALLMOLECULE:
 		case LIPID:
-			return addSmallMoleculeLinker((SmallMoleculeLinker)linker, p);
+			return addSmallMoleculeLinker((SmallMoleculeLinker)linker, unknown, p);
 		case PEPTIDE:
-			return addPeptideLinker ((PeptideLinker) linker, p);
+			return addPeptideLinker ((PeptideLinker) linker, unknown, p);
 		case PROTEIN:
-			return addProteinLinker((ProteinLinker) linker, p);
+			return addProteinLinker((ProteinLinker) linker, unknown, p);
         case OTHER:
             return addOtherLinker ((OtherLinker) linker, p);
-        default:
-            break;
+        case UNKNOWN_PEPTIDE:
+            return addPeptideLinker ((PeptideLinker) linker, true, p);
+        case UNKNOWN_PROTEIN:
+            return addProteinLinker((ProteinLinker) linker, true, p);
+        case UNKNOWN_SMALLMOLECULE:
+        case UNKNOWN_LIPID:
+            return addSmallMoleculeLinker((SmallMoleculeLinker)linker, true, p);
 		}
 		throw new GlycanRepositoryException("Incorrect linker type");
 	}
@@ -1634,7 +1648,7 @@ public class GlygenArrayController {
 		}
 	}
 
-	private String addPeptideLinker(PeptideLinker linker, Principal p) {
+	private String addPeptideLinker(PeptideLinker linker, boolean unknown, Principal p) {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		ErrorMessage errorMessage = new ErrorMessage();
@@ -1642,7 +1656,8 @@ public class GlygenArrayController {
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
 		if (linker.getSequence() == null)  {
-			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+		    if (!unknown)
+		        errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 		} 
 		
 		// validate first
@@ -1691,9 +1706,13 @@ public class GlygenArrayController {
 			
 			l = linker;
 			l.setUri(linkerURI);
+			LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+            if (unknown) {
+                l.setType(unknownType);
+            }
 			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-				if (local != null && local.getType() == linker.getType()) {
+				if (local != null && (local.getType() == linker.getType() || local.getType() == unknownType)) {
 				    linker.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));	
 				}
@@ -1709,7 +1728,7 @@ public class GlygenArrayController {
 		} 
 	}
 
-	private String addProteinLinker(ProteinLinker linker, Principal p) {
+	private String addProteinLinker(ProteinLinker linker, boolean unknown, Principal p) {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		ErrorMessage errorMessage = new ErrorMessage();
@@ -1718,7 +1737,8 @@ public class GlygenArrayController {
 		
 		
 		if (linker.getUniProtId() == null && linker.getSequence() == null)  { // at least one of them should be provided
-			errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+		    if (!unknown)
+		        errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
 		} 
 	
 		// validate first
@@ -1751,33 +1771,40 @@ public class GlygenArrayController {
 			Linker l = null;
 			String linkerURI = null;
 			
-			if (linker.getSequence() != null && !linker.getSequence().trim().isEmpty()) {
-			    // modify the sequence to add position markers
-                try {
-                    String sequence = addPositionToSequence(linker.getSequence().trim());
-                    linker.setSequence(sequence);
-                } catch (Exception e) {
-                    errorMessage.addError(new ObjectError("sequence", "NotValid"));
-                }
-				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
-				if (linkerURI != null) {
-				    linker.setUri(linkerURI);
-				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
-				}
-			}
-			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
-				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", linker.getType(), user);
-				if (linkerURI != null) {
-				    linker.setUri(linkerURI);
-				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
-				}
+			if (!unknown) {
+    			if (linker.getSequence() != null && !linker.getSequence().trim().isEmpty()) {
+    			    // modify the sequence to add position markers
+                    try {
+                        String sequence = addPositionToSequence(linker.getSequence().trim());
+                        linker.setSequence(sequence);
+                    } catch (Exception e) {
+                        errorMessage.addError(new ObjectError("sequence", "NotValid"));
+                    }
+    				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
+    				if (linkerURI != null) {
+    				    linker.setUri(linkerURI);
+    				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
+    				}
+    			}
+    			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
+    				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", linker.getType(), user);
+    				if (linkerURI != null) {
+    				    linker.setUri(linkerURI);
+    				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
+    				}
+    			}
 			}
 			
 			l = linker;
 			l.setUri(linkerURI);
+			LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+			if (unknown) {
+                l.setType(unknownType);
+            }
 			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-				if (local != null && local.getType() == linker.getType()) {
+				if (local != null && 
+				        (local.getType() == linker.getType() || local.getType() == unknownType)) {
 				    linker.setId(local.getId());
 					errorMessage.addError(new ObjectError("name", "Duplicate"));	
 				}
@@ -1795,6 +1822,7 @@ public class GlygenArrayController {
 			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+			
 			
 			String addedURI = linkerRepository.addLinker(l, user);
 			return addedURI.substring(addedURI.lastIndexOf("/")+1);
@@ -2327,7 +2355,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	private String addSmallMoleculeLinker(SmallMoleculeLinker linker, Principal p) {
+	private String addSmallMoleculeLinker(SmallMoleculeLinker linker, boolean unknown, Principal p) {
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 		
 		ErrorMessage errorMessage = new ErrorMessage();
@@ -2335,7 +2363,8 @@ public class GlygenArrayController {
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 		
 		if (linker.getClassification() == null && linker.getPubChemId() == null && linker.getInChiKey() == null) {   // at least one of them should be provided
-			errorMessage.addError(new ObjectError("classification", "NoEmpty"));
+			if (!unknown) 
+			    errorMessage.addError(new ObjectError("classification", "NoEmpty"));
 		} 
 	
 		// validate first
@@ -2423,9 +2452,13 @@ public class GlygenArrayController {
 					l.setUri(linkerURI);
 				}
 				
+				LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+	            if (unknown) {
+	                l.setType(unknownType);
+	            }
 				if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-					if (local != null) {
+					if (local != null && (local.getType() == linker.getType() || local.getType() == unknownType)) {
 					    linker.setId(local.getId());
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
@@ -3127,7 +3160,8 @@ public class GlygenArrayController {
     													if (!linkerCache.contains(feature.getLinker())) {
     														linkerCache.add(feature.getLinker());
     														try {
-    															addLinker(feature.getLinker(), p);
+    															addLinker(feature.getLinker(),
+    															        feature.getLinker().getType().name().startsWith("UNKNOWN"), p);
     														} catch (Exception e) {
     															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
     																ErrorMessage error = (ErrorMessage) e.getCause();
@@ -3147,7 +3181,7 @@ public class GlygenArrayController {
     																	Linker linker = feature.getLinker();
     																	linker.setName(linker.getName()+"B");
     																	try {
-    																		addLinker (linker, p);
+    																		addLinker (linker, linker.getType().name().startsWith("UNKNOWN"), p);
     																	} catch (IllegalArgumentException e1) {
     																		// ignore, probably already added
     																		logger.debug ("duplicate linker cannot be added", e1);
@@ -4750,10 +4784,17 @@ public class GlygenArrayController {
             @ApiParam(required=false, value="field that has changed, can provide multiple") 
             @RequestParam(value="changedField", required=false)
             List<String> changedFields,
+            @RequestParam(value="unknown", required=false)
+            @ApiParam(required=false, value="true, if the linker is of unknown type. The default is false")
+            Boolean unknown,
 			Principal principal) throws SQLException {
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
 		errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		
+		if (unknown == null) 
+		    unknown = false;
+		
 		// validate first
 		if (validator != null) {
 			if  (linkerView.getName() != null) {
@@ -4780,20 +4821,53 @@ public class GlygenArrayController {
 		}
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			Linker linker= new SmallMoleculeLinker();
+			
+			if (linkerView.getType() == null) {
+			    linkerView.setType(LinkerType.OTHER);
+			}
+			Linker linker = null;
+			switch (linkerView.getType()) {
+            case LIPID:
+            case UNKNOWN_LIPID:
+                linker= new Lipid();
+                break;
+            case OTHER:
+                linker= new OtherLinker();
+                break;
+            case PEPTIDE:
+            case UNKNOWN_PEPTIDE:
+                linker = new PeptideLinker();
+                break;
+            case PROTEIN:
+            case UNKNOWN_PROTEIN:
+                linker = new ProteinLinker();
+                break;
+            case SMALLMOLECULE:
+            case UNKNOWN_SMALLMOLECULE:
+                linker= new SmallMoleculeLinker();
+                break;
+			}
+			
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
 			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
 			linker.setDescription(linkerView.getDescription() != null ? linkerView.getDescription().trim() : linkerView.getDescription());
 			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);	
 			
+			LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
 			Linker local = null;
 			// check if name is unique
 			if (linker.getName() != null && !linker.getName().isEmpty()) {
 				local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
 				if (local != null && !local.getUri().equals(linker.getUri())) {   // there is another with the same name
-					errorMessage.addError(new ObjectError("name", "Duplicate"));
+				    if (local.getType() == linker.getType() || local.getType() == unknownType) {
+				        errorMessage.addError(new ObjectError("name", "Duplicate"));
+				    }
 				}
 			} 
+			
+            if (unknown) {
+                linker.setType(unknownType);
+            }
 			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);

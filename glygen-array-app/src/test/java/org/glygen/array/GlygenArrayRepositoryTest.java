@@ -14,14 +14,18 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.Range;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -43,6 +47,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(loader=MySpringBootContextLoader.class)
@@ -571,20 +578,34 @@ public class GlygenArrayRepositoryTest {
 			linker1.setUri(linkerURI);
 			String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
 			
+			Linker linker2 = addTestLinker(user);
+			String linkerId2 = linker2.getUri().substring(linker2.getUri().lastIndexOf("/")+1);
+			
 			GlycoPeptide added = new GlycoPeptide();
 			added.setName("test glycopeptide");
 			added.setPeptide(linker1);
+			added.setLinker(linker2);
 			LinkedGlycan lg = new LinkedGlycan();
 			lg.setName("testPeptideFeature");
+			lg.setLinker(linker2);
 			GlycanInFeature featureGlycan = new GlycanInFeature();
 	        featureGlycan.setGlycan(g);
 			lg.addGlycan(featureGlycan);
 			added.addGlycan(lg);
 			String lgURI = featureRepository.addFeature(lg, user);
 			lg.setUri(lgURI);
+			lg.setId(lg.getUri().substring(lg.getUri().lastIndexOf("/")+1));
+			added.setGlycan ("1", lg.getId());
 			
 			String uri = featureRepository.addFeature(added, user);
 			added.setUri(uri);
+			
+			try {
+                System.out.println (new ObjectMapper().writeValueAsString(added));
+            } catch (JsonProcessingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
 			
 			String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
 			
@@ -606,6 +627,7 @@ public class GlygenArrayRepositoryTest {
 			featureRepository.deleteFeature(featureId, user);
 			linkerRepository.deleteLinker(linkerId1, user);
 			featureRepository.deleteFeature(lgURI.substring(lgURI.lastIndexOf("/")+1), user);
+			linkerRepository.deleteLinker(linkerId2, user);
 			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
 			
 		} catch (SparqlException | SQLException e) {
@@ -613,6 +635,198 @@ public class GlygenArrayRepositoryTest {
 			assertFalse("Failed to create feature", true);
 		}
 	}
+	
+	
+	@Test
+    public void testAddProteinFeature() {
+        UserEntity user = userRepository.findByUsernameIgnoreCase("user");
+        try {
+            SequenceDefinedGlycan g = new SequenceDefinedGlycan();
+            g.setSequence("RES\n" +
+            "1b:b-dglc-HEX-1:5\n" +
+            "2s:n-acetyl\n" +
+            "LIN\n" + 
+            "1:1d(2+1)2n");
+            g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+            
+            String glycanId = glycanRepository.addGlycan(g, user);
+            g.setUri(glycanId);
+            
+            ProteinLinker linker1 = new ProteinLinker();
+            linker1.setSequence("MPTEFLYTSKIAAISWAATGGRQQRVYFQDLNGKIREAQRGGDNPWTGGSSQNVIGEAKL\n" + 
+                    "FSPLAAVTWKSAQGIQIRVYCVNKDNILSEFVYDGSKWITGQLGSVGVKVGSNSKLAALQ\n" + 
+                    "WGGSESAPPNIRVYYQKSNGSGSSIHEYVWSGKWTAGASFGSTVPGTGIGATAIGPGRLR\n" + 
+                    "IYYQATDNKIREHCWDSNSWYVGGFSASASAGVSIAAISWGSTPNIRVYWQKGREELYEA\n" + 
+                    "AYGGSWNTPGQIKDASRPTPSLPDTFIAANSSGNIDISVFFQASGVSLQQWQWISGKGWS\n" + 
+                    "IGAVVPTGTPAGW");
+            String linkerURI = linkerRepository.addLinker(linker1, user);
+            linker1.setUri(linkerURI);
+            String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
+            
+            Linker linker2 = addTestLinker(user);
+            String linkerId2 = linker2.getUri().substring(linker2.getUri().lastIndexOf("/")+1);
+            
+            GlycoProtein added = new GlycoProtein();
+            added.setName("test glycoprotein");
+            added.setProtein(linker1);
+            added.setLinker(linker2);
+            LinkedGlycan lg = new LinkedGlycan();
+            lg.setName("testProteinFeature");
+            lg.setLinker(linker2);
+            GlycanInFeature featureGlycan = new GlycanInFeature();
+            featureGlycan.setGlycan(g);
+            lg.addGlycan(featureGlycan);
+            added.addGlycan(lg);
+            String lgURI = featureRepository.addFeature(lg, user);
+            lg.setUri(lgURI);
+            lg.setId(lg.getUri().substring(lg.getUri().lastIndexOf("/")+1));
+            lg.setRange(new Range(3, 4));
+            
+            String uri = featureRepository.addFeature(added, user);
+            added.setUri(uri);
+            
+            try {
+                System.out.println (new ObjectMapper().writeValueAsString(added));
+            } catch (JsonProcessingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
+            
+            List<Feature> features = featureRepository.getFeatureByUser(user);
+            assertTrue ("Can retrieve features", features != null);
+            boolean found = false;
+            for (Feature f: features) {
+                if (f.getUri().equals(added.getUri())) {
+                    found = true;
+                    assertTrue("feature has 1 glycan", f instanceof GlycoProtein && ((GlycoProtein) f).getGlycans().size() == 1);
+                    assertTrue("feature has the added linker", f instanceof GlycoProtein && ((GlycoProtein) f).getProtein().getUri().equals(linker1.getUri()));
+                    //assertTrue("feature has position map", f.getPositionMap().size() >= 0);
+                    break;
+                }
+            }
+            assertTrue ("added feature is in the list", found);
+                
+            // delete created linkers and glycans and the feature
+            featureRepository.deleteFeature(featureId, user);
+            linkerRepository.deleteLinker(linkerId1, user);
+            featureRepository.deleteFeature(lgURI.substring(lgURI.lastIndexOf("/")+1), user);
+            linkerRepository.deleteLinker(linkerId2, user);
+            glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+            
+        } catch (SparqlException | SQLException e) {
+            e.printStackTrace();
+            assertFalse("Failed to create feature", true);
+        }
+    }
+	
+	@Test
+    public void testAddGPLinkedGlycoPeptideFeature() {
+        UserEntity user = userRepository.findByUsernameIgnoreCase("user");
+        try {
+            SequenceDefinedGlycan g = new SequenceDefinedGlycan();
+            g.setSequence("RES\n" +
+            "1b:b-dglc-HEX-1:5\n" +
+            "2s:n-acetyl\n" +
+            "LIN\n" + 
+            "1:1d(2+1)2n");
+            g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
+            
+            String glycanId = glycanRepository.addGlycan(g, user);
+            g.setUri(glycanId);
+            
+            PeptideLinker linker1 = new PeptideLinker();
+            linker1.setSequence("AcNH-KTTKIP{1-S}DSPQSA-COOH");
+            String linkerURI = linkerRepository.addLinker(linker1, user);
+            linker1.setUri(linkerURI);
+            String linkerId1 = linker1.getUri().substring(linker1.getUri().lastIndexOf("/")+1);
+            
+            Linker linker2 = addTestLinker(user);
+            String linkerId2 = linker2.getUri().substring(linker2.getUri().lastIndexOf("/")+1);
+            
+            GlycoPeptide peptideF = new GlycoPeptide();
+            peptideF.setName("test glycopeptide");
+            peptideF.setPeptide(linker1);
+            peptideF.setLinker(linker2);
+            LinkedGlycan lg = new LinkedGlycan();
+            lg.setName("testPeptideFeature");
+            lg.setLinker(linker2);
+            GlycanInFeature featureGlycan = new GlycanInFeature();
+            featureGlycan.setGlycan(g);
+            lg.addGlycan(featureGlycan);
+            peptideF.addGlycan(lg);
+            String lgURI = featureRepository.addFeature(lg, user);
+            lg.setUri(lgURI);
+            lg.setId(lg.getUri().substring(lg.getUri().lastIndexOf("/")+1));
+            peptideF.setGlycan ("1", lg.getId());
+            
+            String uri = featureRepository.addFeature(peptideF, user);
+            peptideF.setUri(uri);
+            peptideF.setId(peptideF.getUri().substring(peptideF.getUri().lastIndexOf("/")+1));
+            
+            List<GlycoPeptide> peptides = new ArrayList<GlycoPeptide>();
+            peptides.add(peptideF);
+            peptideF.setRange(new Range (4, 10));
+            
+            ProteinLinker linker3 = new ProteinLinker();
+            linker3.setSequence("MPTEFLYTSKIAAISWAATGGRQQRVYFQDLNGKIREAQRGGDNPWTGGSSQNVIGEAKL\n" + 
+                    "FSPLAAVTWKSAQGIQIRVYCVNKDNILSEFVYDGSKWITGQLGSVGVKVGSNSKLAALQ\n" + 
+                    "WGGSESAPPNIRVYYQKSNGSGSSIHEYVWSGKWTAGASFGSTVPGTGIGATAIGPGRLR\n" + 
+                    "IYYQATDNKIREHCWDSNSWYVGGFSASASAGVSIAAISWGSTPNIRVYWQKGREELYEA\n" + 
+                    "AYGGSWNTPGQIKDASRPTPSLPDTFIAANSSGNIDISVFFQASGVSLQQWQWISGKGWS\n" + 
+                    "IGAVVPTGTPAGW");
+            String linker3URI = linkerRepository.addLinker(linker3, user);
+            linker3.setUri(linker3URI);
+            String linkerId3 = linker3.getUri().substring(linker3.getUri().lastIndexOf("/")+1);
+            
+            
+            GPLinkedGlycoPeptide added = new GPLinkedGlycoPeptide();
+            added.setName("test GPLinkedGlycoPeptide");
+            added.setGlycan("1", peptideF.getId());
+            added.setPeptides(peptides);
+            added.setProtein(linker3);
+            
+            String uri2 = featureRepository.addFeature(added, user);
+            added.setUri(uri2);
+            
+            try {
+                System.out.println (new ObjectMapper().writeValueAsString(added));
+            } catch (JsonProcessingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            String featureId = added.getUri().substring(added.getUri().lastIndexOf("/")+1);
+            
+            List<Feature> features = featureRepository.getFeatureByUser(user);
+            assertTrue ("Can retrieve features", features != null);
+            boolean found = false;
+            for (Feature f: features) {
+                if (f.getUri().equals(added.getUri())) {
+                    found = true;
+                    assertTrue("feature has 1 glycopeptide", f instanceof GPLinkedGlycoPeptide && ((GPLinkedGlycoPeptide) f).getPeptides().size() == 1);
+                    assertTrue("feature has the added protein", f instanceof GPLinkedGlycoPeptide && ((GPLinkedGlycoPeptide) f).getProtein().getUri().equals(linker3.getUri()));
+                    //assertTrue("feature has position map", f.getPositionMap().size() >= 0);
+                    break;
+                }
+            }
+            assertTrue ("added feature is in the list", found);
+                
+            // delete created linkers and glycans and the feature
+            featureRepository.deleteFeature(featureId, user);
+            featureRepository.deleteFeature(peptideF.getId(), user);
+            linkerRepository.deleteLinker(linkerId1, user);
+            featureRepository.deleteFeature(lgURI.substring(lgURI.lastIndexOf("/")+1), user);
+            linkerRepository.deleteLinker(linkerId2, user);
+            linkerRepository.deleteLinker(linkerId3, user);
+            glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+            
+        } catch (SparqlException | SQLException e) {
+            e.printStackTrace();
+            assertFalse("Failed to create feature", true);
+        }
+    }
 	
 	public BlockLayout addTestBlockLayout (UserEntity user, Glycan g1, Glycan g, Linker linker1, Linker l) throws SparqlException {
 		BlockLayout blockLayout = new BlockLayout();

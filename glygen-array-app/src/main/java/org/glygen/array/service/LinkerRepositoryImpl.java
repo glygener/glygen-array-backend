@@ -75,9 +75,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		switch (l.getType()) {
 		case SMALLMOLECULE:
 		case LIPID:
+		case UNKNOWN_SMALLMOLECULE:
+		case UNKNOWN_LIPID:
 			return addSmallMoleculeLinker((SmallMoleculeLinker) l, graph);
 		case PEPTIDE:
 		case PROTEIN:
+		case UNKNOWN_PEPTIDE:
+		case UNKNOWN_PROTEIN:
 			return addSequenceBasedLinker (l, graph);
 		case OTHER:
 		    return addOtherLinker ((OtherLinker)l, graph);
@@ -304,11 +308,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		String sequence = null;
 		if (l.getType() == LinkerType.PROTEIN || l.getType() == LinkerType.PEPTIDE) {
 			sequence = ((SequenceBasedLinker)l).getSequence();
-		}
-		
-		if (sequence == null) {
-			// cannot add 
-			throw new SparqlException ("Not enough information is provided to register a linker");
+			if (sequence == null) {
+	            // cannot add 
+	            throw new SparqlException ("Not enough information is provided to register a linker");
+	        }
 		}
 		
 		existing = getLinkerByField(sequence, "has_sequence", "string");
@@ -337,7 +340,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			//Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
-			Literal sequenceL= f.createLiteral(sequence);
+			Literal sequenceL= sequence == null ? null : f.createLiteral(sequence);
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
@@ -348,7 +351,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 			statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
 			//statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
-			statements.add(f.createStatement(linker, hasSequence, sequenceL, graphIRI));
+			if (sequence != null) statements.add(f.createStatement(linker, hasSequence, sequenceL, graphIRI));
 			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			
 			if (l.getType() == LinkerType.PROTEIN) {
@@ -703,7 +706,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 					+ " ?s gadr:has_public_uri ?p . \n" 
 					+ "?p gadr:" + predicate + " \"\"\"" + field + "\"\"\"^^xsd:" + type + ".\n";
 			if (linkerType != null) {
-	            where += " ?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n";
+			    if (linkerType.name().startsWith("UNKNOWN")) {
+                    // add the regular type to the query
+                    LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                    where += "?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n";
+                    
+                } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                    where += "?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n";
+                }
+	            //where += " ?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n";
 	        }
 			where += "}";
 			
@@ -794,7 +806,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
         if (type != null) {
-            queryBuf.append ( " ?s gadr:has_type \"" + type.name() + "\"^^xsd:string . \n");
+            if (type.name().startsWith("UNKNOWN")) {
+                // add the regular type to the query
+                LinkerType normalType = LinkerType.valueOf(type.name().substring(type.name().lastIndexOf("UNKNOWN_")+8));
+                queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + type.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                
+            } else if (!type.name().startsWith("UNKNOWN")) {
+                LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + type.name());
+                queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + type.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+            }
+            //queryBuf.append ( " ?s gadr:has_type \"" + type.name() + "\"^^xsd:string . \n");
         }
         queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"" + label.toLowerCase() + "\") \n"
                 + "}\n");
@@ -923,7 +944,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     " ?s gadr:has_date_addedtolibrary ?d .\n" +
                             " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
             if (linkerType != null) {
-                queryBuf.append("?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+                if (linkerType.name().startsWith("UNKNOWN")) {
+                    // add the regular type to the query
+                    LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                    
+                } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                }
+                //queryBuf.append("?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
             }
             queryBuf.append (
                     " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
@@ -935,7 +965,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
                     " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n");
                  if (linkerType != null) {
-                     queryBuf.append("?public gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+                     if (linkerType.name().startsWith("UNKNOWN")) {
+                         // add the regular type to the query
+                         LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                         
+                     } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                         LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                     }
+                     //queryBuf.append("?public gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
                  }
                  queryBuf.append(
                         publicSortLine + publicSearchPredicate + 
@@ -1050,7 +1089,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			switch (type) {
 			case PEPTIDE:
 				linkerObject = new PeptideLinker();
-				break;
+				break;			
 			case PROTEIN:
 				linkerObject = new ProteinLinker();
 				((ProteinLinker) linkerObject).setPdbIds(new ArrayList<String>());
@@ -1062,8 +1101,25 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 linkerObject = new Lipid();
                 break;
             case OTHER:
-            default:
                 linkerObject = new OtherLinker();
+                break;
+            case UNKNOWN_LIPID:
+                linkerObject = new Lipid();
+                linkerObject.setType(LinkerType.UNKNOWN_LIPID);
+                break;
+            case UNKNOWN_PEPTIDE:
+                linkerObject = new PeptideLinker();
+                linkerObject.setType(LinkerType.UNKNOWN_PEPTIDE);
+                break;
+            case UNKNOWN_PROTEIN:
+                linkerObject = new ProteinLinker();
+                linkerObject.setType(LinkerType.UNKNOWN_PROTEIN);
+                break;
+            case UNKNOWN_SMALLMOLECULE:
+                linkerObject = new SmallMoleculeLinker();
+                linkerObject.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
+                break;
+            default:
                 break;
 			}
 			
@@ -1726,7 +1782,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
             queryBuf.append (" ?s rdf:type  <" + linkerTypePredicate +">. ");
             if (linkerType != null) {
-                queryBuf.append(" ?s gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
+                if (linkerType.name().startsWith("UNKNOWN")) {
+                    // add the regular type to the query
+                    LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                    
+                } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                }
+                //queryBuf.append(" ?s gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
             }
             queryBuf.append(
                     " OPTIONAL {?s gadr:has_public_uri ?public  } .\n");
@@ -1738,7 +1803,16 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
                  queryBuf.append (" ?public rdf:type  <" + linkerTypePredicate +">. ");
                  if (linkerType != null) {
-                     queryBuf.append(" ?public gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
+                     if (linkerType.name().startsWith("UNKNOWN")) {
+                         // add the regular type to the query
+                         LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                         
+                     } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                         LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                     }
+                     //queryBuf.append(" ?public gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
                  }
                  queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
             }
