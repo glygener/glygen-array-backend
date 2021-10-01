@@ -1004,6 +1004,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
                     if (featureObject instanceof GlycoPeptide && linker != null && linker instanceof PeptideLinker) 
                         ((GlycoPeptide) featureObject).setPeptide((PeptideLinker) linker);
+                    
                 }
             } else if (st.getPredicate().equals(hasProtein)) {
                 Value value = st.getObject();
@@ -1012,6 +1013,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
                     if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
                         ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
+                    else if (featureObject instanceof GPLinkedGlycoPeptide && linker != null && linker instanceof ProteinLinker) 
+                        ((GPLinkedGlycoPeptide) featureObject).setProtein((ProteinLinker) linker);
                 }
             } else if (legacy && st.getPredicate().equals(hasMolecule)) { 
                 // handle the old way!!!
@@ -1328,6 +1331,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             Linker linker = linkerRepository.getLinkerFromURI(linkerURI, user);
                             if (featureObject instanceof GlycoProtein && linker != null && linker instanceof ProteinLinker) 
                                 ((GlycoProtein) featureObject).setProtein((ProteinLinker) linker);
+                            else if (featureObject instanceof GPLinkedGlycoPeptide && linker != null && linker instanceof ProteinLinker) 
+                                ((GPLinkedGlycoPeptide) featureObject).setProtein((ProteinLinker) linker);
                         }
                     } else if (stPublic.getPredicate().equals(hasGlycanContext)) {
                         value = stPublic.getObject();
