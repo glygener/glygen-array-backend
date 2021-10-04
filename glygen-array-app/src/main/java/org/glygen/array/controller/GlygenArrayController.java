@@ -1511,6 +1511,7 @@ public class GlygenArrayController {
 		case PROTEIN:
 			return addProteinLinker((ProteinLinker) linker, unknown, p);
         case OTHER:
+        case UNKNOWN_OTHER:
             return addOtherLinker ((OtherLinker) linker, p);
         case UNKNOWN_PEPTIDE:
             return addPeptideLinker ((PeptideLinker) linker, true, p);
@@ -4832,6 +4833,7 @@ public class GlygenArrayController {
                 linker= new Lipid();
                 break;
             case OTHER:
+            case UNKNOWN_OTHER:
                 linker= new OtherLinker();
                 break;
             case PEPTIDE:
