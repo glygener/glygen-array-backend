@@ -381,30 +381,31 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
 	@Override
 	public void configure(WebSecurity web) throws Exception {
-	    List<RequestMatcher> matcherList = new ArrayList<>();
-        for(int i=0; i < AUTH_WHITELIST.length; i++) {
-            RequestMatcher newMatcher = new AntPathRequestMatcher(AUTH_WHITELIST[i]);
-            matcherList.add(newMatcher);
-        }
-        RequestMatcher ignored = new OrRequestMatcher(matcherList);
-        RequestMatcher PUBLIC_URLS = new OrRequestMatcher(ignored, 
-                new AntPathRequestMatcher("/error"),
-                new AntPathRequestMatcher("/login**"),
-                //new AntPathRequestMatcher(basePath + "login**"),
-                //new AntPathRequestMatcher("**/login**"),
-                new AntPathRequestMatcher("/users/signup"),
-                new AntPathRequestMatcher("/users/availableUsername"),
-                new AntPathRequestMatcher("/users/recover"),
-                new AntPathRequestMatcher("/users/listgroups"),
-                new AntPathRequestMatcher("/users/listorganizations"),
-                new AntPathRequestMatcher("/users/listusernames"),
-                new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
-                new AntPathRequestMatcher("/util/**"),
-                new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
-                new AntPathRequestMatcher("/array/getimage/**"),
-                new AntPathRequestMatcher("/array/public/**"),
-                new AntPathRequestMatcher("/users/registrationConfirm"));
-		web.ignoring().requestMatchers(PUBLIC_URLS);
+		web.ignoring().antMatchers(AUTH_WHITELIST);
+//	    List<RequestMatcher> matcherList = new ArrayList<>();
+//        for(int i=0; i < AUTH_WHITELIST.length; i++) {
+//            RequestMatcher newMatcher = new AntPathRequestMatcher(AUTH_WHITELIST[i]);
+//            matcherList.add(newMatcher);
+//        }
+//        RequestMatcher ignored = new OrRequestMatcher(matcherList);
+//        RequestMatcher PUBLIC_URLS = new OrRequestMatcher(ignored, 
+//                new AntPathRequestMatcher("/error"),
+//                new AntPathRequestMatcher("/login**"),
+//                //new AntPathRequestMatcher(basePath + "login**"),
+//                //new AntPathRequestMatcher("**/login**"),
+//                new AntPathRequestMatcher("/users/signup"),
+//                new AntPathRequestMatcher("/users/availableUsername"),
+//                new AntPathRequestMatcher("/users/recover"),
+//                new AntPathRequestMatcher("/users/listgroups"),
+//                new AntPathRequestMatcher("/users/listorganizations"),
+//                new AntPathRequestMatcher("/users/listusernames"),
+//                new AntPathRequestMatcher("/users/**/password", HttpMethod.GET.name()),
+//                new AntPathRequestMatcher("/util/**"),
+//                new AntPathRequestMatcher("/array/getGlycanFromGlytoucan/**"),
+//                new AntPathRequestMatcher("/array/getimage/**"),
+//                new AntPathRequestMatcher("/array/public/**"),
+//                new AntPathRequestMatcher("/users/registrationConfirm"));
+//		web.ignoring().requestMatchers(PUBLIC_URLS);
 	}
 	
 	class ClientResources {
