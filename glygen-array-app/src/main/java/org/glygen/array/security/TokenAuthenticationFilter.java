@@ -2,7 +2,6 @@ package org.glygen.array.security;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,51 +59,54 @@ final public class TokenAuthenticationFilter extends GenericFilterBean
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		final HttpServletRequest httpRequest = (HttpServletRequest)request;
-        logger.debug("Attempting to get token from: " + httpRequest.getRequestURL());
-        StringBuffer url = httpRequest.getRequestURL();
-        if (url.toString().endsWith("login/google")) {
-        	logger.debug("Needs to go to oauth filter");
-        	return;
-        }
-	    String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
-        if (token != null && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
-            // parse the token
-        	try {
-	            String user = Jwts.parser()
-	                    .setSigningKey(tokenSecret.getBytes())
-	                    .parseClaimsJws(token.replace(SecurityConstants.TOKEN_PREFIX, ""))
-	                    .getBody()
-	                    .getSubject();
-	            // retrieve the user's details from the database and set the authorities
-	            UserDetails userDetails = userService.loadUserByUsername(user);
-	            if (userDetails != null) {
-		            final UsernamePasswordAuthenticationToken authentication =
-		                    new UsernamePasswordAuthenticationToken(user, null, userDetails.getAuthorities());
-		            SecurityContextHolder.getContext().setAuthentication(authentication);
-	            }
-        	} catch (MalformedJwtException | SignatureException e) {
-        		log.debug("Not a valid JWS token.");
-        		//use validators to check against third-party authorization servers
-        		if (validators != null && !validators.isEmpty()) {
-        			for (AccessTokenValidator accessTokenValidator : validators) {
-						AccessTokenValidationResult result = accessTokenValidator.validate(token);
-						if (result.isValid()) {
-							Set<GrantedAuthority> roles = new HashSet<> ();
-							roles.add (new SimpleGrantedAuthority ("ROLE_USER"));
-							final UsernamePasswordAuthenticationToken authentication =
-				                    new UsernamePasswordAuthenticationToken(result.getTokenInfo().get("sub"), null, roles);
-							SecurityContextHolder.getContext().setAuthentication(authentication);
-				            break;
-						}
-					}
-        		}
-        		log.debug("All validators failed. Not a valid token");
-        	} catch (ExpiredJwtException e) {
-        		log.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
-        		sendError (httpRequest, (HttpServletResponse)response, e);
-        		return;
-        	}
-        };
+		
+		if (securedEndpoints.matches(httpRequest)) {   // check the token only for secured end points
+		    logger.debug("Attempting to get token from: " + httpRequest.getRequestURL());
+            StringBuffer url = httpRequest.getRequestURL();
+            if (url.toString().endsWith("login/google")) {
+            	logger.debug("Needs to go to oauth filter");
+            	return;
+            }
+    	    String token = httpRequest.getHeader(SecurityConstants.HEADER_STRING);
+            if (token != null && token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
+                // parse the token
+            	try {
+    	            String user = Jwts.parser()
+    	                    .setSigningKey(tokenSecret.getBytes())
+    	                    .parseClaimsJws(token.replace(SecurityConstants.TOKEN_PREFIX, ""))
+    	                    .getBody()
+    	                    .getSubject();
+    	            // retrieve the user's details from the database and set the authorities
+    	            UserDetails userDetails = userService.loadUserByUsername(user);
+    	            if (userDetails != null) {
+    		            final UsernamePasswordAuthenticationToken authentication =
+    		                    new UsernamePasswordAuthenticationToken(user, null, userDetails.getAuthorities());
+    		            SecurityContextHolder.getContext().setAuthentication(authentication);
+    	            }
+            	} catch (MalformedJwtException | SignatureException e) {
+            		log.debug("Not a valid JWS token.");
+            		//use validators to check against third-party authorization servers
+            		if (validators != null && !validators.isEmpty()) {
+            			for (AccessTokenValidator accessTokenValidator : validators) {
+    						AccessTokenValidationResult result = accessTokenValidator.validate(token);
+    						if (result.isValid()) {
+    							Set<GrantedAuthority> roles = new HashSet<> ();
+    							roles.add (new SimpleGrantedAuthority ("ROLE_USER"));
+    							final UsernamePasswordAuthenticationToken authentication =
+    				                    new UsernamePasswordAuthenticationToken(result.getTokenInfo().get("sub"), null, roles);
+    							SecurityContextHolder.getContext().setAuthentication(authentication);
+    				            break;
+    						}
+    					}
+            		}
+            		log.debug("All validators failed. Not a valid token");
+            	} catch (ExpiredJwtException e) {
+            		log.debug("token expired for id : " + e.getClaims().getId() + " message:" + e.getMessage());
+            		sendError (httpRequest, (HttpServletResponse)response, e);
+            		return;
+            	}
+            }
+		}
         
         chain.doFilter(request, response);
 	}
