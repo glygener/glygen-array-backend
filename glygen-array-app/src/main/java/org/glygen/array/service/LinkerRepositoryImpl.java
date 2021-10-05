@@ -1101,6 +1101,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 linkerObject = new Lipid();
                 break;
             case OTHER:
+            case UNKNOWN_OTHER:
                 linkerObject = new OtherLinker();
                 break;
             case UNKNOWN_LIPID:

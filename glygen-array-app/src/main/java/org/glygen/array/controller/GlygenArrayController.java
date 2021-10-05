@@ -1511,6 +1511,7 @@ public class GlygenArrayController {
 		case PROTEIN:
 			return addProteinLinker((ProteinLinker) linker, unknown, p);
         case OTHER:
+        case UNKNOWN_OTHER:
             return addOtherLinker ((OtherLinker) linker, p);
         case UNKNOWN_PEPTIDE:
             return addPeptideLinker ((PeptideLinker) linker, true, p);
@@ -1689,14 +1690,14 @@ public class GlygenArrayController {
 		try {
 			Linker l = null;
 			String linkerURI = null;
-			if (linker.getSequence() != null) {
+			if (linker.getSequence() != null && !linker.getSequence().trim().isEmpty()) {
 			    // modify the sequence to add position markers
 			    try {
                     linker.setSequence(addPositionToSequence(linker.getSequence().trim()));
                 } catch (Exception e) {
                     errorMessage.addError(new ObjectError("sequence", "NotValid"));
                 }
-				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
+				linkerURI = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
 					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
@@ -4832,6 +4833,7 @@ public class GlygenArrayController {
                 linker= new Lipid();
                 break;
             case OTHER:
+            case UNKNOWN_OTHER:
                 linker= new OtherLinker();
                 break;
             case PEPTIDE:

@@ -1106,7 +1106,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             while (statements3.hasNext()) {
                                 Statement st3 = statements3.next();
                                 if (st3.getPredicate().equals(hasType)) {
-                                    config.setType(ReducingEndType.valueOf(st3.getObject().stringValue()));
+                                    try {
+                                        config.setType(ReducingEndType.valueOf(st3.getObject().stringValue()));
+                                    } catch (Exception e) {
+                                        // enum constant is wrong in the repository
+                                        logger.warn ("enumeration constant is incorrect" + e.getMessage());
+                                        config.setType(ReducingEndType.UNKNOWN);
+                                    }
                                 } else if (st3.getPredicate().equals(RDFS.COMMENT)) {
                                     config.setComment(st3.getObject().stringValue());
                                 }

@@ -334,7 +334,7 @@ public class SearchController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             
-            String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
+            String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence.trim(), sequenceFormat);
             
             if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Error in the arguments", errorMessage);
@@ -403,7 +403,7 @@ public class SearchController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         
-        String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence, sequenceFormat);
+        String searchSequence = SequenceUtils.parseSequence(errorMessage, sequence.trim(), sequenceFormat);
         
         if (errorMessage != null && errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             throw new IllegalArgumentException("Error in the arguments", errorMessage);
@@ -501,7 +501,7 @@ public class SearchController {
             
             String idList = null;
             try {
-                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId);
+                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId.trim());
                 if (r != null) {
                     idList = r.getIdList();
                     result.setType(GlycanSearchType.valueOf(r.getSearchType()));
@@ -661,9 +661,9 @@ public class SearchController {
         
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
         try {
-            if (searchInput.getDatasetName() != null && !searchInput.getDatasetName().isEmpty()) {
+            if (searchInput.getDatasetName() != null && !searchInput.getDatasetName().trim().isEmpty()) {
                 List<SparqlEntity> results = queryHelper.retrieveByLabel(
-                        searchInput.getDatasetName(), ArrayDatasetRepositoryImpl.datasetTypePredicate, GlygenArrayRepository.DEFAULT_GRAPH);
+                        searchInput.getDatasetName().trim(), ArrayDatasetRepositoryImpl.datasetTypePredicate, GlygenArrayRepository.DEFAULT_GRAPH);
                 List<String> matchedIds = new ArrayList<String>();
                 if (results != null) {
                     for (SparqlEntity r: results) {
@@ -671,11 +671,11 @@ public class SearchController {
                         matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                     }
                 }
-                searchResultMap.put(searchInput.getDatasetName().hashCode()+"n", matchedIds);
+                searchResultMap.put(searchInput.getDatasetName().trim().hashCode()+"n", matchedIds);
             }
-            if (searchInput.getPrintedSlideName() != null && !searchInput.getPrintedSlideName().isEmpty()) {
+            if (searchInput.getPrintedSlideName() != null && !searchInput.getPrintedSlideName().trim().isEmpty()) {
                 List<SparqlEntity> results = queryHelper.retrieveDatasetBySlideName(
-                        searchInput.getPrintedSlideName(), GlygenArrayRepository.DEFAULT_GRAPH);
+                        searchInput.getPrintedSlideName().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
                 List<String> matchedIds = new ArrayList<String>();
                 if (results != null) {
                     for (SparqlEntity r: results) {
@@ -683,12 +683,12 @@ public class SearchController {
                         matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                     }
                 }
-                searchResultMap.put(searchInput.getPrintedSlideName().hashCode()+"s", matchedIds);
+                searchResultMap.put(searchInput.getPrintedSlideName().trim().hashCode()+"s", matchedIds);
             }
             
-            if (searchInput.getPmid() != null && !searchInput.getPmid().isEmpty()) {
+            if (searchInput.getPmid() != null && !searchInput.getPmid().trim().isEmpty()) {
                 List<SparqlEntity> results = queryHelper.retrieveDatasetByPublication(
-                        searchInput.getPmid(), GlygenArrayRepository.DEFAULT_GRAPH);
+                        searchInput.getPmid().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
                 List<String> matchedIds = new ArrayList<String>();
                 if (results != null) {
                     for (SparqlEntity r: results) {
@@ -696,7 +696,7 @@ public class SearchController {
                         matchedIds.add(m.substring(m.lastIndexOf("/")+1));
                     }
                 }
-                searchResultMap.put(searchInput.getPmid().hashCode()+"p", matchedIds);
+                searchResultMap.put(searchInput.getPmid().trim().hashCode()+"p", matchedIds);
             }
             
             Set<String> finalMatches = new HashSet<String>();
@@ -718,9 +718,9 @@ public class SearchController {
                 i++;
             }
             
-            if ((searchInput.getDatasetName() == null || searchInput.getDatasetName().isEmpty()) 
-                    && ((searchInput.getPmid() == null || searchInput.getPmid().isEmpty()) 
-                            && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().isEmpty()))) {
+            if ((searchInput.getDatasetName() == null || searchInput.getDatasetName().trim().isEmpty()) 
+                    && ((searchInput.getPmid() == null || searchInput.getPmid().trim().isEmpty()) 
+                            && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().trim().isEmpty()))) {
                 // no restrictions, return all datasets
                 searchKey = "alldatasets";
                 List<String> matches = datasetRepository.getAllDatasets(null);
@@ -771,7 +771,7 @@ public class SearchController {
         
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
         try {
-            if (searchInput.getUsername() != null && !searchInput.getUsername().isEmpty()) {
+            if (searchInput.getUsername() != null && !searchInput.getUsername().trim().isEmpty()) {
                 UserEntity user = userRepository.findByUsernameIgnoreCase(searchInput.getUsername().trim());
                 // search by owner
                 List<SparqlEntity> results = queryHelper.retrieveDatasetByOwner(searchInput.getUsername().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
@@ -791,11 +791,11 @@ public class SearchController {
                        }
                    }
                 }
-                searchResultMap.put(searchInput.getUsername().hashCode()+"user", matchedIds);
+                searchResultMap.put(searchInput.getUsername().trim().hashCode()+"user", matchedIds);
             }
             
             // lastname - find the username belonging to that lastname and search by owner
-            if (searchInput.getLastName() != null && !searchInput.getLastName().isEmpty()) {
+            if (searchInput.getLastName() != null && !searchInput.getLastName().trim().isEmpty()) {
                 List<UserEntity> users = userRepository.findAllByLastNameIgnoreCase(searchInput.getLastName().trim());
                 List<String> matchedIds = new ArrayList<String>();
                 for (UserEntity user: users) {
@@ -818,11 +818,11 @@ public class SearchController {
                     }
                 }
                 
-                searchResultMap.put(searchInput.getLastName().hashCode()+"last", matchedIds);
+                searchResultMap.put(searchInput.getLastName().trim().hashCode()+"last", matchedIds);
             }
             
             // firstname - find the username belonging to that firstname and search by owner
-            if (searchInput.getFirstName() != null && !searchInput.getFirstName().isEmpty()) {
+            if (searchInput.getFirstName() != null && !searchInput.getFirstName().trim().isEmpty()) {
                 List<UserEntity> users = userRepository.findAllByFirstNameIgnoreCase(searchInput.getFirstName().trim());
                 List<String> matchedIds = new ArrayList<String>();
                 for (UserEntity user: users) {
@@ -845,10 +845,10 @@ public class SearchController {
                     }
                 }
                 
-                searchResultMap.put(searchInput.getFirstName().hashCode()+"first", matchedIds);
+                searchResultMap.put(searchInput.getFirstName().trim().hashCode()+"first", matchedIds);
             }
             
-            if (searchInput.getGroupName() != null && !searchInput.getGroupName().isEmpty()) {
+            if (searchInput.getGroupName() != null && !searchInput.getGroupName().trim().isEmpty()) {
                 List<UserEntity> users = userRepository.findAllByGroupNameIgnoreCase(searchInput.getGroupName().trim());
                 List<String> matchedIds = new ArrayList<String>();
                 for (UserEntity user: users) {
@@ -871,10 +871,10 @@ public class SearchController {
                     }
                 }
                 
-                searchResultMap.put(searchInput.getGroupName().hashCode()+"gr", matchedIds);
+                searchResultMap.put(searchInput.getGroupName().trim().hashCode()+"gr", matchedIds);
             }
             
-            if (searchInput.getInstitution() != null && !searchInput.getInstitution().isEmpty()) {
+            if (searchInput.getInstitution() != null && !searchInput.getInstitution().trim().isEmpty()) {
                 List<UserEntity> users = userRepository.findAllByAffiliationIgnoreCase(searchInput.getInstitution().trim());
                 List<String> matchedIds = new ArrayList<String>();
                 for (UserEntity user: users) {
@@ -897,7 +897,7 @@ public class SearchController {
                     }
                 }
                 
-                searchResultMap.put(searchInput.getInstitution().hashCode()+"org", matchedIds);
+                searchResultMap.put(searchInput.getInstitution().trim().hashCode()+"org", matchedIds);
             }
             
             
@@ -920,11 +920,11 @@ public class SearchController {
                 i++;
             }
             
-            if ((searchInput.getUsername() == null || searchInput.getUsername().isEmpty()) 
-                    && (searchInput.getLastName() == null || searchInput.getLastName().isEmpty())
-                    && (searchInput.getFirstName() == null || searchInput.getFirstName().isEmpty())
-                    && (searchInput.getGroupName() == null || searchInput.getGroupName().isEmpty())
-                    && (searchInput.getInstitution() == null || searchInput.getInstitution().isEmpty())) {
+            if ((searchInput.getUsername() == null || searchInput.getUsername().trim().isEmpty()) 
+                    && (searchInput.getLastName() == null || searchInput.getLastName().trim().isEmpty())
+                    && (searchInput.getFirstName() == null || searchInput.getFirstName().trim().isEmpty())
+                    && (searchInput.getGroupName() == null || searchInput.getGroupName().trim().isEmpty())
+                    && (searchInput.getInstitution() == null || searchInput.getInstitution().trim().isEmpty())) {
                 // no restrictions, return all datasets
                 searchKey = "alldatasets";
                 List<String> matches = datasetRepository.getAllDatasets(null);
@@ -1007,7 +1007,7 @@ public class SearchController {
             List<ArrayDataset> searchDatasets = new ArrayList<ArrayDataset>();
             String idList = null;
             try {
-                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId);
+                GlycanSearchResultEntity r = searchResultRepository.findBySequence(searchId.trim());
                 if (r != null) {
                     idList = r.getIdList();
                     result.setType(DatasetSearchType.valueOf(r.getSearchType()));
