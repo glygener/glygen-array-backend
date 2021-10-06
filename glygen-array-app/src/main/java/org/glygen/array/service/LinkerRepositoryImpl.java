@@ -860,6 +860,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
     @Override
     public String getSearchPredicate(String searchValue, String queryLabel) {
+        if (searchValue != null)  searchValue = searchValue.trim();
         String predicates = "";
         
         predicates += "OPTIONAL {" + queryLabel + " rdfs:label ?value1 } \n";

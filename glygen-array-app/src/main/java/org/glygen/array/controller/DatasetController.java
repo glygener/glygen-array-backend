@@ -286,14 +286,14 @@ public class DatasetController {
         ArrayDataset dataset = null;
         // check if the dataset with the given id exists
         try {
-            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }
@@ -374,14 +374,14 @@ public class DatasetController {
         UserEntity owner = user;
         ArrayDataset dataset = null;
         try {
-            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }
@@ -443,14 +443,14 @@ public class DatasetController {
         // check if the dataset with the given id exists
         ArrayDataset dataset = null;
         try {
-            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }
@@ -521,7 +521,7 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the dataset with the given id exists
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
@@ -568,7 +568,7 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check if the dataset with the given id exists
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
             }
@@ -627,14 +627,14 @@ public class DatasetController {
         UserEntity owner = user;
         // check if the dataset with the given id exists
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }
@@ -647,7 +647,7 @@ public class DatasetController {
         
         //check if the dataset is public
         try {
-            String publicID = datasetRepository.getDatasetPublicId(datasetId);
+            String publicID = datasetRepository.getDatasetPublicId(datasetId.trim());
             if (publicID != null) {
                 // this is major change, do not allow
                 errorMessage.addError(new ObjectError("dataset", "Public"));
@@ -2068,14 +2068,14 @@ public class DatasetController {
         UserEntity owner = user;
         // check if the dataset with the given id exists
         try {
-            dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId.trim());
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }
@@ -2143,7 +2143,7 @@ public class DatasetController {
             UserEntity originalUser = owner;
             CompletableFuture<List<Intensity>> intensities = null;
             try {
-                intensities = parserAsyncService.parseProcessDataFile(datasetId, file, dataset.getSlides().get(0), owner);
+                intensities = parserAsyncService.parseProcessDataFile(datasetId.trim(), file, dataset.getSlides().get(0), owner);
                 intensities.whenComplete((intensity, e) -> {
                     try {
                         String processedURI = processedData.getUri();
@@ -2155,7 +2155,7 @@ public class DatasetController {
                             
                         } else {
                             processedData.setIntensity(intensity);
-                            file.setFileFolder(uploadDir + File.separator + datasetId);
+                            file.setFileFolder(uploadDir + File.separator + datasetId.trim());
                             processedData.setFile(file);
                             datasetRepository.addIntensitiesToProcessedData(processedData, originalUser);
                             processedData.setStatus(FutureTaskStatus.DONE);
@@ -2513,6 +2513,9 @@ public class DatasetController {
         case SPOT:
             typePredicate = ArrayDatasetRepositoryImpl.spotMetadataTypePredicate;
             break;
+        case FEATURE:
+            typePredicate = ArrayDatasetRepositoryImpl.featureMetadataTypePredicate;
+            break;
         }
         MetadataCategory metadata = null;
         try {
@@ -2544,6 +2547,8 @@ public class DatasetController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         MetadataCategory metadata = null;
+        metadataId = metadataId.trim();
+        datasetId = datasetId.trim();
         switch (type) {
         case SAMPLE:
             metadata = getSample(metadataId, datasetId, p);
@@ -2859,14 +2864,14 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
-                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
-                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId.trim());
                     if (coOwnedGraph != null) {
                         UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                         if (originalUser != null) {
-                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                             owner = originalUser;
                         }
                     }
@@ -2954,6 +2959,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3063,6 +3069,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3144,6 +3151,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3225,6 +3233,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3306,6 +3315,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3387,6 +3397,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3468,6 +3479,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3549,6 +3561,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3630,6 +3643,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -3863,6 +3877,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -3902,7 +3917,7 @@ public class DatasetController {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
             
             // delete the files associated with the array dataset
-            ArrayDataset dataset = getArrayDataset(id, false, principal);
+            ArrayDataset dataset = getArrayDataset(id.trim(), false, principal);
             // check the status of dataset, if PROCESSING cannot delete
             if (dataset != null && dataset.getStatus() == FutureTaskStatus.PROCESSING) {
                 ErrorMessage errorMessage = new ErrorMessage();
@@ -3954,6 +3969,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4073,6 +4089,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4189,6 +4206,7 @@ public class DatasetController {
             // check if the dataset with the given id exists
             ArrayDataset dataset;
             try {
+                datasetId = datasetId.trim();
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -4264,6 +4282,7 @@ public class DatasetController {
             // check if the dataset with the given id exists
             ArrayDataset dataset;
             try {
+                datasetId = datasetId.trim();
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -4339,6 +4358,7 @@ public class DatasetController {
             // check if the dataset with the given id exists
             ArrayDataset dataset;
             try {
+                datasetId = datasetId.trim();
                 dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -4410,6 +4430,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4456,6 +4477,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4502,6 +4524,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4548,6 +4571,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4594,6 +4618,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4640,6 +4665,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4686,6 +4712,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4732,6 +4759,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4779,6 +4807,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4841,14 +4870,14 @@ public class DatasetController {
             Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            ArrayDataset dataset = datasetRepository.getArrayDataset(id, loadAll, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(id.trim(), loadAll, user);
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
                 String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + id);
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(id, loadAll, originalUser);
+                        dataset = datasetRepository.getArrayDataset(id.trim(), loadAll, originalUser);
                     }
                 }
             }
@@ -4891,6 +4920,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4942,6 +4972,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -4992,6 +5023,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5042,6 +5074,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5091,6 +5124,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5140,6 +5174,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5190,6 +5225,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5240,6 +5276,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5290,6 +5327,7 @@ public class DatasetController {
             if (datasetId != null) {
                 // check if the dataset with the given id exists for this user, or if the user is the co-owner
                 try {
+                    datasetId = datasetId.trim();
                     ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                     if (dataset == null) {
                         // check if the user can access this dataset as a co-owner
@@ -5364,6 +5402,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -5836,6 +5875,7 @@ public class DatasetController {
         if (datasetId != null) {
             // check if the dataset with the given id exists for this user, or if the user is the co-owner
             try {
+                datasetId = datasetId.trim();
                 ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
                 if (dataset == null) {
                     // check if the user can access this dataset as a co-owner
@@ -5965,15 +6005,15 @@ public class DatasetController {
         try {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
             
             if (dataset == null) {
                 // check if the user can access this dataset as a co-owner
-                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId.trim());
                 if (coOwnedGraph != null) {
                     UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
                     if (originalUser != null) {
-                        dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
                         owner = originalUser;
                     }
                 }

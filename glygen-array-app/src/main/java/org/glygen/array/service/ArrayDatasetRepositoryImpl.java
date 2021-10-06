@@ -3180,7 +3180,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     @Override
-    public int getIntensityDataListCount(String processedDataId, UserEntity user) throws SparqlException, SQLException {
+    public int getIntensityDataListCount(String processedDataId, UserEntity user, String searchValue) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -3193,6 +3193,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         int total = 0;
         
         if (graph != null) {
+            
+            String searchPredicate = "";
+            if (searchValue != null && !searchValue.isEmpty())
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+            
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
             queryBuf.append ("SELECT count(DISTINCT ?feature) as ?count \n");
@@ -3203,6 +3208,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     " ?intensity gadr:binding_value_of ?spot . \n" +
                     " ?spot gadr:has_feature ?feature . \n" +
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
+                    searchPredicate +
                     " }");
             List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
             for (SparqlEntity sparqlEntity : results) {

@@ -84,7 +84,6 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     List<IntensityData> getIntensityDataList(String processedDataId, UserEntity user, int offset, int limit,
             String field, int order, String searchValue) throws SparqlException, SQLException;
-    int getIntensityDataListCount(String processedDataId, UserEntity user) throws SparqlException, SQLException;
     Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
@@ -112,5 +111,7 @@ public interface ArrayDatasetRepository {
     List<String> getAllPublicPrintedSlideNames() throws SparqlException;
     List<String> getAllPublicPmids() throws SparqlException;
     int getPrintedSlideCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
+    int getIntensityDataListCount(String processedDataId, UserEntity user, String searchValue)
+            throws SparqlException, SQLException;
     
 }

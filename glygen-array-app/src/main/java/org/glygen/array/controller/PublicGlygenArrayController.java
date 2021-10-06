@@ -219,11 +219,11 @@ public class PublicGlygenArrayController {
             @PathVariable("glycanId") String glycanId) {
         try {
             
-            Glycan glycan = glycanRepository.getGlycanById(glycanId, null);
+            Glycan glycan = glycanRepository.getGlycanById(glycanId.trim(), null);
             if (glycan == null) {
                 throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
             }
-            byte[] cartoon = GlygenArrayController.getCartoonForGlycan(glycanId, imageLocation);
+            byte[] cartoon = GlygenArrayController.getCartoonForGlycan(glycanId.trim(), imageLocation);
             glycan.setCartoon(cartoon);
             return glycan;
             
@@ -271,9 +271,9 @@ public class PublicGlygenArrayController {
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
-            int total = datasetRepository.getDatasetCountByGlycan(glycanId, null);
+            int total = datasetRepository.getDatasetCountByGlycan(glycanId.trim(), null);
             
-            List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId, offset, limit, field, order, false, null);
+            List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId.trim(), offset, limit, field, order, false, null);
             // need to clear rawdata, processed data etc.
             for (ArrayDataset dataset: resultList) {
                 dataset.setImages(null);
@@ -301,7 +301,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the linker to retrieve") 
             @PathVariable("linkerId") String linkerId) {
         try {
-            Linker linker = linkerRepository.getLinkerById(linkerId, null);
+            Linker linker = linkerRepository.getLinkerById(linkerId.trim(), null);
             if (linker == null) {
                 throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
             }
@@ -656,7 +656,7 @@ public class PublicGlygenArrayController {
                 searchDatasets.add(dataset);
                 added ++;
                 
-                if (added >= limit) break;
+                if (limit != -1 && added >= limit) break;
                 
             }
     
@@ -757,7 +757,7 @@ public class PublicGlygenArrayController {
                 searchDatasets.add(dataset);
                 added ++;
                 
-                if (added >= limit) break;
+                if (limit != -1 && added >= limit) break;
                 
             }
     
@@ -1228,7 +1228,7 @@ public class PublicGlygenArrayController {
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll) {
         try {
             
-            BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId, null, loadAll);
+            BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId.trim(), null, loadAll);
             if (layout == null) {
                 throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
             }
@@ -1252,7 +1252,7 @@ public class PublicGlygenArrayController {
             @ApiParam (required=false, defaultValue = "true", value="if false, do not load slide details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll) {
         try {
-            SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, null, loadAll);
+            SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId.trim(), null, loadAll);
             if (layout == null) {
                 throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
             }
@@ -1274,7 +1274,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the feature to retrieve") 
             @PathVariable("featureId") String featureId) {
         try {
-            org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId, null);
+            org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId.trim(), null);
             if (feature == null) {
                 throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
             }
@@ -1298,7 +1298,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=false, value="load rawdata and processed data measurements or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll) {
         try {
-            ArrayDataset dataset = datasetRepository.getArrayDataset(id, loadAll, null);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(id.trim(), loadAll, null);
             if (dataset == null) {
                 throw new EntityNotFoundException("Array dataset with id : " + id + " does not exist in the repository");
             }
@@ -1320,7 +1320,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the sample to retrieve") 
             @PathVariable("sampleId") String id) {
         try {
-            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (sample == null) {
                 throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
             }
@@ -1341,7 +1341,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the printer to retrieve") 
             @PathVariable("printerId") String id) {
         try {
-            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
             }
@@ -1362,7 +1362,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
             @PathVariable("scannerId") String id) {
         try {
-            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
             }
@@ -1382,7 +1382,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
             @PathVariable("slideId") String id) {
         try {
-            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
             }
@@ -1402,7 +1402,8 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
             @PathVariable("imagesoftwareId") String id) {
         try {
-            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic 
+                    + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
             }
@@ -1424,7 +1425,8 @@ public class PublicGlygenArrayController {
             @PathVariable("dataprocessingId") String id) {
         try {
             
-            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic 
+                    + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
             }
@@ -1446,7 +1448,7 @@ public class PublicGlygenArrayController {
             @PathVariable("assayId") String id) {
         try {
             
-            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+            AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (metadata == null) {
                 throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
             }
@@ -1476,9 +1478,9 @@ public class PublicGlygenArrayController {
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
             @ApiParam(required=true, value="id of the processed data from which the intensities should be retrieved") 
-            @RequestParam(value="processedDataId", required=false)
+            @RequestParam(value="processedDataId", required=true)
             String processedDataId, 
-            @RequestParam(value="datasetId", required=false)
+            @RequestParam(value="datasetId", required=true)
             @ApiParam(required=true, value="id of the dataset for which the intensities should be retrieved")
             String datasetId) {
         try {
@@ -1503,7 +1505,7 @@ public class PublicGlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             
             IntensityDataResultView result = new IntensityDataResultView();
-            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, null);
+            ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, null);
             if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
                 errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
@@ -1535,9 +1537,9 @@ public class PublicGlygenArrayController {
                     }
                 }
                 if (existing != null){      
-                    int total = datasetRepository.getIntensityDataListCount(processedDataId, null);
+                    int total = datasetRepository.getIntensityDataListCount(processedDataId.trim(), null, searchValue);
                     // need to retrieve the intensities
-                    List<IntensityData> dataList = datasetRepository.getIntensityDataList(processedDataId, null, offset, limit, field, order, searchValue);
+                    List<IntensityData> dataList = datasetRepository.getIntensityDataList(processedDataId.trim(), null, offset, limit, field, order, searchValue);
                     
                     // populate the cartoon images
                     for (IntensityData data: dataList) {
@@ -1580,6 +1582,9 @@ public class PublicGlygenArrayController {
             @RequestParam String originalName) {
         
         // check to see if the user can access this file
+        fileFolder = fileFolder.trim();
+        fileIdentifier = fileIdentifier.trim();
+        originalName = originalName.trim();
         String datasetId = fileFolder.substring(fileFolder.lastIndexOf("/")+1);
         ErrorMessage errorMessage = new ErrorMessage("Invalid input");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());

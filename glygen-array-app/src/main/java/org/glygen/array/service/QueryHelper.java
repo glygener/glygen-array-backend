@@ -53,6 +53,7 @@ public class QueryHelper {
     }
     
     public String getSearchPredicate (String searchValue, String queryVariable) {
+        if (searchValue != null)  searchValue = searchValue.trim();
         String predicates = "";
         
         predicates += "OPTIONAL {" + queryVariable + " rdfs:label ?value1 }.\n";
