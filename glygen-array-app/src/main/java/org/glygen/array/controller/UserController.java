@@ -247,10 +247,10 @@ public class UserController {
 	    		@ApiResponse(code=415, message="Media type is not supported"),
 	    		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
-		UserEntity userEntity = userRepository.findByUsernameIgnoreCase(loginId);
+		UserEntity userEntity = userRepository.findByUsernameIgnoreCase(loginId.trim());
 		if (userEntity == null) {
 		    // find it with email
-		    userEntity = userRepository.findByEmailIgnoreCase(loginId);
+		    userEntity = userRepository.findByEmailIgnoreCase(loginId.trim());
 		    if (userEntity == null) {
 		        ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
 	            errorMessage.addError(new ObjectError("username", "NotFound"));
@@ -350,12 +350,12 @@ public class UserController {
     		        }
     			}
     			
-    			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation());
-    			if (user.getGroupName() != null) userEntity.setGroupName(user.getGroupName());
-    			if (user.getDepartment() != null) userEntity.setDepartment(user.getDepartment());
-    			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite());
-    			if (user.getFirstName() != null && !user.getFirstName().isEmpty()) userEntity.setFirstName(user.getFirstName());
-    			if (user.getLastName() != null && !user.getLastName().isEmpty()) userEntity.setLastName(user.getLastName());
+    			if (user.getAffiliation() != null) userEntity.setAffiliation(user.getAffiliation().trim());
+    			if (user.getGroupName() != null) userEntity.setGroupName(user.getGroupName().trim());
+    			if (user.getDepartment() != null) userEntity.setDepartment(user.getDepartment().trim());
+    			if (user.getAffiliationWebsite() != null) userEntity.setAffiliationWebsite(user.getAffiliationWebsite().trim());
+    			if (user.getFirstName() != null && !user.getFirstName().trim().isEmpty()) userEntity.setFirstName(user.getFirstName().trim());
+    			if (user.getLastName() != null && !user.getLastName().trim().isEmpty()) userEntity.setLastName(user.getLastName().trim());
     			if (user.getPublicFlag() != null) userEntity.setPublicFlag(user.getPublicFlag());
     	    	userRepository.save(userEntity);
     		}
@@ -378,11 +378,11 @@ public class UserController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException, LinkExpiredException {
-        final String result = userManager.validateVerificationToken(token);
+        final String result = userManager.validateVerificationToken(token.trim());
         if (result.equals(UserManagerImpl.TOKEN_VALID)) {
-            final UserEntity user = userManager.getUserByToken(token);
+            final UserEntity user = userManager.getUserByToken(token.trim());
             // we don't need the token after confirmation
-            userManager.deleteVerificationToken(token);
+            userManager.deleteVerificationToken(token.trim());
             return new Confirmation("User " + user.getUsername() + " is confirmed", HttpStatus.OK.value());
         } else if (result.equals(UserManagerImpl.TOKEN_INVALID)) {
         	logger.error("Token entered is not valid!");
@@ -405,7 +405,7 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
 		userManager.cleanUpExpiredSignup(); // to make sure we are not holding onto any user name which is not verified and expired
-		UserEntity user = userRepository.findByUsernameIgnoreCase(username);
+		UserEntity user = userRepository.findByUsernameIgnoreCase(username.trim());
 		if(user!=null) {
 			ErrorMessage errorMessage = new ErrorMessage("Cannot add duplicate user");
 			errorMessage.addError(new ObjectError("username", "Duplicate"));
@@ -439,10 +439,10 @@ public class UserController {
     		// username of the authenticated user should match the username parameter
     		// a user can only see his/her own user information
     		// but admin can access all the users' information
-    	    user = userRepository.findByUsernameIgnoreCase(userName);
+    	    user = userRepository.findByUsernameIgnoreCase(userName.trim());
     	    if (user == null) {
     	        // try with email
-    	        user = userRepository.findByEmailIgnoreCase(userName);
+    	        user = userRepository.findByEmailIgnoreCase(userName.trim());
     	        if (user == null) {
     	            ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
     	            errorMessage.addError(new ObjectError("username", "NotFound"));
@@ -451,9 +451,9 @@ public class UserController {
     	    }
     		if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
     			// no issues, the admin can access any profile
-    		} else if (auth.getName().equalsIgnoreCase(userName)) {
+    		} else if (auth.getName().equalsIgnoreCase(userName.trim())) {
     			// the user can display his/her own details
-    		} else if (user.getEmail().equalsIgnoreCase(userName)) {
+    		} else if (user.getEmail().equalsIgnoreCase(userName.trim())) {
     		    // the user can retrieve his/her own details
     		} else {
     			logger.info("The user: " + auth.getName() + " is not authorized to access " + userName + "'s information");
@@ -485,7 +485,7 @@ public class UserController {
             @ApiResponse(code=404, message="User with given email does not exist"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation recoverUsername (@RequestParam(value="email", required=true) String email) {
-		UserEntity user = userManager.recoverLogin(email);
+		UserEntity user = userManager.recoverLogin(email.trim());
     	
     	if (user == null) {
     		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this email");
@@ -508,9 +508,9 @@ public class UserController {
     		@ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody Confirmation recoverPassword (
     		@PathVariable("userName") String loginId) {
-    	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId);
+    	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId.trim());
     	if (user == null) {
-    	    user = userRepository.findByEmailIgnoreCase(loginId);
+    	    user = userRepository.findByEmailIgnoreCase(loginId.trim());
     	    if (user == null) {
         		ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
         		errorMessage.addError(new ObjectError("username", "NotFound"));
@@ -542,9 +542,9 @@ public class UserController {
     		// not authenticated
     		throw new BadCredentialsException("Unauthorized to change the password");
     	}
-    	UserEntity user = userManager.getUserByUsername(userName);
+    	UserEntity user = userManager.getUserByUsername(userName.trim());
     	if (user == null) {
-    	    user = userRepository.findByEmailIgnoreCase(userName);
+    	    user = userRepository.findByEmailIgnoreCase(userName.trim());
     	    if (user == null) {
     	        ErrorMessage errorMessage = new ErrorMessage ("No user is associated with this loginId");
                 errorMessage.addError(new ObjectError("username", "NotFound"));
@@ -552,7 +552,7 @@ public class UserController {
     	    }
     	}
     	
-    	if (!p.getName().equalsIgnoreCase(userName) && !p.getName().equalsIgnoreCase(user.getUsername())) {
+    	if (!p.getName().equalsIgnoreCase(userName.trim()) && !p.getName().equalsIgnoreCase(user.getUsername())) {
     		logger.warn("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
     		throw new AccessDeniedException("The user: " + p.getName() + " is not authorized to change " + userName + "'s password");
     	}
@@ -573,18 +573,16 @@ public class UserController {
     	//password validation 
     	Pattern pattern = Pattern.compile(PasswordValidator.PASSWORD_PATTERN);
     	
-    	if (!pattern.matcher(changePassword.getNewPassword()).matches()) {
-    		logger.debug("Password fails pattern: " + changePassword.getNewPassword());
+    	if (!pattern.matcher(changePassword.getNewPassword().trim()).matches()) {
     		ErrorMessage errorMessage = new ErrorMessage ("new password is not valid. The password length must be greater than or equal to 5, must contain one or more uppercase characters, \n " + 
     				"must contain one or more lowercase characters, must contain one or more numeric values and must contain one or more special characters");
     		errorMessage.addError(new ObjectError("password", "NotValid"));
     		throw new IllegalArgumentException("Invalid Input: Password is not valid", errorMessage);
     	}
     	
-    	if(passwordEncoder.matches(changePassword.getCurrentPassword(), user.getPassword())) {
+    	if(passwordEncoder.matches(changePassword.getCurrentPassword().trim(), user.getPassword())) {
     		// encrypt the password
-    		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword());
-        	logger.debug("new password is {}", hashedPassword);
+    		String hashedPassword = passwordEncoder.encode(changePassword.getNewPassword().trim());
         	userManager.changePassword(user, hashedPassword);
     	} else {
     		logger.error("Current Password is not valid!");

@@ -415,6 +415,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
 			Literal type = f.createLiteral(g.getType().name());
 			IRI glycanType = f.createIRI(ontPrefix + "Glycan");
+			Literal subType = f.createLiteral(g.getSubType().name());
+			IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
 			
 			statements.add(f.createStatement(localGlycan, RDF.TYPE, glycanType, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasGlycanType, type, graphIRI));
@@ -424,6 +426,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			statements.add(f.createStatement(localGlycan, RDFS.LABEL, glycanLabel, graphIRI));
 			statements.add(f.createStatement(localGlycan, hasInternalId, internalId, graphIRI));
 			statements.add(f.createStatement(localGlycan, RDFS.COMMENT, glycanComment, graphIRI));
+			statements.add(f.createStatement(localGlycan, hasSubType, subType, graphIRI));
 			
 			sparqlDAO.addStatements(statements, graphIRI);
 			
@@ -463,6 +466,15 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         List<SparqlEntity> results = queryHelper.canDeleteQuery(glycanURI, graph);
         if (!results.isEmpty())
             canDelete = false;
+        if (canDelete) {
+            // check the related ones
+            List<String> others = getRelatedGlycans(glycanURI, graph);
+            for (String uri: others) {
+                results = queryHelper.canDeleteQuery(uri, graph);
+                if (!results.isEmpty())
+                    canDelete = false;
+            }
+        }
         
         return canDelete;
     }
@@ -472,6 +484,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI glycan = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
+		// delete related glycans first
+		List<String> related = getRelatedGlycans(uri, graph);
+		for (String other: related) {
+            deleteGlycanByURI(other, graph);
+        }
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(glycan, hasSequence, null, graphIRI);
 		while (statements.hasNext()) {
 		    Statement st = statements.next();
@@ -483,6 +500,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		}
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+		
+		
 	}
 
 	/**
@@ -1442,7 +1461,38 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         return mass;
     }
-
+    
+    /**
+     * return related glycans for the given base type glycan
+     * @param glycanURI
+     * @param graph
+     * @return list of uris of the related glycans
+     * @throws SQLException
+     * @throws SparqlException
+     */
+    private List<String> getRelatedGlycans (String glycanURI, String graph) throws SparqlException {        
+        List<String> uriList = new ArrayList<String>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + "> \n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " <" + glycanURI + "> gadr:is_related ?s . }\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                uriList.add(uri);
+            }
+        }
+        
+        return uriList;
+        
+    }
+ 
     @Override
     public Glycan retrieveOtherSubType(Glycan baseType, GlycanSubsumtionType subType, UserEntity user)
             throws SparqlException, SQLException {

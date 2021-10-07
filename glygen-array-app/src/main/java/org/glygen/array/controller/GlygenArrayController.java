@@ -242,7 +242,7 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Invalid Input: Not a valid alias", errorMessage);
 			}
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			glycanRepository.addAliasForGlycan(glycanId, alias, user);
+			glycanRepository.addAliasForGlycan(glycanId.trim(), alias.trim(), user);
 		} catch (SparqlException e) {
 			throw new GlycanRepositoryException("Error updating glycan with glycanId: " +glycanId);
 		}
@@ -2509,7 +2509,7 @@ public class GlygenArrayController {
 
 		UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
 		
-		SlideLayout existing = layoutRepository.getSlideLayoutByName(slidelayoutname, user);
+		SlideLayout existing = layoutRepository.getSlideLayoutByName(slidelayoutname.trim(), user);
 
 		if (existing != null) {
 			// duplicate
@@ -2534,7 +2534,7 @@ public class GlygenArrayController {
 			@PathVariable("layoutId") String blockLayoutId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			layoutRepository.deleteBlockLayout(blockLayoutId, user);
+			layoutRepository.deleteBlockLayout(blockLayoutId.trim(), user);
 			return new Confirmation("Block Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete block layout " + blockLayoutId);
@@ -2554,7 +2554,7 @@ public class GlygenArrayController {
 			@PathVariable("featureId") String featureId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			featureRepository.deleteFeature(featureId, user);
+			featureRepository.deleteFeature(featureId.trim(), user);
 			return new Confirmation("Feature deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete feature " + featureId, e);
@@ -2574,7 +2574,7 @@ public class GlygenArrayController {
 			@PathVariable("glycanId") String glycanId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			glycanRepository.deleteGlycan(glycanId, user);
+			glycanRepository.deleteGlycan(glycanId.trim(), user);
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId, e);
@@ -2594,7 +2594,7 @@ public class GlygenArrayController {
 			@PathVariable("linkerId") String linkerId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			linkerRepository.deleteLinker(linkerId, user);
+			linkerRepository.deleteLinker(linkerId.trim(), user);
 			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete linker " + linkerId, e);
@@ -2614,7 +2614,7 @@ public class GlygenArrayController {
 			@PathVariable("layoutId") String layoutId, Principal principal) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			layoutRepository.deleteSlideLayout(layoutId, user);
+			layoutRepository.deleteSlideLayout(layoutId.trim(), user);
 			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId, e);
@@ -2638,10 +2638,10 @@ public class GlygenArrayController {
 			Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId, user, loadAll);
+			BlockLayout layout = layoutRepository.getBlockLayoutById(layoutId.trim(), user, loadAll);
 			if (layout == null) {
 			    // check if it is from public graph
-			    layout = layoutRepository.getBlockLayoutById(layoutId, null, loadAll);
+			    layout = layoutRepository.getBlockLayoutById(layoutId.trim(), null, loadAll);
 			    if (layout == null) 
 			        throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
 			}
@@ -2901,7 +2901,7 @@ public class GlygenArrayController {
                 // check if the name is available
                 try {
                     UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-                    SlideLayout existing = layoutRepository.getSlideLayoutByName(slideLayoutName, user);
+                    SlideLayout existing = layoutRepository.getSlideLayoutByName(slideLayoutName.trim(), user);
                     if (existing != null) {
                         ErrorMessage errorMessage = new ErrorMessage();
                         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -2911,7 +2911,7 @@ public class GlygenArrayController {
                     // need to retrieve full list of linkers first
                     LinkerListResultView result = listLinkers(0, null, null, null, null, p);
                     ExtendedGalFileParser parser = new ExtendedGalFileParser();
-                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName, result.getRows());
+                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName.trim(), result.getRows());
                     
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3051,7 +3051,7 @@ public class GlygenArrayController {
 			Principal p) {
 		
 		if (uploadedFileName != null) {
-		    uploadedFileName = moveToTempFile (uploadedFileName);
+		    uploadedFileName = moveToTempFile (uploadedFileName.trim());
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
 				if (slideLayouts == null || slideLayouts.isEmpty()) {
@@ -3286,15 +3286,15 @@ public class GlygenArrayController {
 			@PathVariable("glycanId") String glycanId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			Glycan glycan = glycanRepository.getGlycanById(glycanId, user);
+			Glycan glycan = glycanRepository.getGlycanById(glycanId.trim(), user);
 			if (glycan == null) {
-			    glycan = glycanRepository.getGlycanById(glycanId, null);
+			    glycan = glycanRepository.getGlycanById(glycanId.trim(), null);
 			    if (glycan == null) {
 			        throw new EntityNotFoundException("Glycan with id : " + glycanId + " does not exist in the repository");
 			    }
 			}
 			if (glycan instanceof SequenceDefinedGlycan) {
-			    byte[] image = getCartoonForGlycan(glycanId);
+			    byte[] image = getCartoonForGlycan(glycanId.trim());
                 if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
                     // try to create one
                     BufferedImage t_image = createImageForGlycan ((SequenceDefinedGlycan) glycan);
@@ -3357,7 +3357,7 @@ public class GlygenArrayController {
 	public String getGlycanFromGlytoucan (
 			@ApiParam(required=true, value="Accession number of the glycan to retrieve (from GlyToucan)") 
 			@RequestParam String glytoucanId) {
-		if (glytoucanId == null || glytoucanId.isEmpty())
+		if (glytoucanId == null || glytoucanId.trim().isEmpty())
 			return null;
 		return getSequenceFromGlytoucan(glytoucanId);
 	}
@@ -3399,7 +3399,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="Id of the glycan to retrieve the image for") 
 			@PathVariable("glycanId") String glycanId) {
 		try {
-			File imageFile = new File(imageLocation + File.separator + glycanId + ".png");
+			File imageFile = new File(imageLocation + File.separator + glycanId.trim() + ".png");
 			InputStreamResource resource = new InputStreamResource(new FileInputStream(imageFile));
 			return IOUtils.toByteArray(resource.getInputStream());
 		} catch (IOException e) {
@@ -3422,9 +3422,9 @@ public class GlygenArrayController {
 			@PathVariable("linkerId") String linkerId, Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			Linker linker = linkerRepository.getLinkerById(linkerId, user);
+			Linker linker = linkerRepository.getLinkerById(linkerId.trim(), user);
 			if (linker == null) {
-			    linker = linkerRepository.getLinkerById(linkerId, null);
+			    linker = linkerRepository.getLinkerById(linkerId.trim(), null);
 			    if (linker == null) {
 			        throw new EntityNotFoundException("Linker with id : " + linkerId + " does not exist in the repository");
 			    }
@@ -3456,10 +3456,10 @@ public class GlygenArrayController {
 			Principal p) {
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-			SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, user, loadAll);
+			SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId.trim(), user, loadAll);
 			if (layout == null) {
 			    // check the public repository
-			    layout = layoutRepository.getSlideLayoutById(layoutId, null, loadAll);
+			    layout = layoutRepository.getSlideLayoutById(layoutId.trim(), null, loadAll);
 			    if (layout == null) {
 			        throw new EntityNotFoundException("Slide layout with id : " + layoutId + " does not exist in the repository");
 			    }
@@ -3501,9 +3501,9 @@ public class GlygenArrayController {
             Principal p) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-            org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId, user);
+            org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId.trim(), user);
             if (feature == null) {
-                feature = featureRepository.getFeatureById(featureId, null);
+                feature = featureRepository.getFeatureById(featureId.trim(), null);
                 if (feature == null) {
                     throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
                 }
@@ -3537,7 +3537,7 @@ public class GlygenArrayController {
 			@RequestParam("file") String uploadedFileName) {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();
 		if (uploadedFileName != null) {
-		    uploadedFileName = moveToTempFile (uploadedFileName);
+		    uploadedFileName = moveToTempFile (uploadedFileName.trim());
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
 				try {
@@ -4401,7 +4401,7 @@ public class GlygenArrayController {
             @PathVariable("glycanId") String glycanId, Principal p) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            Glycan glycan = glycanRepository.getGlycanById(glycanId, user);
+            Glycan glycan = glycanRepository.getGlycanById(glycanId.trim(), user);
             if (glycan == null) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -4456,7 +4456,7 @@ public class GlygenArrayController {
             @PathVariable("linkerId") String linkerId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            Linker linker = linkerRepository.getLinkerById(linkerId, user);
+            Linker linker = linkerRepository.getLinkerById(linkerId.trim(), user);
             if (linker == null) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -4495,7 +4495,7 @@ public class GlygenArrayController {
             @PathVariable("layoutId") String layoutId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId, user);
+            SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId.trim(), user);
             if (layout == null) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());

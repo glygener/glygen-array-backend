@@ -355,6 +355,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
     
     protected String getSearchPredicate (String searchValue, String queryLabel) {
+        if (searchValue != null)  searchValue = searchValue.trim();
         String predicates = "";
         
         predicates += queryLabel + " rdfs:label ?value1 .\n";

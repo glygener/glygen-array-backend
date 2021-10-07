@@ -112,7 +112,7 @@ public class UtilityController {
 		
 		CFGMasterListParser parser = new CFGMasterListParser();
 		
-		return parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequenceString));
+		return parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequenceString.trim()));
 	}
 	
 	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
@@ -246,7 +246,7 @@ public class UtilityController {
     public String getSequenceFromUniProt (
             @ApiParam(required=true, value="uniprotid such as P12345") 
             @PathVariable("uniprotid") String uniprotId) {
-        if (uniprotId == null || uniprotId.isEmpty()) {
+        if (uniprotId == null || uniprotId.trim().isEmpty()) {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -254,7 +254,7 @@ public class UtilityController {
             throw new IllegalArgumentException("uniprotId should be provided", errorMessage);
         }
         try {
-            String sequence = UniProtUtil.getSequenceFromUniProt(uniprotId);
+            String sequence = UniProtUtil.getSequenceFromUniProt(uniprotId.trim());
             if (sequence == null) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -279,7 +279,7 @@ public class UtilityController {
     public Linker getLinkerDetailsFromPubChem (
             @ApiParam(required=true, value="pubchemid or the inchikey or the smiles of the linker to retrieve") 
             @PathVariable("pubchemid") String pubchemid) {
-        if (pubchemid == null || pubchemid.isEmpty()) {
+        if (pubchemid == null || pubchemid.trim().isEmpty()) {
             ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -287,7 +287,7 @@ public class UtilityController {
             throw new IllegalArgumentException("pubchem id should be provided", errorMessage);
         }
         try {
-            Long pubChem = Long.parseLong(pubchemid);
+            Long pubChem = Long.parseLong(pubchemid.trim());
             Linker linker = PubChemAPI.getLinkerDetailsFromPubChem(pubChem);
             if (linker == null) {
                 ErrorMessage errorMessage = new ErrorMessage();
@@ -300,7 +300,7 @@ public class UtilityController {
         } catch (NumberFormatException e) {
             try {
                 // try using as inchiKey 
-                Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid);
+                Linker linker = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(pubchemid.trim());
                 if (linker == null) {
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -312,7 +312,7 @@ public class UtilityController {
             } catch (Exception e1) {
                 try {
                     // try using as smiles
-                    Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid);
+                    Linker linker = PubChemAPI.getLinkerDetailsFromPubChemBySmiles(pubchemid.trim());
                     if (linker == null) {
                         ErrorMessage errorMessage = new ErrorMessage();
                         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -449,7 +449,7 @@ public class UtilityController {
             String id) {
         
         try {
-            String uri = MetadataTemplateRepository.templatePrefix + id;
+            String uri = MetadataTemplateRepository.templatePrefix + id.trim();
             DescriptionTemplate description = templateRepository.getDescriptionFromURI(uri);
             return description;
         } catch (SparqlException e) {
@@ -512,7 +512,7 @@ public class UtilityController {
             String id) {
         
         try {
-            String uri = MetadataTemplateRepository.templatePrefix + id;
+            String uri = MetadataTemplateRepository.templatePrefix + id.trim();
             MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
             // if it is an assay template, reset the order
             if (metadataTemplate != null && metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
@@ -558,6 +558,7 @@ public class UtilityController {
             Integer limit) {
         
         try {
+            namespace = namespace.trim();
             PatriciaTrie<String> trie = null;
             if (namespace.equalsIgnoreCase("dataset")) {
                 List<String> datasetNames = datasetRepository.getAllPublicDatasetsNames();
@@ -666,7 +667,7 @@ public class UtilityController {
             @PathVariable("userName")
             String userName) {
         
-        UserEntity user = userRepository.findByUsernameIgnoreCase(userName);    
+        UserEntity user = userRepository.findByUsernameIgnoreCase(userName.trim());    
         if (user == null) {
             throw new UserNotFoundException ("A user with loginId " + userName + " does not exist");
         }
