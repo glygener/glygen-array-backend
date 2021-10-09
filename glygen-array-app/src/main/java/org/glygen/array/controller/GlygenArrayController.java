@@ -2453,18 +2453,29 @@ public class GlygenArrayController {
 					l.setUri(linkerURI);
 				}
 				
-				LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
-	            if (unknown) {
-	                l.setType(unknownType);
+				LinkerType otherType = null;
+				if (linker.getType().name().startsWith("UNKNOWN")) {
+	                // add the regular type to the query
+	                otherType = LinkerType.valueOf(linker.getType().name().substring(linker.getType().name().lastIndexOf("UNKNOWN_")+8));
+	            } else if (!linker.getType().name().startsWith("UNKNOWN")) {
+	                otherType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+	               
 	            }
+				
 				if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
 					Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-					if (local != null && (local.getType() == linker.getType() || local.getType() == unknownType)) {
+					if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
 					    linker.setId(local.getId());
 						errorMessage.addError(new ObjectError("name", "Duplicate"));	
 					}
 				}
 				
+				if (unknown) {
+				    if (!linker.getType().name().startsWith("UNKNOWN")) { 
+				        LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+				        l.setType(unknownType);
+				    } // else - already unknown
+                }
 				
 				// retrieve publication details
 				if (l != null && linker.getPublications() != null && !linker.getPublications().isEmpty()) {
