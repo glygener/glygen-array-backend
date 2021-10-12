@@ -48,6 +48,7 @@ import org.glygen.array.persistence.rdf.Source;
 import org.glygen.array.persistence.rdf.SourceType;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.util.SparqlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -667,7 +668,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	}
 	
 	public String getSearchPredicate (String searchValue, String queryLabel) {
-	    if (searchValue != null)  searchValue = searchValue.trim();
+	    if (searchValue != null) {
+            searchValue = SparqlUtils.escapeSpecialCharacters (searchValue.trim());
+        }
         String predicates = "";
         
         predicates += queryLabel + " rdfs:label ?value1 .\n";

@@ -39,6 +39,7 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.util.SparqlUtils;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1255,6 +1256,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
     public String getSearchPredicate (String searchValue, String queryLabel) {
+	    if (searchValue != null) {
+            searchValue = SparqlUtils.escapeSpecialCharacters (searchValue.trim());
+        }
         String predicates = "";
         
         predicates += queryLabel + " rdfs:label ?value1 .\n";
