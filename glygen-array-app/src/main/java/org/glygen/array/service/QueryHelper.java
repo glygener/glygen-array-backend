@@ -4,9 +4,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
+import org.glygen.array.util.SparqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +58,9 @@ public class QueryHelper {
     }
     
     public String getSearchPredicate (String searchValue, String queryVariable) {
-        if (searchValue != null)  searchValue = searchValue.trim();
+        if (searchValue != null) {
+            searchValue = SparqlUtils.escapeSpecialCharacters (searchValue.trim());
+        }
         String predicates = "";
         
         predicates += "OPTIONAL {" + queryVariable + " rdfs:label ?value1 }.\n";
@@ -78,6 +85,7 @@ public class QueryHelper {
         
         return predicates;
     }
+    
     
     protected String getSortPredicate(String field) {
         if (field == null || field.equalsIgnoreCase("name")) 
@@ -157,7 +165,7 @@ public class QueryHelper {
                 " OFFSET " + offset);
         
        // logger.info("Glycan query: " + queryBuf.toString());
-        return sparqlDAO.query(queryBuf.toString());
+         return sparqlDAO.query(queryBuf.toString());
     }
     
     public List<SparqlEntity> retrieveGlycanByInternalId(String internalId, String graph) throws SparqlException {

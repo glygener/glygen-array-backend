@@ -27,6 +27,7 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.util.SparqlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -355,7 +356,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
     
     protected String getSearchPredicate (String searchValue, String queryLabel) {
-        if (searchValue != null)  searchValue = searchValue.trim();
+        if (searchValue != null) {
+            searchValue = SparqlUtils.escapeSpecialCharacters (searchValue.trim());
+        }
         String predicates = "";
         
         predicates += queryLabel + " rdfs:label ?value1 .\n";
@@ -387,6 +390,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             return "gadr:has_date_created";
         else if (field.equalsIgnoreCase("id"))
             return null;
+        else if (field.startsWith("sample")) 
+            return "gadr:has_sample ?sample . ?sample rdfs:label ";
+        else if (field.startsWith("user")) 
+            return "gadr:created_by ";
         return null;
     }
 
