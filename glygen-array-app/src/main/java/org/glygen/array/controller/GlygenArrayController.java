@@ -4009,6 +4009,7 @@ public class GlygenArrayController {
                 for (Glycan g2: glycans) {
                     if (g1.getName().equals(g2.getName())) {
                         duplicate = true;
+                        totalPublic --;
                     }
                 }
                 if (!duplicate) {
@@ -4103,6 +4104,7 @@ public class GlygenArrayController {
                 for (Linker g2: linkers) {
                     if (g1.getName().equals(g2.getName())) {
                         duplicate = true;
+                        totalPublic --;
                     }
                 }
                 if (!duplicate) {
@@ -4304,6 +4306,7 @@ public class GlygenArrayController {
                 for (Linker g2: linkers) {
                     if (g1.getName().equals(g2.getName())) {
                         duplicate = true;
+                        totalPublic --;   // remove the duplicate
                     }
                 }
                 if (!duplicate) {
