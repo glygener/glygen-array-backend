@@ -31,6 +31,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
+import org.glygen.array.persistence.rdf.template.MandateGroup;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.persistence.rdf.template.Namespace;
@@ -41,14 +42,16 @@ class Config {
     int description = 3;
     int mandatory = 4;
     int multiplicity = 5;
-    int type = 6;
-    int dictionary = 7;
-    int unit=8;
-    int example=9;
-    int wiki = 10;
-    int group = 12;
-    int mirage = 11;
-    int totalCols = 13;
+    int allowBypass = 6;
+    int type = 7;
+    int dictionary = 8;
+    int unit=9;
+    int example=10;
+    int wiki = 11;
+    int group = 13;
+    int mirage = 12;
+    int groupName = 14;
+    int totalCols = 15;
 }
 
 public class MetadataOntologyParser {
@@ -214,8 +217,12 @@ public class MetadataOntologyParser {
                                     readWiki(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.group) {
                                     readGroup(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } else if (cell.getColumnIndex() == config.groupName) {
+                                    readGroupName(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.mirage) {
                                     readMirage(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } else if (cell.getColumnIndex() == config.allowBypass) {
+                                    readNotRecorded(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else {
                                     continue;
                                 }
@@ -232,6 +239,54 @@ public class MetadataOntologyParser {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private void readNotRecorded(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
+            Sheet sheet, int level) {
+        if (cell != null && !cell.getStringCellValue().isEmpty()) {
+            if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                String notRecorded = cell.getRichStringCellValue().getString();
+                if (notRecorded != null && !notRecorded.trim().isEmpty()) {
+                    if (level == 2) {
+                        subDescriptor.setAllowBypass(true);
+                    } else if (level == 1) {
+                        childDescriptor.setAllowBypass(true);
+                    } else if (level == 0){
+                        descriptor.setAllowBypass(true);
+                    }
+                }
+            }
+        }
+        
+    }
+
+    /**
+     * reads the value for mandate group name
+     * 
+     * @param cell cell to be read
+     * @param descriptor descriptor to be modified
+     * @param childDescriptor child descriptor to be modified
+     * @param subDescriptor child of child descriptor to be modified
+     * @param sheet which sheet the script is reading
+     * @param level level of the descriptor
+     */
+    private void readGroupName(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
+            Sheet sheet, int level) {
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+            String name = cell.getRichStringCellValue().getString();
+            if (level == 1) {
+                childDescriptor.setGroupName(name);
+            } else if (level == 0){
+                descriptor.setGroupName(name);
+            } else if (level == 2){
+                subDescriptor.setGroupName(name);
+            }
+        } else {
+            errorOut.println("ERROR: Invalid value for mandate group name on sheet: "
+                    + sheet.getSheetName() + " at row " + (cell.getRowIndex() + 1)
+                    + " column: " + (cell.getColumnIndex() + 1));
+        } 
+        
     }
 
     /***
@@ -488,14 +543,17 @@ public class MetadataOntologyParser {
      */
     public static void readWiki(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-            String example = cell.getRichStringCellValue().getString();
-            if (!example.equals("")) {
+            String wiki = cell.getRichStringCellValue().getString();
+            if (!wiki.trim().isEmpty()) {
                 if (level == 1) {
-                    childDescriptor.setWikiLink(example);
+                    String wikiLink = childDescriptor.getName().replace(" ", "_");
+                    childDescriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
                 } else if (level == 0){
-                    descriptor.setWikiLink(example);
+                    String wikiLink = descriptor.getName().replace(" ", "_");
+                    descriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
                 } else if (level == 2){
-                    subDescriptor.setWikiLink(example);
+                    String wikiLink = subDescriptor.getName().replace(" ", "_");
+                    subDescriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
                 }
             } else {
                 warningOut.println("WARNING: No value for wiki link provided on sheet: "
@@ -822,13 +880,13 @@ public class MetadataOntologyParser {
                 model.add(f.createStatement(metadataIRI, RDFS.LABEL, f.createLiteral(template.getName())));
                 if (template.getDescription() != null)
                     model.add(f.createStatement(metadataIRI, RDFS.COMMENT, f.createLiteral(template.getDescription())));
-                id++;
                 
                 for (DescriptionTemplate description: template.getDescriptors()) {
-                    String descriptionURI = addDescriptionToOntology (model, f, description);
+                    String descriptionURI = addDescriptionToOntology (model, f, description, id);
                     descriptorId++;
                     model.add(f.createStatement(metadataIRI, f.createIRI(prefix + "has_description_context"), f.createIRI(descriptionURI)));
                 }
+                id++;
             }
             
             Rio.write(model, new FileOutputStream("ontology/gadr-template-individuals.owl"), RDFFormat.RDFXML);
@@ -840,7 +898,7 @@ public class MetadataOntologyParser {
         
     }
     
-    private String addDescriptionToOntology(Model model, ValueFactory f, DescriptionTemplate description) {
+    private String addDescriptionToOntology(Model model, ValueFactory f, DescriptionTemplate description, int metadataId) {
         String uri = prefix + "DescriptionContext" + descriptorId;
         IRI descriptionContext = f.createIRI(uri);
         if (description instanceof DescriptorTemplate) {
@@ -864,16 +922,23 @@ public class MetadataOntologyParser {
                 Namespace namespace = ((DescriptorTemplate) description).getNamespace();
                 IRI hasNamespace = f.createIRI(prefix + "has_namespace");
                 IRI hasFile = f.createIRI(prefix + "has_file");
+                IRI hasSelection = f.createIRI(prefix + "has_selection");
                 if (namespace.getName().equalsIgnoreCase("selection") || namespace.getName().equalsIgnoreCase("dictionary")) {
                     // create namespace object in the ontology
-                    //TODO how to handle selection/dictionary?
+                    //TODO how to handle dictionary?
                     //through files?
-                    IRI namespaceIRI = f.createIRI(prefix + "Namespace" + namespace.getName() + descriptorId);
+                    IRI namespaceIRI = f.createIRI(prefix + "Namespace-" + namespace.getName() + descriptorId);
                     model.add(f.createStatement(namespaceIRI, RDF.TYPE, f.createIRI(prefix + "namespace")));
                     model.add(f.createStatement(descriptor, hasNamespace, namespaceIRI));
-                    model.add(f.createStatement(namespaceIRI, RDFS.LABEL, f.createLiteral(namespace.getName())));   //TODO ???
+                    model.add(f.createStatement(namespaceIRI, RDFS.LABEL, f.createLiteral(namespace.getName())));
                     if (namespace.getFilename() != null)
                         model.add(f.createStatement(namespaceIRI, hasFile, f.createLiteral(namespace.getFilename())));
+                    if (((DescriptorTemplate) description).getSelectionList() != null 
+                            && !((DescriptorTemplate) description).getSelectionList().isEmpty()) {
+                        for (String selection: ((DescriptorTemplate) description).getSelectionList()) {
+                            model.add(f.createStatement(namespaceIRI, hasSelection, f.createLiteral(selection)));
+                        }
+                    }
                 } else {
                     // just add the object property
                     if (namespace.getUri() == null) {
@@ -892,7 +957,7 @@ public class MetadataOntologyParser {
             
             for (DescriptionTemplate d: ((DescriptorGroupTemplate) description).getDescriptors()) {
                 descriptorId++;
-                String descURI = addDescriptionToOntology(model, f, d);
+                String descURI = addDescriptionToOntology(model, f, d, metadataId);
                 model.add(f.createStatement(descriptionContext, f.createIRI(prefix + "has_description_context"), f.createIRI(descURI)));
             }
         }
@@ -905,6 +970,8 @@ public class MetadataOntologyParser {
         IRI isXor = f.createIRI(prefix + "is_xor");
         IRI isMirage = f.createIRI(prefix + "is_mirage");
         IRI hasOrder = f.createIRI(prefix + "has_order");
+        IRI hasGroupId = f.createIRI(prefix + "has_id");
+        IRI allowNotRecorded = f.createIRI(prefix + "allows_not_recorded");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -912,18 +979,31 @@ public class MetadataOntologyParser {
         if (description.getExample() != null) {
             model.add(f.createStatement(descriptionContext, hasExample, f.createLiteral(description.getExample())));
         }
+        if (description.getAllowNotRecorded() != null && description.getAllowNotRecorded()) {
+            model.add(f.createStatement(descriptionContext, allowNotRecorded, f.createLiteral(true)));
+        } else {
+            model.add(f.createStatement(descriptionContext, allowNotRecorded, f.createLiteral(false)));
+        }
         if (description.getWikiLink() != null) {
             model.add(f.createStatement(descriptionContext, hasUrl, f.createLiteral(description.getWikiLink())));
         }
         if (description.getMandateGroup() != null) {
-            model.add(f.createStatement(descriptionContext, hasGroup, f.createLiteral(description.getMandateGroup())));
+            boolean xOR = description.getMandateGroup().getxOrMandate() != null && description.getMandateGroup().getxOrMandate();
+            IRI mandateIRI = f.createIRI (prefix + "mandateGroup" +  metadataId + "-" + (xOR ? "XOR" : "OR") + description.getMandateGroup().getId());
+            model.add(f.createStatement(mandateIRI, RDF.TYPE, f.createIRI(prefix + "mandate_group")));
+            model.add(f.createStatement(descriptionContext, hasGroup, mandateIRI));
+            if (description.getMandateGroup().getxOrMandate() != null) {
+                model.add(f.createStatement(mandateIRI, isXor, f.createLiteral(description.getMandateGroup().getxOrMandate())));
+            }
+            if (description.getMandateGroup().getName() != null)
+                model.add(f.createStatement(mandateIRI, RDFS.LABEL, f.createLiteral(description.getMandateGroup().getName())));
+            model.add(f.createStatement(mandateIRI, hasGroupId, f.createLiteral(description.getMandateGroup().getId())));
+            
         }
         if (description.isMirage() != null) {
             model.add(f.createStatement(descriptionContext, isMirage, f.createLiteral(description.isMirage())));
         }
-        if (description.getXorMandate() != null) {
-            model.add(f.createStatement(descriptionContext, isXor, f.createLiteral(description.getXorMandate())));
-        }
+        
         if (description.getOrder() != null) {
             model.add(f.createStatement(descriptionContext, hasOrder, f.createLiteral(description.getOrder())));
         }
@@ -977,9 +1057,15 @@ public class MetadataOntologyParser {
         description.setMaxOccurrence(d.getMultiplicity().equals("n") ? Integer.MAX_VALUE : 1);
         description.setExample(d.getExample());
         description.setWikiLink(d.getWikiLink());
-        description.setMandateGroup(d.getGroup());
-        description.setXorMandate(d.getXor());
+        if (d.getGroup() != null) {
+            MandateGroup group = new MandateGroup();
+            group.setId(d.getGroup());
+            group.setxOrMandate(d.getXor());
+            group.setName(d.getGroupName());
+            description.setMandateGroup(group);
+        }
         description.setMirage(d.getMirage());
+        description.setAllowNotRecorded(d.allowBypass);
         return description;
         
     }
@@ -998,8 +1084,10 @@ public class MetadataOntologyParser {
         Integer position = null;
         Integer group = null;
         Boolean xor = true;  // default
+        String groupName;
         Boolean mirage = false;
         String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
+        Boolean allowBypass = false;
 
         /**
          * @return the name
@@ -1222,6 +1310,34 @@ public class MetadataOntologyParser {
          */
         public void setXor(Boolean xor) {
             this.xor = xor;
+        }
+
+        /**
+         * @return the groupName
+         */
+        public String getGroupName() {
+            return groupName;
+        }
+
+        /**
+         * @param groupName the groupName to set
+         */
+        public void setGroupName(String groupName) {
+            this.groupName = groupName;
+        }
+
+        /**
+         * @return the allowBypass
+         */
+        public Boolean getAllowBypass() {
+            return allowBypass;
+        }
+
+        /**
+         * @param allowBypass the allowBypass to set
+         */
+        public void setAllowBypass(Boolean allowBypass) {
+            this.allowBypass = allowBypass;
         }
     }
 

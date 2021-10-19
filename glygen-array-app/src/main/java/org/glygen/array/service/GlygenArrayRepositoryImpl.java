@@ -123,6 +123,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String orderPredicate = ontPrefix + "has_order";
     public final static String valuePredicate = ontPrefix + "has_value";
     public final static String notRecordedPredicate = ontPrefix + "is_not_recorded";
+    public final static String notApplicablePredicate = ontPrefix + "is_not_applicable";
     public final static String keyPredicate = ontPrefix + "has_key";
     public final static String unitPredicate = ontPrefix + "has_unit_of_measurement";
     public final static String describedbyPredicate = ontPrefix + "described_by";
