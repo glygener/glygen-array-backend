@@ -18,9 +18,9 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     Integer order;
     String example;
     String wikiLink;
-    Integer mandateGroup = null;
-    Boolean xorMandate = true;
+    MandateGroup mandateGroup;
     Boolean mirage = false;
+    Boolean allowNotRecorded = false;
     
     public abstract boolean isGroup();
 
@@ -137,20 +137,6 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     }
 
     /**
-     * @return the mandateGroup
-     */
-    public Integer getMandateGroup() {
-        return mandateGroup;
-    }
-
-    /**
-     * @param mandateGroup the mandateGroup to set
-     */
-    public void setMandateGroup(Integer mandateGroup) {
-        this.mandateGroup = mandateGroup;
-    }
-
-    /**
      * @return the mirage
      */
     public Boolean isMirage() {
@@ -177,20 +163,6 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     }
 
     /**
-     * @return the xorMandate
-     */
-    public Boolean getXorMandate() {
-        return xorMandate;
-    }
-
-    /**
-     * @param xorMandate the xorMandate to set
-     */
-    public void setXorMandate(Boolean xorMandate) {
-        this.xorMandate = xorMandate;
-    }
-
-    /**
      * @return the order
      */
     public Integer getOrder() {
@@ -207,5 +179,33 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     @Override
     public int compareTo(DescriptionTemplate o) {
         return this.order.compareTo(o.order);
+    }
+
+    /**
+     * @param mandateGroup the mandateGroup to set
+     */
+    public void setMandateGroup(MandateGroup mandateGroup) {
+        this.mandateGroup = mandateGroup;
+    }
+
+    /**
+     * @return the mandateGroup
+     */
+    public MandateGroup getMandateGroup() {
+        return mandateGroup;
+    }
+
+    /**
+     * @return the allowNotRecorded
+     */
+    public Boolean getAllowNotRecorded() {
+        return allowNotRecorded;
+    }
+
+    /**
+     * @param allowNotRecorded the allowNotRecorded to set
+     */
+    public void setAllowNotRecorded(Boolean allowNotRecorded) {
+        this.allowNotRecorded = allowNotRecorded;
     }
 }

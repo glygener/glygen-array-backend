@@ -1,5 +1,6 @@
 package org.glygen.array.persistence.rdf.template;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -42,6 +43,13 @@ public class DescriptorTemplate extends DescriptionTemplate {
      */
     public void setSelectionList(List<String> selectionList) {
         this.selectionList = selectionList;
+    }
+    
+    public void addSelection (String selection) {
+        if (this.selectionList == null)
+            this.selectionList = new ArrayList<String>();
+        if (!this.selectionList.contains(selection))
+            this.selectionList.add(selection);
     }
 
     /**

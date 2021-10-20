@@ -16,6 +16,7 @@ public abstract class Description implements Comparable<Description>{
     DescriptionTemplate key;
     Integer order = -1;
     Boolean notRecorded = false;
+    Boolean notApplicable = false;
     
     public abstract boolean isGroup();
     
@@ -98,6 +99,20 @@ public abstract class Description implements Comparable<Description>{
      */
     public void setNotRecorded(Boolean notRecorded) {
         this.notRecorded = notRecorded;
+    }
+
+    /**
+     * @return the notApplicable
+     */
+    public Boolean getNotApplicable() {
+        return notApplicable;
+    }
+
+    /**
+     * @param notApplicable the notApplicable to set
+     */
+    public void setNotApplicable(Boolean notApplicable) {
+        this.notApplicable = notApplicable;
     }
     
 }

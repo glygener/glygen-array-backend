@@ -28,6 +28,7 @@ import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorTemplate;
+import org.glygen.array.persistence.rdf.template.MandateGroup;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.persistence.rdf.template.Namespace;
@@ -205,10 +206,13 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI hasUrl = f.createIRI(templatePrefix + "has_url");
         IRI hasNamespace = f.createIRI(templatePrefix + "has_namespace");
         IRI hasFile = f.createIRI(templatePrefix + "has_file");
+        IRI hasSelection = f.createIRI(templatePrefix + "has_selection");
         IRI hasGroup = f.createIRI(templatePrefix + "has_mandate_group");
         IRI isMirage = f.createIRI(templatePrefix + "is_mirage");
         IRI isXor = f.createIRI(templatePrefix + "is_xor");
         IRI hasOrder = f.createIRI(templatePrefix + "has_order");
+        IRI hasGroupId = f.createIRI(templatePrefix + "has_id");
+        IRI allowNotRecorded = f.createIRI(prefix + "allows_not_recorded");
         
         IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix2 + "has_unit_of_measurement");
         
@@ -216,6 +220,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);
         while (statements.hasNext()) {
             Statement st = statements.next();
+            MandateGroup group = new MandateGroup();
             if (st.getPredicate().equals(RDFS.LABEL)) {
                 // complex description context label gives the name of the descriptor group
                 description.setName(st.getObject().stringValue());
@@ -234,6 +239,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                     } else if (st2.getPredicate().equals(hasNamespace)) { 
                         Namespace namespace = new Namespace();
                         String namespaceURI = st2.getObject().stringValue();
+                        List<String> selectionList = new ArrayList<String>();
                         if (namespaceURI.contains("dictionary") || namespaceURI.contains("selection")) {
                             namespace.setUri(namespaceURI);
                             // get details of namespace
@@ -244,6 +250,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                                     namespace.setName(st3.getObject().stringValue());
                                 } else if (st3.getPredicate().equals(hasFile)) {
                                     namespace.setFilename(st3.getObject().stringValue());
+                                } else if (st3.getPredicate().equals(hasSelection)) {
+                                    String s = st3.getObject().stringValue();
+                                    if (!selectionList.contains(s))
+                                        selectionList.add(s);
                                 }
                             }   
                         } else if (namespaceURI.contains("token")) {
@@ -262,8 +272,11 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                             namespace.setName("boolean");
                             namespace.setUri("http://www.w3.org/2001/XMLSchema#boolean");
                         }
-                        if (description instanceof DescriptorTemplate) 
+                        if (description instanceof DescriptorTemplate) {
                             ((DescriptorTemplate) description).setNamespace(namespace);
+                            if (!selectionList.isEmpty())
+                                ((DescriptorTemplate) description).setSelectionList(selectionList);
+                        }
                         else {
                             logger.warn("descriptor group should not have a namespace: " + description.getId());
                         }
@@ -288,6 +301,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(isRequired)) {
                 String value = st.getObject().stringValue();
                 description.setMandatory(value.equalsIgnoreCase("true"));
+            } else if (st.getPredicate().equals(allowNotRecorded)) {
+                String value = st.getObject().stringValue();
+                description.setAllowNotRecorded(value.equalsIgnoreCase("true"));
             } else if (st.getPredicate().equals(hasExample)) {
                 description.setExample(st.getObject().stringValue());
             } else if (st.getPredicate().equals(hasUrl)) {
@@ -299,12 +315,25 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 description.setMirage(value.equalsIgnoreCase("true"));
             } else if (st.getPredicate().equals(hasGroup)) {
                 String value = st.getObject().stringValue();
-                description.setMandateGroup(Integer.parseInt(value));
+                description.setMandateGroup(group);
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasGroupId)) {
+                        value = st2.getObject().stringValue();
+                        group.setId(Integer.parseInt(value));
+                    }
+                    else if (st2.getPredicate().equals(RDFS.LABEL)) {
+                        value = st2.getObject().stringValue();
+                        group.setName(value);
+                    }
+                    else if (st2.getPredicate().equals(isXor)) {
+                        value = st2.getObject().stringValue();
+                        group.setxOrMandate(value.equalsIgnoreCase("true"));
+                    }
+                }
             } else if (st.getPredicate().equals(hasExample)) {
                 description.setExample(st.getObject().stringValue());
-            } else if (st.getPredicate().equals(isXor)) {
-                String value = st.getObject().stringValue();
-                description.setXorMandate(value.equalsIgnoreCase("true"));
             } else if (st.getPredicate().equals(hasOrder)) {
                 String value = st.getObject().stringValue();
                 try {
