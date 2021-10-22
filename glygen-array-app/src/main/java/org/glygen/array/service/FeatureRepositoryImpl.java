@@ -335,10 +335,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             range = ((GlycoPeptide) feature).getRange();
         }
 		if (range != null) {
-		    IRI max = f.createIRI(range.getMax()+"");
-		    IRI min = f.createIRI(range.getMin()+"");
-		    statements.add(f.createStatement(positionContext, hasMax, max, graphIRI));
-		    statements.add(f.createStatement(positionContext, hasMin, min, graphIRI));
+		    IRI max = range.getMax() != null ? f.createIRI(range.getMax()+"") : null;
+		    IRI min = range.getMin() != null ? f.createIRI(range.getMin()+"") : null;
+		    if (max != null) statements.add(f.createStatement(positionContext, hasMax, max, graphIRI));
+		    if (min != null) statements.add(f.createStatement(positionContext, hasMin, min, graphIRI));
 		}
 		
 		if (feature.getMetadata() != null) {
