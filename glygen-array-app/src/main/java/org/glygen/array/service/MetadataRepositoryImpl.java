@@ -592,7 +592,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             graph = getGraphForUser(user);
         if (graph != null) {
             
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, typePredicate);
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, typePredicate, false);
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
@@ -613,7 +613,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, sampleTypePredicate, searchValue);
+        return getCountByUserByType(graph, sampleTypePredicate, searchValue, false);
     }
 
 
@@ -657,7 +657,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, printerTypePredicate, searchValue);
+        return getCountByUserByType(graph, printerTypePredicate, searchValue, false);
     }
 
 
@@ -701,7 +701,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, scannerTypePredicate, searchValue);
+        return getCountByUserByType(graph, scannerTypePredicate, searchValue, false);
     }
 
 
@@ -745,7 +745,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, slideTemplateTypePredicate, searchValue);
+        return getCountByUserByType(graph, slideTemplateTypePredicate, searchValue, false);
     }
 
 
@@ -791,7 +791,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, imageAnalysisTypePredicate, searchValue);
+        return getCountByUserByType(graph, imageAnalysisTypePredicate, searchValue, false);
     }
 
 
@@ -869,7 +869,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, dataProcessingTypePredicate, searchValue);
+        return getCountByUserByType(graph, dataProcessingTypePredicate, searchValue, false);
     }
     
     @Override
@@ -880,7 +880,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, assayTypePredicate, searchValue);
+        return getCountByUserByType(graph, assayTypePredicate, searchValue, false);
     }
     
 
@@ -1279,7 +1279,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, searchValue);
+        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, searchValue, false);
     }
 
 

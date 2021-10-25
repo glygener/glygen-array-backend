@@ -21,6 +21,7 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     MandateGroup mandateGroup;
     Boolean mirage = false;
     Boolean allowNotRecorded = false;
+    Boolean allowNotApplicable = false;
     
     public abstract boolean isGroup();
 
@@ -207,5 +208,19 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
      */
     public void setAllowNotRecorded(Boolean allowNotRecorded) {
         this.allowNotRecorded = allowNotRecorded;
+    }
+
+    /**
+     * @return the allowNotApplicable
+     */
+    public Boolean getAllowNotApplicable() {
+        return allowNotApplicable;
+    }
+
+    /**
+     * @param allowNotApplicable the allowNotApplicable to set
+     */
+    public void setAllowNotApplicable(Boolean allowNotApplicable) {
+        this.allowNotApplicable = allowNotApplicable;
     }
 }

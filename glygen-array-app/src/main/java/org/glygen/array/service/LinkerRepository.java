@@ -38,7 +38,12 @@ public interface LinkerRepository {
     String getLinkerByField(String field, String predicate, String type, LinkerType linkerType, UserEntity user) throws SQLException, SparqlException;
     Linker getLinkerByLabel(String label, LinkerType type, UserEntity user) throws SparqlException, SQLException;
     int getLinkerCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
+    int getLinkerCountByUser(UserEntity user, String searchValue, boolean includePublic) throws SQLException, SparqlException;
     int getLinkerCountByUserByType(UserEntity user, LinkerType linkerType, String searchValue)
             throws SparqlException, SQLException;
+    int getLinkerCountByUserByType(UserEntity user, LinkerType linkerType, String searchValue, boolean includePublic)
+            throws SparqlException, SQLException;
+    List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue,
+            LinkerType linkerType, boolean includePublic) throws SparqlException, SQLException;
 
 }

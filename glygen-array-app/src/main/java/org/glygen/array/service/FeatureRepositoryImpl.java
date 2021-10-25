@@ -35,6 +35,7 @@ import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LandingLight;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.NegControlFeature;
 import org.glygen.array.persistence.rdf.NonCommercialSource;
@@ -565,9 +566,15 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         return getFeatureByUser(user, offset, limit, field, order, searchValue, null);
     }	
 	
-    @Override
+	@Override
     public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, FeatureType featureType) throws SparqlException, SQLException {
+	    return getFeatureByUser(user, offset, limit, field, order, searchValue, featureType, false);
+	}
+	
+    @Override
+    public List<Feature> getFeatureByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, FeatureType featureType, boolean includePublic) throws SparqlException, SQLException {
 		List<Feature> features = new ArrayList<Feature>();
 		
 		// get all featureURIs from user's private graph
@@ -631,6 +638,21 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                  queryBuf.append(
                         publicSortLine + publicSearchPredicate + 
                     "}}\n"); 
+                 
+                 if (includePublic) {  
+                     queryBuf.append("UNION {"); 
+                     queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                     queryBuf.append("        ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
+                     if (featureType != null) {
+                         queryBuf.append("?s gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
+                     }
+                     queryBuf.append(sortLine + searchPredicate);
+                     queryBuf.append("}\n");
+                     queryBuf.append("filter not exists \n");
+                     queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                     queryBuf.append("}\n");
+                 }
+                 
              }
              queryBuf.append ("}" + 
                      orderByLine + 
@@ -692,20 +714,30 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         predicates += filterClause;
         return predicates;
     }
+	
+	@Override
+    public int getFeatureCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+	    return getFeatureCountByUser(user, searchValue, false);
+	}
 
     @Override
-    public int getFeatureCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+    public int getFeatureCountByUser(UserEntity user, String searchValue, boolean includePublic) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-		return getCountByUserByType(graph, featureTypePredicate, searchValue);
+		return getCountByUserByType(graph, featureTypePredicate, searchValue, includePublic);
 	}
     
     @Override
     public int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue) throws SQLException, SparqlException {
+        return getFeatureCountByUserByType(user, featureType, searchValue, false);
+    }
+    
+    @Override
+    public int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue, boolean includePublic) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -760,6 +792,20 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                      queryBuf.append(" ?public gadr:has_type \"" + featureType.toString() + "\"^^xsd:string . \n");
                  }
                  queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
+                 
+                 if (includePublic) {  
+                     queryBuf.append("UNION {"); 
+                     queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                     queryBuf.append("        ?s rdf:type  <http://purl.org/gadr/data#Feature>. \n");
+                     if (featureType != null) {
+                         queryBuf.append("?s gadr:has_type \"" + featureType.name() + "\"^^xsd:string . \n");
+                     }
+                     queryBuf.append(sortLine + searchPredicate);
+                     queryBuf.append("}\n");
+                     queryBuf.append("filter not exists \n");
+                     queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                     queryBuf.append("}\n");
+                 }
             }
             queryBuf.append("}");
                     

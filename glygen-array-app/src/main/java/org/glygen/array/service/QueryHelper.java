@@ -106,6 +106,83 @@ public class QueryHelper {
             return null;
         return null;
     }
+    
+    
+    public List<SparqlEntity> retrieveAllGlycanByUser(int offset, int limit, String field, int order, String searchValue, String graph, boolean includePublic) throws SparqlException {
+        String sortPredicate = getSortPredicate (field);
+        
+        String searchPredicate = "";
+        String publicSearchPredicate = "";
+        if (searchValue != null) {
+            searchPredicate = getSearchPredicate(searchValue, "?s");
+            publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+        }
+        
+        String sortLine = "";
+        String publicSortLine = "";
+        if (sortPredicate != null) {
+            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            sortLine += "filter (bound (?sortBy) or !bound(?public) ) . \n";
+            publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+        }
+        
+        
+        String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s");
+        if (sortPredicate != null) {
+            //queryBuf.append(", ?sortBy");
+        }
+        queryBuf.append ("\nFROM <" + graph + ">\n");
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        }
+        queryBuf.append ("WHERE {\n {\n");
+        queryBuf.append (
+                " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            queryBuf.append("OPTIONAL {?s gadr:has_subtype ?subtype } .  \n");
+            queryBuf.append("FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
+        }
+        queryBuf.append(
+                " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                        sortLine + searchPredicate + 
+                "}\n" );
+         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+             queryBuf.append ("UNION {" +
+                "?s gadr:has_public_uri ?public . \n" +
+                "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                " ?public rdf:type  <http://purl.org/gadr/data#Glycan>. \n" +
+                "OPTIONAL {?public gadr:has_subtype ?subtype } .  \n" +
+                "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") " +
+                    publicSortLine + publicSearchPredicate + 
+                "}}\n"); 
+             
+             if (includePublic) {
+                 queryBuf.append("UNION {"); 
+                 queryBuf.append("    GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {");
+                 queryBuf.append("        ?s rdf:type  <http://purl.org/gadr/data#Glycan>. ");
+                 queryBuf.append("OPTIONAL {?s gadr:has_subtype ?subtype } .  \n" +
+                         "FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
+                 queryBuf.append(sortLine + searchPredicate);
+                 queryBuf.append("}\n");
+                 queryBuf.append("filter not exists \n");
+                 queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                 queryBuf.append("}\n");
+             }
+         }
+         
+         queryBuf.append ("}" + 
+                 orderByLine + 
+                ((limit == -1) ? " " : " LIMIT " + limit) +
+                " OFFSET " + offset);
+        
+       // logger.info("Glycan query: " + queryBuf.toString());
+         return sparqlDAO.query(queryBuf.toString());
+    }
+
 
     public List<SparqlEntity> retrieveGlycanByUser(int offset, int limit, String field, int order, String searchValue, String graph) throws SparqlException {
         String sortPredicate = getSortPredicate (field);
