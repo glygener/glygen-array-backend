@@ -709,7 +709,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         
-        return getCountByUserByType(graph, "http://purl.org/gadr/template#block_layout", searchValue);
+        return getCountByUserByType(graph, "http://purl.org/gadr/template#block_layout", searchValue, false);
 		
 	/*	int total = 0;
 		if (graph != null) {
@@ -1004,29 +1004,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         
-        return getCountByUserByType(graph, "http://purl.org/gadr/template#slide_layout", searchValue);
-		
-		/*int total = 0;
-		if (graph != null) {
-			StringBuffer queryBuf = new StringBuffer();
-			queryBuf.append (prefix + "\n");
-			queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
-			queryBuf.append ("FROM <" + graph + ">\n");
-			queryBuf.append ("WHERE {\n");
-			queryBuf.append (" ?s rdf:type  <http://purl.org/gadr/template#slide_layout> . }");
-			List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-			for (SparqlEntity sparqlEntity : results) {
-				String count = sparqlEntity.getValue("count");
-				try {
-					total = Integer.parseInt(count);
-					break;
-				} catch (NumberFormatException e) {
-					throw new SparqlException("Count query returned invalid result", e);
-				}
-				
-			}
-		}
-		return total;*/
+        return getCountByUserByType(graph, "http://purl.org/gadr/template#slide_layout", searchValue, false);
 	}
 
 	@Override

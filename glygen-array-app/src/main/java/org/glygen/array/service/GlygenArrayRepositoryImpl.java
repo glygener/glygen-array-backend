@@ -213,7 +213,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	 * @return total number of triples with that rdf:type as the subject and date_addedToLibrary as the predicate
 	 * @throws SparqlException
 	 */
-	protected int getCountByUserByType (String graph, String type, String searchValue) throws SparqlException {
+	protected int getCountByUserByType (String graph, String type, String searchValue, boolean includePublic) throws SparqlException {
 		int total = 0;
 		if (graph != null) {
 		    String sortPredicate = getSortPredicate (null);
@@ -255,6 +255,17 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	                "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
 	             queryBuf.append (" ?public rdf:type  <" + type +">. ");
 	             queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
+	             
+	             if (includePublic) {
+	                 queryBuf.append("UNION {"); 
+	                 queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+	                 queryBuf.append("        ?s rdf:type <" + type + ">. ");
+	                 queryBuf.append(sortLine + searchPredicate);
+	                 queryBuf.append("}\n");
+                     queryBuf.append("filter not exists \n");
+                     queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                     queryBuf.append("}\n");
+	             }
 			}
 			queryBuf.append("}");
 	                
@@ -399,7 +410,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
 
     protected List<SparqlEntity> retrieveByTypeAndUser(int offset, int limit, String field, int order, String searchValue,
-            String graph, String type) throws SparqlException {
+            String graph, String type, boolean includePublic) throws SparqlException {
         
         String sortPredicate = getSortPredicate (field);
         String searchPredicate = "";
@@ -443,6 +454,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
                 " ?public rdf:type <" + type + "> . \n" +
                     publicSortLine + publicSearchPredicate + 
                 "}}\n"); 
+             if (includePublic) {
+                 queryBuf.append("UNION {"); 
+                 queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                 queryBuf.append("        ?s rdf:type <" + type + ">. ");
+                 queryBuf.append(sortLine + searchPredicate);
+                 queryBuf.append("}\n");
+                 queryBuf.append("filter not exists \n");
+                 queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                 queryBuf.append("}\n");
+             }
          }
          queryBuf.append ("}" + 
                  orderByLine + 

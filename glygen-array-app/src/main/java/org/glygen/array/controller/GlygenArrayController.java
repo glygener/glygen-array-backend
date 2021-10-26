@@ -529,11 +529,7 @@ public class GlygenArrayController {
             
             for (GlycoPeptide g: feature.getPeptides()) {
                 if (g.getUri() == null && g.getId() == null) {
-                    try {
-                        g.setId(addGlycoPeptide(g, errorMessage, p));
-                    } catch (Exception e) {
-                        logger.debug("Ignoring error: " + e.getMessage());
-                    }
+                    g.setId(addGlycoPeptide(g, errorMessage, p));
                 } else {
                     // check to make sure it is an existing glycopeptide feature
                     String featureId = g.getId();
@@ -565,11 +561,7 @@ public class GlygenArrayController {
             
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
-                    try {
-                        g.setId(addLinkedGlycan(g, errorMessage, p));
-                    } catch (Exception e) {
-                        logger.debug("Ignoring error: " + e.getMessage());
-                    }
+                    g.setId(addLinkedGlycan(g, errorMessage, p));
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -601,11 +593,7 @@ public class GlygenArrayController {
             
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
-                    try {
-                        g.setId(addLinkedGlycan(g, errorMessage, p));
-                    } catch (Exception e) {
-                        logger.debug("Ignoring error: " + e.getMessage());
-                    }
+                    g.setId(addLinkedGlycan(g, errorMessage, p));
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -637,11 +625,7 @@ public class GlygenArrayController {
             
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
-                    try {
-                        g.setId(addLinkedGlycan(g, errorMessage, p));
-                    } catch (Exception e) {
-                        logger.debug("Ignoring error: " + e.getMessage());
-                    }
+                    g.setId(addLinkedGlycan(g, errorMessage, p));
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -674,11 +658,7 @@ public class GlygenArrayController {
             for (GlycanInFeature gf: feature.getGlycans()) {
                 Glycan g = gf.getGlycan();
                 if (g.getUri() == null && g.getId() == null) {
-                    try {
-                        g.setId(addGlycan(g, p, true));
-                    } catch (Exception e) {
-                        throw e;
-                    }
+                    g.setId(addGlycan(g, p, true));
                 } else {
                     // check to make sure it is an existing glycan
                     String glycanId = g.getId();
@@ -3996,12 +3976,12 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
             }
             
-            int total = glycanRepository.getGlycanCountByUser (user, searchValue);
-            List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue);
+            int total = glycanRepository.getGlycanCountByUser(user, searchValue, true);
+            List<Glycan> glycans = glycanRepository.getGlycanByUser(user, offset, limit, field, order, searchValue, true);
             List<Glycan> totalResultList = new ArrayList<>();
             totalResultList.addAll(glycans);
             
-            int totalPublic = glycanRepository.getGlycanCountByUser (null, searchValue);
+            /*int totalPublic = glycanRepository.getGlycanCountByUser (null, searchValue);
             
             List<Glycan> publicResultList = glycanRepository.getGlycanByUser(null, offset, limit, field, order, searchValue);
             for (Glycan g1: publicResultList) {
@@ -4015,7 +3995,7 @@ public class GlygenArrayController {
                 if (!duplicate) {
                     totalResultList.add(g1);
                 } 
-            }
+            }*/
             
             for (Glycan glycan : totalResultList) {
                 if (glycan.getType().equals(GlycanType.SEQUENCE_DEFINED)) {
@@ -4042,7 +4022,8 @@ public class GlygenArrayController {
             }
             
             result.setRows(totalResultList);
-            result.setTotal(total+totalPublic);
+            //result.setTotal(total+totalPublic);
+            result.setTotal(total);
             result.setFilteredTotal(totalResultList.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans. Reason: " + e.getMessage());
@@ -4091,30 +4072,11 @@ public class GlygenArrayController {
 				throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
 			}
 			
-			int total = linkerRepository.getLinkerCountByUser (user, searchValue);
-			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue);
-            List<Linker> totalResultList = new ArrayList<>();
-            totalResultList.addAll(linkers);
-            
-            int totalPublic = linkerRepository.getLinkerCountByUser (null, searchValue);
-            
-            List<Linker> publicResultList = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue);
-            for (Linker g1: publicResultList) {
-                boolean duplicate = false;
-                for (Linker g2: linkers) {
-                    if (g1.getName().equals(g2.getName())) {
-                        duplicate = true;
-                        totalPublic --;
-                    }
-                }
-                if (!duplicate) {
-                    totalResultList.add(g1);
-                } 
-            }
-			
-			result.setRows(totalResultList);
-			result.setTotal(total+totalPublic);
-			result.setFilteredTotal(totalResultList.size());
+			int total = linkerRepository.getLinkerCountByUser (user, searchValue, true);
+			List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue, null, true);
+			result.setRows(linkers);
+			result.setTotal(total);
+			result.setFilteredTotal(linkers.size());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
 		}
@@ -4293,30 +4255,11 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
             }
             
-            int total = linkerRepository.getLinkerCountByUserByType (user, linkerType, searchValue);
-            List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue, linkerType);
-            List<Linker> totalResultList = new ArrayList<>();
-            totalResultList.addAll(linkers);
-            
-            int totalPublic = linkerRepository.getLinkerCountByUserByType (null, linkerType, searchValue);
-            
-            List<Linker> publicResultList = linkerRepository.getLinkerByUser(null, offset, limit, field, order, searchValue, linkerType);
-            for (Linker g1: publicResultList) {
-                boolean duplicate = false;
-                for (Linker g2: linkers) {
-                    if (g1.getName().equals(g2.getName())) {
-                        duplicate = true;
-                        totalPublic --;   // remove the duplicate
-                    }
-                }
-                if (!duplicate) {
-                    totalResultList.add(g1);
-                } 
-            }
-            
-            result.setRows(totalResultList);
-            result.setTotal(total+totalPublic);
-            result.setFilteredTotal(totalResultList.size());
+            int total = linkerRepository.getLinkerCountByUserByType (user, linkerType, searchValue, true);
+            List<Linker> linkers = linkerRepository.getLinkerByUser(user, offset, limit, field, order, searchValue, linkerType, true);
+            result.setRows(linkers);
+            result.setTotal(total);
+            result.setFilteredTotal(linkers.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
         }

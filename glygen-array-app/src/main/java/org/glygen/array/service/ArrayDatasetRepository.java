@@ -87,6 +87,8 @@ public interface ArrayDatasetRepository {
     Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
+    List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll, boolean includePublic) throws SparqlException, SQLException;
     
     String addGrant(Grant grant, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void addCollaborator(Creator collab, String datasetId, UserEntity user) throws SparqlException, SQLException;
@@ -113,5 +115,7 @@ public interface ArrayDatasetRepository {
     int getPrintedSlideCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     int getIntensityDataListCount(String processedDataId, UserEntity user, String searchValue)
             throws SparqlException, SQLException;
+    int getPrintedSlideCountByUser(UserEntity user, String searchValue, boolean includePublic)
+            throws SQLException, SparqlException;
     
 }

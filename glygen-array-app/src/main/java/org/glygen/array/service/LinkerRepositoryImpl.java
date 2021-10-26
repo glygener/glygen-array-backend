@@ -905,101 +905,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     @Override
     public List<Linker> getLinkerByUser(UserEntity user, Integer offset, Integer limit, String field, Integer order,
             String searchValue, LinkerType linkerType) throws SparqlException, SQLException {
-        List<Linker> linkers = new ArrayList<Linker>();
-        
-        // get all linkerURIs from user's private graph
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        if (graph != null) {
-            
-            String sortPredicate = getSortPredicateForLinker (field);
-            String searchPredicate = "";
-            String publicSearchPredicate = "";
-            if (searchValue != null) {
-                searchPredicate = getSearchPredicate(searchValue, "?s");
-                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
-            }
-            
-            String sortLine = "";
-            String publicSortLine = "";
-            if (sortPredicate != null) {
-                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
-                sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
-                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
-            }
-            
-            
-            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
-            StringBuffer queryBuf = new StringBuffer();
-            queryBuf.append (prefix + "\n");
-            queryBuf.append ("SELECT DISTINCT ?s");
-            if (sortPredicate != null) {
-              //  queryBuf.append(", ?sortBy");
-            }
-            queryBuf.append ("\nFROM <" + graph + ">\n");
-            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
-                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
-            }
-            queryBuf.append ("WHERE {\n {\n");
-            queryBuf.append (
-                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
-                            " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
-            if (linkerType != null) {
-                if (linkerType.name().startsWith("UNKNOWN")) {
-                    // add the regular type to the query
-                    LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
-                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
-                    
-                } else if (!linkerType.name().startsWith("UNKNOWN")) {
-                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
-                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
-                }
-                //queryBuf.append("?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
-            }
-            queryBuf.append (
-                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
-                            sortLine + searchPredicate + 
-                    "}\n" );
-             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
-                 queryBuf.append ("UNION {" +
-                    "?s gadr:has_public_uri ?public . \n" +
-                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
-                    " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n");
-                 if (linkerType != null) {
-                     if (linkerType.name().startsWith("UNKNOWN")) {
-                         // add the regular type to the query
-                         LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
-                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
-                         
-                     } else if (!linkerType.name().startsWith("UNKNOWN")) {
-                         LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
-                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
-                     }
-                     //queryBuf.append("?public gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
-                 }
-                 queryBuf.append(
-                        publicSortLine + publicSearchPredicate + 
-                    "}}\n"); 
-             }
-             queryBuf.append ("}" + 
-                     orderByLine + 
-                    ((limit == -1) ? " " : " LIMIT " + limit) +
-                    " OFFSET " + offset);
-            
-            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-            
-            for (SparqlEntity sparqlEntity : results) {
-                String linkerURI = sparqlEntity.getValue("s");
-                Linker linker = getLinkerFromURI(linkerURI, user);
-                linkers.add(linker);
-            }
-        }
-        
-        return linkers;
+        return getLinkerByUser(user, offset, limit, field, order, searchValue, linkerType, false);
     }
 
 	
@@ -1042,13 +948,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	@Override
 	public int getLinkerCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-	    String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-		return getCountByUserByType (graph, linkerTypePredicate, searchValue);
+	    return getLinkerCountByUser(user, searchValue, false);
 	}
 	
 	private LinkerType getLinkerTypeForLinker (String linkerURI, String graph) throws SparqlException {
@@ -1749,6 +1649,149 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
     @Override
     public int getLinkerCountByUserByType(UserEntity user, LinkerType linkerType, String searchValue) throws SparqlException, SQLException {
+        return getLinkerCountByUserByType(user, linkerType, searchValue, false);
+    }
+    
+    
+
+    @Override
+    public List<Linker> getLinkerByUser(UserEntity user, int offset, int limit, String field,
+            int order, String searchValue, LinkerType linkerType, boolean includePublic) throws SparqlException, SQLException {
+        List<Linker> linkers = new ArrayList<Linker>();
+        
+        // get all linkerURIs from user's private graph
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            
+            String sortPredicate = getSortPredicateForLinker (field);
+            String searchPredicate = "";
+            String publicSearchPredicate = "";
+            if (searchValue != null) {
+                searchPredicate = getSearchPredicate(searchValue, "?s");
+                publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            }
+            
+            String sortLine = "";
+            String publicSortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+                sortLine += "filter (bound (?sortBy) or !bound(?public)) . \n";
+                publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT DISTINCT ?s");
+            if (sortPredicate != null) {
+              //  queryBuf.append(", ?sortBy");
+            }
+            queryBuf.append ("\nFROM <" + graph + ">\n");
+            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+                queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+            }
+            queryBuf.append ("WHERE {\n {\n");
+            queryBuf.append (
+                    " ?s gadr:has_date_addedtolibrary ?d .\n" +
+                            " ?s rdf:type  <http://purl.org/gadr/data#Linker>. \n");
+            if (linkerType != null) {
+                if (linkerType.name().startsWith("UNKNOWN")) {
+                    // add the regular type to the query
+                    LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                    
+                } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                    queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                }
+                //queryBuf.append("?s gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+            }
+            queryBuf.append (
+                    " OPTIONAL {?s gadr:has_public_uri ?public  } .\n" + 
+                            sortLine + searchPredicate + 
+                    "}\n" );
+             if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {             
+                 queryBuf.append ("UNION {" +
+                    "?s gadr:has_public_uri ?public . \n" +
+                    "GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n" +
+                    " ?public rdf:type  <http://purl.org/gadr/data#Linker>. \n");
+                 if (linkerType != null) {
+                     if (linkerType.name().startsWith("UNKNOWN")) {
+                         // add the regular type to the query
+                         LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                         
+                     } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                         LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                         queryBuf.append("?public gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                     }
+                     //queryBuf.append("?public gadr:has_type \"" + linkerType.name() + "\"^^xsd:string . \n");
+                 }
+                 queryBuf.append(
+                        publicSortLine + publicSearchPredicate + 
+                    "}}\n"); 
+                 
+                 if (includePublic) {
+                     queryBuf.append("UNION {"); 
+                     queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                     queryBuf.append("        ?s rdf:type <" + linkerTypePredicate + ">. ");
+                     if (linkerType != null) {
+                         if (linkerType.name().startsWith("UNKNOWN")) {
+                             // add the regular type to the query
+                             LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                             queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                             
+                         } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                             LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                             queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                         }
+                     }
+                     queryBuf.append(sortLine + searchPredicate);
+                     queryBuf.append("}\n");
+                     queryBuf.append("filter not exists \n");
+                     queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                     queryBuf.append("}\n");
+                 }
+             }
+             queryBuf.append ("}" + 
+                     orderByLine + 
+                    ((limit == -1) ? " " : " LIMIT " + limit) +
+                    " OFFSET " + offset);
+            
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String linkerURI = sparqlEntity.getValue("s");
+                Linker linker = getLinkerFromURI(linkerURI, user);
+                linkers.add(linker);
+            }
+        }
+        
+        return linkers;
+    }
+
+    @Override
+    public int getLinkerCountByUser(UserEntity user, String searchValue, boolean includePublic)
+            throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        return getCountByUserByType (graph, linkerTypePredicate, searchValue, includePublic);
+    }
+
+    @Override
+    public int getLinkerCountByUserByType(UserEntity user, LinkerType linkerType, String searchValue,
+            boolean includePublic) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1821,6 +1864,28 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                      //queryBuf.append(" ?public gadr:has_type \"" + linkerType.toString() + "\"^^xsd:string . \n");
                  }
                  queryBuf.append (publicSortLine + publicSearchPredicate + "}}\n");
+                 
+                 if (includePublic) {
+                     queryBuf.append("UNION {"); 
+                     queryBuf.append(" GRAPH <" + GlygenArrayRepository.DEFAULT_GRAPH + "> {\n");
+                     queryBuf.append("        ?s rdf:type <" + linkerTypePredicate + ">. ");
+                     if (linkerType != null) {
+                         if (linkerType.name().startsWith("UNKNOWN")) {
+                             // add the regular type to the query
+                             LinkerType normalType = LinkerType.valueOf(linkerType.name().substring(linkerType.name().lastIndexOf("UNKNOWN_")+8));
+                             queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + normalType.name() + "\"^^xsd:string }. \n");
+                             
+                         } else if (!linkerType.name().startsWith("UNKNOWN")) {
+                             LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linkerType.name());
+                             queryBuf.append("?s gadr:has_type ?type . VALUES ?type {\"" + linkerType.name() + "\"^^xsd:string \"" + unknownType.name() + "\"^^xsd:string }. \n");
+                         }
+                     }
+                     queryBuf.append(sortLine + searchPredicate);
+                     queryBuf.append("}\n");
+                     queryBuf.append("filter not exists \n");
+                     queryBuf.append("{ select ?s from <" + graph + "> where { ?a gadr:has_public_uri ?s } }");
+                     queryBuf.append("}\n");
+                 }
             }
             queryBuf.append("}");
                     

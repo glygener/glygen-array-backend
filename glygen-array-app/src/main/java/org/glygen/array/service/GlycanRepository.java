@@ -68,6 +68,9 @@ public interface GlycanRepository {
 	void updateGlycan(Glycan g, UserEntity user, ChangeLog change) throws SparqlException, SQLException;
     List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    
+    List<Glycan> getGlycanByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, boolean includePublic)
+            throws SparqlException, SQLException;
     String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException;
     
     /**
@@ -86,5 +89,7 @@ public interface GlycanRepository {
             boolean noGlytoucanRegistration) throws SparqlException, SQLException;
     
     Glycan retrieveOtherSubType (Glycan baseType, GlycanSubsumtionType subType, UserEntity user) throws SparqlException, SQLException;
+    int getGlycanCountByUser(UserEntity user, String searchValue, boolean includePublic)
+            throws SQLException, SparqlException;
     
 }

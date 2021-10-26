@@ -23,6 +23,8 @@ public interface FeatureRepository {
             throws SparqlException, SQLException;
     List<Feature> getFeatureByUser (UserEntity user, int offset, int limit, String field, int order, String searchValue, 
             FeatureType featureType) throws SparqlException, SQLException;
+    List<Feature> getFeatureByUser (UserEntity user, int offset, int limit, String field, int order, String searchValue, 
+            FeatureType featureType, boolean includePublic) throws SparqlException, SQLException;
     Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException;
     String addPublicFeature(Feature feature, UserEntity user) throws SparqlException, SQLException;
     String getPublicFeatureId(String featureId, UserEntity user) throws SQLException, SparqlException;
@@ -30,6 +32,10 @@ public interface FeatureRepository {
             UserEntity user) throws SparqlException, SQLException;
     Feature getFeatureByLabel(String label, String predicate, UserEntity user) throws SparqlException, SQLException;
     int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue)
+            throws SQLException, SparqlException;
+    int getFeatureCountByUser(UserEntity user, String searchValue, boolean includePublic)
+            throws SQLException, SparqlException;
+    int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue, boolean includePublic)
             throws SQLException, SparqlException;
     
 }

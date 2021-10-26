@@ -1137,7 +1137,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         if (graph != null) {
             
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate, false);
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
@@ -1158,7 +1158,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, datasetTypePredicate, searchValue);
+        return getCountByUserByType(graph, datasetTypePredicate, searchValue, false);
     }
     
     /**
@@ -1949,9 +1949,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return getPrintedSlideByUser(user, offset, limit, field, order, searchValue, true);
     }
     
+    
     @Override
     public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        return getPrintedSlideByUser(user, offset, limit, field, order, searchValue, loadAll, false);
+    }
+    
+    @Override
+    public List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll, boolean includePublic) throws SparqlException, SQLException {
         List<PrintedSlide> slides = new ArrayList<>();
         
         String graph = null;
@@ -1960,7 +1967,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         else
             graph = getGraphForUser(user);
         if (graph != null) {
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, printedSlideTypePredicate);
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, printedSlideTypePredicate, includePublic);
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
@@ -2114,16 +2121,21 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     //public int getPrintedSlideCountByUser(UserEntity user) throws SQLException, SparqlException {
     //    return getPrintedSlideCountByUser(user, null);
     //}
-
+    
     @Override
     public int getPrintedSlideCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        return getPrintedSlideCountByUser(user, searchValue, false);
+    }
+            
+    @Override
+    public int getPrintedSlideCountByUser(UserEntity user, String searchValue, boolean includePublic) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
         else {
             graph = getGraphForUser(user);
         }
-        return getCountByUserByType(graph, printedSlideTypePredicate, searchValue);
+        return getCountByUserByType(graph, printedSlideTypePredicate, searchValue, includePublic);
     }
     
     @Override
@@ -3404,7 +3416,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         for (String graph: graphs) {
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate);    
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate, false);    
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
                 for (GraphPermissionEntity entity: permissions) {
@@ -3551,7 +3563,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = DEFAULT_GRAPH;    
         } else
             graph = getGraphForUser(user);
-        List<SparqlEntity> results = retrieveByTypeAndUser(0, -1, null, 0, null, graph, datasetTypePredicate);
+        List<SparqlEntity> results = retrieveByTypeAndUser(0, -1, null, 0, null, graph, datasetTypePredicate, false);
         for (SparqlEntity result: results) {
             String uri = result.getValue("s");
             datasets.add(uri);

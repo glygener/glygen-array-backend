@@ -248,11 +248,20 @@ public class MetadataOntologyParser {
                 String notRecorded = cell.getRichStringCellValue().getString();
                 if (notRecorded != null && !notRecorded.trim().isEmpty()) {
                     if (level == 2) {
-                        subDescriptor.setAllowBypass(true);
+                        if (notRecorded.contains("recorded"))
+                            subDescriptor.setAllowNotRecorded(true);
+                        if (notRecorded.contains("available"))
+                            subDescriptor.setAllowNotApplicable(true);
                     } else if (level == 1) {
-                        childDescriptor.setAllowBypass(true);
+                        if (notRecorded.contains("recorded"))
+                            childDescriptor.setAllowNotRecorded(true);
+                        if (notRecorded.contains("available"))
+                            childDescriptor.setAllowNotApplicable(true);
                     } else if (level == 0){
-                        descriptor.setAllowBypass(true);
+                        if (notRecorded.contains("recorded"))
+                            descriptor.setAllowNotRecorded(true);
+                        if (notRecorded.contains("available"))
+                            descriptor.setAllowNotApplicable(true);
                     }
                 }
             }
@@ -545,14 +554,12 @@ public class MetadataOntologyParser {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
             String wiki = cell.getRichStringCellValue().getString();
             if (!wiki.trim().isEmpty()) {
+                String wikiLink = descriptor.getName().replace(" ", "_");
                 if (level == 1) {
-                    String wikiLink = childDescriptor.getName().replace(" ", "_");
                     childDescriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
-                } else if (level == 0){
-                    String wikiLink = descriptor.getName().replace(" ", "_");
+                } else if (level == 0) {
                     descriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
                 } else if (level == 2){
-                    String wikiLink = subDescriptor.getName().replace(" ", "_");
                     subDescriptor.setWikiLink(wiki.trim() + "#" + wikiLink);
                 }
             } else {
@@ -972,6 +979,7 @@ public class MetadataOntologyParser {
         IRI hasOrder = f.createIRI(prefix + "has_order");
         IRI hasGroupId = f.createIRI(prefix + "has_id");
         IRI allowNotRecorded = f.createIRI(prefix + "allows_not_recorded");
+        IRI allowNotApplicable = f.createIRI(prefix + "allows_not_applicable");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -983,6 +991,11 @@ public class MetadataOntologyParser {
             model.add(f.createStatement(descriptionContext, allowNotRecorded, f.createLiteral(true)));
         } else {
             model.add(f.createStatement(descriptionContext, allowNotRecorded, f.createLiteral(false)));
+        }
+        if (description.getAllowNotApplicable() != null && description.getAllowNotApplicable()) {
+            model.add(f.createStatement(descriptionContext, allowNotApplicable, f.createLiteral(true)));
+        } else {
+            model.add(f.createStatement(descriptionContext, allowNotApplicable, f.createLiteral(false)));
         }
         if (description.getWikiLink() != null) {
             model.add(f.createStatement(descriptionContext, hasUrl, f.createLiteral(description.getWikiLink())));
@@ -1065,7 +1078,8 @@ public class MetadataOntologyParser {
             description.setMandateGroup(group);
         }
         description.setMirage(d.getMirage());
-        description.setAllowNotRecorded(d.allowBypass);
+        description.setAllowNotRecorded(d.allowNotRecorded);
+        description.setAllowNotApplicable(d.getAllowNotApplicable());
         return description;
         
     }
@@ -1087,7 +1101,8 @@ public class MetadataOntologyParser {
         String groupName;
         Boolean mirage = false;
         String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
-        Boolean allowBypass = false;
+        Boolean allowNotRecorded = false;
+        Boolean allowNotApplicable = false;
 
         /**
          * @return the name
@@ -1327,18 +1342,33 @@ public class MetadataOntologyParser {
         }
 
         /**
-         * @return the allowBypass
+         * @return the allowNotRecorded
          */
-        public Boolean getAllowBypass() {
-            return allowBypass;
+        public Boolean getAllowNotRecorded() {
+            return allowNotRecorded;
         }
 
         /**
-         * @param allowBypass the allowBypass to set
+         * @param allowNotRecorded the allowNotRecorded to set
          */
-        public void setAllowBypass(Boolean allowBypass) {
-            this.allowBypass = allowBypass;
+        public void setAllowNotRecorded(Boolean allowNotRecorded) {
+            this.allowNotRecorded = allowNotRecorded;
         }
+
+        /**
+         * @return the allowNotApplicable
+         */
+        public Boolean getAllowNotApplicable() {
+            return allowNotApplicable;
+        }
+
+        /**
+         * @param allowNotApplicable the allowNotApplicable to set
+         */
+        public void setAllowNotApplicable(Boolean allowNotApplicable) {
+            this.allowNotApplicable = allowNotApplicable;
+        }
+
     }
 
     /**
