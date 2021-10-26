@@ -968,44 +968,47 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		Map<String, String> positionMap = new HashMap<>();
 		if (statements.hasNext()) {
 		    
-		    switch (featureType) {
-            case LINKEDGLYCAN:
-                featureObject = new LinkedGlycan();
-                ((LinkedGlycan) featureObject).setGlycans(new ArrayList<GlycanInFeature>());
-                break;
-            case COMPOUND:
-                featureObject = new CompoundFeature();
-                break;
-            case CONTROL:
-                featureObject = new ControlFeature();
-                break;
-            case GLYCOLIPID:
-                featureObject = new GlycoLipid();
-                ((GlycoLipid) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
-                break;
-            case GLYCOPEPTIDE:
-                featureObject = new GlycoPeptide();
-                ((GlycoPeptide) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
-                break;
-            case GLYCOPROTEIN:
-                featureObject = new GlycoProtein();
-                ((GlycoProtein) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
-                break;
-            case GPLINKEDGLYCOPEPTIDE:
-                featureObject = new GPLinkedGlycoPeptide();
-                ((GPLinkedGlycoPeptide) featureObject).setPeptides(new ArrayList<GlycoPeptide>());
-                break;
-            case LANDING_LIGHT:
-                featureObject = new LandingLight();
-                break;
-            case NEGATIVE_CONTROL:
-                featureObject = new NegControlFeature();
-                break;
-            default:
-                featureObject = new ControlFeature();
-                break;
-            
-            }
+		    if (featureType == null) 
+		        featureObject = new ControlFeature();
+		    else {
+    		    switch (featureType) {
+                case LINKEDGLYCAN:
+                    featureObject = new LinkedGlycan();
+                    ((LinkedGlycan) featureObject).setGlycans(new ArrayList<GlycanInFeature>());
+                    break;
+                case COMPOUND:
+                    featureObject = new CompoundFeature();
+                    break;
+                case CONTROL:
+                    featureObject = new ControlFeature();
+                    break;
+                case GLYCOLIPID:
+                    featureObject = new GlycoLipid();
+                    ((GlycoLipid) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                    break;
+                case GLYCOPEPTIDE:
+                    featureObject = new GlycoPeptide();
+                    ((GlycoPeptide) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                    break;
+                case GLYCOPROTEIN:
+                    featureObject = new GlycoProtein();
+                    ((GlycoProtein) featureObject).setGlycans(new ArrayList<LinkedGlycan>());
+                    break;
+                case GPLINKEDGLYCOPEPTIDE:
+                    featureObject = new GPLinkedGlycoPeptide();
+                    ((GPLinkedGlycoPeptide) featureObject).setPeptides(new ArrayList<GlycoPeptide>());
+                    break;
+                case LANDING_LIGHT:
+                    featureObject = new LandingLight();
+                    break;
+                case NEGATIVE_CONTROL:
+                    featureObject = new NegControlFeature();
+                    break;
+                default:
+                    featureObject = new ControlFeature();
+                    break;
+                }
+		    }
 			featureObject.setUri(featureURI);
 			featureObject.setId(featureURI.substring(featureURI.lastIndexOf("/")+1));
 			featureObject.setPositionMap(positionMap);
