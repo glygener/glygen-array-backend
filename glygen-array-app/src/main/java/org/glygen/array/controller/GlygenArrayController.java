@@ -2166,9 +2166,13 @@ public class GlygenArrayController {
         glycan1.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan1.setSubType(GlycanSubsumtionType.BASE);
         // calculate mass
-        GlycoVisitorMass massVisitor = new GlycoVisitorMass();
-        massVisitor.start(sugar);
-        glycan1.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        try {
+            GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+            massVisitor.start(sugar);
+            glycan1.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        } catch (Exception e) {
+            logger.warn("Mass cannot be calculated", e);
+        }
         String baseId = addGlycan(glycan1, null, user, noGlytoucanRegistration);
         
         // make alpha version
@@ -2179,8 +2183,14 @@ public class GlygenArrayController {
         glycan2.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan2.setSubType(GlycanSubsumtionType.ALPHA);
         // calculate mass
-        massVisitor.start(sugar);
-        glycan2.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+     // calculate mass
+        try {
+            GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+            massVisitor.start(sugar);
+            glycan2.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        } catch (Exception e) {
+            logger.warn("Mass cannot be calculated", e);
+        }
         addGlycan(glycan2, glycan1, user, noGlytoucanRegistration);
      
         // make beta version
@@ -2191,8 +2201,14 @@ public class GlygenArrayController {
         glycan3.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan3.setSubType(GlycanSubsumtionType.BETA);
         // calculate mass
-        massVisitor.start(sugar);
-        glycan3.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+     // calculate mass
+        try {
+            GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+            massVisitor.start(sugar);
+            glycan3.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        } catch (Exception e) {
+            logger.warn("Mass cannot be calculated", e);
+        }
         addGlycan(glycan3, glycan1, user, noGlytoucanRegistration);
       
         // make alditol version
@@ -2203,8 +2219,14 @@ public class GlygenArrayController {
         glycan4.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan4.setSubType(GlycanSubsumtionType.ALDITOL);
         // calculate mass
-        massVisitor.start(sugar);
-        glycan4.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+     // calculate mass
+        try {
+            GlycoVisitorMass massVisitor = new GlycoVisitorMass();
+            massVisitor.start(sugar);
+            glycan4.setMass(massVisitor.getMass(GlycoVisitorMass.DERIVATISATION_NONE));
+        } catch (Exception e) {
+            logger.warn("Mass cannot be calculated", e);
+        }
         addGlycan(glycan4, glycan1, user, noGlytoucanRegistration);
         
         return baseId;
