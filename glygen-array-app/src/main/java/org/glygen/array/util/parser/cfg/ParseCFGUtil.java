@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,13 +25,18 @@ public class ParseCFGUtil {
     Set<String> experimentColumns = new HashSet<String>();
     Set<String> requestColumns = new HashSet<String>();
     
+    
     public List<String> parse (String filename, String version) {
+        Map<String, String> sampleColumnMap = new HashMap<String, String>();
+        Map<String, String> experimentColumnMap = new HashMap<String, String>();
+        Map<String, String> requestColumnMap = new HashMap<String, String>();
         
         ObjectMapper mapper = new ObjectMapper();
         List<String> sqlCommands = new ArrayList<String>();
         
         if (version.contains("5.2")) {
             try {
+                PrintStream columnFile = new PrintStream(new FileOutputStream("cfg" + version + "columns.txt" ));
                 InputStream is = new FileInputStream(new File(filename));
                 CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
                 //CFG52 model = mapper.readValue(is, new TypeReference<List<CFG52Model>>(){});
@@ -57,18 +64,37 @@ public class ParseCFGUtil {
                 for (CFG52Model entry: rows) {
                     DataWithTitle sampleData = entry.getSampleData();
                     if (sampleData != null) {
-                        sampleColumns.addAll(findColumns (sampleData.getData()));
+                        sampleColumns.addAll(findColumns (sampleData.getData(), sampleColumnMap));
                     }
                     DataWithTitle experimentData = entry.getExperimentData();
                     if (experimentData != null) {
-                        experimentColumns.addAll(findColumns (experimentData.getData()));
+                        experimentColumns.addAll(findColumns (experimentData.getData(), experimentColumnMap));
                     }
                     DataWithTitle requestData = entry.getRequestData();
                     if (requestData != null) {
-                        requestColumns.addAll(findColumns (requestData.getData()));
+                        requestColumns.addAll(findColumns (requestData.getData(), requestColumnMap));
                     }
                 }
                 
+                // print out the column maps
+                columnFile.println("sampledata");
+                for (String key: sampleColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + sampleColumnMap.get(key));
+                }
+                columnFile.println();
+                
+                columnFile.println("experimentdata");
+                for (String key: experimentColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + experimentColumnMap.get(key));
+                }
+                columnFile.println();
+                columnFile.println("requestdata");
+                for (String key: requestColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + requestColumnMap.get(key));
+                }
+                
+                columnFile.close();
+                  
                 sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".sampledata(\n");
                 sqlCommands.add("id bigint primary key,\n");
                 sqlCommands.add("title text,\n");
@@ -109,7 +135,7 @@ public class ParseCFGUtil {
                 sqlCommands.add("id bigint primary key, \n" +
                         "linkText varchar(256),\n" +
                         "href varchar(256),\n" +
-                        "parentCell  INT\n);");
+                        "parentCell  INT);\n");
                 
                 
                 // insert data
@@ -131,18 +157,19 @@ public class ParseCFGUtil {
 
     private List<String> addRow(CFG52Model entry, long experimentId) {
         List<String> inserts = new ArrayList<String>();
-        inserts.add(addSampleData(entry.sampleData));
-        inserts.add(addExperimentData(entry.experimentData, experimentId));
-        inserts.add(addRequestData(entry.requestData, experimentId));
+        inserts.add(addData(entry.sampleData, "sampledata"));
+        inserts.add(addData(entry.experimentData, "experimentdata"));
+        inserts.add(addData(entry.requestData, "requestdata"));
         for (Link l: entry.getLinks())
             inserts.add(addLink(l, experimentId));
         
         String insert = "insert into \"cfg_5_2\".experiment (id, primscreen, sample_name, "
                 + "species, protein_family, investigator, request, date, sample_data_id, experiment_data_id, request_data_id, filename) values (";
-        insert += experimentId + ", '" + entry.primscreen + "', '" + entry.sampleName + "', '" + entry.species;
-        insert += "', '" + entry.proteinFamily + "', '" + entry.investigator + "', '" + entry.request + "', '" + entry.date + "', '" +
-               "', '" + this.dataId + "', '" + this.dataId + "', '" + this.dataId + "', '" + entry.getFilename() + "');\n";
-        inserts.add(insert);
+        insert += experimentId + ", '" + entry.primscreen + "', E'" + entry.sampleName.replace("'", "\\'") + "', E'" + entry.species.replace("'", "\\'");
+        insert += "', E'" + entry.proteinFamily.replace("'", "\\'") + "', E'" + entry.investigator.replace("'", "\\'") + "', E'" +
+                entry.request.replace("'", "\\'") + "', '" + entry.date + "', " +
+                this.dataId + ", " + this.dataId + ", " + this.dataId + ", E'" + entry.getFilename().replace("'", "\\'") + "');\n";
+        inserts.add(insert + "\n\n");
         
         this.dataId ++;
         
@@ -150,70 +177,27 @@ public class ParseCFGUtil {
         
     }
     
-    private String addSampleData (DataWithTitle row) {
-        String insert = "insert into \"cfg_5_2\".sampledata (id, title, ";
+    private String addData (DataWithTitle row, String tablename) {
+        String insert = "insert into \"cfg_5_2\"." + tablename + " (id, title, ";
         int i=0;
         for (Data col: row.getData()) {
             insert += "\"" + formatColumnName(col.getKey()) + "\"";
             if (i < row.getData().size()-1) {
                 insert += ", ";
             }
+            i++;
         }
-        insert += ") values (" + this.dataId + ", '" + row.getTitle() + "', '";
+        insert += ") values (" + this.dataId + ", E'" + row.getTitle().replace("'", "\\'") + "', E'";
         i=0;
         for (Data col: row.getData()) {
-            insert += col.getValue();
+            String value = col.getValue().replace("'", "\\'");
+            insert += value;
             if (i < row.getData().size()-1) {
-                insert += "', '";
+                insert += "', E'";
             }
+            i++;
         }
         insert += "');\n";
-        
-        
-        return insert;
-    }
-
-    private String addExperimentData (DataWithTitle row, long experimentId) {
-        String insert = "insert into \"cfg_5_2\".experimentdata (id, title, ";
-        int i=0;
-        for (Data col: row.getData()) {
-            insert += formatColumnName(col.getKey());
-            if (i < row.getData().size()-1) {
-                insert += ", ";
-            }
-        }
-        insert += ") values (" + this.dataId + ", '" + row.getTitle() + "', '";
-        i=0;
-        for (Data col: row.getData()) {
-            insert += col.getValue();
-            if (i < row.getData().size()-1) {
-                insert += "', '";
-            }
-        }
-        insert += ");\n";
-        
-        
-        return insert;
-    }
-    
-    private String addRequestData (DataWithTitle row, long experimentId) {
-        String insert = "insert into \"cfg_5_2\".requestdata (id, title, ";
-        int i=0;
-        for (Data col: row.getData()) {
-            insert += formatColumnName(col.getKey());
-            if (i < row.getData().size()-1) {
-                insert += ", ";
-            }
-        }
-        insert += ") values (" + this.dataId + ", '" + row.getTitle() + "', '";
-        i=0;
-        for (Data col: row.getData()) {
-            insert += col.getValue();
-            if (i < row.getData().size()-1) {
-                insert += "', '";
-            }
-        }
-        insert += ");\n";
         
         
         return insert;
@@ -221,17 +205,19 @@ public class ParseCFGUtil {
     
     private String addLink (Link row, long experimentId) {
         String insert = "insert into \"cfg_5_2\".link (id, linkText, href, parentCell) values (";
-        insert += linkId + ", '" + row.linkText + "', '" + row.href + ", " + row.parentCell + ");\n";
+        insert += linkId + ", E'" + row.linkText.replace("'", "\\'") + "', E'" + row.href.replace("'", "\\'") + "', " + row.parentCell + ");\n";
         insert += "insert into \"cfg_5_2\".experiment_link(experiment_id, link_id) values (" +
                 experimentId + ", " + this.linkId + ");\n";      
         this.linkId ++;
         return insert;
     }
 
-    private Set<String> findColumns(List<Data> data) {
+    private Set<String> findColumns(List<Data> data, Map<String, String> columnMap) {
         Set<String> columnSet = new HashSet<String>();
         for (Data d: data) {
-            columnSet.add(formatColumnName (d.getKey()));
+            String col = formatColumnName (d.getKey());
+            columnSet.add(col);
+            columnMap.put (col, d.getKey());
         }
         
         return columnSet;
@@ -239,8 +225,9 @@ public class ParseCFGUtil {
     
     private String formatColumnName (String columnName) {
         columnName = columnName.replace(" ", "_");
-        if (columnName.length() > 30) {
-            columnName = columnName.substring(0, 30);
+        columnName = columnName.replace("/", "_");
+        if (columnName.length() > 20) {
+            columnName = "" + columnName.hashCode();
         }
         return columnName;
     }
