@@ -98,6 +98,7 @@ import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.FixGlycoCtUtil;
 import org.glygen.array.util.GalFileImportResult;
 import org.glygen.array.util.GlycanBaseTypeUtil;
 import org.glygen.array.util.GlytoucanUtil;
@@ -1930,6 +1931,7 @@ public class GlygenArrayController {
 		g.setDescription(glycan.getDescription() != null ? glycan.getDescription().trim() : glycan.getDescription());
 		
 		String glycoCT = glycan.getSequence().trim();
+		FixGlycoCtUtil fixGlycoCT = new FixGlycoCtUtil();
 		UserEntity user;
 		boolean gwbError = false;
 		Sugar sugar = null;
@@ -1950,6 +1952,7 @@ public class GlygenArrayController {
 	                            gwbError = true;
 					        else 
 					            glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+					            glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
 					    } catch (Exception e) {
 					        logger.error("Glycan builder parse error", e.getMessage());
 					        gwbError = true;
@@ -1968,6 +1971,7 @@ public class GlygenArrayController {
                                     SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
                                     exporter.start(sugar);
                                     glycoCT = exporter.getHashCode();
+                                    glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
                                     // calculate mass
                                     GlycoVisitorMass massVisitor = new GlycoVisitorMass();
                                     massVisitor.start(sugar);
@@ -1987,6 +1991,7 @@ public class GlygenArrayController {
 					case GWS:
 						glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromString(glycan.getSequence().trim());
 						glycoCT = glycanObject.toGlycoCTCondensed();
+						glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
 						g.setMass(computeMass(glycanObject));
 						g.setSequence(glycoCT);
                         g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
@@ -1996,6 +2001,7 @@ public class GlygenArrayController {
 					    wurcsConverter.start(glycan.getSequence().trim());
 					    glycoCT = wurcsConverter.getGlycoCT();
 					    if (glycoCT != null) {
+					        glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
 					        glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
 					        g.setMass(computeMass(glycanObject));
 	                        g.setSequence(glycoCT);
@@ -2027,6 +2033,7 @@ public class GlygenArrayController {
                         CFGMasterListParser parser = new CFGMasterListParser();
                         glycoCT = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(glycan.getSequence().trim()));
                         if (glycoCT != null) {
+                            glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
                             glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
                             g.setMass(computeMass(glycanObject));
                             g.setSequence(glycoCT);
