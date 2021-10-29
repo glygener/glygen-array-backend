@@ -34,14 +34,15 @@ public class ParseCFGUtil {
         ObjectMapper mapper = new ObjectMapper();
         List<String> sqlCommands = new ArrayList<String>();
         
-        if (version.contains("5.2")) {
+        //if (version.contains("5.2") || version.contains("5.1") || version.contains("5.0")) {
             try {
                 PrintStream columnFile = new PrintStream(new FileOutputStream("cfg" + version + "columns.txt" ));
                 InputStream is = new FileInputStream(new File(filename));
                 CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
                 //CFG52 model = mapper.readValue(is, new TypeReference<List<CFG52Model>>(){});
-                sqlCommands.add("CREATE SCHEMA IF NOT EXISTS cfg_5_2;\n");
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".experiment(\n");
+                String schema = "cfg_" + version.substring(0, 1) + "_" + version.substring(2);
+                sqlCommands.add("CREATE SCHEMA IF NOT EXISTS "+ schema + ";\n");
+                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment(\n");
                 sqlCommands.add("id bigint primary key, \n " + 
                         "primscreen varchar(256),\n" + 
                         "sample_name varchar(256),\n" + 
@@ -55,7 +56,7 @@ public class ParseCFGUtil {
                         "request_data_id bigint, \n" +
                         "filename varchar(256) );\n");
                 
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".experiment_link(\n");
+                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment_link(\n");
                 sqlCommands.add("experiment_id bigint,\n" + 
                         "link_id bigint );\n");
                 
@@ -63,15 +64,15 @@ public class ParseCFGUtil {
                 
                 for (CFG52Model entry: rows) {
                     DataWithTitle sampleData = entry.getSampleData();
-                    if (sampleData != null) {
+                    if (sampleData != null && sampleData.getData() != null) {
                         sampleColumns.addAll(findColumns (sampleData.getData(), sampleColumnMap));
                     }
                     DataWithTitle experimentData = entry.getExperimentData();
-                    if (experimentData != null) {
+                    if (experimentData != null && experimentData.getData() != null) {
                         experimentColumns.addAll(findColumns (experimentData.getData(), experimentColumnMap));
                     }
                     DataWithTitle requestData = entry.getRequestData();
-                    if (requestData != null) {
+                    if (requestData != null && requestData.getData() != null) {
                         requestColumns.addAll(findColumns (requestData.getData(), requestColumnMap));
                     }
                 }
@@ -95,7 +96,7 @@ public class ParseCFGUtil {
                 
                 columnFile.close();
                   
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".sampledata(\n");
+                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".sampledata(\n");
                 sqlCommands.add("id bigint primary key,\n");
                 sqlCommands.add("title text,\n");
                 int i=0;
@@ -107,7 +108,7 @@ public class ParseCFGUtil {
                 }
                 sqlCommands.add("\n);\n");
                 
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".experimentdata(\n");
+                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experimentdata(\n");
                 sqlCommands.add("id bigint primary key,\n");
                 sqlCommands.add("title text,\n");
                 i=0;
@@ -119,7 +120,7 @@ public class ParseCFGUtil {
                 }
                 sqlCommands.add("\n);\n");
                 
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"cfg_5_2\".requestdata(\n");
+                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".requestdata(\n");
                 sqlCommands.add("id bigint primary key,\n");
                 sqlCommands.add("title text,\n");
                 i=0;
@@ -131,7 +132,7 @@ public class ParseCFGUtil {
                 }
                 sqlCommands.add("\n);\n");
                 
-                sqlCommands.add("CREATE TABLE \"cfg_5_2\".link(\n");
+                sqlCommands.add("CREATE TABLE \"" + schema + "\".link(\n");
                 sqlCommands.add("id bigint primary key, \n" +
                         "linkText varchar(256),\n" +
                         "href varchar(256),\n" +
@@ -141,7 +142,7 @@ public class ParseCFGUtil {
                 // insert data
                 long experimentId = 1;
                 for (CFG52Model entry: rows) {
-                    sqlCommands.addAll(addRow (entry, experimentId));
+                    sqlCommands.addAll(addRow (entry, experimentId, schema));
                     experimentId ++;
                 }
                 
@@ -150,20 +151,20 @@ public class ParseCFGUtil {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }   
-        }
+       //}
         
         return sqlCommands;
     }
 
-    private List<String> addRow(CFG52Model entry, long experimentId) {
+    private List<String> addRow(CFG52Model entry, long experimentId, String schema) {
         List<String> inserts = new ArrayList<String>();
-        inserts.add(addData(entry.sampleData, "sampledata"));
-        inserts.add(addData(entry.experimentData, "experimentdata"));
-        inserts.add(addData(entry.requestData, "requestdata"));
+        inserts.add(addData(entry.sampleData, schema + ".sampledata"));
+        inserts.add(addData(entry.experimentData, schema + ".experimentdata"));
+        inserts.add(addData(entry.requestData, schema + ".requestdata"));
         for (Link l: entry.getLinks())
-            inserts.add(addLink(l, experimentId));
+            inserts.add(addLink(l, experimentId, schema));
         
-        String insert = "insert into \"cfg_5_2\".experiment (id, primscreen, sample_name, "
+        String insert = "insert into \"" + schema + "\".experiment (id, primscreen, sample_name, "
                 + "species, protein_family, investigator, request, date, sample_data_id, experiment_data_id, request_data_id, filename) values (";
         insert += experimentId + ", '" + entry.primscreen + "', E'" + entry.sampleName.replace("'", "\\'") + "', E'" + entry.species.replace("'", "\\'");
         insert += "', E'" + entry.proteinFamily.replace("'", "\\'") + "', E'" + entry.investigator.replace("'", "\\'") + "', E'" +
@@ -178,35 +179,55 @@ public class ParseCFGUtil {
     }
     
     private String addData (DataWithTitle row, String tablename) {
-        String insert = "insert into \"cfg_5_2\"." + tablename + " (id, title, ";
-        int i=0;
-        for (Data col: row.getData()) {
-            insert += "\"" + formatColumnName(col.getKey()) + "\"";
-            if (i < row.getData().size()-1) {
-                insert += ", ";
+        List<String> processedColumns = new ArrayList<String>();
+        List<Integer> skipList = new ArrayList<Integer>();
+        if (row.getData() != null) {
+            String insert = "insert into " + tablename + " (id, title, ";
+            int i=0;
+            for (Data col: row.getData()) {
+                String columnName = formatColumnName(col.getKey());
+                if (!processedColumns.contains(columnName)) {
+                    processedColumns.add(columnName);
+                    insert += "\"" + columnName + "\"";
+                    if (i < row.getData().size()-1) {
+                        insert += ", ";
+                    }
+                    
+                } else {
+                    System.err.println ("Skipping " + columnName + " in table " + tablename);
+                    skipList.add(i);
+                }
+                i++;
             }
-            i++;
-        }
-        insert += ") values (" + this.dataId + ", E'" + row.getTitle().replace("'", "\\'") + "', E'";
-        i=0;
-        for (Data col: row.getData()) {
-            String value = col.getValue().replace("'", "\\'");
-            insert += value;
-            if (i < row.getData().size()-1) {
-                insert += "', E'";
+            if (insert.endsWith(", ")) // remove the last comma
+                insert = insert.substring(0, insert.length() - 2);
+            insert += ") values (" + this.dataId + ", E'" + row.getTitle().replace("'", "\\'") + "', E'";
+            i=0;
+            for (Data col: row.getData()) {
+                if (!skipList.contains(i)) {
+                    String value = col.getValue().replace("'", "\\'");
+                    insert += value;
+                    if (i < row.getData().size()-1) {
+                        insert += "', E'";
+                    }
+                    
+                } 
+                i++;
             }
-            i++;
-        }
-        insert += "');\n";
-        
-        
-        return insert;
+            if (insert.endsWith(", ")) // remove the last comma
+                insert = insert.substring(0, insert.length() - 2);
+            insert += "');\n";
+            
+            
+            return insert;
+        } 
+        return "";
     }
     
-    private String addLink (Link row, long experimentId) {
-        String insert = "insert into \"cfg_5_2\".link (id, linkText, href, parentCell) values (";
+    private String addLink (Link row, long experimentId, String schema) {
+        String insert = "insert into \"" + schema + "\".link (id, linkText, href, parentCell) values (";
         insert += linkId + ", E'" + row.linkText.replace("'", "\\'") + "', E'" + row.href.replace("'", "\\'") + "', " + row.parentCell + ");\n";
-        insert += "insert into \"cfg_5_2\".experiment_link(experiment_id, link_id) values (" +
+        insert += "insert into \"" + schema + "\".experiment_link(experiment_id, link_id) values (" +
                 experimentId + ", " + this.linkId + ");\n";      
         this.linkId ++;
         return insert;

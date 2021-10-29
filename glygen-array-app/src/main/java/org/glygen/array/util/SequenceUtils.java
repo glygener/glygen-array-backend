@@ -3,8 +3,13 @@ package org.glygen.array.util;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
+import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.massutil.IonCloud;
+import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
 import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
+import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
@@ -58,6 +63,24 @@ public class SequenceUtils {
             searchSequence = wurcsConverter.getGlycoCT();
             if (searchSequence == null) {
                 // keep it as WURCS
+                try {
+                    WURCS2Parser t_wurcsparser = new WURCS2Parser();
+                    MassOptions massOptions = new MassOptions();
+                    massOptions.setDerivatization(MassOptions.NO_DERIVATIZATION);
+                    massOptions.setIsotope(MassOptions.ISOTOPE_MONO);
+                    massOptions.ION_CLOUD = new IonCloud();
+                    massOptions.NEUTRAL_EXCHANGES = new IonCloud();
+                    ResidueType m_residueFreeEnd = ResidueDictionary.findResidueType("freeEnd");
+                    massOptions.setReducingEndType(m_residueFreeEnd);
+                    t_wurcsparser.readGlycan(sequence.trim(), massOptions);
+                    // no exceptions, WURCS is valid, keep it as WURCS
+                    searchSequence = sequence.trim();
+                } catch (Exception e) {
+                    errorMessage.addError(new ObjectError("sequence", "Failed to parse the WURCS sequence. " + e.getMessage()));
+                }
+                
+                // validation does not work properly
+                /*
                 // validate and re-code
                 WURCSValidator validator = new WURCSValidator();
                 validator.start(sequence.trim());
@@ -67,7 +90,7 @@ public class SequenceUtils {
                     searchSequence = null;
                 } else {
                     searchSequence = validator.getReport().getStandardString();
-                }
+                }*/
             }
             break;
         case IUPAC:

@@ -1428,13 +1428,18 @@ public class GlygenArrayController {
                             result.addDuplicateSequence(glycan);
                         } else {
                             String id = addGlycan(g, p, noGlytoucanRegistration);
-                            Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                            if (addedGlycan instanceof SequenceDefinedGlycan) {
-                                byte[] image = getCartoonForGlycan(addedGlycan.getId());
-                                addedGlycan.setCartoon(image);
+                            if (id == null) {
+                                // cannot be added
+                                result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
+                            } else {
+                                Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
+                                if (addedGlycan instanceof SequenceDefinedGlycan) {
+                                    byte[] image = getCartoonForGlycan(addedGlycan.getId());
+                                    addedGlycan.setCartoon(image);
+                                }
+                                result.getAddedGlycans().add(addedGlycan);
+                                countSuccess ++;
                             }
-                            result.getAddedGlycans().add(addedGlycan);
-                            countSuccess ++;
                         }
                     }
                 }
