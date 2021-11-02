@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
@@ -47,6 +48,7 @@ import org.glygen.array.persistence.rdf.ReducingEndConfiguration;
 import org.glygen.array.persistence.rdf.ReducingEndType;
 import org.glygen.array.persistence.rdf.Source;
 import org.glygen.array.persistence.rdf.SourceType;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.util.SparqlUtils;
@@ -2113,5 +2115,47 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         }
         
         return publicId;
+    }
+
+    @Override
+    public void updateFeature(Feature g, UserEntity user) throws SparqlException, SQLException {
+        updateFeature(g, user, null);
+    }
+
+    @Override
+    public void updateFeature(Feature g, UserEntity user, ChangeLog change) throws SparqlException, SQLException {
+        String graph = getGraphForUser(user);
+        Feature existing = getFeatureFromURI(g.getUri(), user);
+        if (graph != null && existing !=null) {
+            updateFeatureInGraph(g, graph);
+            if (change != null) {
+                saveChangeLog(change, existing.getUri(), graph);
+            }
+            featureCache.remove(existing.getUri());
+        }
+    }
+
+    void updateFeatureInGraph (Feature g, String graph) throws SparqlException {  
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        String featureURI = g.getUri();
+        IRI feature = f.createIRI(featureURI);
+        Literal label = g.getName() == null ? null : f.createLiteral(g.getName());
+        Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId());
+        IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
+        Literal date = f.createLiteral(new Date());
+        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        
+        if (label != null) sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, RDFS.LABEL, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, hasInternalId, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, hasModifiedDate, null, graphIRI)), graphIRI);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        if (label != null) statements.add(f.createStatement(feature, RDFS.LABEL, label, graphIRI));
+        statements.add(f.createStatement(feature, hasInternalId, internalId, graphIRI));
+        statements.add(f.createStatement(feature, hasModifiedDate, date, graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
     }
 }

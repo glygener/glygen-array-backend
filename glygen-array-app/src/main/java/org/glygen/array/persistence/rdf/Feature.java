@@ -1,12 +1,16 @@
 package org.glygen.array.persistence.rdf;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -30,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
         @Type(value = NegControlFeature.class, name = "NEGATIVE_CONTROL"),
         @Type(value = CompoundFeature.class, name = "COMPOUND")
     })
-public class Feature {
+public class Feature implements ChangeTrackable {
 	String id;
 	String uri;
 	String name;
@@ -45,6 +49,8 @@ public class Feature {
 	Date dateModified;
 	Date dateCreated;
 	Date dateAddedToLibrary;
+	
+	List<ChangeLog> changes = new ArrayList<ChangeLog>();
 
 	Boolean inUse = false;
 	
@@ -197,5 +203,20 @@ public class Feature {
      */
     public void setMetadata(FeatureMetadata metadata) {
         this.metadata = metadata;
+    }
+    
+    @Override
+    public List<ChangeLog> getChanges() {
+        return this.changes;
+    }
+
+    @Override
+    public void setChanges(List<ChangeLog> changes) {
+        this.changes = changes;
+    }
+
+    @Override
+    public void addChange(ChangeLog change) {
+        this.changes.add(change);
     }
 }

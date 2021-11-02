@@ -9,6 +9,7 @@ import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
+import org.glygen.array.persistence.rdf.data.ChangeLog;
 
 public interface FeatureRepository {
 	String addFeature (Feature f, UserEntity u) throws SparqlException, SQLException;
@@ -37,5 +38,8 @@ public interface FeatureRepository {
             throws SQLException, SparqlException;
     int getFeatureCountByUserByType(UserEntity user, FeatureType featureType, String searchValue, boolean includePublic)
             throws SQLException, SparqlException;
+    
+    void updateFeature(Feature g, UserEntity user) throws SparqlException, SQLException;
+    void updateFeature(Feature g, UserEntity user, ChangeLog change) throws SparqlException, SQLException;
     
 }

@@ -64,6 +64,8 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.SesameSparqlDAO;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.CompoundFeature;
+import org.glygen.array.persistence.rdf.ControlFeature;
 import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
@@ -74,11 +76,13 @@ import org.glygen.array.persistence.rdf.GlycanType;
 import org.glygen.array.persistence.rdf.GlycoLipid;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.GlycoProtein;
+import org.glygen.array.persistence.rdf.LandingLight;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.NegControlFeature;
 import org.glygen.array.persistence.rdf.OtherGlycan;
 import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
@@ -4768,7 +4772,7 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public Confirmation updateLinker(
-			@ApiParam(required=true, value="Linker to be updated, id is required, name and comment can be updated only") 
+			@ApiParam(required=true, value="Linker to be updated, id is required, only name and comment can be updated") 
 			@RequestBody Linker linkerView, 
 			@ApiParam(required=false, value="summary of the changes") 
             @RequestParam(value="changeSummary", required=false)
@@ -4878,6 +4882,129 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Error updating linker with id: " + linkerView.getId());
 		}
 	}
+	
+	
+	@ApiOperation(value = "Update given feature for the user")
+    @RequestMapping(value = "/updateFeature", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Feature updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update feature"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateFeature(
+            @ApiParam(required=true, value="Feature to be updated, id and type are required, only name and internalId can be updated") 
+            @RequestBody org.glygen.array.persistence.rdf.Feature feature, 
+            @ApiParam(required=false, value="summary of the changes") 
+            @RequestParam(value="changeSummary", required=false)
+            String changeSummary,
+            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @RequestParam(value="changedField", required=false)
+            List<String> changedFields,
+            Principal principal) throws SQLException {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        // validate first
+        if (validator != null) {
+            if  (feature.getName() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "name", feature.getName().trim());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            if (feature.getInternalId() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "internalId", feature.getInternalId().trim());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            
+            if (feature.getType() == null) {
+                feature.setType(FeatureType.CONTROL);
+            }
+            org.glygen.array.persistence.rdf.Feature newFeature = null;
+            switch (feature.getType()) {
+            case COMPOUND:
+                newFeature = new CompoundFeature();
+                break;
+            case CONTROL:
+                newFeature = new ControlFeature();
+                break;
+            case GLYCOLIPID:
+                newFeature = new GlycoLipid();
+                break;
+            case GLYCOPEPTIDE:
+                newFeature = new GlycoPeptide();
+                break;
+            case GLYCOPROTEIN:
+                newFeature = new GlycoProtein();
+                break;
+            case GPLINKEDGLYCOPEPTIDE:
+                newFeature = new GPLinkedGlycoPeptide();
+                break;
+            case LANDING_LIGHT:
+                newFeature = new LandingLight();
+                break;
+            case LINKEDGLYCAN:
+                newFeature = new LinkedGlycan();
+                break;
+            case NEGATIVE_CONTROL:
+                newFeature = new NegControlFeature();
+                break;
+            }
+            
+            newFeature.setUri(GlygenArrayRepository.uriPrefix + feature.getId());
+            newFeature.setInternalId(feature.getInternalId() != null ? feature.getInternalId().trim() : null);
+            newFeature.setName(feature.getName() != null ? feature.getName().trim() : null);  
+            
+            
+            // check if name is unique
+            if (newFeature.getName() != null && !newFeature.getName().isEmpty()) {
+                org.glygen.array.persistence.rdf.Feature local = featureRepository.getFeatureByLabel(newFeature.getName(), user);
+                if (local != null && !local.getUri().equals(newFeature.getUri())) {   // there is another with the same name
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                }
+            } 
+            
+            if (newFeature.getInternalId() != null && !newFeature.getInternalId().trim().isEmpty()) {
+                try {
+                    org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(newFeature.getInternalId(), 
+                            "gadr:has_internal_id", user);
+                    if (existing != null && !existing.getUri().equals(newFeature.getUri())) {
+                        feature.setId(existing.getId());
+                        errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+                    }
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Could not query existing features", e);
+                }
+            }
+            
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+                throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+            
+            ChangeLog changeLog = new ChangeLog();
+            changeLog.setUser(principal.getName());
+            changeLog.setChangeType(ChangeType.MINOR);
+            changeLog.setDate(new Date());
+            changeLog.setSummary(changeSummary);
+            changeLog.setChangedFields(changedFields);
+            feature.addChange(changeLog);
+            featureRepository.updateFeature(newFeature, user);
+            return new Confirmation("Feature updated successfully", HttpStatus.OK.value());
+        } catch (SparqlException e) {
+            throw new GlycanRepositoryException("Error updating feature with id: " + feature.getId());
+        }
+    }
 	
 	@ApiOperation(value = "Update given slide layout for the user")
 	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.POST, 
