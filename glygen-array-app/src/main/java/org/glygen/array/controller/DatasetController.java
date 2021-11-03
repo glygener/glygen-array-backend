@@ -3808,7 +3808,7 @@ public class DatasetController {
                         if (t.getId().equals(descTemplate.getId())) {
                             exists = true;
                             count ++;
-                            if (((DescriptorGroup)d).getNotRecorded() || ((Descriptor)d).getNotApplicable()) {
+                            if (((DescriptorGroup)d).getNotRecorded() || ((DescriptorGroup)d).getNotApplicable()) {
                                 continue;
                             }
                             ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
@@ -3822,7 +3822,7 @@ public class DatasetController {
                         if (t.getUri().equals(descTemplate.getUri())) {
                             exists = true;
                             count++;
-                            if (((DescriptorGroup)d).getNotRecorded() || ((Descriptor)d).getNotApplicable()) {
+                            if (((DescriptorGroup)d).getNotRecorded() || ((DescriptorGroup)d).getNotApplicable()) {
                                 continue;
                             }
                             ErrorMessage error = validateDescriptorGroup((DescriptorGroup)d, descTemplate);
