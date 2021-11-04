@@ -1188,7 +1188,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	                        glycanFeature.getPublications().add(publication);
 	                        RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(p, null, null, graphIRI);
 	                        while (statements3.hasNext()) {
-	                            Statement st3 = statements2.next();
+	                            Statement st3 = statements3.next();
 	                            if (st3.getPredicate().equals(hasTitle)) {
 	                                Value val = st3.getObject();
 	                                if (val != null && val.stringValue() != null && !val.stringValue().isEmpty()) {
