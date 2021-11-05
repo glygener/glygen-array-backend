@@ -401,6 +401,12 @@ public class GlygenArrayController {
                     errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
                 }       
             }
+            if (feature.getDescription() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "description", feature.getDescription().trim());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
         } else {
             throw new RuntimeException("Validator cannot be found!");
         }
@@ -1537,12 +1543,6 @@ public class GlygenArrayController {
                     errorMessage.addError(new ObjectError("name", "LengthExceeded"));
                 }       
             }
-            if (linker.getComment() != null) {
-                Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
-                if (!violations.isEmpty()) {
-                    errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
-                }       
-            }
         
         } else {
             throw new RuntimeException("Validator cannot be found!");
@@ -1666,12 +1666,7 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (linker.getComment() != null) {
-				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
-				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
-				}		
-			}
+			
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -1747,12 +1742,7 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (linker.getComment() != null) {
-				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
-				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
-				}		
-			}
+			
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -2401,12 +2391,6 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (linker.getComment() != null) {
-				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linker.getComment().trim());
-				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
-				}		
-			}
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -2454,7 +2438,6 @@ public class GlygenArrayController {
 							errorMessage.addError(err);
 						} else {
 							if (linker.getName() != null) l.setName(linker.getName().trim());
-							if (linker.getComment() != null) l.setComment(linker.getComment().trim());
 							if (linker.getDescription() != null) l.setDescription(linker.getDescription().trim());
 							//if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
 							if (((SmallMoleculeLinker)l).getClassification() == null)
@@ -3669,7 +3652,7 @@ public class GlygenArrayController {
 		        				Linker myLinker = new SmallMoleculeLinker();
 		        				if (linker.getPubChemId() != null) ((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
 		        				myLinker.setName(linker.getName());
-		        				myLinker.setComment(linker.getComment());
+		        				myLinker.setDescription(linker.getComment());
 		        				myFeature.setLinker(myLinker);
 		        			}
 		        			else {
@@ -4799,18 +4782,12 @@ public class GlygenArrayController {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
-			if (linkerView.getComment() != null) {
-				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "comment", linkerView.getComment().trim());
+			if (linkerView.getDescription() != null) {
+				Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linkerView.getDescription().trim());
 				if (!violations.isEmpty()) {
-					errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
-			if (linkerView.getDescription() != null) {
-                Set<ConstraintViolation<Linker>> violations = validator.validateValue(Linker.class, "description", linkerView.getDescription().trim());
-                if (!violations.isEmpty()) {
-                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
-                }       
-            }
 		
 		} else {
 			throw new RuntimeException("Validator cannot be found!");
@@ -4846,7 +4823,7 @@ public class GlygenArrayController {
 			}
 			
 			linker.setUri(GlygenArrayRepository.uriPrefix + linkerView.getId());
-			linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
+			//linker.setComment(linkerView.getComment() != null ? linkerView.getComment().trim() : linkerView.getComment());
 			linker.setDescription(linkerView.getDescription() != null ? linkerView.getDescription().trim() : linkerView.getDescription());
 			linker.setName(linkerView.getName() != null ? linkerView.getName().trim() : null);	
 			
@@ -4919,7 +4896,13 @@ public class GlygenArrayController {
             if (feature.getInternalId() != null) {
                 Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "internalId", feature.getInternalId().trim());
                 if (!violations.isEmpty()) {
-                    errorMessage.addError(new ObjectError("comment", "LengthExceeded"));
+                    errorMessage.addError(new ObjectError("internalId", "LengthExceeded"));
+                }       
+            }
+            if (feature.getDescription() != null) {
+                Set<ConstraintViolation<Feature>> violations = validator.validateValue(Feature.class, "description", feature.getDescription().trim());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
                 }       
             }
         } else {
@@ -4965,7 +4948,7 @@ public class GlygenArrayController {
             newFeature.setUri(GlygenArrayRepository.uriPrefix + feature.getId());
             newFeature.setInternalId(feature.getInternalId() != null ? feature.getInternalId().trim() : null);
             newFeature.setName(feature.getName() != null ? feature.getName().trim() : null);  
-            
+            newFeature.setDescription(feature.getDescription() != null ? feature.getDescription().trim() : null);
             
             // check if name is unique
             if (newFeature.getName() != null && !newFeature.getName().isEmpty()) {

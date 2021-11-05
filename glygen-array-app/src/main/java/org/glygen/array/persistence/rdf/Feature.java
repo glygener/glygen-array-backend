@@ -39,6 +39,7 @@ public class Feature implements ChangeTrackable {
 	String uri;
 	String name;
 	String internalId;
+	String description;
 	Linker linker;
 	FeatureMetadata metadata;
 	
@@ -218,5 +219,20 @@ public class Feature implements ChangeTrackable {
     @Override
     public void addChange(ChangeLog change) {
         this.changes.add(change);
+    }
+
+    /**
+     * @return the description
+     */
+    @Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

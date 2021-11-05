@@ -168,10 +168,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             IRI hasUrl = f.createIRI(hasURLPredicate);
             Literal type = f.createLiteral(l.getType().name());
             Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-            Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
-            Literal description = null;
+            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+            /*Literal description = null;
             if (l.getDescription() != null)
-                description = f.createLiteral(l.getDescription());
+                description = f.createLiteral(l.getDescription());*/
             
             IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -187,7 +187,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
             statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
             //statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
-            if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
+            //if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
             
             if (l.getUrls() != null) {
                 for (String url: l.getUrls()) {
@@ -220,7 +220,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
             Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-            Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
             
             List<Statement> statements = new ArrayList<Statement>();
             
@@ -331,10 +331,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			Literal type = f.createLiteral(l.getType().name());
 			IRI hasSequence = f.createIRI(hasSequencePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
-			Literal description = null;
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			/*Literal description = null;
 			if (l.getDescription() != null)
-				description = f.createLiteral(l.getDescription());
+				description = f.createLiteral(l.getDescription());*/
 			
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -353,7 +353,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
 			//statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
 			if (sequence != null) statements.add(f.createStatement(linker, hasSequence, sequenceL, graphIRI));
-			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
+			//if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			
 			if (l.getType() == LinkerType.PROTEIN) {
 				if (((ProteinLinker)l).getUniProtId() != null) {
@@ -401,7 +401,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			
@@ -463,10 +463,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
-			Literal description = null;
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			/*Literal description = null;
 			if (l.getDescription() != null)
-				description = f.createLiteral(l.getDescription());
+				description = f.createLiteral(l.getDescription());*/
 			
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -508,7 +508,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(linker, hasModifiedDate, date, graphIRI));
 			statements.add(f.createStatement(linker, hasCreatedDate, date, graphIRI));
 			//statements.add(f.createStatement(linker, opensRing, opensRingValue, graphIRI));
-			if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
+			//if (description != null) statements.add(f.createStatement(linker, hasDescription, description, graphIRI));
 			if (inchiSequence != null) statements.add(f.createStatement(linker, hasInchiSequence, inchiSequence, graphIRI));
 			if (inchiKey != null) statements.add(f.createStatement(linker, hasInchiKey, inchiKey, graphIRI));
 			if (iupacName != null) statements.add(f.createStatement(linker, hasIupacName, iupacName, graphIRI));
@@ -580,7 +580,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getComment() == null ? f.createLiteral("") : f.createLiteral(l.getComment());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
 			IRI linkerType = f.createIRI(linkerTypePredicate);
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
@@ -1171,7 +1171,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 linkerObject.setUser(creator);
             } else if (st.getPredicate().equals(RDFS.COMMENT)) {
                 Value comment = st.getObject();
-                linkerObject.setComment(comment.stringValue());
+                linkerObject.setDescription(comment.stringValue());
             } else if (st.getPredicate().equals(hasDescription)) {
                 Value comment = st.getObject();
                 linkerObject.setDescription(comment.stringValue());
@@ -1372,7 +1372,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		String linkerURI = g.getUri();
 		IRI linker = f.createIRI(linkerURI);
 		Literal label = f.createLiteral(g.getName());
-		Literal comment = g.getComment() == null ? f.createLiteral("") : f.createLiteral(g.getComment());
+		Literal comment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription());
 		IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
 		Literal date = f.createLiteral(new Date());
 		
@@ -1484,10 +1484,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         Literal type = f.createLiteral(linker.getType().name());
         Literal label = linker.getName() == null ? f.createLiteral("") : f.createLiteral(linker.getName());
-        Literal comment =linker.getComment() == null ? f.createLiteral("") : f.createLiteral(linker.getComment());
-        Literal description = null;
+        Literal comment =linker.getDescription() == null ? f.createLiteral("") : f.createLiteral(linker.getDescription());
+        /*Literal description = null;
         if (linker.getDescription() != null)
-            description = f.createLiteral(linker.getDescription());
+            description = f.createLiteral(linker.getDescription());*/
         
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -1506,7 +1506,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        statements.add(f.createStatement(publicLinker, hasCreatedDate, date, publicGraphIRI));
 	        //statements.add(f.createStatement(publicLinker, opensRing, opensRingValue, publicGraphIRI));
 	        statements.add(f.createStatement(publicLinker, createdBy, user, publicGraphIRI));
-	        if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
+	       // if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
         }
         
         List<Statement> statements2 = new ArrayList<Statement>();
@@ -1603,7 +1603,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            IRI hasSequence = f.createIRI(hasSequencePredicate);
 	            Literal sequenceL= f.createLiteral(((SequenceBasedLinker) linker).getSequence());
 	            statements.add(f.createStatement(publicLinker, hasSequence, sequenceL, publicGraphIRI));
-	            if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
+	            //if (description != null) statements.add(f.createStatement(publicLinker, hasDescription, description, publicGraphIRI));
 	            
 	            if (linker.getType() == LinkerType.PROTEIN) {
 	                if (((ProteinLinker)linker).getUniProtId() != null) {

@@ -33,7 +33,7 @@ public abstract class Linker implements ChangeTrackable {
 	String id;
 	String uri;
 	String name;
-	String comment;
+	//String comment;
 	String description;
 	Date dateModified;
 	Date dateCreated;
@@ -87,16 +87,16 @@ public abstract class Linker implements ChangeTrackable {
 	/**
 	 * @return the comment
 	 */
-	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
-	public String getComment() {
-		return comment;
-	}
+	//@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
+	//public String getComment() {
+	//	return comment;
+	//}
 	/**
 	 * @param comment the comment to set
 	 */
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+	//public void setComment(String comment) {
+	//	this.comment = comment;
+	//}
 	
 	/**
 	 * @return the uri
@@ -174,7 +174,7 @@ public abstract class Linker implements ChangeTrackable {
 	/**
 	 * @return the description
 	 */
-	@Size(max=250, message="descriptions cannot exceed 250 characters")
+	@Size(max=ValidationConstants.DESCRIPTION_LIMIT, message="Description cannot exceed " + ValidationConstants.DESCRIPTION_LIMIT + " characters")
 	public String getDescription() {
 		return description;
 	}

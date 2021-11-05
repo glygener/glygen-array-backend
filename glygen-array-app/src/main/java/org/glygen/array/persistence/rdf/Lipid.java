@@ -9,7 +9,7 @@ public class Lipid extends SmallMoleculeLinker {
     public Lipid (SmallMoleculeLinker l) {
         this.classification = l.classification;
         this.name = l.name;
-        this.comment = l.comment;
+        //this.comment = l.comment;
         this.description = l.description;
         this.imageURL = l.imageURL;
         this.inChiKey = l.inChiKey;

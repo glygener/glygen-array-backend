@@ -244,14 +244,14 @@ public class GlygenArrayRepositoryTest {
 			
 			// then test update
 			l.setName("updatedLinker");
-			l.setComment(null);
+			l.setDescription(null);
 			
 			String linkerId = l.getUri().substring(l.getUri().lastIndexOf("/")+1);
 		
 			linkerRepository.updateLinker(l, user);
 			Linker updated = linkerRepository.getLinkerById(linkerId, user);
 			assertTrue(updated.getName().equals("updatedLinker"));
-			assertTrue(updated.getComment() == null || updated.getComment().equals(""));
+			assertTrue(updated.getDescription() == null || updated.getDescription().equals(""));
 			
 			linkerRepository.deleteLinker(linkerId, user);
 			Linker deleted = linkerRepository.getLinkerById(linkerId, user);

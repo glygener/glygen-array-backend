@@ -124,6 +124,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        Literal comment = feature.getDescription() == null ? null : f.createLiteral(feature.getDescription());
         Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId());
         
 		//if (feature.getName() == null || feature.getName().trim().isEmpty()) {
@@ -135,6 +136,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		List<Statement> statements = new ArrayList<Statement>();
 		
 		if (label != null) statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
+		if (comment != null) statements.add(f.createStatement(feat, RDFS.COMMENT, comment, graphIRI));
 		statements.add(f.createStatement(feat, RDF.TYPE, featureType, graphIRI));
 		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
@@ -1028,7 +1030,10 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			if (st.getPredicate().equals(RDFS.LABEL)) {
 			    Value label = st.getObject();
                 featureObject.setName(label.stringValue());
-			} else if (st.getPredicate().equals(hasFeatureType)) {
+			} else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                Value val = st.getObject();
+                featureObject.setDescription(val.stringValue());
+            } else if (st.getPredicate().equals(hasFeatureType)) {
 			    Value value = st.getObject();
 			    if (value != null) {
 			        FeatureType type = FeatureType.valueOf(value.stringValue());
@@ -1356,6 +1361,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     if (stPublic.getPredicate().equals(RDFS.LABEL)) {
                         Value label = stPublic.getObject();
                         featureObject.setName(label.stringValue());
+                    } else if (stPublic.getPredicate().equals(RDFS.COMMENT)) {
+                        Value label = stPublic.getObject();
+                        featureObject.setDescription(label.stringValue());
                     } else if (stPublic.getPredicate().equals(hasFeatureType)) {
                         value = stPublic.getObject();
                         if (value != null) {
@@ -1738,11 +1746,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
-		Literal label = f.createLiteral(feature.getName());
+		Literal label = feature.getName() == null ? null: f.createLiteral(feature.getName());
+		Literal comment = feature.getDescription() == null ? null : f.createLiteral(feature.getDescription());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		
-		statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
+		if (label != null) statements.add(f.createStatement(feat, RDFS.LABEL, label, graphIRI));
+		if (comment != null) statements.add(f.createStatement(feat, RDFS.COMMENT, comment, graphIRI));
 		statements.add(f.createStatement(feat, RDF.TYPE, featureType, graphIRI));
 		statements.add(f.createStatement(feat, hasCreatedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
@@ -2145,15 +2155,19 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
         Literal date = f.createLiteral(new Date());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        Literal comment = g.getDescription() == null ? null : f.createLiteral(g.getDescription());
+        
         
         if (label != null) sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, RDFS.LABEL, null, graphIRI)), graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, hasInternalId, null, graphIRI)), graphIRI);
+        if (comment != null) sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, RDFS.COMMENT, null, graphIRI)), graphIRI);
+        if (internalId != null) sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, hasInternalId, null, graphIRI)), graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, hasModifiedDate, null, graphIRI)), graphIRI);
         
         List<Statement> statements = new ArrayList<Statement>();
         
         if (label != null) statements.add(f.createStatement(feature, RDFS.LABEL, label, graphIRI));
-        statements.add(f.createStatement(feature, hasInternalId, internalId, graphIRI));
+        if (comment != null) statements.add(f.createStatement(feature, RDFS.COMMENT, comment, graphIRI));
+        if (internalId != null) statements.add(f.createStatement(feature, hasInternalId, internalId, graphIRI));
         statements.add(f.createStatement(feature, hasModifiedDate, date, graphIRI));
         
         sparqlDAO.addStatements(statements, graphIRI);
