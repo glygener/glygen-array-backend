@@ -1430,13 +1430,18 @@ public class GlygenArrayController {
                         String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
                         if (existing != null) {
                             // duplicate, ignore
+                            logger.info("found a duplicate sequence " +  existing);
                             String id = existing.substring(existing.lastIndexOf("/")+1);
                             Glycan glycan = glycanRepository.getGlycanById(id, user);
                             if (glycan instanceof SequenceDefinedGlycan) {
                                 byte[] image = getCartoonForGlycan(glycan.getId());
                                 glycan.setCartoon(image);
                             }
-                            result.addDuplicateSequence(glycan);
+                            if (glycan != null)
+                                result.addDuplicateSequence(glycan);
+                            else {
+                                logger.warn ("the duplicate glycan cannot be retrieved: " + id);
+                            }
                         } else {
                             String id = addGlycan(g, p, noGlytoucanRegistration);
                             if (id == null) {
