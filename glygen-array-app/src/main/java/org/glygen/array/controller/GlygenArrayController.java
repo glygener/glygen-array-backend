@@ -1428,7 +1428,7 @@ public class GlygenArrayController {
                             g.setSequenceType(GlycanSequenceFormat.WURCS);
                         
                         String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
-                        if (existing != null) {
+                        if (existing != null && !existing.contains("public")) {
                             // duplicate, ignore
                             logger.info("found a duplicate sequence " +  existing);
                             String id = existing.substring(existing.lastIndexOf("/")+1);
@@ -1440,7 +1440,7 @@ public class GlygenArrayController {
                             if (glycan != null)
                                 result.addDuplicateSequence(glycan);
                             else {
-                                logger.warn ("the duplicate glycan cannot be retrieved: " + id);
+                                logger.warn ("the duplicate glycan cannot be retrieved back: " + id);
                             }
                         } else {
                             String id = addGlycan(g, p, noGlytoucanRegistration);
@@ -1453,8 +1453,12 @@ public class GlygenArrayController {
                                     byte[] image = getCartoonForGlycan(addedGlycan.getId());
                                     addedGlycan.setCartoon(image);
                                 }
-                                result.getAddedGlycans().add(addedGlycan);
-                                countSuccess ++;
+                                if (addedGlycan != null) {
+                                    result.getAddedGlycans().add(addedGlycan);
+                                    countSuccess ++;
+                                } else {
+                                    logger.warn ("the added glycan cannot be retrieved back: " + id);
+                                }
                             }
                         }
                     }
