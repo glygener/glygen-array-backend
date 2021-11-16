@@ -214,7 +214,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI hasGroupId = f.createIRI(templatePrefix + "has_id");
         IRI allowNotRecorded = f.createIRI(templatePrefix + "allows_not_recorded");
         IRI allowNotApplicable = f.createIRI(templatePrefix + "allows_not_applicable");
-        
+        IRI allowReview = f.createIRI(templatePrefix + "allows_review");
         IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix2 + "has_unit_of_measurement");
         
         // get all statements
@@ -308,6 +308,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             } else if (st.getPredicate().equals(allowNotApplicable)) {
                 String value = st.getObject().stringValue();
                 description.setAllowNotApplicable(value.equalsIgnoreCase("true"));
+            } else if (st.getPredicate().equals(allowReview)) {
+                String value = st.getObject().stringValue();
+                description.setReview(value.equalsIgnoreCase("true"));
             } else if (st.getPredicate().equals(hasExample)) {
                 description.setExample(st.getObject().stringValue());
             } else if (st.getPredicate().equals(hasUrl)) {

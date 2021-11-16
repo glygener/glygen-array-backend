@@ -113,6 +113,5 @@ public abstract class Description implements Comparable<Description>{
      */
     public void setNotApplicable(Boolean notApplicable) {
         this.notApplicable = notApplicable;
-    }
-    
+    }    
 }

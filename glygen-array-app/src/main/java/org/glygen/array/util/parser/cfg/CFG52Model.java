@@ -15,6 +15,7 @@ public class CFG52Model {
     DataWithTitle sampleData;
     DataWithTitle experimentData;
     DataWithTitle requestData;
+    DataWithTitle protocolData;
     String filename;
     /**
      * @return the primscreen
@@ -171,6 +172,18 @@ public class CFG52Model {
      */
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+    /**
+     * @return the protocolData
+     */
+    public DataWithTitle getProtocolData() {
+        return protocolData;
+    }
+    /**
+     * @param protocolData the protocolData to set
+     */
+    public void setProtocolData(DataWithTitle protocolData) {
+        this.protocolData = protocolData;
     }
     
 }

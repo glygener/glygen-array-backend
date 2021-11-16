@@ -15,6 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlTable;
 
 public class ParseCFGUtil {
     
@@ -24,12 +30,15 @@ public class ParseCFGUtil {
     Set<String> sampleColumns = new HashSet<String>();
     Set<String> experimentColumns = new HashSet<String>();
     Set<String> requestColumns = new HashSet<String>();
+    Set<String> protocolColumns = new HashSet<String>();
+    Map<String, String> protocolColumnMap = new HashMap<String, String>();
     
     
     public List<String> parse (String filename, String version) {
         Map<String, String> sampleColumnMap = new HashMap<String, String>();
         Map<String, String> experimentColumnMap = new HashMap<String, String>();
         Map<String, String> requestColumnMap = new HashMap<String, String>();
+        
         
         ObjectMapper mapper = new ObjectMapper();
         List<String> sqlCommands = new ArrayList<String>();
@@ -40,7 +49,7 @@ public class ParseCFGUtil {
                 InputStream is = new FileInputStream(new File(filename));
                 CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
                 //CFG52 model = mapper.readValue(is, new TypeReference<List<CFG52Model>>(){});
-                String schema = "cfg_" + version.substring(0, 1) + "_" + version.substring(2);
+                String schema = "cfg_" + version.substring(0, 1) + "_" + version.substring(2,3);
                 sqlCommands.add("CREATE SCHEMA IF NOT EXISTS "+ schema + ";\n");
                 sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment(\n");
                 sqlCommands.add("id bigint primary key, \n " + 
@@ -77,25 +86,6 @@ public class ParseCFGUtil {
                     }
                 }
                 
-                // print out the column maps
-                columnFile.println("sampledata");
-                for (String key: sampleColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + sampleColumnMap.get(key));
-                }
-                columnFile.println();
-                
-                columnFile.println("experimentdata");
-                for (String key: experimentColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + experimentColumnMap.get(key));
-                }
-                columnFile.println();
-                columnFile.println("requestdata");
-                for (String key: requestColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + requestColumnMap.get(key));
-                }
-                
-                columnFile.close();
-                  
                 sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".sampledata(\n");
                 sqlCommands.add("id bigint primary key,\n");
                 sqlCommands.add("title text,\n");
@@ -138,6 +128,8 @@ public class ParseCFGUtil {
                         "href varchar(256),\n" +
                         "parentCell  INT);\n");
                 
+                int endTableIndex = sqlCommands.size()-2;
+                
                 
                 // insert data
                 long experimentId = 1;
@@ -145,6 +137,48 @@ public class ParseCFGUtil {
                     sqlCommands.addAll(addRow (entry, experimentId, schema));
                     experimentId ++;
                 }
+                
+                protocolColumns.add("Overview");
+                protocolColumnMap.put("Overview", "Overview");
+                StringBuffer tableStatement = new StringBuffer();
+                tableStatement.append("CREATE TABLE IF NOT EXISTS \"" + schema + "\".protocoldata(\n");
+                tableStatement.append("id bigint primary key,\n");
+                tableStatement.append("title text,\n");
+                i=0;
+                for (String col: protocolColumns) {
+                    tableStatement.append("\"" + col + "\" text");
+                    if (i < protocolColumns.size()-1) 
+                        tableStatement.append(",\n");
+                    i++;
+                }
+                tableStatement.append("\n);\n");
+                
+                sqlCommands.add(endTableIndex, tableStatement.toString());
+                
+                // print out the column maps
+                columnFile.println("sampledata");
+                for (String key: sampleColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + sampleColumnMap.get(key));
+                }
+                columnFile.println();
+                
+                columnFile.println("experimentdata");
+                for (String key: experimentColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + experimentColumnMap.get(key));
+                }
+                columnFile.println();
+                columnFile.println("requestdata");
+                for (String key: requestColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + requestColumnMap.get(key));
+                }
+                
+                columnFile.println();
+                columnFile.println("protocoldata");
+                for (String key: protocolColumnMap.keySet()) {
+                    columnFile.println (key + "\t" + protocolColumnMap.get(key));
+                }
+                
+                columnFile.close();
                 
                 
             } catch (IOException e) {
@@ -169,7 +203,7 @@ public class ParseCFGUtil {
         insert += experimentId + ", '" + entry.primscreen + "', E'" + entry.sampleName.replace("'", "\\'") + "', E'" + entry.species.replace("'", "\\'");
         insert += "', E'" + entry.proteinFamily.replace("'", "\\'") + "', E'" + entry.investigator.replace("'", "\\'") + "', E'" +
                 entry.request.replace("'", "\\'") + "', '" + entry.date + "', " +
-                this.dataId + ", " + this.dataId + ", " + this.dataId + ", E'" + entry.getFilename().replace("'", "\\'") + "');\n";
+                this.dataId + ", " + this.dataId + ", " + this.dataId + ", E'" + (entry.getFilename() != null ? entry.getFilename().replace("'", "\\'") : "") + "');\n";
         inserts.add(insert + "\n\n");
         
         this.dataId ++;
@@ -194,7 +228,11 @@ public class ParseCFGUtil {
                     }
                     
                 } else {
-                    System.err.println ("Skipping " + columnName + " in table " + tablename);
+                    System.err.println ("Found another " + columnName + " in table " + tablename);
+                    insert += "\"" + columnName + "1\"";
+                    if (i < row.getData().size()-1) {
+                        insert += ", ";
+                    }
                     skipList.add(i);
                 }
                 i++;
@@ -204,14 +242,11 @@ public class ParseCFGUtil {
             insert += ") values (" + this.dataId + ", E'" + row.getTitle().replace("'", "\\'") + "', E'";
             i=0;
             for (Data col: row.getData()) {
-                if (!skipList.contains(i)) {
-                    String value = col.getValue().replace("'", "\\'");
-                    insert += value;
-                    if (i < row.getData().size()-1) {
-                        insert += "', E'";
-                    }
-                    
-                } 
+                String value = col.getValue().replace("'", "\\'");
+                insert += value;
+                if (i < row.getData().size()-1) {
+                    insert += "', E'";
+                }
                 i++;
             }
             if (insert.endsWith(", ")) // remove the last comma
@@ -224,12 +259,125 @@ public class ParseCFGUtil {
         return "";
     }
     
+    private String extractProtocolData(String primScreenURL, long experimentId, String schema) {
+        String insert = "";
+        // find the protocol page link and extract the data
+        WebClient client = new WebClient();
+        client.getOptions().setCssEnabled(false);
+        client.getOptions().setJavaScriptEnabled(false);
+        try {
+            HtmlPage page = client.getPage(primScreenURL);
+            if (page != null) {
+                HtmlAnchor link = page.getFirstByXPath("//a[contains(@href, 'http://www.functionalglycomics.org:80/glycomics/ProtocolServlet')]");
+                if (link != null) {
+                    Link pdfLink = new Link();
+                    DataWithTitle protocolData = extractProtocolData (client, link.getHrefAttribute(), pdfLink);
+                    insert = addData(protocolData, schema + ".protocoldata");
+                    if (pdfLink.getHref() != null && !pdfLink.getHref().isEmpty()) {
+                        insert += addLink(pdfLink, experimentId, schema);
+                    }
+                }
+            }
+        
+            client.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        
+        return insert;
+    }
+
+    @SuppressWarnings("unchecked")
+    private DataWithTitle extractProtocolData(WebClient client, String href, Link link) {
+        DataWithTitle protocolData = new DataWithTitle();
+        String overview;
+        List<Data> list = new ArrayList<Data>();
+        String protocolURL = href.substring(href.indexOf("javascript:openWindow") + 23, href.length() - 2);
+        try {
+            HtmlPage page = client.getPage(protocolURL);
+            if (page != null) {
+                // get the title
+                HtmlElement titleTable = (HtmlElement) page.getFirstByXPath("//div[@class='norm']/table[1]");
+                HtmlElement titleH4 = titleTable.getFirstByXPath("//tr/td/h4");
+                if (titleH4 != null) {
+                    protocolData.setTitle(titleH4.getTextContent());
+                }
+                
+                final HtmlTable table = (HtmlTable) page.getFirstByXPath("//table[@class='mainTable']");
+                if (table != null) {
+                    // get elements
+                    List<HtmlElement> keys = (List<HtmlElement>) table.getByXPath("//tr/td[@class='webSiteBodyDark']");
+                    if (keys != null) {
+                        for (HtmlElement key: keys) {
+                            Data data = new Data();
+                            String keyString = key.getTextContent();
+                            if (keyString != null) {
+                                String col = keyString.substring(0, keyString.length()-1);
+                                String formattedCol = formatColumnName(col);
+                                if (!protocolColumns.contains(formattedCol)) {
+                                    protocolColumns.add(formattedCol);
+                                    protocolColumnMap.put(col, formattedCol);
+                                }
+                                data.setKey(col);
+                                list.add(data);
+                            }
+                        }
+                    }
+                    int i=0;
+                    List<HtmlElement> values = (List<HtmlElement>) table.getByXPath("//tr/td[@class='WebSiteBodyNormal']");
+                    if (values != null) {
+                        for (HtmlElement val: values) {
+                            list.get(i).setValue(val.getTextContent());
+                            i++;
+                        }
+                    }
+                }
+                
+                HtmlTable overviewTable = (HtmlTable) page.getFirstByXPath("//td[@class='webSiteHeading']/strong/text()[. = 'Overview']/following::table[1]");
+                if (overviewTable != null) {
+                    for (DomNode tr: overviewTable.getChildren()) {
+                        for (DomNode td: tr.getChildren()) {
+                            overview = td.getTextContent();
+                            Data overviewData = new Data();
+                            overviewData.setKey("Overview");
+                            overviewData.setValue(overview);
+                            list.add(overviewData);
+                        }
+                    }
+                }
+                
+                // find the pdf link
+                HtmlTable pdfTable = (HtmlTable) page.getFirstByXPath("//td[@class='webSiteHeading']/strong/text()[. = 'Protocol Description (PDF)']/following::table[1]");
+                if (pdfTable != null) {
+                    HtmlAnchor pdfLink = pdfTable.getFirstByXPath("//td/a");
+                    link.setLinkText("Protocol Description (PDF)");
+                    String url = pdfLink.getAttribute("onClick");
+                    if (url != null && !url.isEmpty()) {
+                        url = url.substring(12, url.length()-2);
+                        link.setHref("http://www.functionalglycomics.org/"+url);
+                    }
+                    
+                }
+            }
+          
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        protocolData.setData(list);
+        return protocolData;
+    }
+
     private String addLink (Link row, long experimentId, String schema) {
-        String insert = "insert into \"" + schema + "\".link (id, linkText, href, parentCell) values (";
+        String insert = "";
+        if (row.href != null && row.href.contains("HServlet")) {
+            insert += extractProtocolData(row.href, experimentId, schema);
+        }
+        insert += "insert into \"" + schema + "\".link (id, linkText, href, parentCell) values (";
         insert += linkId + ", E'" + row.linkText.replace("'", "\\'") + "', E'" + row.href.replace("'", "\\'") + "', " + row.parentCell + ");\n";
         insert += "insert into \"" + schema + "\".experiment_link(experiment_id, link_id) values (" +
                 experimentId + ", " + this.linkId + ");\n";      
         this.linkId ++;
+        
         return insert;
     }
 
@@ -237,16 +385,24 @@ public class ParseCFGUtil {
         Set<String> columnSet = new HashSet<String>();
         for (Data d: data) {
             String col = formatColumnName (d.getKey());
-            columnSet.add(col);
-            columnMap.put (col, d.getKey());
+            if (columnSet.contains(col) && col.equalsIgnoreCase("Further_Info")) {
+                columnSet.add(col + "1");
+                columnMap.put (col + "1", d.getKey());
+            } else {
+                columnSet.add(col);
+                columnMap.put (col, d.getKey());
+            }
         }
         
         return columnSet;
     }
     
     private String formatColumnName (String columnName) {
+        columnName = columnName.replace("[", "_");
+        columnName = columnName.replace("]", "_");
         columnName = columnName.replace(" ", "_");
         columnName = columnName.replace("/", "_");
+        
         if (columnName.length() > 20) {
             columnName = "" + columnName.hashCode();
         }

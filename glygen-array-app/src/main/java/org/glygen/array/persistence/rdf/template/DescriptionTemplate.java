@@ -13,7 +13,7 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     String id;
     String name;
     String description;
-    Boolean mandatory;
+    Boolean mandatory = false;
     Integer maxOccurrence;
     Integer order;
     String example;
@@ -22,6 +22,7 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     Boolean mirage = false;
     Boolean allowNotRecorded = false;
     Boolean allowNotApplicable = false;
+    Boolean review = false;
     
     public abstract boolean isGroup();
 
@@ -222,5 +223,19 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
      */
     public void setAllowNotApplicable(Boolean allowNotApplicable) {
         this.allowNotApplicable = allowNotApplicable;
+    }
+
+    /**
+     * @return the review
+     */
+    public Boolean getReview() {
+        return review;
+    }
+
+    /**
+     * @param review the review to set
+     */
+    public void setReview(Boolean review) {
+        this.review = review;
     }
 }

@@ -333,6 +333,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#allows_review -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#allows_review">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/template#description_context"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#cardinality -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#cardinality">
@@ -562,6 +571,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
     <owl:Class rdf:about="http://purl.org/gadr/template#description_context">
         <rdfs:comment>Defines the number of occurance of a description in a template and weather the description is mandatory or not.</rdfs:comment>
         <rdfs:label>Description Context</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#feature_template -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#feature_template">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
+        <rdfs:label>Feature Template</rdfs:label>
     </owl:Class>
     
 

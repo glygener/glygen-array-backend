@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -51,7 +52,8 @@ class Config {
     int group = 13;
     int mirage = 12;
     int groupName = 14;
-    int totalCols = 15;
+    int review = 17;
+    int totalCols = 18;
 }
 
 public class MetadataOntologyParser {
@@ -70,11 +72,11 @@ public class MetadataOntologyParser {
     int descriptorId=1;
     
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println ("Please provide the file location as an argument and the type of templates (SampleTemplate, PrinterTemplate etc.)");
+        if (args.length < 1) {
+            System.out.println ("Please provide the metadata file folder location as an argument");
             System.exit(1);
         }
-
+        
         try {
             warningOut = new PrintStream(new FileOutputStream("warningoutput.txt" ));
             errorOut = new PrintStream(new FileOutputStream("erroroutput.txt" ));
@@ -82,7 +84,44 @@ public class MetadataOntologyParser {
             e1.printStackTrace();
         }
         
-        String filename = args[0];
+        String metadataFileFolder = args[0];
+        File templateOntologyFile = new File("ontology/gadr-template.owl");
+        File templateOntologyOriginalFile = new File ("ontology/gadr-template-original.owl");
+        try {
+            FileUtils.copyFile(templateOntologyFile, templateOntologyOriginalFile);
+        
+            File templateOntologyInstanceFile = new File("ontology/gadr-template-individuals.owl");
+            Integer descId = 1;
+            MetadataOntologyParser parser = new MetadataOntologyParser();
+            for (MetadataTemplateType type: MetadataTemplateType.values()) {
+                String metadataSheet = metadataFileFolder + File.separator + type.getLabel() + ".xlsx";   
+                    
+                if (descId != null)  parser.setDescriptorId(descId);
+                HashMap<String, List<Descriptor>> mp = parser.read(metadataSheet, new Config());
+                parser.createOntology(mp, type.getLabel());
+                
+                // delete ontology file
+                templateOntologyFile.delete();
+                // rename individuals file to ontology
+                templateOntologyInstanceFile.renameTo(templateOntologyFile);
+                
+                descId += 400;
+            }
+            
+            templateOntologyFile.renameTo (templateOntologyInstanceFile);
+            templateOntologyOriginalFile.renameTo(templateOntologyFile);
+            
+            System.out.println("Finished importing metaData to the Ontology");
+        
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            warningOut.close();
+            errorOut.close();
+        }
+                
+       /* String filename = args[0];
         String type = args[1];
         Integer descId = null;
         if (args.length > 2) {
@@ -97,7 +136,7 @@ public class MetadataOntologyParser {
         } finally {
             warningOut.close();
             errorOut.close();
-        }
+        }*/
     }
 
     /**
@@ -223,7 +262,10 @@ public class MetadataOntologyParser {
                                     readMirage(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.allowBypass) {
                                     readNotRecorded(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
-                                } else {
+                                } else if (cell.getColumnIndex() == config.review) {
+                                    readReview(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                } 
+                                else {
                                     continue;
                                 }
                             }
@@ -241,6 +283,24 @@ public class MetadataOntologyParser {
         return null;
     }
 
+    private void readReview(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
+            Sheet sheet, int level) {
+        if (cell != null && !cell.getStringCellValue().isEmpty()) {
+            if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                String review = cell.getRichStringCellValue().getString();
+                if (review != null && !review.trim().isEmpty()) {
+                    if (level == 2) {
+                        subDescriptor.setReview(true);
+                    } else if (level == 1) {
+                        childDescriptor.setReview(true);
+                    } else if (level == 0){
+                        descriptor.setReview(true);
+                    }
+                }
+            }
+        }   
+    }
+
     private void readNotRecorded(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
             Sheet sheet, int level) {
         if (cell != null && !cell.getStringCellValue().isEmpty()) {
@@ -248,20 +308,23 @@ public class MetadataOntologyParser {
                 String notRecorded = cell.getRichStringCellValue().getString();
                 if (notRecorded != null && !notRecorded.trim().isEmpty()) {
                     if (level == 2) {
-                        if (notRecorded.contains("recorded"))
+                        //if (notRecorded.contains("recorded"))
                             subDescriptor.setAllowNotRecorded(true);
-                        if (notRecorded.contains("available"))
                             subDescriptor.setAllowNotApplicable(true);
+                        //if (notRecorded.contains("available"))
+                        //    subDescriptor.setAllowNotApplicable(true);
                     } else if (level == 1) {
-                        if (notRecorded.contains("recorded"))
+                        //if (notRecorded.contains("recorded"))
                             childDescriptor.setAllowNotRecorded(true);
-                        if (notRecorded.contains("available"))
                             childDescriptor.setAllowNotApplicable(true);
+                        //if (notRecorded.contains("available"))
+                        //    childDescriptor.setAllowNotApplicable(true);
                     } else if (level == 0){
-                        if (notRecorded.contains("recorded"))
+                        //if (notRecorded.contains("recorded"))
                             descriptor.setAllowNotRecorded(true);
-                        if (notRecorded.contains("available"))
                             descriptor.setAllowNotApplicable(true);
+                        //if (notRecorded.contains("available"))
+                        //    descriptor.setAllowNotApplicable(true);
                     }
                 }
             }
@@ -980,6 +1043,7 @@ public class MetadataOntologyParser {
         IRI hasGroupId = f.createIRI(prefix + "has_id");
         IRI allowNotRecorded = f.createIRI(prefix + "allows_not_recorded");
         IRI allowNotApplicable = f.createIRI(prefix + "allows_not_applicable");
+        IRI allowReview = f.createIRI(prefix + "allows_review");
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -1019,6 +1083,12 @@ public class MetadataOntologyParser {
         
         if (description.getOrder() != null) {
             model.add(f.createStatement(descriptionContext, hasOrder, f.createLiteral(description.getOrder())));
+        }
+        
+        if (description.getReview() != null && description.getReview()) {
+            model.add(f.createStatement(descriptionContext, allowReview, f.createLiteral(true)));
+        } else {
+            model.add(f.createStatement(descriptionContext, allowReview, f.createLiteral(false)));
         }
         
         return uri;
@@ -1080,6 +1150,7 @@ public class MetadataOntologyParser {
         description.setMirage(d.getMirage());
         description.setAllowNotRecorded(d.allowNotRecorded);
         description.setAllowNotApplicable(d.getAllowNotApplicable());
+        description.setReview(d.review);
         return description;
         
     }
@@ -1103,6 +1174,7 @@ public class MetadataOntologyParser {
         String wikiLink = "https://wiki.glygen.org/index.php/Main_Page";
         Boolean allowNotRecorded = false;
         Boolean allowNotApplicable = false;
+        Boolean review = false;
 
         /**
          * @return the name
@@ -1367,6 +1439,20 @@ public class MetadataOntologyParser {
          */
         public void setAllowNotApplicable(Boolean allowNotApplicable) {
             this.allowNotApplicable = allowNotApplicable;
+        }
+
+        /**
+         * @return the review
+         */
+        public Boolean getReview() {
+            return review;
+        }
+
+        /**
+         * @param review the review to set
+         */
+        public void setReview(Boolean review) {
+            this.review = review;
         }
 
     }
