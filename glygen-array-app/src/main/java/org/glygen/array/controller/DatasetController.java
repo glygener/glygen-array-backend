@@ -3704,6 +3704,10 @@ public class DatasetController {
             int count = 0;
             for (Description d: descGroup.getDescriptors()) {
                 DescriptionTemplate t = d.getKey();
+                if (t == null) {
+                    errorMessage.addError(new ObjectError ("template for " + d.getName(), "NotFound"));
+                    continue;     // cannot check the validity if the temmplate is not available
+                }
                 if (t.getId() != null) {
                     if (t.getId().equals(descTemplate.getId())) {
                         exists = true;
@@ -3716,7 +3720,7 @@ public class DatasetController {
                             } 
                         } else {
                             // need to check the value 
-                            if (t.isMandatory()) {
+                            if (descTemplate.isMandatory()) {
                                 if (d.getNotRecorded() || d.getNotApplicable()) {
                                     // fine
                                 } else if (((Descriptor) d).getValue() == null || ((Descriptor) d).getValue().isEmpty()) {
@@ -3737,7 +3741,7 @@ public class DatasetController {
                             } 
                         } else {
                             // need to check the value 
-                            if (t.isMandatory()) {
+                            if (descTemplate.isMandatory()) {
                                 if (d.getNotRecorded() || d.getNotApplicable()) {
                                     // fine
                                 } else if (((Descriptor) d).getValue() == null || ((Descriptor) d).getValue().isEmpty()) {
@@ -3777,6 +3781,10 @@ public class DatasetController {
             if (!descTemplate.isGroup()) {
                 for (Description d: metadata.getDescriptors()) {
                     DescriptionTemplate t = d.getKey();
+                    if (t == null) {
+                        errorMessage.addError(new ObjectError ("template for " + d.getName(), "NotFound"));
+                        continue;     // cannot check the validity if the temmplate is not available
+                    }
                     if (t.getId() != null) {
                         if (t.getId().equals(descTemplate.getId())) {
                             exists = true;
@@ -3804,6 +3812,10 @@ public class DatasetController {
             } else {
                 for (Description d: metadata.getDescriptorGroups()) {
                     DescriptionTemplate t = d.getKey();
+                    if (t == null) {
+                        errorMessage.addError(new ObjectError ("template for " + d.getName(), "NotFound"));
+                        continue;     // cannot check the validity if the temmplate is not available
+                    }
                     if (t.getId() != null) {
                         if (t.getId().equals(descTemplate.getId())) {
                             exists = true;
