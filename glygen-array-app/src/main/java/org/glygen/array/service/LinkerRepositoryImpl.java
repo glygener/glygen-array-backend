@@ -983,6 +983,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
         
 		LinkerType type = getLinkerTypeForLinker(linkerURI, graph);
+		if (type == null)
+		    type = LinkerType.OTHER;
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
@@ -1024,8 +1026,6 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             case UNKNOWN_SMALLMOLECULE:
                 linkerObject = new SmallMoleculeLinker();
                 linkerObject.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
-                break;
-            default:
                 break;
 			}
 			
