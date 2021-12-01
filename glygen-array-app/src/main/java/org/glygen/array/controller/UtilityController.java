@@ -7,11 +7,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
@@ -27,6 +30,8 @@ import org.glygen.array.persistence.rdf.LinkerClassification;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
+import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
+import org.glygen.array.persistence.rdf.template.MandateGroup;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
@@ -490,13 +495,35 @@ public class UtilityController {
                         d.setOrder(i++);
                     }
                 }
+            } 
+            for (MetadataTemplate metadata: templates) {
+                processMandateGroups(metadata.getDescriptors());
             }
+            
         } catch (SparqlException | SQLException e) {
             logger.error("Error retrieving templates for type\" + type", e);
             throw new GlycanRepositoryException("Error retrieving templates for type" + type, e);
         }
         
         return templates;
+    }
+        
+    void processMandateGroups (List<DescriptionTemplate> descriptors) {
+        Map<Integer, MandateGroup> processedGroups = new HashMap<Integer, MandateGroup>();
+        // set the first descriptor of a mandate group as the default one
+        for (DescriptionTemplate d: descriptors) {
+            if (d.getMandateGroup() != null) {
+                if (!processedGroups.containsKey(d.getMandateGroup().getId())) {
+                    d.getMandateGroup().setDefaultSelection(true);
+                    processedGroups.put(d.getMandateGroup().getId(), d.getMandateGroup());
+                } else {
+                    d.getMandateGroup().setDefaultSelection(false);
+                }
+            }
+            if (d instanceof DescriptorGroupTemplate) {
+                processMandateGroups(((DescriptorGroupTemplate) d).getDescriptors());
+            }
+        }
     }
     
     @ApiOperation(value = "Retrieve the template by id")
@@ -531,6 +558,7 @@ public class UtilityController {
                 }
                
             }
+            processMandateGroups(metadataTemplate.getDescriptors());
             return metadataTemplate;
         } catch (SparqlException e) {
             logger.error("Error retrieving templates for type\" + type", e);

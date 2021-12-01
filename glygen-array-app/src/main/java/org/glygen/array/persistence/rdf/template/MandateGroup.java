@@ -4,6 +4,7 @@ public class MandateGroup {
     Integer id;
     Boolean xOrMandate = false;
     String name;
+    Boolean defaultSelection = false;
     /**
      * @return the id
      */
@@ -39,5 +40,17 @@ public class MandateGroup {
      */
     public void setName(String name) {
         this.name = name;
+    }
+    /**
+     * @return the defaultSelection
+     */
+    public Boolean getDefaultSelection() {
+        return defaultSelection;
+    }
+    /**
+     * @param defaultSelection the defaultSelection to set
+     */
+    public void setDefaultSelection(Boolean defaultSelection) {
+        this.defaultSelection = defaultSelection;
     }
 }
