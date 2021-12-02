@@ -49,6 +49,7 @@ import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -2691,10 +2692,19 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     Printer printer = slide.getPrintedSlide().getPrinter();
                     if (printer != null) {
                         String printerPublicURI = makeMetadataPublic(printer, MetadataTemplateType.PRINTER,
-                                hasPrinterTemplatePredicate, printerTypePredicate, "P", graph);
+                                hasPrinterTemplatePredicate, printerTypePredicate, "Pr", graph);
                         printer = new Printer();
                         printer.setUri(printerPublicURI);
                         slide.getPrintedSlide().setPrinter(printer);
+                    }
+                    
+                    PrintRun printRun = slide.getPrintedSlide().getPrintRun();
+                    if (printRun != null) {
+                        String printerPublicURI = makeMetadataPublic(printer, MetadataTemplateType.PRINTRUN,
+                                hasPrintRunTemplatePredicate, printRunTypePredicate, "Prr", graph);
+                        printRun = new PrintRun();
+                        printRun.setUri(printerPublicURI);
+                        slide.getPrintedSlide().setPrintRun(printRun);
                     }
                     
                     // delete printedSlide from user's graph and add it to the public graph

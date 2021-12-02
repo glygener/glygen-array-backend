@@ -9,6 +9,7 @@ import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -60,6 +61,17 @@ public interface MetadataRepository {
     Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     Printer getPrinterFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     Printer getPrinterByLabel(String label, UserEntity user) throws SparqlException, SQLException;
+    
+    
+    String addPrintRun(PrintRun metadata, UserEntity user) throws SparqlException, SQLException;
+    List<PrintRun> getPrintRunByUser (UserEntity user) throws SparqlException, SQLException;
+    List<PrintRun> getPrintRunByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
+    List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    int getPrintRunCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
+    PrintRun getPrintRunFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
+    PrintRun getPrintRunFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    PrintRun getPrintRunByLabel(String label, UserEntity user) throws SparqlException, SQLException;
     
     String addScannerMetadata (ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException;
     List<ScannerMetadata> getScannerMetadataByUser (UserEntity user) throws SparqlException, SQLException;

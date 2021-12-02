@@ -7,6 +7,7 @@ import javax.validation.constraints.Size;
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 
@@ -18,6 +19,7 @@ public class PrintedSlide {
     SlideLayout layout;
     SlideMetadata metadata;
     Printer printer;
+    PrintRun printRun;
     
     boolean isPublic = false;
     Creator user;
@@ -185,5 +187,17 @@ public class PrintedSlide {
      */
     public void setInUse(Boolean inUse) {
         this.inUse = inUse;
+    }
+    /**
+     * @return the printRun
+     */
+    public PrintRun getPrintRun() {
+        return printRun;
+    }
+    /**
+     * @param printRun the printRun to set
+     */
+    public void setPrintRun(PrintRun printRun) {
+        this.printRun = printRun;
     }
 }

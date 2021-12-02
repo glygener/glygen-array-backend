@@ -535,28 +535,33 @@ public class MetadataOntologyParser {
      */
     public static void readSelectionOrDictionary(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-            String selection = cell.getRichStringCellValue().getString();
+            String selection = cell.getRichStringCellValue().getString().trim();
             if (!selection.equals("")) {
                 if (selection.startsWith("List:")) 
                     selection = selection.substring(selection.indexOf("List:")+5).trim();
                 String[] selectionItems = selection.split(SEPERATOR);
+                String[] trimmed = new String[selectionItems.length];
+                int i=0;
+                for (String item: selectionItems) {
+                    trimmed[i++] = item.trim();
+                }
                 if (level == 0) {
                     if (descriptor.getType().equals("selection")) {                                     
-                        descriptor.setSelection(selectionItems);        
+                        descriptor.setSelection(trimmed);        
                     }
                     else if (descriptor.getType().equals("dictionary")) {
                         descriptor.setDictionary(selection);
                     }
                 } else if (level == 1) {
                     if (childDescriptor.getType().equals("selection")) {
-                        childDescriptor.setSelection(selectionItems);
+                        childDescriptor.setSelection(trimmed);
                     } else if (descriptor.getType().equals("dictionary")) {
                         childDescriptor.setDictionary(selection);
                     }
                 }
                 else if (level == 2) {
                     if (subDescriptor.getType().equals("selection")) {
-                        subDescriptor.setSelection(selectionItems);
+                        subDescriptor.setSelection(trimmed);
                     } else if (descriptor.getType().equals("dictionary")) {
                         subDescriptor.setDictionary(selection);
                     }

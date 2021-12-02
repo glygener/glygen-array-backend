@@ -226,6 +226,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#has_printrun_template -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_printrun_template">
+        <rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/print_run"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/template#printrun_template"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#has_sample_template -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_sample_template">
@@ -617,6 +627,15 @@ It imports gard-data.owl ontology.</rdfs:comment>
         <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
         <rdfs:comment>Template specific to Printer category.</rdfs:comment>
         <rdfs:label>Printer Template</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/template#printrun_template -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/template#printrun_template">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/template#template"/>
+        <rdfs:label>PrintRun Template</rdfs:label>
     </owl:Class>
     
 

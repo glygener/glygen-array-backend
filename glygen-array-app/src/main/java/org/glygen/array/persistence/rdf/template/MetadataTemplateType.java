@@ -12,7 +12,8 @@ public enum MetadataTemplateType {
     IMAGEANALYSISSOFTWARE("image_analysis_software_template"),
     ASSAY("assay_template"),
     FEATURE("feature_template"),
-    SPOT("spot_template");
+    SPOT("spot_template"),
+    PRINTRUN("printrun_template");
     
     String label;
     
@@ -49,6 +50,8 @@ public enum MetadataTemplateType {
             return SPOT;
         else if (value.equals("feature_template"))
             return FEATURE;
+        else if (value.equals("printrun_template"))
+            return PRINTRUN;
         return SAMPLE;
     }
 }

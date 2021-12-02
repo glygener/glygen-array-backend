@@ -53,6 +53,7 @@ import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -1670,6 +1671,99 @@ public class DatasetController {
         
     }
     
+    @ApiOperation(value = "Add given print run metadata for the user")
+    @RequestMapping(value="/addPrintrun", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added print run"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register print runs"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public String addPrintrun (
+            @ApiParam(required=true, value="Print run metadata to be added") 
+            @RequestBody PrintRun printer, 
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (printer.getName() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "name", printer.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (printer.getDescription() != null) {
+                Set<ConstraintViolation<MetadataCategory>> violations = validator.validateValue(MetadataCategory.class, "description", printer.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        Boolean validate = true;
+        if (user.hasRole("ROLE_DATA")) 
+            validate = false;
+        
+        if (printer.getName() == null || printer.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        if (printer.getTemplate() == null || printer.getTemplate().isEmpty()) {
+            errorMessage.addError(new ObjectError("type", "NoEmpty"));
+        }
+        
+        // check for duplicate name
+        try {
+            MetadataCategory metadata = metadataRepository.getMetadataByLabel(printer.getName().trim(), ArrayDatasetRepositoryImpl.printRunTypePredicate, user);
+            if (metadata != null) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate metadata", e2);
+        }
+        
+        // check if the template exists
+        try {
+            String templateURI = templateRepository.getTemplateByName(printer.getTemplate(), MetadataTemplateType.PRINTRUN);
+            if (templateURI == null) {
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+            }
+            else {
+                // validate mandatory/multiple etc.
+                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
+                if (validate != null && validate) {
+                    ErrorMessage err = validateMetadata (printer, template);
+                    if (err != null) {
+                        for (ObjectError error: err.getErrors())
+                            errorMessage.addError(error);
+                    }    
+                }
+            }
+        } catch (SparqlException | SQLException e1) {
+            logger.error("Error retrieving template", e1);
+            throw new GlycanRepositoryException("Error retrieving printer template " + p.getName(), e1);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid printer information", errorMessage);
+        
+        try {
+            String uri = metadataRepository.addPrintRun(printer, user);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            return id;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printer cannot be added for user " + p.getName(), e);
+        }
+        
+    }
+    
     @ApiOperation(value = "Add given assay metadata for the user")
     @RequestMapping(value="/addAssayMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
@@ -2516,6 +2610,9 @@ public class DatasetController {
         case FEATURE:
             typePredicate = ArrayDatasetRepositoryImpl.featureMetadataTypePredicate;
             break;
+        case PRINTRUN:
+            typePredicate = ArrayDatasetRepositoryImpl.printRunTypePredicate;
+            break;
         }
         MetadataCategory metadata = null;
         try {
@@ -2573,7 +2670,8 @@ public class DatasetController {
         case SPOT:
             metadata = getSpotMetadata(metadataId, datasetId, p);
             break;
-        default:
+        case PRINTRUN:
+            metadata = getPrintRun(metadataId, datasetId, p);
             break;
         }
         
@@ -3272,6 +3370,88 @@ public class DatasetController {
             int total = metadataRepository.getPrinterCountByUser(owner, searchValue);
             
             List<Printer> metadataList = metadataRepository.getPrinterByUser(owner, offset, limit, field, order, searchValue);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve printers for user. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @ApiOperation(value = "List all printer metadata for the user")
+    @RequestMapping(value="/listPrintruns", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    public MetadataListResultView listPrintRuns (
+            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
+        MetadataListResultView result = new MetadataListResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (datasetId != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                datasetId = datasetId.trim();
+                ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = metadataRepository.getPrintRunCountByUser(owner, searchValue);
+            
+            List<PrintRun> metadataList = metadataRepository.getPrintRunByUser(owner, offset, limit, field, order, searchValue);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -4702,6 +4882,53 @@ public class DatasetController {
         } 
     }
     
+    @ApiOperation(value = "Delete given printrun from the user's list")
+    @RequestMapping(value="/deleteprintrunmetadata/{printrunId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete printer"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deletePrintRun (
+            @ApiParam(required=true, value="id of the printrun metadata to delete") 
+            @PathVariable("printrunId") String id, 
+            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    datasetId = datasetId.trim();
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            metadataRepository.deleteMetadata(id, owner);
+            return new Confirmation("Print run deleted successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete printer " + id, e);
+        } 
+    }
+    
     @ApiOperation(value = "Delete given assay metadata from the user's list")
     @RequestMapping(value="/deleteassaymetadata/{assayId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
@@ -5056,6 +5283,58 @@ public class DatasetController {
             Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
                 throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printer cannot be retrieved for user " + p.getName(), e);
+        }   
+    }
+    
+    
+    @ApiOperation(value = "Retrieve print run with the given id")
+    @RequestMapping(value="/getPrintRun/{printRunId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun retrieved successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
+            @ApiResponse(code=404, message="Printrun with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public PrintRun getPrintRun (
+            @ApiParam(required=true, value="id of the print run to retrieve") 
+            @PathVariable("printRunId") String id, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam(value="arraydatasetId", required=false)
+            String datasetId,
+            Principal p) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    datasetId = datasetId.trim();
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+                }
+            }
+            PrintRun metadata = metadataRepository.getPrintRunFromURI(GlygenArrayRepository.uriPrefix + id, owner);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Printrun with id : " + id + " does not exist in the repository");
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -5728,6 +6007,27 @@ public class DatasetController {
             String datasetId,
             Principal p) throws SQLException {
         return updateMetadata(metadata, datasetId, MetadataTemplateType.PRINTER, p);
+        
+    }
+    
+    @ApiOperation(value = "Update given printrun for the user")
+    @RequestMapping(value = "/updatePrintrun", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update printruns"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updatePrintrun(
+            @ApiParam(required=true, value="Printer with updated fields") 
+            @RequestBody Printer metadata, 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @RequestParam("arraydatasetId")
+            String datasetId,
+            Principal p) throws SQLException {
+        return updateMetadata(metadata, datasetId, MetadataTemplateType.PRINTRUN, p);
         
     }
     

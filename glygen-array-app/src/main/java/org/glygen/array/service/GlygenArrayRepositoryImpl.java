@@ -102,6 +102,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String featureMetadataTypePredicate = ontPrefix + "feature_metadata";
     public final static String slideTypePredicate = ontPrefix + "slide";
     public final static String printerTypePredicate = ontPrefix + "printer";
+    public final static String printRunTypePredicate = ontPrefix + "print_run";
     public final static String scannerTypePredicate = ontPrefix + "scanner";
     public final static String assayTypePredicate = ontPrefix + "assay";
     public final static String spotMetadataTypePredicate = ontPrefix + "spot_metadata";
@@ -142,6 +143,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String hasSlideTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_slide_template";
     public final static String hasScannerleTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_scanner_template";
     public final static String hasPrinterTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_printer_template";
+    public final static String hasPrintRunTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_printrun_template";
     public final static String hasImageTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_image_analysis_software_template";
     public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
     public final static String hasAssayTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_assay_template";

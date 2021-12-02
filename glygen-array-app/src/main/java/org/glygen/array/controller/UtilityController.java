@@ -496,7 +496,10 @@ public class UtilityController {
                     }
                 }
             } 
-            for (MetadataTemplate metadata: templates) {
+            
+            for (MetadataTemplate metadata: templates) {    
+                if (type != MetadataTemplateType.ASSAY) 
+                    Collections.sort (metadata.getDescriptors());
                 processMandateGroups(metadata.getDescriptors());
             }
             
@@ -521,9 +524,12 @@ public class UtilityController {
                 }
             }
             if (d instanceof DescriptorGroupTemplate) {
+                Collections.sort(((DescriptorGroupTemplate) d).getDescriptors());
                 processMandateGroups(((DescriptorGroupTemplate) d).getDescriptors());
             }
         }
+        
+        
     }
     
     @ApiOperation(value = "Retrieve the template by id")
@@ -557,6 +563,8 @@ public class UtilityController {
                     d.setOrder(i++);
                 }
                
+            } else {
+                Collections.sort(metadataTemplate.getDescriptors());
             }
             processMandateGroups(metadataTemplate.getDescriptors());
             return metadataTemplate;

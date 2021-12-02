@@ -29,6 +29,7 @@ import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -1336,6 +1337,71 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             sparqlDAO.addStatements(statements, graphIRI);
         }
         return sampleURI;
+    }
+
+
+    @Override
+    public String addPrintRun(PrintRun metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTRUN, hasPrinterTemplatePredicate, printRunTypePredicate, "Prr", user);
+    }
+
+
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user) throws SparqlException, SQLException {
+        return getPrintRunByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getPrintRunByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        List<PrintRun> printers = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printRunTypePredicate);
+        for (MetadataCategory m: list) {
+            printers.add(new PrintRun(m));
+        }
+        
+        return printers;
+    }
+
+
+    @Override
+    public int getPrintRunCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, printRunTypePredicate, searchValue, false);
+    }
+
+
+    @Override
+    public PrintRun getPrintRunFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return getPrintRunFromURI(uri, true, user);
+    }
+
+
+    @Override
+    public PrintRun getPrintRunFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (PrintRun) getMetadataCategoryFromURI(uri, printRunTypePredicate, true, user);
+    }
+
+
+    @Override
+    public PrintRun getPrintRunByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, ArrayDatasetRepositoryImpl.printRunTypePredicate, user);
+        return metadata == null? null : (PrintRun) metadata;
     }
     
 
