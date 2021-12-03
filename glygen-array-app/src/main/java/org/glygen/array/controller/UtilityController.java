@@ -479,7 +479,7 @@ public class UtilityController {
         try {
             templates = templateRepository.getTemplateByType(type);
             // if it is an assay template, reset the order
-            if (type == MetadataTemplateType.ASSAY) {
+           /* if (type == MetadataTemplateType.ASSAY) {
                 // reset orders to 0 for optional ones
                 for (MetadataTemplate metadata: templates) {
                     List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
@@ -495,11 +495,11 @@ public class UtilityController {
                         d.setOrder(i++);
                     }
                 }
-            } 
+            } */
             
             for (MetadataTemplate metadata: templates) {    
-                if (type != MetadataTemplateType.ASSAY) 
-                    Collections.sort (metadata.getDescriptors());
+                //if (type != MetadataTemplateType.ASSAY) 
+                Collections.sort (metadata.getDescriptors());
                 processMandateGroups(metadata.getDescriptors());
             }
             
@@ -548,7 +548,7 @@ public class UtilityController {
             String uri = MetadataTemplateRepository.templatePrefix + id.trim();
             MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
             // if it is an assay template, reset the order
-            if (metadataTemplate != null && metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
+          /*  if (metadataTemplate != null && metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
                 // reset orders to 0 for optional ones
                 List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
                 for (DescriptionTemplate d: metadataTemplate.getDescriptors()) {
@@ -563,9 +563,9 @@ public class UtilityController {
                     d.setOrder(i++);
                 }
                
-            } else {
+            } else {*/
                 Collections.sort(metadataTemplate.getDescriptors());
-            }
+            //}
             processMandateGroups(metadataTemplate.getDescriptors());
             return metadataTemplate;
         } catch (SparqlException e) {
