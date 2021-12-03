@@ -1,8 +1,0 @@
-INSERT {  GRAPH ?g {?s ?p "LINKEDGLYCAN"^^xsd:string . }} WHERE {  GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "NORMAL")) }}
-DELETE {  GRAPH ?g {?s ?p ?o . }} WHERE { GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "NORMAL"))  }}
-INSERT {  GRAPH ?g {?s ?p "SMALLMOLECULE"^^xsd:string . }} WHERE {  GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "SMALLMOLECULE_LINKER"))  }}
-DELETE {  GRAPH ?g {?s ?p ?o . }} WHERE { GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "SMALLMOLECULE_LINKER"))  }}
-INSERT {  GRAPH ?g {?s ?p "PROTEIN"^^xsd:string . }} WHERE {  GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "PROTEIN_LINKER")) }}
-DELETE {  GRAPH ?g {?s ?p ?o . }} WHERE { GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "PROTEIN"))  }}
-INSERT {  GRAPH ?g {?s ?p "PEPTIDE"^^xsd:string . }} WHERE {  GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "PEPTIDE_LINKER"))  }}
-DELETE {  GRAPH ?g {?s ?p ?o . }} WHERE { GRAPH ?g { ?s ?p ?o .  FILTER(REGEX(?o, "PEPTIDE_LINKER"))  }}
