@@ -228,8 +228,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             IRI hasLinkerType = f.createIRI(hasTypePredicate);
             Literal type = f.createLiteral(l.getType().name());
             
-            statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
-            statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
+            statements.add(f.createStatement(localLinker, RDF.TYPE, linkerType, graphIRI));
+            statements.add(f.createStatement(localLinker, hasLinkerType, type, graphIRI));
             statements.add(f.createStatement(localLinker, hasPublicURI, linker, graphIRI));
             statements.add(f.createStatement(localLinker, hasAddedToLibrary, date, graphIRI));
             statements.add(f.createStatement(localLinker, hasModifiedDate, date, graphIRI));
@@ -409,8 +409,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			
-			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
-			statements.add(f.createStatement(linker, hasLinkerType, type, graphIRI));
+			statements.add(f.createStatement(localLinker, RDF.TYPE, linkerType, graphIRI));
+			statements.add(f.createStatement(localLinker, hasLinkerType, type, graphIRI));
 			statements.add(f.createStatement(localLinker, hasPublicURI, linker, graphIRI));
 			statements.add(f.createStatement(localLinker, hasAddedToLibrary, date, graphIRI));
 			statements.add(f.createStatement(localLinker, hasModifiedDate, date, graphIRI));
