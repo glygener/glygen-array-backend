@@ -494,11 +494,15 @@ public class GlygenArrayController {
         		        }
         		        Linker existing = linkerRepository.getLinkerById(linkerId, user);
         		        if (existing == null) {
-        		            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        	                errorMessage.addError(new ObjectError("linker", "NotValid"));
-        	                throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+        		            // check public linkers
+        		            existing = linkerRepository.getLinkerById(linkerId, null);
+        		            if (existing == null) {
+            		            errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            	                errorMessage.addError(new ObjectError("linker", "NotFound"));
+            	                throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+        		            }
         		        }
         		    }
 		        }
@@ -550,11 +554,22 @@ public class GlygenArrayController {
                     }
                     org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureById(featureId, user);
                     if (existing == null || existing.getType() != FeatureType.GLYCOPEPTIDE) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        if (existing == null) { // check if it is a public one
+                            existing = featureRepository.getFeatureById(featureId, null);
+                            if (existing == null || existing.getType() != FeatureType.GLYCOPEPTIDE) {
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("glycoPeptide", "NotFound"));
+                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            }
+                        } else {
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("glycoPeptide", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        }
                     }
                 }
             } 
@@ -582,11 +597,22 @@ public class GlygenArrayController {
                     }
                     org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureById(featureId, user);
                     if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        if (existing == null) { // check if it is a public one
+                            existing = featureRepository.getFeatureById(featureId, null);
+                            if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
+                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            }
+                        } else {
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        }
                     }
                 }
             } 
@@ -614,11 +640,22 @@ public class GlygenArrayController {
                     }
                     org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureById(featureId, user);
                     if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        if (existing == null) { // check if it is a public one
+                            existing = featureRepository.getFeatureById(featureId, null);
+                            if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
+                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            }
+                        } else {
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        }
                     }
                 }
             } 
@@ -646,11 +683,22 @@ public class GlygenArrayController {
                     }
                     org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureById(featureId, user);
                     if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        if (existing == null) { // check if it is a public one
+                            existing = featureRepository.getFeatureById(featureId, null);
+                            if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
+                                errorMessage = new ErrorMessage();
+                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
+                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            }
+                        } else {
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                        }
                     }
                 }
             } 
@@ -679,11 +727,14 @@ public class GlygenArrayController {
                     }
                     Glycan existing = glycanRepository.getGlycanById(glycanId, user);
                     if (existing == null) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                        existing = glycanRepository.getGlycanById(glycanId, null);
+                        if (existing == null) {
+                            errorMessage = new ErrorMessage();
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("glycan", "NotValid"));
+                            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                        }
                     }
                 }
                 
@@ -728,7 +779,8 @@ public class GlygenArrayController {
             } 
         }
         
-        if (feature.getLinker() != null) {
+        // no need to check it again here, checked in "addFeature" web service
+        /*if (feature.getLinker() != null) {
             if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
                 feature.getLinker().setId(addLinker(feature.getLinker(), feature.getLinker().getType().name().startsWith("UNKNOWN"), p));
             } else {
@@ -740,14 +792,17 @@ public class GlygenArrayController {
                 }
                 Linker existing = linkerRepository.getLinkerById(linkerId, user);
                 if (existing == null) {
-                    errorMessage = new ErrorMessage();
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("linker", "NotValid"));
-                    throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+                    existing = linkerRepository.getLinkerById(linkerId, null);
+                    if (existing == null) {
+                        errorMessage = new ErrorMessage();
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("linker", "NotValid"));
+                        throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
+                    }
                 }
             }
-        }
+        }*/
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);

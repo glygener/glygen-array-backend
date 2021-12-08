@@ -741,8 +741,11 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	public Linker getLinkerById(String linkerId, UserEntity user) throws SparqlException, SQLException {
 		// make sure the glycan belongs to this user
 	    String graph = null;
-        if (user == null)
+	    String uriPre = uriPrefix;
+        if (user == null) {
+            uriPre = uriPrefixPublic;
             graph = DEFAULT_GRAPH;
+        }
         else {
             graph = getGraphForUser(user);
         }
@@ -752,12 +755,12 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( "<" +  uriPrefix + linkerId + "> gadr:has_date_addedtolibrary ?d . }\n");
+		queryBuf.append ( "<" +  uriPre + linkerId + "> gadr:has_date_addedtolibrary ?d . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
 		else {
-			return getLinkerFromURI(uriPrefix + linkerId, user);
+			return getLinkerFromURI(uriPre + linkerId, user);
 		}
 	}
 

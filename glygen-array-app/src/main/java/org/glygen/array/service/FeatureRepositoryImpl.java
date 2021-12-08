@@ -323,8 +323,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     logger.info("got invalid position for the feature's glycans", e);
                     continue;
                 }
-				String glycanId = feature.getPositionMap().get(position);
-				IRI glycanIRI = f.createIRI(uriPrefix + glycanId);
+				String glycanURI = feature.getPositionMap().get(position);
+				IRI glycanIRI = f.createIRI(glycanURI);
 				Literal pos = f.createLiteral(position);
 				
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
@@ -361,6 +361,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	}
 	
 	private void addSourceContext(GlycanInFeature g, IRI feat, IRI glycanIRI, List<Statement> statements, String graph) throws SparqlException {
+	    
+	    String uriPre = uriPrefix;
+        if (graph.equals(DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+        
 	    ValueFactory f = sparqlDAO.getValueFactory();
 	    IRI graphIRI = f.createIRI(graph);
 	    IRI hasGlycanContext = f.createIRI(hasGlycanContextPredicate);
@@ -373,13 +379,13 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasMethod = f.createIRI(hasMethodPredicate);
         IRI hasType = f.createIRI(hasTypePredicate);
         IRI hasMolecule = f.createIRI(hasMoleculePredicate);
-        String glycanContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+        String glycanContextURI = generateUniqueURI(uriPre + "PC", graph);
         IRI glycanContext = f.createIRI(glycanContextURI);
         IRI hasUrl = f.createIRI(hasURLPredicate);
         if (g.getSource() != null) {
             statements.add(f.createStatement(feat, hasGlycanContext, glycanContext, graphIRI));
             statements.add(f.createStatement(glycanContext, hasMolecule, glycanIRI, graphIRI));
-            String sourceURI = generateUniqueURI(uriPrefix + "SO", graph);
+            String sourceURI = generateUniqueURI(uriPre + "SO", graph);
             IRI source = f.createIRI(sourceURI);
             statements.add(f.createStatement(glycanContext, hasSource, source, graphIRI));
             statements.add(f.createStatement(source, hasType, f.createLiteral(g.getSource().getType().name()), graphIRI));
@@ -417,7 +423,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             }
         }
         if (g.getReducingEndConfiguration() != null) {
-            String redEndConURI = generateUniqueURI(uriPrefix + "REC", graph);
+            String redEndConURI = generateUniqueURI(uriPre + "REC", graph);
             IRI redEndCon = f.createIRI(redEndConURI);
             statements.add(f.createStatement(glycanContext, hasReducingEndConfig, redEndCon, graphIRI));
             Literal redEndType = f.createLiteral(g.getReducingEndConfiguration().getType().name());
@@ -1343,7 +1349,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     }
 				}
 				if (position != null && moleculeInContextURI != null) {
-					positionMap.put (position +"", moleculeInContextURI.substring(moleculeInContextURI.lastIndexOf("/")+1));
+					positionMap.put (position +"", moleculeInContextURI);
 				}
 				if (range.getMax() != null && moleculeInContextURI != null) {
 				    rangeMap.put(moleculeInContextURI, range);
@@ -1625,7 +1631,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                             }
                         }
                         if (position != null && moleculeInContextURI != null) {
-                            positionMap.put (position +"", moleculeInContextURI.substring(moleculeInContextURI.lastIndexOf("/")+1));
+                            positionMap.put (position +"", moleculeInContextURI);
                         }
                         if (range.getMax() != null && moleculeInContextURI != null) {
                             rangeMap.put(moleculeInContextURI, range);
@@ -1926,8 +1932,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 			        logger.info("got invalid position for the feature's glycans", e);
 			        continue;
 			    }
-				String glycanId = feature.getPositionMap().get(position);
-				IRI glycanIRI = f.createIRI(uriPrefixPublic + glycanId);
+				String glycanURI = feature.getPositionMap().get(position);
+				IRI glycanIRI = f.createIRI(glycanURI);
 				Literal pos = f.createLiteral(position);
 				
 				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));

@@ -595,7 +595,7 @@ public class GlygenArrayRepositoryTest {
 			String lgURI = featureRepository.addFeature(lg, user);
 			lg.setUri(lgURI);
 			lg.setId(lg.getUri().substring(lg.getUri().lastIndexOf("/")+1));
-			added.setGlycan ("1", lg.getId());
+			added.setGlycan ("1", lg.getUri());
 			
 			String uri = featureRepository.addFeature(added, user);
 			added.setUri(uri);
@@ -759,7 +759,7 @@ public class GlygenArrayRepositoryTest {
             String lgURI = featureRepository.addFeature(lg, user);
             lg.setUri(lgURI);
             lg.setId(lg.getUri().substring(lg.getUri().lastIndexOf("/")+1));
-            peptideF.setGlycan ("1", lg.getId());
+            peptideF.setGlycan ("1", lg.getUri());
             
             String uri = featureRepository.addFeature(peptideF, user);
             peptideF.setUri(uri);
@@ -783,7 +783,7 @@ public class GlygenArrayRepositoryTest {
             
             GPLinkedGlycoPeptide added = new GPLinkedGlycoPeptide();
             added.setName("test GPLinkedGlycoPeptide");
-            added.setGlycan("1", peptideF.getId());
+            added.setGlycan("1", peptideF.getUri());
             added.setPeptides(peptides);
             added.setProtein(linker3);
             
