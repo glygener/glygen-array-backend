@@ -113,6 +113,15 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_channel -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_channel">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/Channel"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_concentration -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_concentration">
@@ -616,6 +625,15 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_channel_type -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_channel_type">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Channel"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_column -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_column">
@@ -905,6 +923,15 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_powerlevel -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_powerlevel">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/raw_data"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_pubchem_compound_id -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_pubchem_compound_id">
@@ -1073,6 +1100,15 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     
 
 
+    <!-- http://purl.org/gadr/data/has_wavelength -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_wavelength">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/Channel"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_x_coordinate -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_x_coordinate">
@@ -1143,6 +1179,12 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
 
+    
+
+
+    <!-- http://purl.org/gadr/data/Channel -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/Channel"/>
     
 
 

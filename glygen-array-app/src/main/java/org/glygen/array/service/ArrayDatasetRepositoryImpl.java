@@ -32,6 +32,8 @@ import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.Channel;
+import org.glygen.array.persistence.rdf.data.ChannelUsageType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -461,9 +463,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         String rawDataURI = generateUniqueURI(uriPre + "R", allGraphs);
         
         IRI hasimageProcessingMetadata = f.createIRI(imageProcessingMetadataPredicate);
-        IRI hasMeasurement = f.createIRI(hasMeasurementPredicate);
         IRI hasFile = f.createIRI(hasFilePredicate);
-        IRI measurementOf = f.createIRI(measurementOfPredicate);
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         IRI hasFileName = f.createIRI(hasFileNamePredicate);
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
@@ -475,12 +475,31 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI arraydataset = f.createIRI(uriPre + datasetId);
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI processedFrom = f.createIRI(processedFromPredicate);
+        IRI hasPowerLevel = f.createIRI(ontPrefix + "has_powerlevel");
+        IRI hasWavelength = f.createIRI(ontPrefix + "has_wavelength");
+        IRI hasChannelType = f.createIRI(ontPrefix + "has_channel_type");
+        IRI hasChannel = f.createIRI(ontPrefix + "has_channel");
         
         if (rawData.getMetadata() != null) {
             String imageProcessingMetadataURI = rawData.getMetadata().getUri();
             statements.add(f.createStatement(raw, hasimageProcessingMetadata, f.createIRI(imageProcessingMetadataURI), graphIRI));
         }
         
+        if (rawData.getPowerLevel() != null) {
+            Literal powerLevel = f.createLiteral(rawData.getPowerLevel());
+            statements.add(f.createStatement(raw, hasPowerLevel, powerLevel, graphIRI));
+        }
+        
+        if (rawData.getChannel() != null) {
+            String channelURI = generateUniqueURI(uriPre + "CH", allGraphs);
+            Literal wavelength = f.createLiteral(rawData.getChannel().getWavelength());
+            Literal channelType = f.createLiteral(rawData.getChannel().getUsage().name());
+            IRI channel = f.createIRI(channelURI);
+            statements.add(f.createStatement(raw, hasChannel, channel, graphIRI));
+            statements.add(f.createStatement(channel, hasChannelType, channelType, graphIRI));
+            statements.add(f.createStatement(channel, hasWavelength, wavelength, graphIRI));
+            
+        }
         if (rawData.getSlide() != null) {
             String slideURI = rawData.getSlide().getUri();
             if (slideURI == null && rawData.getSlide().getId() != null) 
@@ -1548,6 +1567,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI processedFrom = f.createIRI(processedFromPredicate);
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        IRI hasPowerLevel = f.createIRI(ontPrefix + "has_powerlevel");
+        IRI hasWavelength = f.createIRI(ontPrefix + "has_wavelength");
+        IRI hasChannelType = f.createIRI(ontPrefix + "has_channel_type");
+        IRI hasChannel = f.createIRI(ontPrefix + "has_channel");
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
         Map<String, String> measurementToSpotIdMap = new HashMap<String, String>();
@@ -1598,6 +1621,32 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     }
                 }
                 rawDataObject.setFile(file);    
+            } else if (st.getPredicate().equals(hasChannel)) {
+                Value value = st.getObject();
+                Channel channel = new Channel();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasWavelength)) {
+                        Value val = st2.getObject();
+                        channel.setWavelength(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasChannelType)) {
+                        Value val = st2.getObject();
+                        try {
+                            channel.setUsage(ChannelUsageType.valueOf(val.stringValue()));
+                        } catch (Exception e) {
+                            logger.warn ("channel usage type is not valid : " , val.stringValue());
+                        }
+                    }
+                }
+                rawDataObject.setChannel(channel);
+            } else if (st.getPredicate().equals(hasPowerLevel)) {
+                Value value = st.getObject();
+                try {
+                    rawDataObject.setPowerLevel(Double.parseDouble(value.stringValue()));
+                } catch (NumberFormatException e) {
+                    logger.warn ("power level is not valid: " + value.stringValue());
+                }
             } else if (st.getPredicate().equals(hasimageProcessingMetadata)) {
                 Value uriValue = st.getObject();
                 rawDataObject.setMetadata(metadataRepository.getImageAnalysisSoftwareFromURI(uriValue.stringValue(), loadAll, user));   

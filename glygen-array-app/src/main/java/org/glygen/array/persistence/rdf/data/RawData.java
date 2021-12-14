@@ -23,6 +23,7 @@ public class RawData extends FutureTask {
     Slide slide;
     FileWrapper file;
     Double powerLevel = 100.0;  // 100% or less
+    Channel channel;
 
     Date dateModified;
     Date dateCreated;
@@ -214,6 +215,20 @@ public class RawData extends FutureTask {
      */
     public void setSlide(Slide slide) {
         this.slide = slide;
+    }
+
+    /**
+     * @return the channel
+     */
+    public Channel getChannel() {
+        return channel;
+    }
+
+    /**
+     * @param channel the channel to set
+     */
+    public void setChannel(Channel channel) {
+        this.channel = channel;
     }
 
 }
