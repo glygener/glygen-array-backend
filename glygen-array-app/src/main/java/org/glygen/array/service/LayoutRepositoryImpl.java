@@ -77,6 +77,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	final static String hasRatioPredicate = ontPrefix + "has_ratio";
 	final static String hasRatioContextPredicate = ontPrefix + "has_feature_ratio";
+	final static String hasConcentrationContextPredicate = ontPrefix + "has_feature_concentration";
 	final static String hasSpotMetadataPredicate = ontPrefix + "has_spot_metadata";
 	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
@@ -192,6 +193,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
         IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
         IRI hasGroup = f.createIRI(ontPrefix + "has_group");
+        IRI hasFlag = f.createIRI(ontPrefix + "has_flag");
         IRI hasRow = f.createIRI(ontPrefix + "has_row");
         IRI hasColumn = f.createIRI(ontPrefix + "has_column");
         IRI spotType = f.createIRI(ontPrefix + "Spot");
@@ -202,27 +204,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         Literal row = f.createLiteral(s.getRow());
         Literal column = f.createLiteral(s.getColumn());
         Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
+        Literal flag = s.getFlag() == null ? null : f.createLiteral(s.getFlag());
         
         statements.add(f.createStatement(spot, RDF.TYPE, spotType, graphIRI));
         statements.add(f.createStatement(spot, hasRow, row));
         statements.add(f.createStatement(spot, hasColumn, column));
         if (group != null) statements.add(f.createStatement(spot, hasGroup, group, graphIRI));
-        if (s.getConcentration() != null) {
-            // check if it has already been created before
-            String concentrationURI = concentrationCache.get(s.getConcentration());
-            if (concentrationURI == null) {
-                concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
-                concentrationCache.put(s.getConcentration(), concentrationURI);
-            }
-            IRI concentration = f.createIRI(concentrationURI);
-            Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-            Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-            if (concentrationValue != null) {
-                statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue, graphIRI));
-                statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit, graphIRI));
-            }
-            statements.add(f.createStatement(spot, hasConcentration, concentration, graphIRI));
-        }
+        if (flag != null) statements.add(f.createStatement(spot, hasFlag, flag, graphIRI));
+        
         sparqlDAO.addStatements(statements, graphIRI);
         
         if (s.getFeatures() != null) {
@@ -247,6 +236,35 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         statements.add(f.createStatement(spot, hasRatioContext, positionContext, graphIRI));
                         statements.add(f.createStatement(positionContext, hasFeature, feature, graphIRI));
                         statements.add(f.createStatement(positionContext, hasRatio, ratioL, graphIRI));
+                    }
+                    
+                    // add the concentration
+                    LevelUnit concentration = s.getFeatureConcentrationMap().get(feat);
+                    if (concentration == null) {
+                        concentration = s.getConcentration(existing.getId());
+                    }
+                    if (concentration != null) {
+                        // add concentration for the feature
+                        // check if it has already been created before
+                        String concentrationURI = concentrationCache.get(concentration);
+                        if (concentrationURI == null) {
+                            concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+                            concentrationCache.put(concentration, concentrationURI);
+                        }
+                        IRI concentrationL = f.createIRI(concentrationURI);
+                    
+                        Literal concentrationUnit = f.createLiteral(concentration.getLevelUnit().getLabel());
+                        Literal concentrationValue = concentration.getConcentration() == null ? null : f.createLiteral(concentration.getConcentration());
+                        if (concentrationValue != null) {
+                            String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", graph);    
+                            IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
+                            IRI concentrationContext = f.createIRI(concentrationContextURI);
+                            statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
+                            statements.add(f.createStatement(concentrationContext, hasFeature, feature, graphIRI));
+                            statements.add(f.createStatement(concentrationL, hasConcentrationValue, concentrationValue, graphIRI));
+                            statements.add(f.createStatement(concentrationL, hasConcentrationUnit, concentrationUnit, graphIRI));
+                        }
+                        statements.add(f.createStatement(spot, hasConcentration, concentrationL, graphIRI));
                     }
                 } else {
                     // error
@@ -1693,6 +1711,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI hasGroup = f.createIRI(ontPrefix + "has_group");
 		IRI hasRatio = f.createIRI (hasRatioPredicate);
         IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
+        IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
         IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
         IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
         
@@ -1710,24 +1729,40 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			} else if (st2.getPredicate().equals(hasGroup)) {
 				Value v = st2.getObject();
 				s.setGroup(Integer.parseInt(v.stringValue()));
-			} else if (st2.getPredicate().equals(hasConcentration)) {
-				LevelUnit c = new LevelUnit();
-				Value v = st2.getObject();
-				String conURI = v.stringValue();
-				IRI concentration = f.createIRI(conURI);
-				RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-				while (statements3.hasNext()) {
-					Statement st3 = statements3.next();
-					if (st3.getPredicate().equals(hasConcentrationValue)) {
-						v = st3.getObject();
-						c.setConcentration(Double.parseDouble(v.stringValue()));
-					} else if (st3.getPredicate().equals(hasConcentrationUnit)) {
-						v = st3.getObject();
-						c.setLevelUnit(UnitOfLevels.lookUp(v.stringValue()));
-					}
-				}
-				s.setConcentration(c);
-			} else if (st2.getPredicate().equals(hasFeature)) {
+			} else if (st2.getPredicate().equals(hasConcentrationContext)) {
+                Value positionContext = st2.getObject();
+                String contextURI = positionContext.stringValue();
+                IRI ctx = f.createIRI(contextURI);
+                RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(ctx, null, null, graphIRI);
+                LevelUnit concentration = new LevelUnit();
+                Feature featureInContext = null;
+                while (statements3.hasNext()) {
+                    Statement st3 = statements2.next();
+                    if (st3.getPredicate().equals(hasConcentration)) {
+                        Value value = st2.getObject();   // this is the concentration URI
+                        String conURI = value.stringValue();
+                        IRI concentrationIRI = f.createIRI(conURI);
+                        RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(concentrationIRI, null, null, graphIRI);
+                        while (statements4.hasNext()) {
+                            Statement st4 = statements4.next();
+                            if (st4.getPredicate().equals(hasConcentrationValue)) {
+                                value = st4.getObject();
+                                concentration.setConcentration(Double.parseDouble(value.stringValue()));
+                            } else if (st4.getPredicate().equals(hasConcentrationUnit)) {
+                                value = st4.getObject();
+                                concentration.setLevelUnit(UnitOfLevels.lookUp(value.stringValue()));
+                            }
+                        }
+                         
+                    } else if (st3.getPredicate().equals(hasFeature)) {
+                        Value val = st2.getObject();
+                        featureInContext = featureRepository.getFeatureFromURI(val.stringValue(), user);
+                    }  
+                }
+                if (concentration.getConcentration() != null && featureInContext != null) {
+                    s.setConcentration(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), concentration);
+                }
+            } else if (st2.getPredicate().equals(hasFeature)) {
 				Value v = st2.getObject();
 				String featureURI = v.stringValue();
 				Feature feat = featureRepository.getFeatureFromURI(featureURI, user);
@@ -1781,6 +1816,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		Literal row = f.createLiteral(s.getRow());
 		Literal column = f.createLiteral(s.getColumn());
 		Literal group = s.getGroup() == null ? null : f.createLiteral(s.getGroup());
+		Literal flag = s.getFlag() == null ? null : f.createLiteral(s.getFlag());
 		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		IRI hasConcentrationValue = f.createIRI(ontPrefix + "concentration_value");
 		IRI hasConcentrationUnit = f.createIRI(ontPrefix + "has_concentration_unit");
@@ -1790,6 +1826,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI spotType = f.createIRI(ontPrefix + "Spot");
 		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
 		IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
+		IRI hasFlag = f.createIRI(ontPrefix + "has_flag");
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		statements.add(f.createStatement(spot, RDF.TYPE, spotType, graphIRI));
@@ -1797,27 +1834,59 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		statements.add(f.createStatement(spot, hasRow, row));
 		statements.add(f.createStatement(spot, hasColumn, column));
 		if (group != null) statements.add(f.createStatement(spot, hasGroup, group, graphIRI));
-		if (s.getConcentration() != null) {
-			// check if it has already been created before
-			String concentrationURI = concentrationCache.get(s.getConcentration());
-			if (concentrationURI == null) {
-				concentrationURI = generateUniqueURI(uriPrefixPublic + "C");
-				concentrationCache.put(s.getConcentration(), concentrationURI);
-			}
-			IRI concentration = f.createIRI(concentrationURI);
-			Literal concentrationUnit = f.createLiteral(s.getConcentration().getLevelUnit().getLabel());
-			Literal concentrationValue = s.getConcentration().getConcentration() == null ? null : f.createLiteral(s.getConcentration().getConcentration());
-			if (concentrationValue != null) {
-				statements.add(f.createStatement(concentration, hasConcentrationValue, concentrationValue, graphIRI));
-				statements.add(f.createStatement(concentration, hasConcentrationUnit, concentrationUnit, graphIRI));
-			}
-			statements.add(f.createStatement(spot, hasConcentration, concentration, graphIRI));
-		}
+		if (flag != null) statements.add(f.createStatement(spot, hasFlag, flag, graphIRI));
 		
 		if (s.getFeatures() != null) {
 			for (Feature feat : s.getFeatures()) {
 				IRI feature = f.createIRI(feat.getUri());
-				statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));		
+				statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));
+				
+				Double ratio = s.getFeatureRatioMap().get(feat);
+                if (ratio == null) {
+                    ratio = s.getRatio(feat.getId());
+                }
+                if (ratio != null) {
+                    // add ratio for the feature
+                    Literal ratioL = f.createLiteral(ratio);
+                    String positionContextURI = generateUniqueURI(uriPrefix + "PC", DEFAULT_GRAPH);
+                    IRI hasRatio = f.createIRI (hasRatioPredicate);
+                    IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
+                    IRI positionContext = f.createIRI(positionContextURI);
+                    statements.add(f.createStatement(spot, hasRatioContext, positionContext, graphIRI));
+                    statements.add(f.createStatement(positionContext, hasFeature, feature, graphIRI));
+                    statements.add(f.createStatement(positionContext, hasRatio, ratioL, graphIRI));
+                }
+                
+                // add the concentration
+                LevelUnit concentration = s.getFeatureConcentrationMap().get(feat);
+                if (concentration == null) {
+                    concentration = s.getConcentration(feat.getId());
+                }
+                if (concentration != null) {
+                    // add concentration for the feature
+                    // check if it has already been created before
+                    String concentrationURI = concentrationCache.get(concentration);
+                    if (concentrationURI == null) {
+                        concentrationURI = generateUniqueURI(uriPrefix + "C", DEFAULT_GRAPH);
+                        concentrationCache.put(concentration, concentrationURI);
+                    }
+                    IRI concentrationL = f.createIRI(concentrationURI);
+                
+                    Literal concentrationUnit = f.createLiteral(concentration.getLevelUnit().getLabel());
+                    Literal concentrationValue = concentration.getConcentration() == null ? null : f.createLiteral(concentration.getConcentration());
+                    if (concentrationValue != null) {
+                        String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", DEFAULT_GRAPH);    
+                        IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
+                        IRI concentrationContext = f.createIRI(concentrationContextURI);
+                        statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
+                        statements.add(f.createStatement(concentrationContext, hasFeature, feature, graphIRI));
+                        statements.add(f.createStatement(concentrationL, hasConcentrationValue, concentrationValue, graphIRI));
+                        statements.add(f.createStatement(concentrationL, hasConcentrationUnit, concentrationUnit, graphIRI));
+                    }
+                    statements.add(f.createStatement(spot, hasConcentration, concentrationL, graphIRI));
+                }
+				
+				
 			} 
 		}
 		

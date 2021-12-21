@@ -50,8 +50,7 @@ public class RawdataParser {
                 Well well = new Well(x, y);
                 SpotData spotData = new SpotData();
                 spotData.setGroup(spot.getGroup());
-                spotData.setConcentration(spot.getConcentration().getConcentration());
-                spotData.setProbeLevelUnit(spot.getConcentration().getLevelUnit());
+                
                 block.setPosition(new Well(b.getColumn(), b.getRow()));
                 layoutData.put(well, spotData);
                 int featureId = 1;
@@ -59,8 +58,13 @@ public class RawdataParser {
                     Feature feature = spot.getFeatures().get(0);
                     org.grits.toolbox.glycanarray.om.model.Feature f = new org.grits.toolbox.glycanarray.om.model.Feature();
                     f.setId(featureId ++);
-                    f.setName(feature.getName());
+                    f.setName(feature.getId());
                     spotData.setFeature(f);
+                    LevelUnit con = spot.getConcentration(feature.getId());
+                    if (con != null) {
+                        spotData.setConcentration(con.getConcentration());
+                        spotData.setProbeLevelUnit(con.getLevelUnit());
+                    }
                 }
             }
             block.setLayoutData(layoutData);
@@ -110,7 +114,7 @@ public class RawdataParser {
                         LevelUnit con = new LevelUnit();
                         con.setConcentration(spotData.getConcentration());
                         con.setLevelUnit(spotData.getProbeLevelUnit());
-                        spot.setConcentration(con);
+                        spot.setConcentration(spotData.getFeature().getName(), con);
                         spot.setBlockLayoutUri(block.getName());
                         Measurement m = new Measurement();
                         m.setbMean(spotData.getbMean());

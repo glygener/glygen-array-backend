@@ -133,6 +133,7 @@ import org.grits.toolbox.glycanarray.library.om.feature.Feature;
 import org.grits.toolbox.glycanarray.library.om.feature.GlycanProbe;
 import org.grits.toolbox.glycanarray.library.om.feature.Ratio;
 import org.grits.toolbox.glycanarray.library.om.layout.Block;
+import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.library.om.layout.Spot;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.grits.toolbox.util.structure.glycan.util.FilterUtils;
@@ -3678,10 +3679,11 @@ public class GlygenArrayController {
     		s.setRow(spot.getY());
     		s.setColumn(spot.getX());
     		s.setGroup(spot.getGroup());
-    		s.setConcentration(spot.getConcentration());
+    		//s.setConcentration(spot.getConcentration());
     		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
     		List<org.glygen.array.persistence.rdf.Feature> features = new ArrayList<>();
     		Map<org.glygen.array.persistence.rdf.Feature, Double> ratioMap = new HashMap<>();
+    		Map<org.glygen.array.persistence.rdf.Feature, LevelUnit> concentrationMap = new HashMap<>();
     		if (feature != null) {
         		for (Ratio r : feature.getRatio()) {
         			GlycanProbe probe = null;
@@ -3725,6 +3727,7 @@ public class GlygenArrayController {
                             }
 		        			myFeature.setName (feature.getName());
 		        			ratioMap.put(myFeature, r1.getItemRatio());
+		        			concentrationMap.put(myFeature, spot.getConcentration());
 		        			features.add(myFeature);
         				}
         			} else {
@@ -3734,6 +3737,7 @@ public class GlygenArrayController {
         		}
     		}
     		s.setFeatureRatioMap(ratioMap);
+    		s.setFeatureConcentrationMap(concentrationMap);
     		s.setFeatures(features);
     		spots.add(s);
     	}

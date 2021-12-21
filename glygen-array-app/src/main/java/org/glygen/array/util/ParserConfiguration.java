@@ -47,8 +47,12 @@ public class ParserConfiguration {
     Integer dispensesColumn;
     @Value("${ratioColumn}")
     Integer ratioColumn;
+    @Value("${repoIdColumn}")
+    Integer repoIdColumn;
     @Value("${commentColumn}")
     Integer commentColumn;
+    @Value("${flagColumn}")
+    Integer flagColumn;
     
     public Integer getBlockColumn() {
         return blockColumn;
@@ -286,5 +290,29 @@ public class ParserConfiguration {
      */
     public void setCommentColumn(Integer commentColumn) {
         this.commentColumn = commentColumn;
+    }
+    /**
+     * @return the repoIdColumn
+     */
+    public Integer getRepoIdColumn() {
+        return repoIdColumn;
+    }
+    /**
+     * @param repoIdColumn the repoIdColumn to set
+     */
+    public void setRepoIdColumn(Integer repoIdColumn) {
+        this.repoIdColumn = repoIdColumn;
+    }
+    /**
+     * @return the flagColumn
+     */
+    public Integer getFlagColumn() {
+        return flagColumn;
+    }
+    /**
+     * @param flagColumn the flagColumn to set
+     */
+    public void setFlagColumn(Integer flagColumn) {
+        this.flagColumn = flagColumn;
     }
 }

@@ -25,6 +25,9 @@ public class SpotMetadataConfig {
     
     @Value("${Dispenses}")
     String numberDispensesDescription;
+    
+    @Value("${Comment}")
+    String commentDescription;
 
     /**
      * @return the formulationSolutionDescription
@@ -108,6 +111,20 @@ public class SpotMetadataConfig {
      */
     public void setNumberDispensesDescription(String numberDispensesDescription) {
         this.numberDispensesDescription = numberDispensesDescription;
+    }
+
+    /**
+     * @return the commentDescription
+     */
+    public String getCommentDescription() {
+        return commentDescription;
+    }
+
+    /**
+     * @param commentDescription the commentDescription to set
+     */
+    public void setCommentDescription(String commentDescription) {
+        this.commentDescription = commentDescription;
     }
 
 }
