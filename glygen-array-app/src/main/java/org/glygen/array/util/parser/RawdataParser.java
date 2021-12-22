@@ -111,10 +111,10 @@ public class RawdataParser {
                         spot.setRow(spotData.getPosition().getY());
                         spot.setColumn(spotData.getPosition().getX());
                         spot.setGroup(spotData.getGroup());
-                        LevelUnit con = new LevelUnit();
-                        con.setConcentration(spotData.getConcentration());
-                        con.setLevelUnit(spotData.getProbeLevelUnit());
-                        spot.setConcentration(spotData.getFeature().getName(), con);
+                       // LevelUnit con = new LevelUnit();
+                        //con.setConcentration(spotData.getConcentration());
+                        //con.setLevelUnit(spotData.getProbeLevelUnit());
+                       // spot.setConcentration(spotData.getFeature().getName(), con);
                         spot.setBlockLayoutUri(block.getName());
                         Measurement m = new Measurement();
                         m.setbMean(spotData.getbMean());

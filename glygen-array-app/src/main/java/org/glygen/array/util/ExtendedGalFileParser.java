@@ -12,8 +12,6 @@ import java.util.Scanner;
 import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
-import org.glygen.array.persistence.rdf.Glycan;
-import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.metadata.Description;
@@ -38,17 +36,24 @@ public class ExtendedGalFileParser {
     @Autowired
     ParserConfiguration config;
     
+    String defaultConcentration = null;
+    String defaultBuffer = null;
+    String defaultVolume = null;
+    String defaultDispenses = null;
+    String defaultCarrier = null;
+    String defaultMethod = null;
+    String defaultReference = null;
+    
     /**
-     * parses the given GAL file to create a Slide Layout with all its blocks. Features should exist already. Linkers should be created
-     * before hand and passed in as a list
+     * parses the given extended GAL file to create a Slide Layout with all its blocks. 
+     * Features should exist already.
      * 
      * @param filePath file path of the GAL file to be parsed
-     * @param name name of the slide layout to be created
-     * @param linkerList should contain all the existing linkers 
+     * @param name name of the slide layout to be created 
      * @return import result with slide layout and all the block layouts to be created
      * @throws IOException if the file cannot be found or invalid
      */
-    public GalFileImportResult parse (String filePath, String name, List<Linker> linkerList) throws IOException {
+    public GalFileImportResult parse (String filePath, String name) throws IOException {
         File file = new File(filePath);
         if (!file.exists())
             throw new FileNotFoundException(filePath + " does not exist!");
@@ -67,7 +72,7 @@ public class ExtendedGalFileParser {
         Map <String, Integer> featureGroupMap = new HashMap<>();
         
         // these are the new structures to be imported into the repository
-        List<Feature> featureList = new ArrayList<>();
+        //List<Feature> featureList = new ArrayList<>();
         List<BlockLayout> layoutList = new ArrayList<>();
         
         List<ErrorMessage> errorList = new ArrayList<ErrorMessage>();
@@ -107,6 +112,29 @@ public class ExtendedGalFileParser {
                     slideLayout.setHeight(32);   // default
                 }
             }
+            // get the default values if exists
+            if (firstColumn.contains("DefaultConcentration=")) {
+            	defaultConcentration = firstColumn.substring(firstColumn.indexOf("DefaultConcentration=")+22).trim();
+            }
+            if (firstColumn.contains("DefaultBuffer=")) {
+            	defaultBuffer = firstColumn.substring(firstColumn.indexOf("DefaultBuffer=")+14).trim();
+            }
+            if (firstColumn.contains("DefaultVolume=")) {
+            	defaultVolume = firstColumn.substring(firstColumn.indexOf("DefaultVolume=")+14).trim();
+            }
+            if (firstColumn.contains("DefaultDispenses=")) {
+            	defaultDispenses = firstColumn.substring(firstColumn.indexOf("DefaultDispenses=")+17).trim();
+            }
+            if (firstColumn.contains("DefaultCarrier=")) {
+            	defaultCarrier = firstColumn.substring(firstColumn.indexOf("DefaultCarrier=")+15).trim();
+            }
+            if (firstColumn.contains("DefaultMethod=")) {
+            	defaultMethod = firstColumn.substring(firstColumn.indexOf("DefaultMethod=")+14).trim();
+            }
+            if (firstColumn.contains("DefaultReference=")) {
+            	defaultReference = firstColumn.substring(firstColumn.indexOf("DefaultReference=")+16).trim();
+            }
+            	
             String blockColumn = null;
             if (config.getBlockColumn() != -1) {
                 blockColumn = splitted[config.getBlockColumn()].trim();
@@ -175,12 +203,17 @@ public class ExtendedGalFileParser {
                     String featureName = glycanName;
                     String concentration = splitted[config.getConcentrationColumn()].trim();
                     String featureId = splitted[config.getIdColumn()].trim();
+                    String repoId = splitted[config.getRepoIdColumn()].trim();
                     String ratio = splitted[config.getRatioColumn()].trim();
                     LevelUnit levelUnit = null;
                     boolean mixture = featureName != null && featureName.contains("\\|\\|");
                     String printingFlags = splitted[config.flagColumn].trim();
-                    String group = splitted[config.groupColumn].trim();
+                    String group = splitted[config.groupColumn].trim(); 
                     
+                    if (!repoId.isEmpty()) {
+                    	//overrides featureId
+                    	featureId = repoId;
+                    }
                     
                     if (y > maxRow)
                         maxRow = y;
@@ -190,13 +223,16 @@ public class ExtendedGalFileParser {
                     Spot spot = new Spot();
                     spot.setColumn(x);
                     spot.setRow(y);
-                    spot.setMetadata(addSpotMetadata(name + "metadata-" + x + ":" + y, splitted));
+                    spot.setMetadata(addSpotMetadata(name + "metadata-" + x + ":" + y, splitted, errorList));
                     spot.setFlag(printingFlags);
-                    //if (!group.isEmpty()) {
-                    //    spot.setGroup(Integer.parseInt(group));
-                    //}
                     
                     if (!mixture) {
+                    	if (concentration.isEmpty()) {
+                        	// use default concentration if exists
+                        	if (defaultConcentration != null) {
+                        		concentration = defaultConcentration;
+                        	}
+                        }
                         levelUnit = addLevel(concentration, levels);   
                     }
                     
@@ -222,21 +258,37 @@ public class ExtendedGalFileParser {
                             String[] concentrations = concentration.split("\\|\\|");
                             String[] featureNames = featureName.split("\\|\\|");
                             String[] featureIds = featureId.split("\\|\\|");
-                            LevelUnit[] levelUnits = new LevelUnit[concentrations.length];
-                            int i=0;
-                            for (String c: concentrations) {
-                                levelUnits[i++] = addLevel(c, levels); 
+                            LevelUnit[] levelUnits = null;
+                            if (concentrations.length == 0 && defaultConcentration != null) {
+                            	levelUnits = new LevelUnit[featureIds.length];
+                            	for (int i=0; i < levelUnits.length; i++) {
+                            		levelUnits[i++] = addLevel(defaultConcentration, levels); 
+                            	}
+                            } else {
+                            	levelUnits = new LevelUnit[concentrations.length];
+                            	int i=0;
+                            	for (String c: concentrations) {
+                            		levelUnits[i++] = addLevel(c, levels); 
+                            	}
                             }
-                            i = 0;
+                            int i = 0;
                             for (String fName: featureNames) {
                                 Feature feature = new Feature();
                                 feature.setName(fName.trim());
                                 feature.setId(featureIds[i]);
                                 spotFeatures.add(feature);
                                 spot.setConcentration(featureIds[i], levelUnits[i]);
-                                featureList.add(feature);
+                                //featureList.add(feature);
                                 i++;
                             }
+                            try {
+                        		spot.setGroup(Integer.parseInt(group));
+                        	} catch (NumberFormatException e) {
+                        		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
+                                String[] codes = new String[] {"Row " + x, "Row " + y};
+                                error.addError(new ObjectError ("group", codes, null, "NotValid"));
+                                errorList.add(error);
+                        	}
                             
                             if (ratio != null && !ratio.isEmpty()) {
                                 String[] ratios = ratio.split(":");
@@ -287,11 +339,22 @@ public class ExtendedGalFileParser {
                                 spotFeatures.add(feature);
                                 if (groupId > maxGroup)
                                     maxGroup = groupId;
-                                
-                                spot.setGroup(groupId++);
+                                if (!group.isEmpty()) {
+                                	// use the group from the file
+                                	try {
+                                		spot.setGroup(Integer.parseInt(group));
+                                	} catch (NumberFormatException e) {
+                                		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
+                                        String[] codes = new String[] {"Row " + x, "Row " + y};
+                                        error.addError(new ObjectError ("group", codes, null, "NotValid"));
+                                        errorList.add(error);
+                                	}
+                                } else {
+                                	spot.setGroup(groupId++);
+                                }
                                 if (levelUnit != null)
                                     spot.setConcentration(featureId, levelUnit);  
-                                featureList.add(feature);
+                                //featureList.add(feature);
                                 
                                 featureGroupMap.put(featureId, spot.getGroup());
                                 featureMap.put(featureId, feature);
@@ -319,7 +382,7 @@ public class ExtendedGalFileParser {
         layoutList.add(blockLayout);
         
         GalFileImportResult result = new GalFileImportResult();
-        result.setFeatureList(featureList);
+        //result.setFeatureList(featureList);
         result.setLayout(slideLayout);
         result.setLayoutList(layoutList);
         result.setErrors(errorList);
@@ -327,7 +390,7 @@ public class ExtendedGalFileParser {
     }
     
     
-    SpotMetadata addSpotMetadata (String metadataName, String[] splittedRow) {
+    SpotMetadata addSpotMetadata (String metadataName, String[] splittedRow, List<ErrorMessage> errorList) {
         SpotMetadata spotMetadata = new SpotMetadata();
         spotMetadata.setName(metadataName);
         List<DescriptorGroup> descriptorGroups = new ArrayList<DescriptorGroup>();
@@ -345,41 +408,118 @@ public class ExtendedGalFileParser {
         String buffer = splitted[1];
         Descriptor desc1 = new Descriptor();
         desc1.setName(buffer);
-        desc1.setValue(splittedRow[config.bufferColumn]);
-        group.getDescriptors().add(desc1);
+        String bufferValue = splittedRow[config.bufferColumn].trim();
+        if (bufferValue.isEmpty()) {
+        	if (defaultBuffer != null) {
+        		desc1.setValue(defaultBuffer);	
+        	} 
+        } else if (!bufferValue.contains("#N/A")) {
+        	desc1.setValue(bufferValue);
+        }
+        if (desc1.getValue() != null) {
+        	group.getDescriptors().add(desc1);
+        }
         String carrier = metadataConfig.getFormulationCarrierDescription().split("::")[1];
         Descriptor desc2 = new Descriptor();
         desc2.setName(carrier);
-        desc2.setValue(splittedRow[config.carrierColumn]);
-        group.getDescriptors().add(desc2);
+        String carrierValue = splittedRow[config.carrierColumn].trim();
+        if (carrierValue.isEmpty()) {
+        	if (defaultCarrier != null) {
+        		desc2.setValue(defaultCarrier);	
+        	}
+        } else {
+        	if (!carrierValue.contains("#N/A")) {
+        		desc2.setValue(carrierValue);
+        	}
+        }
+        if (desc2.getValue() != null)
+        	group.getDescriptors().add(desc2);
         String method = metadataConfig.getFormulationMethodDescription().split("::")[1];
         Descriptor desc3 = new Descriptor();
         desc3.setName(method);
-        desc3.setValue(splittedRow[config.methodColumn]);
-        group.getDescriptors().add(desc3);
+        String methodValue = splittedRow[config.methodColumn].trim();
+        if (methodValue.isEmpty()) {
+        	if (defaultMethod != null) {
+        		desc3.setValue(defaultMethod);	
+        	} 
+        } else if (!methodValue.contains("#N/A")) {
+        	desc3.setValue(methodValue);
+        }
+        if (desc3.getValue() != null) {
+        	group.getDescriptors().add(desc3);
+        }
+       
         String reference = metadataConfig.getFormulationReferenceDescription().split("::")[1];
         DescriptorGroup desc4 = new DescriptorGroup();
         desc4.setName(reference);
         desc4.setDescriptors(new ArrayList<Description>());
         Descriptor subDesc4 = new Descriptor();
         subDesc4.setName("Value");
-        subDesc4.setValue(splittedRow[config.referenceColumn]);
-        Descriptor sub1Desc4 = new Descriptor();
-        sub1Desc4.setName("Type");
-        sub1Desc4.setValue("URL");    //TODO which one are we expecting
-        desc4.getDescriptors().add(subDesc4);
-        desc4.getDescriptors().add(sub1Desc4);
-        group.getDescriptors().add(desc4);
+        String referenceValue = splittedRow[config.referenceColumn].trim();
+        if (referenceValue.isEmpty()) {
+        	if (defaultReference != null) {
+        		subDesc4.setValue(defaultReference);	
+        	} 
+        } else if (!methodValue.contains("#N/A")) {
+        	subDesc4.setValue(referenceValue);
+        }
+        if (subDesc4.getValue() != null) {
+            Descriptor sub1Desc4 = new Descriptor();
+	        sub1Desc4.setName("Type");
+	        sub1Desc4.setValue("PMID");  
+	        desc4.getDescriptors().add(subDesc4);
+	        desc4.getDescriptors().add(sub1Desc4);
+	        group.getDescriptors().add(desc4);
+        }
         String volume = metadataConfig.getVolumeDescription().split("::")[1];
         Descriptor desc5 = new Descriptor();
         desc5.setName(volume);
-        desc5.setValue(splittedRow[config.volumeColumn]);
-        group.getDescriptors().add(desc5);
+        String volumeValue = splittedRow[config.volumeColumn].trim();
+        if (volumeValue.isEmpty()) {
+        	if (defaultVolume != null) {
+        		desc5.setValue(defaultVolume);	
+        	} 
+        } else if (!volumeValue.contains("#N/A")) {
+        	desc5.setValue(volumeValue);
+        }
+        if (desc5.getValue() != null) {
+        	group.getDescriptors().add(desc5);
+        }
+        
         String dispenses = metadataConfig.getNumberDispensesDescription().split("::")[1];
         Descriptor desc6 = new Descriptor();
         desc6.setName(dispenses);
-        desc6.setValue(splittedRow[config.dispensesColumn]);
-        group.getDescriptors().add(desc6);
+        String dispensesValue = splittedRow[config.dispensesColumn].trim();
+        if (dispensesValue.isEmpty()) {
+        	if (defaultDispenses != null) {
+        		desc6.setValue(defaultDispenses);	
+        	} 
+        } else if (!dispensesValue.contains("#N/A")) {
+        	desc6.setValue(dispensesValue);
+        } else {
+        	desc6.setNotRecorded(true);
+        }
+        if (desc6.getValue() != null || desc6.getNotRecorded()) {
+        	group.getDescriptors().add(desc6);
+        } 
+        
+        if (desc6.getNotRecorded()) {
+        	// if there is buffer, then the group exists
+        	// else, the whole group is not recorded
+        	if (desc1.getValue() == null) {
+        		group.setNotRecorded(true);
+        	}
+        } else if (desc6.getValue() != null) {
+        	// there is number dispenses, buffer must be there
+        	if (desc1.getValue() == null) {
+        		// validation error!!!
+        		ErrorMessage error = new ErrorMessage("Buffer is mandatory");
+        		String[] codes = new String[] {metadataName};
+                error.addError(new ObjectError ("buffer", codes, null, "NotFound"));
+                errorList.add(error);  		
+        	}
+        }
+        
         descriptorGroups.add(group);
         
         Descriptor comment = new Descriptor();
@@ -387,8 +527,7 @@ public class ExtendedGalFileParser {
         comment.setValue(splittedRow[config.commentColumn]);
         descriptors.add(comment);
         
-        return spotMetadata;
-        
+        return spotMetadata; 
     }
 
 

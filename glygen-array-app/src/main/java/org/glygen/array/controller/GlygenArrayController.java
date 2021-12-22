@@ -2986,9 +2986,9 @@ public class GlygenArrayController {
                         throw new IllegalArgumentException("There is already a slide layout with that name", errorMessage);
                     }
                     // need to retrieve full list of linkers first
-                    LinkerListResultView result = listLinkers(0, null, null, null, null, p);
+                    //LinkerListResultView result = listLinkers(0, null, null, null, null, p);
                     ExtendedGalFileParser parser = new ExtendedGalFileParser();
-                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName.trim(), result.getRows());
+                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName.trim());
                     
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3048,12 +3048,12 @@ public class GlygenArrayController {
                     
                     // add all new glycans and features and block layouts first
                     try {
-                        for (Glycan g: importResult.getGlycanList()) {
-                            addGlycan(g, p, true);
-                        }
-                        for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
-                            addFeature(f, p);
-                        }
+                        //for (Glycan g: importResult.getGlycanList()) {
+                        //    addGlycan(g, p, true);
+                        //}
+                        //for (org.glygen.array.persistence.rdf.Feature f: importResult.getFeatureList()) {
+                        //    addFeature(f, p);
+                        //}
                         for (BlockLayout b: importResult.getLayoutList()) {
                             addBlockLayout(b, p);
                         }
@@ -3727,6 +3727,7 @@ public class GlygenArrayController {
                             }
 		        			myFeature.setName (feature.getName());
 		        			ratioMap.put(myFeature, r1.getItemRatio());
+		        			//TODO get the concentration from probe once the library model is updated
 		        			concentrationMap.put(myFeature, spot.getConcentration());
 		        			features.add(myFeature);
         				}
