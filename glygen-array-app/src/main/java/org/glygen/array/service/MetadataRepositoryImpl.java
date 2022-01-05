@@ -228,18 +228,20 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         statements.add(f.createStatement(descrGroup, notRecorded, notRec, graphIRI));
         statements.add(f.createStatement(descrGroup, notApplicable, notApp, graphIRI));
         
-        for (Description descriptor: descriptorGroup.getDescriptors()) {
-            if (descriptor == null) {
-                continue; // skip null entries if any
-            }
-            
-            if (descriptor.isGroup()) {
-                String descrURI = addDescriptorGroup((DescriptorGroup)descriptor, statements, graph);
-                statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
-            } else {
-                if (((Descriptor) descriptor).getValue() == null || ((Descriptor) descriptor).getValue().isEmpty()) continue;
-                String descrURI = addDescriptor((Descriptor)descriptor, statements, graph);
-                statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+        if (descriptorGroup.getDescriptors() != null) {
+            for (Description descriptor: descriptorGroup.getDescriptors()) {
+                if (descriptor == null) {
+                    continue; // skip null entries if any
+                }
+                
+                if (descriptor.isGroup()) {
+                    String descrURI = addDescriptorGroup((DescriptorGroup)descriptor, statements, graph);
+                    statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+                } else {
+                    if (((Descriptor) descriptor).getValue() == null || ((Descriptor) descriptor).getValue().isEmpty()) continue;
+                    String descrURI = addDescriptor((Descriptor)descriptor, statements, graph);
+                    statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
+                }
             }
         }
         

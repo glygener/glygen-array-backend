@@ -2645,7 +2645,9 @@ public class DatasetController {
         
         MetadataCategory metadata = null;
         metadataId = metadataId.trim();
-        datasetId = datasetId.trim();
+        
+        if (datasetId != null)
+            datasetId = datasetId.trim();
         switch (type) {
         case SAMPLE:
             metadata = getSample(metadataId, datasetId, p);
@@ -2673,6 +2675,8 @@ public class DatasetController {
         case PRINTRUN:
             metadata = getPrintRun(metadataId, datasetId, p);
             break;
+        case FEATURE:
+            throw new IllegalArgumentException("Feature metadata compliance check is not supported");
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -3934,8 +3938,10 @@ public class DatasetController {
             }
 
             if (descTemplate.isMandatory() && !exists) {
-                // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+                if (descTemplate.getMandateGroup() == null) {   // if part of the mandate group, this descriptor group may not exist
+                    // violation
+                    errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+                }
             }
             if (descTemplate.getMaxOccurrence() == 1 && count > 1) {
              // violation
@@ -3952,6 +3958,8 @@ public class DatasetController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        
+        //TODO validate mandate groups to make sure xor/or criteria is satisfied
         
         for (DescriptionTemplate descTemplate: template.getDescriptors()) {
             // validate mandatory and multiplicity
@@ -4028,8 +4036,10 @@ public class DatasetController {
                 }
             }
             if (descTemplate.isMandatory() && !exists) {
-                // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+                if (descTemplate.getMandateGroup() == null) {   // if part of the mandate group, this descriptor group may not exist
+                    // violation
+                    errorMessage.addError(new ObjectError (descTemplate.getName() + "-mandatory", "NotFound"));
+                }
             }
             if (descTemplate.getMaxOccurrence() == 1 && count > 1) {
              // violation
@@ -6266,6 +6276,11 @@ public class DatasetController {
                 case SPOT:
                     existing = metadataRepository.getSpotMetadataByLabel(metadata.getName(), owner);
                     break;
+                case PRINTRUN:
+                    existing = metadataRepository.getPrintRunByLabel(metadata.getName(), owner);
+                    break;
+                case FEATURE:
+                    throw new IllegalArgumentException("Feature metadata update is not supported");
                 }
                     
                 if (existing != null) {
