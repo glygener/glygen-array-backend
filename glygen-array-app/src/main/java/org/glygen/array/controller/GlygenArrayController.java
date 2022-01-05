@@ -2504,10 +2504,10 @@ public class GlygenArrayController {
 						} else {
 							if (linker.getName() != null) l.setName(linker.getName().trim());
 							if (linker.getDescription() != null) l.setDescription(linker.getDescription().trim());
-							//if (linker.getOpensRing() != null) l.setOpensRing(linker.getOpensRing());
 							if (((SmallMoleculeLinker)l).getClassification() == null)
 				 				((SmallMoleculeLinker)l).setClassification (linker.getClassification());
 							l.setSource(linker.getSource());
+							l.setUrls(linker.getUrls());
 						}
 					} catch (Exception e) {
 						// could not get details from PubChem

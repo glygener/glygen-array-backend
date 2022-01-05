@@ -25,6 +25,9 @@ public class Lipid extends SmallMoleculeLinker {
         this.smiles = l.smiles;
         this.uri = l.uri;
         this.type = LinkerType.LIPID;
+        this.urls = l.urls;
+        this.changes = l.changes;
+        this.source = l.source;
     }
 
 }
