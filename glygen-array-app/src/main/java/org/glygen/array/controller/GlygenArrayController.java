@@ -221,6 +221,9 @@ public class GlygenArrayController {
 	@Autowired
 	Validator validator;
 	
+	@Autowired
+	ExtendedGalFileParser galFileParser;
+	
 	List<Glycan> glycanCache = new ArrayList<Glycan>();
 	
 	List<Linker> linkerCache = new ArrayList<Linker>();
@@ -342,10 +345,10 @@ public class GlygenArrayController {
 		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
 		                try {
 		                    if (!checked.contains(f)) {
-                                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getName(), user);
+                                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getId(), "gadr:has_internal_id", user);
                                 checked.add(f);
                                 if (existing == null) {
-                                    errorMessage.addError(new ObjectError("feature", f.getName() + " does not exist"));
+                                    errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
                                 }
 		                    }
                         } catch (SparqlException | SQLException e) {
@@ -2090,7 +2093,7 @@ public class GlygenArrayController {
 					    break;
                     case IUPAC:
                         CFGMasterListParser parser = new CFGMasterListParser();
-                        glycoCT = parser.translateSequence(ExtendedGalFileParser.cleanupSequence(glycan.getSequence().trim()));
+                        glycoCT = parser.translateSequence(SequenceUtils.cleanupSequence(glycan.getSequence().trim()));
                         if (glycoCT != null) {
                             glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
                             glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT);
@@ -2987,8 +2990,8 @@ public class GlygenArrayController {
                     }
                     // need to retrieve full list of linkers first
                     //LinkerListResultView result = listLinkers(0, null, null, null, null, p);
-                    ExtendedGalFileParser parser = new ExtendedGalFileParser();
-                    GalFileImportResult importResult = parser.parse(galFile.getAbsolutePath(), slideLayoutName.trim());
+                    
+                    GalFileImportResult importResult = galFileParser.parse(galFile.getAbsolutePath(), slideLayoutName.trim());
                     
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3059,9 +3062,9 @@ public class GlygenArrayController {
                         }
                     } catch (IllegalArgumentException e) {
                         // need to ignore duplicate errors
-                        if (e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
+                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
                             // do nothing
-                        } else if (e.getCause() instanceof ErrorMessage){
+                        } else if (e.getCause() != null && e.getCause() instanceof ErrorMessage){
                             for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
                                 errorMessage.addError(err);
                             }

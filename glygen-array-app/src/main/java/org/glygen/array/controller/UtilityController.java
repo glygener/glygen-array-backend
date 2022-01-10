@@ -41,6 +41,7 @@ import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.typeahead.NamespaceHandler;
 import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -117,7 +118,7 @@ public class UtilityController {
 		
 		CFGMasterListParser parser = new CFGMasterListParser();
 		
-		return parser.translateSequence(ExtendedGalFileParser.cleanupSequence(sequenceString.trim()));
+		return parser.translateSequence(SequenceUtils.cleanupSequence(sequenceString.trim()));
 	}
 	
 	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")

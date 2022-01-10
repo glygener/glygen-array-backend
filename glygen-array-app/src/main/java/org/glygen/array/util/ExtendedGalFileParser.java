@@ -24,8 +24,10 @@ import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.ObjectError;
 
+@Component
 public class ExtendedGalFileParser { 
 
     final static Logger logger = LoggerFactory.getLogger("event-logger");
@@ -132,7 +134,7 @@ public class ExtendedGalFileParser {
             	defaultMethod = firstColumn.substring(firstColumn.indexOf("DefaultMethod=")+14).trim();
             }
             if (firstColumn.contains("DefaultReference=")) {
-            	defaultReference = firstColumn.substring(firstColumn.indexOf("DefaultReference=")+16).trim();
+            	defaultReference = firstColumn.substring(firstColumn.indexOf("DefaultReference=")+17).trim();
             }
             	
             String blockColumn = null;
@@ -200,15 +202,15 @@ public class ExtendedGalFileParser {
                     int x = Integer.parseInt(splitted[config.getCoordinateColumnX()].trim()); // column
                     int y = Integer.parseInt(splitted[config.getCoordinateColumnY()].trim()); // row
                     String glycanName = splitted[config.getNameColumn()].trim(); // name of the probe
-                    String featureName = glycanName;
-                    String concentration = splitted[config.getConcentrationColumn()].trim();
+                    String concentration = (config.getConcentrationColumn() != -1 && splitted.length > config.getConcentrationColumn()) ? 
+                            splitted[config.getConcentrationColumn()].trim() : "";
                     String featureId = splitted[config.getIdColumn()].trim();
-                    String repoId = splitted[config.getRepoIdColumn()].trim();
-                    String ratio = splitted[config.getRatioColumn()].trim();
+                    String repoId = (config.getRepoIdColumn() != -1 && splitted.length > config.getRepoIdColumn()) ? splitted[config.getRepoIdColumn()].trim() : "";
+                    String ratio = (config.getRatioColumn() != -1 && splitted.length > config.getRatioColumn()) ? splitted[config.getRatioColumn()].trim() : "";
                     LevelUnit levelUnit = null;
-                    boolean mixture = featureName != null && featureName.contains("\\|\\|");
-                    String printingFlags = splitted[config.flagColumn].trim();
-                    String group = splitted[config.groupColumn].trim(); 
+                    boolean mixture = featureId != null && featureId.contains("||");
+                    String printingFlags = (config.getFlagColumn() != -1 && splitted.length > config.getFlagColumn()) ? splitted[config.flagColumn].trim() : "";
+                    String group = (config.getGroupColumn() != -1 && splitted.length > config.getGroupColumn()) ? splitted[config.groupColumn].trim() : ""; 
                     
                     if (!repoId.isEmpty()) {
                     	//overrides featureId
@@ -229,7 +231,7 @@ public class ExtendedGalFileParser {
                     if (!mixture) {
                     	if (concentration.isEmpty()) {
                         	// use default concentration if exists
-                        	if (defaultConcentration != null) {
+                        	if (defaultConcentration != null && !defaultConcentration.isEmpty()) {
                         		concentration = defaultConcentration;
                         	}
                         }
@@ -247,16 +249,9 @@ public class ExtendedGalFileParser {
                         spot.setFeatures(null);    //what to set for empty spots ==> no feature assigned for the spot
                     }
                     else {
-                        if (glycanName.startsWith("\"")) {
-                            // remove the quotes
-                            glycanName = glycanName.substring(1, glycanName.length()-1);
-                            featureName = glycanName;
-                        } 
-                        glycanName = glycanName.trim();
-                        featureName = featureName.trim();
                         if (mixture) {
                             String[] concentrations = concentration.split("\\|\\|");
-                            String[] featureNames = featureName.split("\\|\\|");
+                            //String[] featureNames = featureName.split("\\|\\|");    //TODO should this be multiple too?
                             String[] featureIds = featureId.split("\\|\\|");
                             LevelUnit[] levelUnits = null;
                             if (concentrations.length == 0 && defaultConcentration != null) {
@@ -272,17 +267,18 @@ public class ExtendedGalFileParser {
                             	}
                             }
                             int i = 0;
-                            for (String fName: featureNames) {
+                            for (String fId: featureIds) {
                                 Feature feature = new Feature();
-                                feature.setName(fName.trim());
-                                feature.setId(featureIds[i]);
+                                feature.setId(fId.trim());
                                 spotFeatures.add(feature);
-                                spot.setConcentration(featureIds[i], levelUnits[i]);
+                                if (levelUnits != null && i < levelUnits.length)
+                                    spot.setConcentration(fId, levelUnits[i]);
                                 //featureList.add(feature);
                                 i++;
                             }
                             try {
-                        		spot.setGroup(Integer.parseInt(group));
+                                if (!group.isEmpty())
+                                    spot.setGroup(Integer.parseInt(group));
                         	} catch (NumberFormatException e) {
                         		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
                                 String[] codes = new String[] {"Row " + x, "Row " + y};
@@ -294,7 +290,7 @@ public class ExtendedGalFileParser {
                                 String[] ratios = ratio.split(":");
                                 if (ratios.length == 2) {
                                     try {
-                                        if (!ratios[0].equals("1") || !ratios[0].equals("1.0")) {
+                                        if (!ratios[0].equals("1") && !ratios[0].equals("1.0") && !ratios[0].equals("01")) {
                                             logger.warn("Ratio is incorrect:" + ratio);
                                         } else {
                                             Double sum = 0.0;
@@ -334,7 +330,6 @@ public class ExtendedGalFileParser {
                                     spot.setConcentration(featureId, levelUnit);    
                             } else {
                                 Feature feature = new Feature();
-                                feature.setName(featureName.trim());
                                 feature.setId(featureId);
                                 spotFeatures.add(feature);
                                 if (groupId > maxGroup)
@@ -408,9 +403,9 @@ public class ExtendedGalFileParser {
         String buffer = splitted[1];
         Descriptor desc1 = new Descriptor();
         desc1.setName(buffer);
-        String bufferValue = splittedRow[config.bufferColumn].trim();
+        String bufferValue = (config.getBufferColumn() != -1 && splitted.length > config.getBufferColumn()) ? splittedRow[config.bufferColumn].trim() : "";
         if (bufferValue.isEmpty()) {
-        	if (defaultBuffer != null) {
+        	if (defaultBuffer != null && !defaultBuffer.isEmpty()) {
         		desc1.setValue(defaultBuffer);	
         	} 
         } else if (!bufferValue.contains("#N/A")) {
@@ -422,9 +417,9 @@ public class ExtendedGalFileParser {
         String carrier = metadataConfig.getFormulationCarrierDescription().split("::")[1];
         Descriptor desc2 = new Descriptor();
         desc2.setName(carrier);
-        String carrierValue = splittedRow[config.carrierColumn].trim();
+        String carrierValue = (config.getCarrierColumn() != -1 && splitted.length > config.getCarrierColumn()) ? splittedRow[config.carrierColumn].trim() : "";
         if (carrierValue.isEmpty()) {
-        	if (defaultCarrier != null) {
+        	if (defaultCarrier != null && !defaultCarrier.isEmpty()) {
         		desc2.setValue(defaultCarrier);	
         	}
         } else {
@@ -437,9 +432,9 @@ public class ExtendedGalFileParser {
         String method = metadataConfig.getFormulationMethodDescription().split("::")[1];
         Descriptor desc3 = new Descriptor();
         desc3.setName(method);
-        String methodValue = splittedRow[config.methodColumn].trim();
+        String methodValue = (config.getMethodColumn() != -1 && splitted.length > config.getMethodColumn()) ? splittedRow[config.methodColumn].trim() : "";
         if (methodValue.isEmpty()) {
-        	if (defaultMethod != null) {
+        	if (defaultMethod != null && !defaultMethod.isEmpty()) {
         		desc3.setValue(defaultMethod);	
         	} 
         } else if (!methodValue.contains("#N/A")) {
@@ -455,9 +450,9 @@ public class ExtendedGalFileParser {
         desc4.setDescriptors(new ArrayList<Description>());
         Descriptor subDesc4 = new Descriptor();
         subDesc4.setName("Value");
-        String referenceValue = splittedRow[config.referenceColumn].trim();
+        String referenceValue =  (config.getReferenceColumn() != -1 && splitted.length > config.getReferenceColumn()) ? splittedRow[config.referenceColumn].trim() : "";
         if (referenceValue.isEmpty()) {
-        	if (defaultReference != null) {
+        	if (defaultReference != null && !defaultReference.isEmpty()) {
         		subDesc4.setValue(defaultReference);	
         	} 
         } else if (!methodValue.contains("#N/A")) {
@@ -474,9 +469,9 @@ public class ExtendedGalFileParser {
         String volume = metadataConfig.getVolumeDescription().split("::")[1];
         Descriptor desc5 = new Descriptor();
         desc5.setName(volume);
-        String volumeValue = splittedRow[config.volumeColumn].trim();
+        String volumeValue =  (config.getVolumeColumn() != -1 && splitted.length > config.getVolumeColumn()) ? splittedRow[config.volumeColumn].trim() : "";
         if (volumeValue.isEmpty()) {
-        	if (defaultVolume != null) {
+        	if (defaultVolume != null && !defaultVolume.isEmpty()) {
         		desc5.setValue(defaultVolume);	
         	} 
         } else if (!volumeValue.contains("#N/A")) {
@@ -489,9 +484,9 @@ public class ExtendedGalFileParser {
         String dispenses = metadataConfig.getNumberDispensesDescription().split("::")[1];
         Descriptor desc6 = new Descriptor();
         desc6.setName(dispenses);
-        String dispensesValue = splittedRow[config.dispensesColumn].trim();
+        String dispensesValue =  (config.getDispensesColumn() != -1 && splitted.length > config.getDispensesColumn()) ? splittedRow[config.dispensesColumn].trim() : "";
         if (dispensesValue.isEmpty()) {
-        	if (defaultDispenses != null) {
+        	if (defaultDispenses != null && !defaultDispenses.isEmpty()) {
         		desc6.setValue(defaultDispenses);	
         	} 
         } else if (!dispensesValue.contains("#N/A")) {
@@ -524,7 +519,7 @@ public class ExtendedGalFileParser {
         
         Descriptor comment = new Descriptor();
         comment.setName(metadataConfig.getCommentDescription());
-        comment.setValue(splittedRow[config.commentColumn]);
+        comment.setValue( (config.getCommentColumn() != -1 && splitted.length > config.getCommentColumn()) ? splittedRow[config.commentColumn]: "");
         descriptors.add(comment);
         
         return spotMetadata; 
@@ -577,29 +572,5 @@ public class ExtendedGalFileParser {
         }
         
         return null;
-    }
-    
-    public static String getSequence(String a_sequence) {
-        int t_index = a_sequence.lastIndexOf("-");
-        String sequence = a_sequence.substring(0, t_index).trim();
-        return cleanupSequence(sequence);
-    }
-    
-    public static String cleanupSequence (String a_sequence) {
-        String sequence = a_sequence.trim();
-        sequence = sequence.replaceAll(" ", "");
-        sequence = sequence.replaceAll("\u00A0", "");
-        if (sequence.endsWith("1") || sequence.endsWith("2")) {
-            sequence = sequence.substring(0, sequence.length()-1);
-        }
-        return sequence;
-    }
-    
-    public static String getLinker(String a_sequence) {
-        int t_index = a_sequence.lastIndexOf("-");
-        String linker = a_sequence.substring(t_index+1).trim();
-                
-        linker = linker.replaceAll("\u00A0", "");
-        return linker;
     }
 }

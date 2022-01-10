@@ -32,6 +32,7 @@ import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
@@ -181,7 +182,7 @@ public class ProcessedDataParser {
                 if (glycoCT == null)
                     continue;
                 
-                String linkerName = ExtendedGalFileParser.getLinker(featureString);
+                String linkerName = SequenceUtils.getLinker(featureString);
                 String glycanURI = glycanURICache.get(glycoCT.trim());
                 try {
                     if (glycanURI == null) {
@@ -338,7 +339,7 @@ public class ProcessedDataParser {
         // parse the sequence
         try {
             CFGMasterListParser parser = new CFGMasterListParser();
-            String glycanSequence = ExtendedGalFileParser.getSequence(sequence);
+            String glycanSequence = SequenceUtils.getSequence(sequence);
             String glycoCT = parser.translateSequence(glycanSequence);
             return glycoCT;
         } catch (Exception e) {
