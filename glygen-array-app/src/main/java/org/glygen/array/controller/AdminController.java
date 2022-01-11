@@ -70,7 +70,20 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Deletes templates for metadata and recreate them using the current version of the template ontology.")
+    @ApiOperation(value = "Deletes templates for metadata")
+    @RequestMapping(value="/deleteTemplates", method = RequestMethod.POST)
+    public void deleteTemplates (Principal p) { 
+        try {
+            // cleanup
+            templateRepository.deleteTemplates();
+            
+        } catch (SparqlException e) {
+            logger.error("Error deleting templates", e);
+            throw new GlycanRepositoryException("Error deleting templates", e);
+        }
+    }
+    
+    @ApiOperation(value = "Delete and recreate templates using the current version of the template ontology.")
     @RequestMapping(value="/populateTemplates", method = RequestMethod.POST)
     public void populateTemplates (Principal p) { 
         try {
