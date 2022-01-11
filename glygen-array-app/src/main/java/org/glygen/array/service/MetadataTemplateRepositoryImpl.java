@@ -475,9 +475,9 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
             while (statements.hasNext()) {
                 Statement st = statements.next();
                 String deleteStatement = "DELETE FROM <"+ GlygenArrayRepository.DEFAULT_GRAPH + "> \n";
-                deleteStatement += "{ <" + uri + "> " + st.getPredicate().stringValue() + " " + st.getObject().stringValue() + " }";
+                deleteStatement += "{ <" + uri + "> <" + st.getPredicate().stringValue() + "> " + st.getObject().stringValue() + " }";
                 logger.info("in delete templates: statement -" + deleteStatement);
-                //sparqlDAO.delete(deleteStatement);
+                sparqlDAO.delete(deleteStatement);
             }
             
             //sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
