@@ -161,7 +161,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         if (metadata.getDescriptors() != null) {
             for (Descriptor descriptor: metadata.getDescriptors()) {
                 if (descriptor == null) continue;
-                if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
+                //if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
                 String descriptorURI = addDescriptor(descriptor, statements, graph);
                 IRI descrIRI = f.createIRI(descriptorURI);
                 statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
@@ -238,7 +238,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                     String descrURI = addDescriptorGroup((DescriptorGroup)descriptor, statements, graph);
                     statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
                 } else {
-                    if (((Descriptor) descriptor).getValue() == null || ((Descriptor) descriptor).getValue().isEmpty()) continue;
+                    //if (((Descriptor) descriptor).getValue() == null || ((Descriptor) descriptor).getValue().isEmpty()) continue;   // it can be notRecorded!!!
                     String descrURI = addDescriptor((Descriptor)descriptor, statements, graph);
                     statements.add(f.createStatement(descrGroup, hasDescriptor, f.createIRI(descrURI), graphIRI));
                 }
@@ -291,12 +291,12 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         }
         
         IRI descriptorTemplateIRI = f.createIRI(descriptor.getKey().getUri());
-        Literal dValue = f.createLiteral(descriptor.getValue());
+        Literal dValue = descriptor.getValue() != null ? f.createLiteral(descriptor.getValue()) : null;
         Literal name = f.createLiteral(descTemplate.getName());
         statements.add(f.createStatement(descr, RDF.TYPE, f.createIRI(simpleDescriptionTypePredicate), graphIRI));
         statements.add(f.createStatement(descr, RDFS.LABEL, name, graphIRI));
         statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
-        statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
+        if (dValue != null) statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
         if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
         if (order != null) statements.add(f.createStatement(descr, hasOrder, order, graphIRI));
         statements.add(f.createStatement(descr, notRecorded, notRec, graphIRI));
