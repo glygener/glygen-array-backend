@@ -472,10 +472,10 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         for (SparqlEntity sparqlEntity : results) {
             String uri = sparqlEntity.getValue("s");
             RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(uri), null, null, graphIRI);
-            while (statements.hasNext()) {
+           /* while (statements.hasNext()) {
                 Statement st = statements.next();
                 logger.info("in delete templates: statement -" + st.getPredicate());
-            }
+            }*/
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
         }     
     }
