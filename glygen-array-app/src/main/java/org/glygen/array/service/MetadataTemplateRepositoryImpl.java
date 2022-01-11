@@ -462,7 +462,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         // get all description context objects and delete their statements
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
         queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s <" +templatePrefix + "is_required> ?p. \n}");
@@ -472,11 +472,15 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         for (SparqlEntity sparqlEntity : results) {
             String uri = sparqlEntity.getValue("s");
             RepositoryResult<Statement> statements = sparqlDAO.getStatements(f.createIRI(uri), null, null, graphIRI);
-           /* while (statements.hasNext()) {
+            while (statements.hasNext()) {
                 Statement st = statements.next();
-                logger.info("in delete templates: statement -" + st.getPredicate());
-            }*/
-            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+                String deleteStatement = "DELETE FROM <"+ GlygenArrayRepository.DEFAULT_GRAPH + "> \n";
+                deleteStatement += "{ <" + uri + "> " + st.getPredicate().stringValue() + " " + st.getObject().stringValue() + " }";
+                logger.info("in delete templates: statement -" + deleteStatement);
+                //sparqlDAO.delete(deleteStatement);
+            }
+            
+            //sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
         }     
     }
 
