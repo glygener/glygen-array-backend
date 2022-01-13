@@ -99,6 +99,7 @@ import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
+import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
@@ -549,6 +550,17 @@ public class GlygenArrayController {
             for (GlycoPeptide g: feature.getPeptides()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addGlycoPeptide(g, errorMessage, p));
+                    // update the position map to include references to the newly created linked glycan
+                    if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                        for (String position: feature.getPositionMap().keySet()) {
+                            String glycoPeptideUri = feature.getPositionMap().get(position);
+                            if (!g.getGlycans().isEmpty()) {
+                                if (glycoPeptideUri.equals(g.getGlycans().get(0).getUri())) {
+                                    feature.getPositionMap().put(position, g.getUri());
+                                }
+                            }
+                        }
+                    }
                 } else {
                     // check to make sure it is an existing glycopeptide feature
                     String featureId = g.getId();
@@ -592,6 +604,17 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addLinkedGlycan(g, errorMessage, p));
+                    // update the position map to include references to the newly created linked glycan
+                    if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                        for (String position: feature.getPositionMap().keySet()) {
+                            String glycanUri = feature.getPositionMap().get(position);
+                            if (!g.getGlycans().isEmpty()) {
+                                if (glycanUri.equals(g.getGlycans().get(0).getGlycan().getUri())) {
+                                    feature.getPositionMap().put(position, g.getUri());
+                                }
+                            }
+                        }
+                    }
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -630,11 +653,22 @@ public class GlygenArrayController {
     private String addGlycoPeptide(GlycoPeptide feature, ErrorMessage errorMessage, Principal p) throws SparqlException, SQLException {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         // check its glycans
-        if (feature.getGlycans() != null) {
-            
+        if (feature.getGlycans() != null) {    
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addLinkedGlycan(g, errorMessage, p));
+                    g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
+                    // update the position map to include references to the newly created linked glycan
+                    if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                        for (String position: feature.getPositionMap().keySet()) {
+                            String glycanUri = feature.getPositionMap().get(position);
+                            if (!g.getGlycans().isEmpty()) {
+                                if (glycanUri.equals(g.getGlycans().get(0).getGlycan().getUri())) {
+                                    feature.getPositionMap().put(position, g.getUri());
+                                }
+                            }
+                        }
+                    }
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -678,6 +712,7 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addLinkedGlycan(g, errorMessage, p));
+                    g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
                 } else {
                     // check to make sure it is an existing linkedglycan feature
                     String featureId = g.getId();
@@ -1760,17 +1795,33 @@ public class GlygenArrayController {
 			
 			l = linker;
 			l.setUri(linkerURI);
-			LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
-            if (unknown) {
-                l.setType(unknownType);
+			
+			
+			LinkerType otherType = null;
+            if (linker.getType().name().startsWith("UNKNOWN")) {
+                // add the regular type to the query
+                otherType = LinkerType.valueOf(linker.getType().name().substring(linker.getType().name().lastIndexOf("UNKNOWN_")+8));
+            } else if (!linker.getType().name().startsWith("UNKNOWN")) {
+                otherType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+               
             }
-			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-				if (local != null && (local.getType() == linker.getType() || local.getType() == unknownType)) {
-				    linker.setId(local.getId());
-					errorMessage.addError(new ObjectError("name", "Duplicate"));	
-				}
-			}
+            
+            if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
+                Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
+                if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
+                    linker.setId(local.getId());
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                }
+            }
+            
+            if (unknown) {
+                if (!linker.getType().name().startsWith("UNKNOWN")) { 
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+                    l.setType(unknownType);
+                } // else - already unknown
+            }
+			
+			
 			if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
 				throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
 			
@@ -1846,18 +1897,30 @@ public class GlygenArrayController {
 			
 			l = linker;
 			l.setUri(linkerURI);
-			LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
-			if (unknown) {
-                l.setType(unknownType);
+			
+			LinkerType otherType = null;
+            if (linker.getType().name().startsWith("UNKNOWN")) {
+                // add the regular type to the query
+                otherType = LinkerType.valueOf(linker.getType().name().substring(linker.getType().name().lastIndexOf("UNKNOWN_")+8));
+            } else if (!linker.getType().name().startsWith("UNKNOWN")) {
+                otherType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+               
             }
-			if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
-				Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
-				if (local != null && 
-				        (local.getType() == linker.getType() || local.getType() == unknownType)) {
-				    linker.setId(local.getId());
-					errorMessage.addError(new ObjectError("name", "Duplicate"));	
-				}
-			}
+            
+            if (linker.getName() != null && !linker.getName().trim().isEmpty()) {
+                Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
+                if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
+                    linker.setId(local.getId());
+                    errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                }
+            }
+            
+            if (unknown) {
+                if (!linker.getType().name().startsWith("UNKNOWN")) { 
+                    LinkerType unknownType = LinkerType.valueOf("UNKNOWN_" + linker.getType().name());
+                    l.setType(unknownType);
+                } // else - already unknown
+            }
 			
 			if (linker.getSequence() == null && linker.getUniProtId() != null) {
 			    // try to retrieve sequence from Uniprot
