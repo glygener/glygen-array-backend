@@ -324,12 +324,16 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     continue;
                 }
 				String glycanURI = feature.getPositionMap().get(position);
-				IRI glycanIRI = f.createIRI(glycanURI);
-				Literal pos = f.createLiteral(position);
-				
-				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
-				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
-				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
+				if (glycanURI != null && (glycanURI.startsWith(uriPrefix) || glycanURI.startsWith(uriPrefixPublic))) {
+    				IRI glycanIRI = f.createIRI(glycanURI);
+    				Literal pos = f.createLiteral(position);
+    				
+    				statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
+    				statements.add(f.createStatement(positionContext, hasMolecule, glycanIRI, graphIRI));
+    				statements.add(f.createStatement(positionContext, hasPosition, pos, graphIRI));
+				} else if (glycanURI != null) {
+				    throw new SparqlException ("Position map should contain the uri of the molecule! " + glycanURI);
+				}
 			}
 		}
 		

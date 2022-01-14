@@ -550,6 +550,7 @@ public class GlygenArrayController {
             for (GlycoPeptide g: feature.getPeptides()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addGlycoPeptide(g, errorMessage, p));
+                    g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
                     // update the position map to include references to the newly created linked glycan
                     if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
                         for (String position: feature.getPositionMap().keySet()) {
@@ -604,6 +605,7 @@ public class GlygenArrayController {
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
                     g.setId(addLinkedGlycan(g, errorMessage, p));
+                    g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
                     // update the position map to include references to the newly created linked glycan
                     if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
                         for (String position: feature.getPositionMap().keySet()) {
