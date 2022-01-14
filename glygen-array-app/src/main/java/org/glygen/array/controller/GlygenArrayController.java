@@ -2534,7 +2534,7 @@ public class GlygenArrayController {
 				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
 				if (linkerURI != null) {
 				    linker.setUri(linkerURI);
-					errorMessage.addError(new ObjectError("pubChemId", "Duplicate"));
+					errorMessage.addError(new ObjectError("pubchemid", "Duplicate"));
 				}
 			}
 			else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
@@ -2546,18 +2546,18 @@ public class GlygenArrayController {
 			}
 			if (linkerURI == null) {
 				// get the linker details from pubChem
-			    ObjectError err = new ObjectError("pubChemId", "NotValid");
+			    ObjectError err = new ObjectError("pubchemid", "NotValid");
 				if (linker.getPubChemId() != null || (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty())) {
 					try {
 						if (linker.getPubChemId() != null) {
-						    err = new ObjectError("pubChemId", "NotValid");
+						    err = new ObjectError("pubchemid", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChem(linker.getPubChemId());
 						    if (l != null && linker.getType() == LinkerType.LIPID) {
 						        // need to create Lipid object
 						        l = new Lipid ((SmallMoleculeLinker)l);
 						    }
 						} else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
-						    err = new ObjectError("inchiKey", "NotValid");
+						    err = new ObjectError("inChiKey", "NotValid");
 						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey());
 						    if (l != null && linker.getType() == LinkerType.LIPID) {
                                 // need to create Lipid object
@@ -3313,7 +3313,7 @@ public class GlygenArrayController {
     																for (ObjectError err: error.getErrors()) {
     																	if (err.getDefaultMessage().contains("Duplicate")) {
     																		needAlias = true;
-    																		if (err.getObjectName().contains("pubChemId")) {
+    																		if (err.getObjectName().contains("pubchemid")) {
     																			needAlias = false;
     																			break;
     																		}

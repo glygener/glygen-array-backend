@@ -311,7 +311,7 @@ public class UtilityController {
                     ErrorMessage errorMessage = new ErrorMessage();
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("inchiKey", "NotFound"));
+                    errorMessage.addError(new ObjectError("inChiKey", "NotFound"));
                     throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage); 
                 }
                 return linker;

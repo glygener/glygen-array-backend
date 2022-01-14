@@ -74,7 +74,6 @@ public class ExtendedGalFileParser {
         Map <String, Integer> featureGroupMap = new HashMap<>();
         
         // these are the new structures to be imported into the repository
-        //List<Feature> featureList = new ArrayList<>();
         List<BlockLayout> layoutList = new ArrayList<>();
         
         List<ErrorMessage> errorList = new ArrayList<ErrorMessage>();
@@ -245,13 +244,11 @@ public class ExtendedGalFileParser {
                 
                     if (glycanName.equals("0") || glycanName.equals("\"0\"") 
                             || glycanName.equalsIgnoreCase("empty") || glycanName.equalsIgnoreCase("\"empty\"")) {
-                            //|| glycanName.equalsIgnoreCase("Grid Marker") || glycanName.equalsIgnoreCase("\"Grid Marker\"")) {  //empty spots and grid markers
                         spot.setFeatures(null);    //what to set for empty spots ==> no feature assigned for the spot
                     }
                     else {
                         if (mixture) {
                             String[] concentrations = concentration.split("\\|\\|");
-                            //String[] featureNames = featureName.split("\\|\\|");    //TODO should this be multiple too?
                             String[] featureIds = featureId.split("\\|\\|");
                             LevelUnit[] levelUnits = null;
                             if (concentrations.length == 0 && defaultConcentration != null) {
@@ -273,7 +270,7 @@ public class ExtendedGalFileParser {
                                 spotFeatures.add(feature);
                                 if (levelUnits != null && i < levelUnits.length)
                                     spot.setConcentration(fId, levelUnits[i]);
-                                //featureList.add(feature);
+                               
                                 i++;
                             }
                             try {
@@ -288,34 +285,25 @@ public class ExtendedGalFileParser {
                             
                             if (ratio != null && !ratio.isEmpty()) {
                                 String[] ratios = ratio.split(":");
-                                if (ratios.length == 2) {
-                                    try {
-                                        if (!ratios[0].equals("1") && !ratios[0].equals("1.0") && !ratios[0].equals("01")) {
-                                            logger.warn("Ratio is incorrect:" + ratio);
-                                        } else {
-                                            Double sum = 0.0;
-                                            for (int j = 1; j < ratios.length; j++) {
-                                                sum += Double.parseDouble(ratios[j]);
-                                            }
-                                            Double percentage1 = (1.0 - sum) * 100;
-                                            spot.setRatio(featureIds[0], percentage1);
-                                            for (int j = 1; j < ratios.length; j++) {
-                                                Double percentage = Double.parseDouble(ratios[j]) * 100;
-                                                spot.setRatio(featureIds[j], percentage);
-                                            }
+                                if (ratios.length != featureIds.length) {
+                                    logger.error("Ratio is not given correctly for all features on the spot:" + ratio);
+                                    ErrorMessage error = new ErrorMessage("Ratio is not given correctly for all features on the spot: " + x +"-" + y);
+                                    String[] codes = new String[] {"Row " + x, "Row " + y};
+                                    error.addError(new ObjectError ("ratio", codes, null, "NotValid"));
+                                    errorList.add(error);
+                                } else {
+                                    int k=0;
+                                    for (String r: ratios) {
+                                        try {
+                                            Double rD = Double.parseDouble(r);
+                                            spot.setRatio(featureIds[k++], rD);
+                                        } catch (NumberFormatException e) {
+                                            logger.warn("Ratio is incorrect:" + ratio, e);
+                                            ErrorMessage error = new ErrorMessage("Ratio is incorrect: " + x +"-" + y);
+                                            String[] codes = new String[] {"Row " + x, "Row " + y};
+                                            error.addError(new ObjectError ("ratio", codes, null, "NotValid"));
+                                            errorList.add(error);
                                         }
-                                    } catch (NumberFormatException e) {
-                                        logger.warn("Ratio is incorrect:" + ratio, e);
-                                        ErrorMessage error = new ErrorMessage("Ratio is incorrect: " + x +"-" + y);
-                                        String[] codes = new String[] {"Row " + x, "Row " + y};
-                                        error.addError(new ObjectError ("ratio", codes, null, "NotValid"));
-                                        errorList.add(error);
-                                    } catch (ArrayIndexOutOfBoundsException e) {
-                                        logger.error("Ratio is not given correctly for all features on the spot:" + ratio);
-                                        ErrorMessage error = new ErrorMessage("Ratio is not given correctly for all features on the spot: " + x +"-" + y);
-                                        String[] codes = new String[] {"Row " + x, "Row " + y};
-                                        error.addError(new ObjectError ("ratio", codes, null, "NotValid"));
-                                        errorList.add(error);
                                     }
                                 }
                             }
@@ -349,7 +337,6 @@ public class ExtendedGalFileParser {
                                 }
                                 if (levelUnit != null)
                                     spot.setConcentration(featureId, levelUnit);  
-                                //featureList.add(feature);
                                 
                                 featureGroupMap.put(featureId, spot.getGroup());
                                 featureMap.put(featureId, feature);
@@ -377,7 +364,6 @@ public class ExtendedGalFileParser {
         layoutList.add(blockLayout);
         
         GalFileImportResult result = new GalFileImportResult();
-        //result.setFeatureList(featureList);
         result.setLayout(slideLayout);
         result.setLayoutList(layoutList);
         result.setErrors(errorList);
