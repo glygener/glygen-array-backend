@@ -7,6 +7,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 
 public class SlideLayout {
 	String id;
@@ -23,6 +24,8 @@ public class SlideLayout {
 	Boolean isPublic = false;
 	
 	Boolean inUse = false;
+	
+	FileWrapper file;
 	/**
 	 * @return the name
 	 */
@@ -155,6 +158,18 @@ public class SlideLayout {
 	public void setIsPublic(Boolean isPublic) {
 		this.isPublic = isPublic;
 	}
+    /**
+     * @return the file
+     */
+    public FileWrapper getFile() {
+        return file;
+    }
+    /**
+     * @param file the file to set
+     */
+    public void setFile(FileWrapper file) {
+        this.file = file;
+    }
 
 	
 }

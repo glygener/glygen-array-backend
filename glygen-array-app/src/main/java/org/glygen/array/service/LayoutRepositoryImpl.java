@@ -39,6 +39,7 @@ import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.util.SparqlUtils;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
@@ -346,6 +347,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		
+		if (s.getFile() != null)
+            saveFile (s.getFile(), slideLayout, graph);
+		
 		// add it to the slidelayoutrepository as well
 		s.setUri(slideLayoutURI);
 		s.setId(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/") + 1));
@@ -500,6 +504,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(block, null, null, graphIRI);
 			sparqlDAO.removeStatements(Iterations.asList(statements4), graphIRI);
 		}
+		
+		// delete file
+		deleteFiles(uri, graph);
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideLayout, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
@@ -1197,7 +1204,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 	}
 
-	void updateSlideLayoutInGraph (SlideLayout layout, String graph) throws SparqlException {	
+	void updateSlideLayoutInGraph (SlideLayout layout, String graph) throws SparqlException, SQLException {	
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI graphIRI = f.createIRI(graph);
 		String layoutURI = layout.getUri();
@@ -1220,6 +1227,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		sparqlDAO.addStatements(statements, graphIRI);
 		
+		if (layout.getFile() != null) {
+		    deleteFiles(layoutURI, graph);
+		    saveFile (layout.getFile(), slideLayout, graph);
+		}
+		
 		// update in SlideLayoutRepository as well
 		SlideLayoutEntity entity = slideLayoutRepository.findByUri(layout.getUri());
 		if (entity != null) {
@@ -1232,6 +1244,44 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 logger.error("Could not update slide layout serialization", e);
             }
 		}
+	}
+	
+	void saveFile (FileWrapper file, IRI data, String graph) throws SparqlException, SQLException {
+	    String uriPre = uriPrefix;
+        if (graph.equals (DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+	    
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+	    
+	    if (file != null) {
+            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
+            Literal fileName = f.createLiteral(file.getIdentifier());
+            Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
+            Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
+            Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
+            Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
+            IRI fileIRI = f.createIRI(fileURI);
+            statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+            
+        }
+	    
+	    sparqlDAO.addStatements(statements, graphIRI);
 	}
 	
 	private String getSortPredicateForLayout (String field) {
@@ -1903,7 +1953,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		return spotURI;
 	}
 
-	private String addPublicSlideLayout(SlideLayout s, String publicURI, String graph, String username) throws SparqlException {
+	private String addPublicSlideLayout(SlideLayout s, String publicURI, String graph, String username) throws SparqlException, SQLException {
 		boolean existing = publicURI != null;
 		if (publicURI == null)
 			publicURI = generateUniqueURI(uriPrefixPublic + "SL", graph);
@@ -1951,7 +2001,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			}
 			
 			sparqlDAO.addStatements(statements, graphIRI);
+			
+			if (s.getFile() != null)
+	            saveFile (s.getFile(), slideLayout, graph);
 		} 
+		
 		// link local one to public uri
 		List<Statement> statements2 = new ArrayList<Statement>();
         statements2.add(f.createStatement(local, hasPublicURI, slideLayout, userGraphIRI));

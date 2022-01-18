@@ -3040,9 +3040,10 @@ public class GlygenArrayController {
 	        Integer height,
 	        Principal p) {
 	    if (uploadedFileName != null) {
-	        uploadedFileName = moveToTempFile (uploadedFileName);
+	        //uploadedFileName = moveToTempFile (uploadedFileName);
             File galFile = new File(uploadDir, uploadedFileName);
             if (galFile.exists()) {
+                
                 // check if the name is available
                 try {
                     UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -3053,6 +3054,8 @@ public class GlygenArrayController {
                         errorMessage.addError(new ObjectError("name", "Duplicate"));
                         throw new IllegalArgumentException("There is already a slide layout with that name", errorMessage);
                     }
+
+                    
                     // need to retrieve full list of linkers first
                     //LinkerListResultView result = listLinkers(0, null, null, null, null, p);
                     
@@ -3143,6 +3146,27 @@ public class GlygenArrayController {
                     
                     String slideURI = addSlideLayout(importResult.getLayout(), p);
                     String id = slideURI.substring(slideURI.lastIndexOf("/")+1);
+                    
+                    // save the GAL file with the layout
+                    File slideLayoutFolder = new File (uploadDir + File.separator + id);
+                    if (!slideLayoutFolder.exists()) {
+                        slideLayoutFolder.mkdirs();
+                    }
+                    File newFile = new File(slideLayoutFolder + File.separator + uploadedFileName);
+                    if(galFile.renameTo (newFile)) { 
+                        // if file copied successfully then move the original file into temp folder, will be deleted later as part of the cleanup
+                        moveToTempFile(uploadedFileName); 
+                    } else { 
+                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+                    }
+                    FileWrapper fileWrapper = new FileWrapper();
+                    fileWrapper.setFileFolder(uploadDir + File.separator + id);
+                    fileWrapper.setFileSize(newFile.length());
+                    fileWrapper.setIdentifier(uploadedFileName);
+                    
+                    importResult.getLayout().setFile(fileWrapper);
+                    layoutRepository.updateSlideLayout(importResult.getLayout(), user);
+                    
                     return id;
                 } catch (IllegalArgumentException e) {
                     throw e;

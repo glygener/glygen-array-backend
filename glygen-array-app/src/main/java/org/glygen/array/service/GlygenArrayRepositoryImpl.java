@@ -148,6 +148,15 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
     public final static String hasAssayTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_assay_template";
     public final static String hasSpotMetadataTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_spot_template";
+    
+    
+    // file wrapper stuff
+    public final static String hasFilePredicate = ontPrefix + "has_file";
+    public final static String hasFileNamePredicate = ontPrefix + "has_filename";
+    public final static String hasOriginalFileNamePredicate = ontPrefix + "has_original_name";
+    public final static String hasFolderPredicate = ontPrefix + "has_folder";
+    public final static String hasFileFormatPredicate = ontPrefix + "has_file_format";
+    public final static String hasSizePredicate = ontPrefix + "has_size";
 	
 	
 	/**
@@ -579,5 +588,23 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             }
             entity.addChange(change);
          }
+    }
+    
+    protected void deleteFiles(String uri, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI iri = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+                
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(iri, hasFile, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getObject().stringValue().startsWith("http")) {
+                // file url
+                IRI file = f.createIRI(st.getObject().stringValue());
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, hasFile, null, graphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+            }
+        }
     }
 }

@@ -91,7 +91,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasMeasurementPredicate = ontPrefix + "has_measurement";
     public final static String measurementOfPredicate = ontPrefix + "measurement_of";
     
-    public final static String hasFilePredicate = ontPrefix + "has_file";
     public final static String scanOfPredicate = ontPrefix + "scan_of";
     public final static String hasImagePredicate = ontPrefix + "has_image";
     public final static String hasPrintedSlidePredicate = ontPrefix + "has_printed_slide";
@@ -105,11 +104,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
     public final static String hasMedianPredicate = ontPrefix + "has_median";
     
-    public final static String hasFileNamePredicate = ontPrefix + "has_filename";
-    public final static String hasOriginalFileNamePredicate = ontPrefix + "has_original_name";
-    public final static String hasFolderPredicate = ontPrefix + "has_folder";
-    public final static String hasFileFormatPredicate = ontPrefix + "has_file_format";
-    public final static String hasSizePredicate = ontPrefix + "has_size";
+    
     
     
     @Autowired
@@ -1845,23 +1840,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);     
     }
     
-    private void deleteFiles(String uri, String graph) throws SparqlException {
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI iri = f.createIRI(uri);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasFile = f.createIRI(hasFilePredicate);
-                
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(iri, hasFile, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            if (st.getObject().stringValue().startsWith("http")) {
-                // file url
-                IRI file = f.createIRI(st.getObject().stringValue());
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, hasFile, null, graphIRI);
-                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-            }
-        }
-    }
+    
 
 
     @Override
