@@ -124,7 +124,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         IRI hasTemplate = f.createIRI(templatePredicate);
         IRI type = f.createIRI(typePredicate);
         // TODO check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
-        String existing = getEntityByLabel(metadata.getName(), graph, typePredicate);
+        String existing = null;
+        if (metadata.getName() != null)
+        	existing = getEntityByLabel(metadata.getName().trim(), graph, typePredicate);
         if (existing == null) {
             // add to user's local repository
             List<Statement> statements = new ArrayList<Statement>();
@@ -1097,8 +1099,8 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasModifiedDate, null, graphIRI)), graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(metadataIRI, hasDescriptor, null, graphIRI)), graphIRI);
         Literal date = f.createLiteral(new Date());
-        Literal label = metadata.getName() == null ? null : f.createLiteral(metadata.getName());
-        Literal comment = metadata.getDescription() == null ? null : f.createLiteral(metadata.getDescription());
+        Literal label = metadata.getName() == null ? null : f.createLiteral(metadata.getName().trim());
+        Literal comment = metadata.getDescription() == null ? null : f.createLiteral(metadata.getDescription().trim());
         
         // add updated name/description
         List<Statement> statements = new ArrayList<Statement>();
@@ -1331,7 +1333,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         }
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
-        Literal internalId = sample.getInternalId() == null ? null : f.createLiteral(sample.getInternalId());
+        Literal internalId = sample.getInternalId() == null ? null : f.createLiteral(sample.getInternalId().trim());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
         if (internalId != null) {
             List<Statement> statements = new ArrayList<Statement>();

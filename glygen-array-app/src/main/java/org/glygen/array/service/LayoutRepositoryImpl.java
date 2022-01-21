@@ -1209,8 +1209,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI graphIRI = f.createIRI(graph);
 		String layoutURI = layout.getUri();
 		IRI slideLayout = f.createIRI(layoutURI);
-		Literal label = f.createLiteral(layout.getName());
-		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription());
+		Literal label = f.createLiteral(layout.getName().trim());
+		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription().trim());
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		Date today = new Date();
 		Literal date = f.createLiteral(today);
@@ -1337,8 +1337,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI graphIRI = f.createIRI(graph);
 		String layoutURI = layout.getUri();
 		IRI blockLayout = f.createIRI(layoutURI);
-		Literal label = f.createLiteral(layout.getName());
-		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription());
+		Literal label = f.createLiteral(layout.getName().trim());
+		Literal comment = layout.getDescription() == null ? f.createLiteral("") : f.createLiteral(layout.getDescription().trim());
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		Literal date = f.createLiteral(new Date());
 		

@@ -51,7 +51,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
-		if (alias == null || alias.isEmpty())
+		if (alias == null || alias.trim().isEmpty())
 			return;
 		
 		String graph;
@@ -62,16 +62,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			Glycan existing = getGlycanFromURI (glycanURI, user);
 			if (existing != null) {
 				// check if the alias is unique
-				if (existing.getAliases().contains(alias))
+				if (existing.getAliases().contains(alias.trim()))
 					return;
-				Glycan byAlias = getGlycanByLabel (alias, user);  // checks the alias as well
+				Glycan byAlias = getGlycanByLabel (alias.trim(), user);  // checks the alias as well
 				if (byAlias != null)
 					return; // cannot add
 				
 				ValueFactory f = sparqlDAO.getValueFactory();
 				IRI glycan = f.createIRI(glycanURI);
 				IRI graphIRI = f.createIRI(graph);
-				Literal aliasLiteral = f.createLiteral(alias);
+				Literal aliasLiteral = f.createLiteral(alias.trim());
 				IRI hasAlias = f.createIRI(ontPrefix + "has_alias");
 				
 				List<Statement> statements = new ArrayList<Statement>();
@@ -120,8 +120,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         // check if there is a glycan with the same name
         // if so, do not add
-        if (g.getName() != null && !g.getName().isEmpty()) { 
-            Glycan existing = getGlycanByLabel(g.getName(), user);
+        if (g.getName() != null && !g.getName().trim().isEmpty()) { 
+            Glycan existing = getGlycanByLabel(g.getName().trim(), user);
             if (existing != null)
                 return existing.getUri();
         }
@@ -143,17 +143,17 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         Literal inchiSequence = null;
         if (g.getInChiSequence() != null)
-            inchiSequence = f.createLiteral(g.getInChiSequence());
+            inchiSequence = f.createLiteral(g.getInChiSequence().trim());
         Literal inchiKey = null;
         if (g.getInChiKey() != null)
-            inchiKey = f.createLiteral(g.getInChiKey());
+            inchiKey = f.createLiteral(g.getInChiKey().trim());
         Literal molFile = null;
         if (g.getMolFile() != null)
-            molFile = f.createLiteral(g.getMolFile());
+            molFile = f.createLiteral(g.getMolFile().trim());
         Literal smiles = null;
         if (g.getSmiles() != null) 
-            smiles = f.createLiteral(g.getSmiles());
-        Literal sequenceValue = g.getSequence() == null ? null : f.createLiteral(g.getSequence());
+            smiles = f.createLiteral(g.getSmiles().trim());
+        Literal sequenceValue = g.getSequence() == null ? null : f.createLiteral(g.getSequence().trim());
         List<Statement> statements = new ArrayList<Statement>();
         
         statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, graphIRI));
@@ -181,8 +181,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		// check if there is a glycan with the same name
 		// if so, do not add
-		if (g.getName() != null && !g.getName().isEmpty()) { 
-			Glycan existing = getGlycanByLabel(g.getName(), user);
+		if (g.getName() != null && !g.getName().trim().isEmpty()) { 
+			Glycan existing = getGlycanByLabel(g.getName().trim(), user);
 			if (existing != null)
 				return existing.getUri();
 		}
@@ -212,9 +212,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
 		Literal type = f.createLiteral(g.getType().name());
 		IRI graphIRI = f.createIRI(graph);
-		Literal glycanLabel = g.getName() == null ? null : f.createLiteral(g.getName());
-		Literal glycanComment = g.getDescription() == null ? null : f.createLiteral(g.getDescription());
-		Literal internalId = g.getInternalId() == null ? null : f.createLiteral(g.getInternalId());
+		Literal glycanLabel = g.getName() == null ? null : f.createLiteral(g.getName().trim());
+		Literal glycanComment = g.getDescription() == null ? null : f.createLiteral(g.getDescription().trim());
+		Literal internalId = g.getInternalId() == null ? null : f.createLiteral(g.getInternalId().trim());
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
@@ -246,8 +246,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		// check if there is a glycan with the same name
 		// if so, do not add
-		if (g.getName() != null && !g.getName().isEmpty()) { 
-			Glycan existing = getGlycanByLabel(g.getName(), user);
+		if (g.getName() != null && !g.getName().trim().isEmpty()) { 
+			Glycan existing = getGlycanByLabel(g.getName().trim(), user);
 			if (existing != null)
 				return existing.getUri();
 		}
@@ -288,7 +288,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	}
 	private String addSequenceDefinedGlycan(SequenceDefinedGlycan g, UserEntity user, boolean noGlytoucanRegistration) throws SparqlException, SQLException {
 		String graph = null;
-		if (g == null || g.getSequence() == null || g.getSequence().isEmpty())
+		if (g == null || g.getSequence() == null || g.getSequence().trim().isEmpty())
 			// cannot add 
 			throw new SparqlException ("Not enough information is provided to register a glycan");
 		
@@ -300,7 +300,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		String glycanURI;
 		
 		// check if the glycan already exists in "default-graph", then we need to add a triple glycan->has_public_uri->existingURI to the private repo
-		String existing = getGlycanBySequence(g.getSequence());
+		String existing = getGlycanBySequence(g.getSequence().trim());
 		if (existing == null) {
 			glycanURI = addBasicInfoForGlycan(g, graph);	
 			String seqURI = generateUniqueURI(uriPrefix + "Seq", graph);
@@ -316,7 +316,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				    String wurcs = null;
                     if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
     					WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-    					exporter.start(g.getSequence());
+    					exporter.start(g.getSequence().trim());
     					wurcs = exporter.getWURCS();
                     } else if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.WURCS) {
                         wurcs = g.getSequence();
@@ -344,7 +344,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 				    String wurcs = null;
                     if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.GLYCOCT) {
                         WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-                        exporter.start(g.getSequence());
+                        exporter.start(g.getSequence().trim());
                         wurcs = exporter.getWURCS();
                     } else if (((SequenceDefinedGlycan) g).getSequenceType() == GlycanSequenceFormat.WURCS) {
                         wurcs = g.getSequence();
@@ -366,9 +366,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			    glyToucanId = g.getGlytoucanId();
 			}
 			
-			Literal glytoucanLit = glyToucanId == null ? null : f.createLiteral(glyToucanId);
-			Literal glytoucanHashLit = glyToucanHash == null ? null : f.createLiteral(glyToucanHash);
-			Literal sequenceValue = f.createLiteral(g.getSequence());
+			Literal glytoucanLit = glyToucanId == null ? null : f.createLiteral(glyToucanId.trim());
+			Literal glytoucanHashLit = glyToucanHash == null ? null : f.createLiteral(glyToucanHash.trim());
+			Literal sequenceValue = f.createLiteral(g.getSequence().trim());
 			Literal format = f.createLiteral(g.getSequenceType().getLabel());
 			
 			IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
@@ -408,10 +408,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			List<Statement> statements = new ArrayList<Statement>();
 			IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
 			IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
-			Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId());
+			Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId().trim());
 			IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
-			Literal glycanLabel = g.getName() == null ? f.createLiteral("") : f.createLiteral(g.getName());
-			Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription());
+			Literal glycanLabel = g.getName() == null ? f.createLiteral("") : f.createLiteral(g.getName().trim());
+			Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription().trim());
 			IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
 			Literal type = f.createLiteral(g.getType().name());
 			IRI glycanType = f.createIRI(ontPrefix + "Glycan");
@@ -1085,9 +1085,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI graphIRI = f.createIRI(graph);
 		String glycanURI = g.getUri();
 		IRI glycan = f.createIRI(glycanURI);
-		Literal glycanLabel = f.createLiteral(g.getName());
-		Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription());
-		Literal internalId = g.getInternalId() == null? f.createLiteral("") : f.createLiteral(g.getInternalId());
+		Literal glycanLabel = g.getName() == null ? f.createLiteral("") : f.createLiteral(g.getName().trim());
+		Literal glycanComment = g.getDescription() == null ? f.createLiteral("") : f.createLiteral(g.getDescription().trim());
+		Literal internalId = g.getInternalId() == null? f.createLiteral("") : f.createLiteral(g.getInternalId().trim());
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
 		Literal date = f.createLiteral(new Date());
@@ -1147,8 +1147,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             }
         default:
             // check by label if any
-            if (glycan.getName() != null && !glycan.getName().isEmpty()) {
-                List <SparqlEntity> results = queryHelper.retrieveByLabel(glycan.getName(), ontPrefix + "Glycan", null);
+            if (glycan.getName() != null && !glycan.getName().trim().isEmpty()) {
+                List <SparqlEntity> results = queryHelper.retrieveByLabel(glycan.getName().trim(), ontPrefix + "Glycan", null);
                 if (results.isEmpty()) {
                     // make it public
                     // need to create the glycan in the public graph, link the user's version to public one
@@ -1188,7 +1188,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI hasGlycanType = f.createIRI(ontPrefix + "has_type");
         Literal type = f.createLiteral(glycan.getType().name());
-        Literal glycanLabel = glycan.getName() == null ? null : f.createLiteral(glycan.getName());
+        Literal glycanLabel = glycan.getName() == null ? null : f.createLiteral(glycan.getName().trim());
         IRI hasAddedToLibrary = f.createIRI(ontPrefix + "has_date_addedtolibrary");
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI glycanType = f.createIRI(ontPrefix + "Glycan");
@@ -1264,10 +1264,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            String seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
 	            IRI sequence = f.createIRI(seqURI);
 	            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
-	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId());
+	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId().trim());
 	            Literal glytoucanHashLit = ((SequenceDefinedGlycan) glycan).getGlytoucanHash() == null ? 
-	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanHash());
-	            Literal sequenceValue = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequence());
+	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanHash().trim());
+	            Literal sequenceValue = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequence().trim());
 	            Literal format = f.createLiteral(((SequenceDefinedGlycan) glycan).getSequenceType().getLabel());
 	            
 	            IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
@@ -1297,7 +1297,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            // add sequence and chemical properties
                 seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
                 sequence = f.createIRI(seqURI);
-                sequenceValue = f.createLiteral(((OtherGlycan) glycan).getSequence());
+                sequenceValue = ((OtherGlycan) glycan).getSequence() == null ? 
+                		f.createLiteral("") : f.createLiteral(((OtherGlycan) glycan).getSequence().trim());
                 hasSequence = f.createIRI(ontPrefix + "has_sequence");
                 hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
                 sequenceType = f.createIRI(ontPrefix + "Sequence");
@@ -1309,16 +1310,16 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 
                 Literal inchiSequence = null;
                 if (((OtherGlycan) glycan).getInChiSequence() != null)
-                    inchiSequence = f.createLiteral(((OtherGlycan) glycan).getInChiSequence());
+                    inchiSequence = f.createLiteral(((OtherGlycan) glycan).getInChiSequence().trim());
                 Literal inchiKey = null;
                 if (((OtherGlycan) glycan).getInChiKey() != null)
-                    inchiKey = f.createLiteral(((OtherGlycan) glycan).getInChiKey());
+                    inchiKey = f.createLiteral(((OtherGlycan) glycan).getInChiKey().trim());
                 Literal molFile = null;
                 if (((OtherGlycan) glycan).getMolFile() != null)
-                    molFile = f.createLiteral(((OtherGlycan) glycan).getMolFile());
+                    molFile = f.createLiteral(((OtherGlycan) glycan).getMolFile().trim());
                 Literal smiles = null;
                 if (((OtherGlycan) glycan).getSmiles() != null) 
-                    smiles = f.createLiteral(((OtherGlycan) glycan).getSmiles());
+                    smiles = f.createLiteral(((OtherGlycan) glycan).getSmiles().trim());
                 
                 statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
                 statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));

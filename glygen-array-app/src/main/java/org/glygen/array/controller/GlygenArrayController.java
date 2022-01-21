@@ -1417,7 +1417,7 @@ public class GlygenArrayController {
                 }
                 if (internalId != null) glycan.setInternalId(internalId.trim());
                 if (glycanName != null) glycan.setName(glycanName.trim());
-                if (comments != null) glycan.setDescription(comments);
+                if (comments != null) glycan.setDescription(comments.trim());
                 try {  
                     String id = addGlycan(glycan, p, noGlytoucanRegistration);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
@@ -1882,14 +1882,14 @@ public class GlygenArrayController {
                     } catch (Exception e) {
                         errorMessage.addError(new ObjectError("sequence", "NotValid"));
                     }
-    				linkerURI = linkerRepository.getLinkerByField(linker.getSequence(), "has_sequence", "string", linker.getType(), user);
+    				linkerURI = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
     				if (linkerURI != null) {
     				    linker.setUri(linkerURI);
     				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
     				}
     			}
     			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
-    				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId(), "has_uniProtId", "string", linker.getType(), user);
+    				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId().trim(), "has_uniProtId", "string", linker.getType(), user);
     				if (linkerURI != null) {
     				    linker.setUri(linkerURI);
     				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
@@ -1955,7 +1955,7 @@ public class GlygenArrayController {
         boolean aminoAcid = false;
         while (i < sequence.length()) {
             if (sequence.charAt(i) == '{') {
-                stack.push(new Character('{'));
+                stack.push(Character.valueOf('{'));
                 newSequence += "{" + position + "-";
                 begin = true;
             } else if (sequence.charAt(i) == '}') {
@@ -2012,8 +2012,8 @@ public class GlygenArrayController {
 		} else {
 		    // check if both sequence and glytoucanId is provided
 		    // in such a case, we need to confirm they match
-		    if (glycan.getSequence() != null && !glycan.getSequence().isEmpty() 
-		            && glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().isEmpty()) {
+		    if (glycan.getSequence() != null && !glycan.getSequence().trim().isEmpty() 
+		            && glycan.getGlytoucanId() != null && !glycan.getGlytoucanId().trim().isEmpty()) {
 		        checkGlytoucan = true;
 		    }
 		}
@@ -2244,8 +2244,8 @@ public class GlygenArrayController {
 			        // TODO figure out how to calculate the other versions
 			        if (checkGlytoucan) {
 			            // need to check if the sequence and the given glytoucan match
-			            String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(glycan.getSequence());
-			            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId())) {
+			            String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(glycan.getSequence().trim());
+			            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
 			                // error
 			                errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
 			            }
@@ -2258,10 +2258,10 @@ public class GlygenArrayController {
 			            try {
                             // need to check if the sequence and the given glytoucan match
     			            WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
-                            exporter.start(glycan.getSequence());
+                            exporter.start(glycan.getSequence().trim());
                             String wurcs = exporter.getWURCS();
                             String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-                            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId())) {
+                            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
                                 // error
                                 errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
                             }
@@ -2560,7 +2560,7 @@ public class GlygenArrayController {
 						    }
 						} else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
 						    err = new ObjectError("inChiKey", "NotValid");
-						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey());
+						    l = PubChemAPI.getLinkerDetailsFromPubChemByInchiKey(linker.getInChiKey().trim());
 						    if (l != null && linker.getType() == LinkerType.LIPID) {
                                 // need to create Lipid object
                                 l = new Lipid ((SmallMoleculeLinker)l);

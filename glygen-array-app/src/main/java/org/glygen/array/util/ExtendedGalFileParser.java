@@ -48,7 +48,7 @@ public class ExtendedGalFileParser {
     
     /**
      * parses the given extended GAL file to create a Slide Layout with all its blocks. 
-     * Features should exist already.
+     * Features should exist in the repository already, and they are identified by features' "internal id" field
      * 
      * @param filePath file path of the GAL file to be parsed
      * @param name name of the slide layout to be created 
