@@ -3130,7 +3130,7 @@ public class GlygenArrayController {
                         }
                     } catch (IllegalArgumentException e) {
                         // need to ignore duplicate errors
-                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
+                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage && e.getCause().getMessage() != null && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
                             // do nothing
                         } else if (e.getCause() != null && e.getCause() instanceof ErrorMessage){
                             for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {

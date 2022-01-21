@@ -3,12 +3,14 @@ package org.glygen.array.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -18,6 +20,11 @@ import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
+import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
+import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
@@ -38,6 +45,9 @@ public class ExtendedGalFileParser {
     @Autowired
     ParserConfiguration config;
     
+    @Autowired
+    MetadataTemplateRepository templateRepository;
+    
     String defaultConcentration = null;
     String defaultBuffer = null;
     String defaultVolume = null;
@@ -45,6 +55,8 @@ public class ExtendedGalFileParser {
     String defaultCarrier = null;
     String defaultMethod = null;
     String defaultReference = null;
+    
+    MetadataTemplate spotMetadataTemplate = null;
     
     /**
      * parses the given extended GAL file to create a Slide Layout with all its blocks. 
@@ -374,6 +386,29 @@ public class ExtendedGalFileParser {
     SpotMetadata addSpotMetadata (String metadataName, String[] splittedRow, List<ErrorMessage> errorList) {
         SpotMetadata spotMetadata = new SpotMetadata();
         spotMetadata.setName(metadataName);
+        String template = metadataConfig.getTemplate();
+        spotMetadata.setTemplate(template);
+        // retrieve Template
+        if (this.spotMetadataTemplate == null) {
+        	try {
+				String uri = templateRepository.getTemplateByName(template, MetadataTemplateType.SPOT);
+				if (uri != null)
+					this.spotMetadataTemplate = templateRepository.getTemplateFromURI(uri);
+				else {
+					// template retrieval error!!!
+	        		ErrorMessage error = new ErrorMessage("spot metadata template cannot be found. Check the configuration!");
+	        		String[] codes = new String[] {metadataName};
+	                error.addError(new ObjectError ("template", codes, null, "NotFound"));
+	                errorList.add(error);
+				}
+			} catch (SparqlException | SQLException e) {
+				// template retrieval error!!!
+        		ErrorMessage error = new ErrorMessage("spot metadata template cannot be found. Check the configuration!");
+        		String[] codes = new String[] {metadataName};
+                error.addError(new ObjectError ("template", codes, null, "NotFound"));
+                errorList.add(error); 
+			}
+        }
         List<DescriptorGroup> descriptorGroups = new ArrayList<DescriptorGroup>();
         List<Descriptor> descriptors = new ArrayList<Descriptor>();
         spotMetadata.setDescriptorGroups(descriptorGroups);
@@ -385,10 +420,14 @@ public class ExtendedGalFileParser {
         
         DescriptorGroup group = new DescriptorGroup();
         group.setName(descriptorGroupName);
+        DescriptionTemplate key1 = getKeyFromTemplate (descriptorGroupName);
+        group.setKey(key1);
         group.setDescriptors(new ArrayList<Description>());
         String buffer = splitted[1];
         Descriptor desc1 = new Descriptor();
         desc1.setName(buffer);
+        DescriptionTemplate key2 = getKeyFromTemplate (buffer);
+        desc1.setKey(key2);
         String bufferValue = (config.getBufferColumn() != -1 && splitted.length > config.getBufferColumn()) ? splittedRow[config.bufferColumn].trim() : "";
         if (bufferValue.isEmpty()) {
         	if (defaultBuffer != null && !defaultBuffer.isEmpty()) {
@@ -403,6 +442,8 @@ public class ExtendedGalFileParser {
         String carrier = metadataConfig.getFormulationCarrierDescription().split("::")[1];
         Descriptor desc2 = new Descriptor();
         desc2.setName(carrier);
+        DescriptionTemplate key3 = getKeyFromTemplate (carrier);
+        desc2.setKey(key3);
         String carrierValue = (config.getCarrierColumn() != -1 && splitted.length > config.getCarrierColumn()) ? splittedRow[config.carrierColumn].trim() : "";
         if (carrierValue.isEmpty()) {
         	if (defaultCarrier != null && !defaultCarrier.isEmpty()) {
@@ -418,6 +459,8 @@ public class ExtendedGalFileParser {
         String method = metadataConfig.getFormulationMethodDescription().split("::")[1];
         Descriptor desc3 = new Descriptor();
         desc3.setName(method);
+        DescriptionTemplate key4 = getKeyFromTemplate (method);
+        desc3.setKey(key4);
         String methodValue = (config.getMethodColumn() != -1 && splitted.length > config.getMethodColumn()) ? splittedRow[config.methodColumn].trim() : "";
         if (methodValue.isEmpty()) {
         	if (defaultMethod != null && !defaultMethod.isEmpty()) {
@@ -433,9 +476,13 @@ public class ExtendedGalFileParser {
         String reference = metadataConfig.getFormulationReferenceDescription().split("::")[1];
         DescriptorGroup desc4 = new DescriptorGroup();
         desc4.setName(reference);
+        DescriptionTemplate key5 = getKeyFromTemplate (reference);
+        desc4.setKey(key5);
         desc4.setDescriptors(new ArrayList<Description>());
         Descriptor subDesc4 = new Descriptor();
         subDesc4.setName("Value");
+        DescriptionTemplate key6 = getKeyFromTemplate ("Value");
+        subDesc4.setKey(key6);
         String referenceValue =  (config.getReferenceColumn() != -1 && splitted.length > config.getReferenceColumn()) ? splittedRow[config.referenceColumn].trim() : "";
         if (referenceValue.isEmpty()) {
         	if (defaultReference != null && !defaultReference.isEmpty()) {
@@ -455,6 +502,8 @@ public class ExtendedGalFileParser {
         String volume = metadataConfig.getVolumeDescription().split("::")[1];
         Descriptor desc5 = new Descriptor();
         desc5.setName(volume);
+        DescriptionTemplate key7 = getKeyFromTemplate (volume);
+        desc5.setKey(key7);
         String volumeValue =  (config.getVolumeColumn() != -1 && splitted.length > config.getVolumeColumn()) ? splittedRow[config.volumeColumn].trim() : "";
         if (volumeValue.isEmpty()) {
         	if (defaultVolume != null && !defaultVolume.isEmpty()) {
@@ -470,6 +519,8 @@ public class ExtendedGalFileParser {
         String dispenses = metadataConfig.getNumberDispensesDescription().split("::")[1];
         Descriptor desc6 = new Descriptor();
         desc6.setName(dispenses);
+        DescriptionTemplate key8 = getKeyFromTemplate (dispenses);
+        desc6.setKey(key8);
         String dispensesValue =  (config.getDispensesColumn() != -1 && splitted.length > config.getDispensesColumn()) ? splittedRow[config.dispensesColumn].trim() : "";
         if (dispensesValue.isEmpty()) {
         	if (defaultDispenses != null && !defaultDispenses.isEmpty()) {
@@ -505,14 +556,41 @@ public class ExtendedGalFileParser {
         
         Descriptor comment = new Descriptor();
         comment.setName(metadataConfig.getCommentDescription());
+        DescriptionTemplate key9 = getKeyFromTemplate (comment.getName());
+        comment.setKey(key9);
         comment.setValue( (config.getCommentColumn() != -1 && splitted.length > config.getCommentColumn()) ? splittedRow[config.commentColumn]: "");
         descriptors.add(comment);
         
         return spotMetadata; 
     }
 
+    private DescriptionTemplate getKeyFromTemplate(String descriptorName) {
+    	DescriptionTemplate template = null;
+		if (this.spotMetadataTemplate != null) {
+			for (DescriptionTemplate desc: this.spotMetadataTemplate.getDescriptors()) {
+				if (desc.getName().equalsIgnoreCase(descriptorName)) 
+					template = desc;
+				if (template == null && desc instanceof DescriptorGroupTemplate) {
+					template =  getKeyFromTemplate ((DescriptorGroupTemplate)desc, descriptorName);
+				}
+			}
+		}
+		return template;
+	}
 
-    /**
+	private DescriptionTemplate getKeyFromTemplate(DescriptorGroupTemplate group, String descriptorName) {
+		DescriptionTemplate template = null;
+		for (DescriptionTemplate desc: group.getDescriptors()) {
+			if (desc.getName().equalsIgnoreCase(descriptorName)) 
+				template = desc;
+			if (template == null && desc instanceof DescriptorGroupTemplate) {
+				template = getKeyFromTemplate ((DescriptorGroupTemplate)desc, descriptorName);
+			}
+		}	
+		return template;
+	}
+
+	/**
      * look for given level in the levels, if not exists, add and return, if exists return
      * @param levelString 100uM, 10uM etc.
      * @param levels existing levels
