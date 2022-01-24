@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-E4F774B1AC5558A1D8D06902B6F57FAA"/>
+	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-74402A5D9A8314E3FC3329102D9F85A1"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-E4F774B1AC5558A1D8D06902B6F57FAA">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-74402A5D9A8314E3FC3329102D9F85A1">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-574B0E4DE7420AC96F4DEBD6C3203C74"/>
+	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-39905559E89F5CFDAEDB65033414CED1"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-574B0E4DE7420AC96F4DEBD6C3203C74">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-39905559E89F5CFDAEDB65033414CED1">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-250555895AC469E232B77249629D3341"/>
+	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-5A9615FB39962131445CC9C12DF661D7"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-250555895AC469E232B77249629D3341">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-5A9615FB39962131445CC9C12DF661D7">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-B3495769A0C2EC120097AF945DF58735"/>
+	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-1CC481170F7F9CAB9E4D5E65B68F4445"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-B3495769A0C2EC120097AF945DF58735">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-1CC481170F7F9CAB9E4D5E65B68F4445">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-F79BD6057E59D2E12ACF66CD143D4D0C"/>
+	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-0374BE011BD50BC5A35F033E2EBDAD45"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-F79BD6057E59D2E12ACF66CD143D4D0C">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-0374BE011BD50BC5A35F033E2EBDAD45">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-6A39576DC369BF5672CC246C212E7FBA"/>
+	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-25FBD123242F7B9470321973A7B933D5"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-6A39576DC369BF5672CC246C212E7FBA">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-25FBD123242F7B9470321973A7B933D5">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -216,20 +216,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-290CDF63D806E1F80BBF8A196404551E"/>
+	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A8B2ABB82115C38C7DD5198B3319F6F5"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-290CDF63D806E1F80BBF8A196404551E">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A8B2ABB82115C38C7DD5198B3319F6F5">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-6FFDFB4AB7960AC7CE68EB4BFDC86D84"/>
+	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A1437AFDFC7CD8016DB7FDBD16E5478F"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-6FFDFB4AB7960AC7CE68EB4BFDC86D84">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A1437AFDFC7CD8016DB7FDBD16E5478F">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-BB7FF4099B89D52211006A3D0C72B90F"/>
+	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-7EF2E02A0279898F6F84E71D2E7DDD92"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-55ba03b9272949dd8c747fafa214260c-BB7FF4099B89D52211006A3D0C72B90F">
+<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-7EF2E02A0279898F6F84E71D2E7DDD92">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -14360,16 +14360,19 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor2816"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-dictionary2816">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection2816">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor2816">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-dictionary2816"/>
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-selection2816"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-dictionary2816">
-	<rdfs:label>dictionary</rdfs:label>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection2816">
+	<rdfs:label>selection</rdfs:label>
+	<template:has_selection>PMID</template:has_selection>
+	<template:has_selection>DOI</template:has_selection>
+	<template:has_selection>URL</template:has_selection>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2816">
