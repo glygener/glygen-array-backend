@@ -314,8 +314,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            throw new SparqlException ("Not enough information is provided to register a linker");
 	        }
 		}
-		
-		existing = getLinkerByField(sequence.trim(), "has_sequence", "string");
+		if (sequence != null)
+			existing = getLinkerByField(sequence.trim(), "has_sequence", "string");
 		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		if (existing == null) {
 			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
