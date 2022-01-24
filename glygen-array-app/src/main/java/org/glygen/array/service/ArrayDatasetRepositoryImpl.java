@@ -104,9 +104,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public final static String hasYCoordinatePredicate = ontPrefix + "has_y_coordinate";
     public final static String hasMedianPredicate = ontPrefix + "has_median";
     
-    
-    
-    
     @Autowired
     QueryHelper queryHelper;
     
@@ -134,7 +131,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         graph = getGraphForUser(user);
         
         ValueFactory f = sparqlDAO.getValueFactory();
-        String existing = getEntityByLabel(dataset.getName(), graph, datasetTypePredicate);
+        String existing = null;
+        if (dataset.getName() != null)
+        	existing = getEntityByLabel(dataset.getName().trim(), graph, datasetTypePredicate);
         if (existing == null) {
             // add to user's local repository
             List<Statement> statements = new ArrayList<Statement>();
@@ -391,8 +390,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI graphIRI = f.createIRI(graph);
         String printedSlideURI = generateUniqueURI(uriPre + "PS", allGraphs);
         IRI iri = f.createIRI(printedSlideURI);
-        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
-        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
+        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName().trim());
+        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription().trim());
         IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
         IRI printedBy = f.createIRI(printerMetadataPredicate);
         IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
@@ -2290,8 +2289,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         Literal date = f.createLiteral(new Date());
         statements.add(f.createStatement(slideIRI, hasModifiedDate, date, graphIRI));
         
-        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName());
-        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription());
+        Literal label = printedSlide.getName() == null ? null : f.createLiteral(printedSlide.getName().trim());
+        Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription().trim());
         
         if (label != null) 
             statements.add(f.createStatement(slideIRI, RDFS.LABEL, label, graphIRI));
@@ -2514,8 +2513,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal date = f.createLiteral(new Date());
             statements.add(f.createStatement(datasetIRI, hasModifiedDate, date, graphIRI));
             
-            Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName());
-            Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription());
+            Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName().trim());
+            Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription().trim());
             
             if (label != null) {
                 statements.add(f.createStatement(datasetIRI, RDFS.LABEL, label, graphIRI));
@@ -2811,8 +2810,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         Literal createdDate = f.createLiteral(dataset.getDateAddedToLibrary());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
        
-        Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName());
-        Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription());
+        Literal label = dataset.getName() == null ? null : f.createLiteral(dataset.getName().trim());
+        Literal comment = dataset.getDescription() == null ? null : f.createLiteral(dataset.getDescription().trim());
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
         IRI publicDataset = f.createIRI(publicURI);

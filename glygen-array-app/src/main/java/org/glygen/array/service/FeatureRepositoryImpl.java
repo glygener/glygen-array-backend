@@ -36,7 +36,6 @@ import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LandingLight;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.NegControlFeature;
 import org.glygen.array.persistence.rdf.NonCommercialSource;
@@ -124,14 +123,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
         Literal type = f.createLiteral(feature.getType().name());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
-        Literal comment = feature.getDescription() == null ? null : f.createLiteral(feature.getDescription());
-        Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId());
+        Literal comment = feature.getDescription() == null ? null : f.createLiteral(feature.getDescription().trim());
+        Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId().trim());
         
 		//if (feature.getName() == null || feature.getName().trim().isEmpty()) {
 		//    feature.setName(featureURI.substring(featureURI.lastIndexOf("/")+1));
 		//}
 		
-		Literal label = feature.getName() == null ? null : f.createLiteral(feature.getName());
+		Literal label = feature.getName() == null ? null : f.createLiteral(feature.getName().trim());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		
@@ -2160,12 +2159,12 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI graphIRI = f.createIRI(graph);
         String featureURI = g.getUri();
         IRI feature = f.createIRI(featureURI);
-        Literal label = g.getName() == null ? null : f.createLiteral(g.getName());
-        Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId());
+        Literal label = g.getName() == null ? null : f.createLiteral(g.getName().trim());
+        Literal internalId = g.getInternalId() == null ? f.createLiteral("") : f.createLiteral(g.getInternalId().trim());
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
         Literal date = f.createLiteral(new Date());
         IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
-        Literal comment = g.getDescription() == null ? null : f.createLiteral(g.getDescription());
+        Literal comment = g.getDescription() == null ? null : f.createLiteral(g.getDescription().trim());
         
         
         if (label != null) sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(feature, RDFS.LABEL, null, graphIRI)), graphIRI);

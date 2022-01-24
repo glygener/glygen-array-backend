@@ -162,13 +162,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             IRI graphIRI = f.createIRI(graph);
             IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
             //IRI opensRing = f.createIRI(opensRingPredicate);
-            IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+            //IRI hasDescription = f.createIRI(hasDescriptionPredicate);
             IRI linkerType = f.createIRI(linkerTypePredicate);
             IRI hasLinkerType = f.createIRI(hasTypePredicate);
             IRI hasUrl = f.createIRI(hasURLPredicate);
             Literal type = f.createLiteral(l.getType().name());
-            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription().trim());
             /*Literal description = null;
             if (l.getDescription() != null)
                 description = f.createLiteral(l.getDescription());*/
@@ -219,8 +219,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             Literal date = f.createLiteral(new Date());
             IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+            Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+            Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription().trim());
             
             List<Statement> statements = new ArrayList<Statement>();
             
@@ -314,8 +314,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            throw new SparqlException ("Not enough information is provided to register a linker");
 	        }
 		}
-		
-		existing = getLinkerByField(sequence, "has_sequence", "string");
+		if (sequence != null)
+			existing = getLinkerByField(sequence.trim(), "has_sequence", "string");
 		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		if (existing == null) {
 			linkerURI = generateUniqueURI(uriPrefix + "L", allGraphs);
@@ -330,8 +330,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasUrl = f.createIRI(hasURLPredicate);
 			Literal type = f.createLiteral(l.getType().name());
 			IRI hasSequence = f.createIRI(hasSequencePredicate);
-			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription().trim());
 			/*Literal description = null;
 			if (l.getDescription() != null)
 				description = f.createLiteral(l.getDescription());*/
@@ -341,7 +341,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			//Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
 			
-			Literal sequenceL= sequence == null ? null : f.createLiteral(sequence);
+			Literal sequenceL= sequence == null ? null : f.createLiteral(sequence.trim());
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			statements.add(f.createStatement(linker, RDF.TYPE, linkerType, graphIRI));
@@ -358,22 +358,26 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			if (l.getType() == LinkerType.PROTEIN) {
 				if (((ProteinLinker)l).getUniProtId() != null) {
 					IRI hasUniProtId = f.createIRI(hasUniprotIdPredicate);
-					Literal uniProt = f.createLiteral(((ProteinLinker)l).getUniProtId());
+					Literal uniProt = f.createLiteral(((ProteinLinker)l).getUniProtId().trim());
 					statements.add(f.createStatement(linker, hasUniProtId, uniProt, graphIRI));
 				}
 				if (((ProteinLinker)l).getPdbIds() != null) {
 				    for (String pdbId: ((ProteinLinker)l).getPdbIds()) {
-				        IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
-				        Literal pdb = f.createLiteral(pdbId);
-				        statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
+				    	if (pdbId != null) {
+					        IRI hasPDBId = f.createIRI(hasPdbIdPredicate);
+					        Literal pdb = f.createLiteral(pdbId.trim());
+					        statements.add(f.createStatement(linker, hasPDBId, pdb, graphIRI));
+				    	}
 				    }
 				}
 			}
 			
 			if (l.getUrls() != null) {
 				for (String url: l.getUrls()) {
-					Literal urlLit = f.createLiteral(url);
-					statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+					if (url != null) {
+						Literal urlLit = f.createLiteral(url.trim());
+						statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+					}
 				}
 			}
 			
@@ -400,8 +404,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			Literal date = f.createLiteral(new Date());
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription().trim());
 			
 			List<Statement> statements = new ArrayList<Statement>();
 			
@@ -434,7 +438,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (l.getPubChemId() != null) {
 			existing = getLinkerByField(l.getPubChemId().toString(), hasPubChemIdProperty, "long");
 		} else if (l.getInChiKey() != null) {
-			existing = getLinkerByField(l.getInChiKey(), hasInchiKeyProperty, "string");
+			existing = getLinkerByField(l.getInChiKey().trim(), hasInchiKeyProperty, "string");
 		}
 	
 		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
@@ -462,8 +466,8 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI linkerType = f.createIRI(linkerTypePredicate);
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());
-			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription().trim());
 			/*Literal description = null;
 			if (l.getDescription() != null)
 				description = f.createLiteral(l.getDescription());*/
@@ -476,25 +480,25 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				pubChemId =  f.createLiteral(l.getPubChemId());
 			Literal inchiSequence = null;
 			if (l.getInChiSequence() != null)
-				inchiSequence = f.createLiteral(l.getInChiSequence());
+				inchiSequence = f.createLiteral(l.getInChiSequence().trim());
 			Literal inchiKey = null;
 			if (l.getInChiKey() != null)
-				inchiKey = f.createLiteral(l.getInChiKey());
+				inchiKey = f.createLiteral(l.getInChiKey().trim());
 			Literal imageUrl = null;
 			if (l.getImageURL() != null) 
-				imageUrl =  f.createLiteral(l.getImageURL());
+				imageUrl =  f.createLiteral(l.getImageURL().trim());
 			Literal mass = null;
 			if (l.getMass() != null) 
 				mass =  f.createLiteral(l.getMass());
 			Literal molecularFormula = null;
 			if (l.getMolecularFormula() != null)
-				molecularFormula = f.createLiteral(l.getMolecularFormula());
+				molecularFormula = f.createLiteral(l.getMolecularFormula().trim());
 			Literal smiles = null;
 			if (l.getSmiles() != null) 
-			    smiles = f.createLiteral(l.getSmiles());
+			    smiles = f.createLiteral(l.getSmiles().trim());
 			Literal iupacName = null;
 			if (l.getIupacName() != null) 
-				iupacName = f.createLiteral(l.getIupacName());
+				iupacName = f.createLiteral(l.getIupacName().trim());
 		
 			//Literal opensRingValue = l.getOpensRing() == null ? f.createLiteral(2) : f.createLiteral(l.getOpensRing());
 			Literal date = f.createLiteral(new Date());
@@ -550,8 +554,10 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			
 			if (l.getUrls() != null) {
 				for (String url: l.getUrls()) {
-					Literal urlLit = f.createLiteral(url);
-					statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+					if (url != null) {
+						Literal urlLit = f.createLiteral(url.trim());
+						statements.add(f.createStatement(linker, hasUrl, urlLit, graphIRI));
+					}
 				}
 			}
 			
@@ -579,8 +585,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			List<Statement> statements = new ArrayList<Statement>();
 			IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
 			IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
-			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName());
-			Literal comment = l.getDescription() == null ? f.createLiteral("") : f.createLiteral(l.getDescription());
+			Literal label = l.getName() == null ? f.createLiteral("") : f.createLiteral(l.getName().trim());
+			Literal comment = l.getDescription() == null ? f.createLiteral("") : 
+				f.createLiteral(l.getDescription().trim());
 			IRI linkerType = f.createIRI(linkerTypePredicate);
 			IRI hasLinkerType = f.createIRI(hasTypePredicate);
 			Literal type = f.createLiteral(l.getType().name());

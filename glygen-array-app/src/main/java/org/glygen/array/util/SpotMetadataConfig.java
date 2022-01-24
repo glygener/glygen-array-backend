@@ -30,9 +30,6 @@ public class SpotMetadataConfig {
     String commentDescription;
     
     @Value("${Template}")
-    String templateName;
-    
-    @Value("${Template}")
     String template;
 
     public String getTemplate() {
