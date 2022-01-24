@@ -28,8 +28,22 @@ public class SpotMetadataConfig {
     
     @Value("${Comment}")
     String commentDescription;
+    
+    @Value("${Template}")
+    String templateName;
+    
+    @Value("${Template}")
+    String template;
 
-    /**
+    public String getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+
+	/**
      * @return the formulationSolutionDescription
      */
     public String getFormulationSolutionDescription() {
