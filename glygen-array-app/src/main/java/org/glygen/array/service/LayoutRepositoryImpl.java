@@ -219,7 +219,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             List<Feature> features = s.getFeatures();
             for (Feature feat : features) {
                 statements = new ArrayList<Statement>();
-                Feature existing = featureRepository.getFeatureByLabel(feat.getName(), user);
+                Feature existing = null;
+                if (feat.getUri() != null) {
+                    existing = feat;
+                } else {
+                    existing = featureRepository.getFeatureByLabel(feat.getName(), user);
+                }
                 if (existing != null) {
                     IRI feature = f.createIRI(existing.getUri());
                     statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));
@@ -1787,9 +1792,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 LevelUnit concentration = new LevelUnit();
                 Feature featureInContext = null;
                 while (statements3.hasNext()) {
-                    Statement st3 = statements2.next();
+                    Statement st3 = statements3.next();
                     if (st3.getPredicate().equals(hasConcentration)) {
-                        Value value = st2.getObject();   // this is the concentration URI
+                        Value value = st3.getObject();   // this is the concentration URI
                         String conURI = value.stringValue();
                         IRI concentrationIRI = f.createIRI(conURI);
                         RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(concentrationIRI, null, null, graphIRI);
@@ -1805,7 +1810,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         }
                          
                     } else if (st3.getPredicate().equals(hasFeature)) {
-                        Value val = st2.getObject();
+                        Value val = st3.getObject();
                         featureInContext = featureRepository.getFeatureFromURI(val.stringValue(), user);
                     }  
                 }
@@ -1828,14 +1833,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 Double ratio = null;
                 Feature featureInContext = null;
                 while (statements3.hasNext()) {
-                    Statement st3 = statements2.next();
+                    Statement st3 = statements3.next();
                     if (st3.getPredicate().equals(hasRatio)) {
-                        Value value = st2.getObject();
+                        Value value = st3.getObject();
                         if (value != null && value.stringValue() != null && !value.stringValue().isEmpty()) {
                             ratio = Double.parseDouble(value.stringValue());
                         }   
                     } else if (st3.getPredicate().equals(hasFeature)) {
-                        Value val = st2.getObject();
+                        Value val = st3.getObject();
                         featureInContext = featureRepository.getFeatureFromURI(val.stringValue(), user);
                     }  
                 }

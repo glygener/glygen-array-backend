@@ -236,7 +236,6 @@ public class ExtendedGalFileParser {
                     Spot spot = new Spot();
                     spot.setColumn(x);
                     spot.setRow(y);
-                    spot.setMetadata(addSpotMetadata(name + "metadata-" + x + ":" + y, splitted, errorList));
                     spot.setFlag(printingFlags);
                     
                     if (!mixture) {
@@ -253,12 +252,17 @@ public class ExtendedGalFileParser {
                 
                     blockLayout.getSpots().add(spot);
                     spot.setFeatures(spotFeatures);
-                
+                    Map<Feature, LevelUnit> featureConcentrationMap = new HashMap<Feature, LevelUnit>();
+                    spot.setFeatureConcentrationMap(featureConcentrationMap);
+                    Map<Feature, Double> featureRatioMap = new HashMap<Feature, Double>();
+                    spot.setFeatureRatioMap(featureRatioMap);
+                    
                     if (glycanName.equals("0") || glycanName.equals("\"0\"") 
                             || glycanName.equalsIgnoreCase("empty") || glycanName.equalsIgnoreCase("\"empty\"")) {
                         spot.setFeatures(null);    //what to set for empty spots ==> no feature assigned for the spot
                     }
                     else {
+                        spot.setMetadata(addSpotMetadata(name + "metadata-" + x + ":" + y, splitted, errorList));
                         if (mixture) {
                             String[] concentrations = concentration.split("\\|\\|");
                             String[] featureIds = featureId.split("\\|\\|");
@@ -275,14 +279,14 @@ public class ExtendedGalFileParser {
                             		levelUnits[i++] = addLevel(c, levels); 
                             	}
                             }
+                            
                             int i = 0;
                             for (String fId: featureIds) {
                                 Feature feature = new Feature();
                                 feature.setInternalId(fId.trim());
                                 spotFeatures.add(feature);
                                 if (levelUnits != null && i < levelUnits.length)
-                                    spot.setConcentration(fId, levelUnits[i]);
-                               
+                                    featureConcentrationMap.put(feature, levelUnits[i]);
                                 i++;
                             }
                             try {
@@ -304,11 +308,12 @@ public class ExtendedGalFileParser {
                                     error.addError(new ObjectError ("ratio", codes, null, "NotValid"));
                                     errorList.add(error);
                                 } else {
+                                    
                                     int k=0;
                                     for (String r: ratios) {
                                         try {
                                             Double rD = Double.parseDouble(r);
-                                            spot.setRatio(featureIds[k++], rD);
+                                            featureRatioMap.put(spotFeatures.get(k++), rD);
                                         } catch (NumberFormatException e) {
                                             logger.warn("Ratio is incorrect:" + ratio, e);
                                             ErrorMessage error = new ErrorMessage("Ratio is incorrect: " + x +"-" + y);
@@ -326,8 +331,9 @@ public class ExtendedGalFileParser {
                                 spotFeatures.add(featureMap.get(featureId));
                                 spot.setFeatures(spotFeatures);
                                 spot.setGroup(featureGroupMap.get(featureId));
-                                if (levelUnit != null)
-                                    spot.setConcentration(featureId, levelUnit);    
+                                if (levelUnit != null) {
+                                    spot.getFeatureConcentrationMap().put(featureMap.get(featureId), levelUnit);  
+                                }
                             } else {
                                 Feature feature = new Feature();
                                 feature.setInternalId(featureId);
@@ -348,7 +354,7 @@ public class ExtendedGalFileParser {
                                 	spot.setGroup(groupId++);
                                 }
                                 if (levelUnit != null)
-                                    spot.setConcentration(featureId, levelUnit);  
+                                    spot.getFeatureConcentrationMap().put(feature, levelUnit);  
                                 
                                 featureGroupMap.put(featureId, spot.getGroup());
                                 featureMap.put(featureId, feature);

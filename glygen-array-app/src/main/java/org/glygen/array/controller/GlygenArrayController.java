@@ -320,14 +320,14 @@ public class GlygenArrayController {
 			if (existing != null) {
 				// duplicate
 				errorMessage.addError(new ObjectError("name", "Duplicate"));
-				throw new GlycanExistsException("A block layout with the same name already exists", errorMessage);
+				throw new IllegalArgumentException("A block layout with the same name already exists", errorMessage);
 			} 
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
 		
 		// check if features exist
-		List<org.glygen.array.persistence.rdf.Feature> checked = new ArrayList<>();
+		Map<String, org.glygen.array.persistence.rdf.Feature> checkedMap = new HashMap<>();
 		if (layout.getSpots() != null) {
 		    for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
 		       /* if (s.getRatioMap() != null) {
@@ -346,13 +346,36 @@ public class GlygenArrayController {
 		            List<org.glygen.array.persistence.rdf.Feature> newList = new ArrayList<org.glygen.array.persistence.rdf.Feature>();
 		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
 		                try {
-		                    if (!checked.contains(f)) {
+		                    if (checkedMap.get(f.getInternalId()) == null) {
                                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", user);
-                                checked.add(f);
+                                checkedMap.put(f.getInternalId(), existing);
                                 if (existing == null) {
                                     errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
                                 } else {
                                     newList.add(existing);
+                                    if (s.getFeatureConcentrationMap().get(f) != null) {
+                                        LevelUnit con = s.getFeatureConcentrationMap().get(f);
+                                        s.getFeatureConcentrationMap().put(existing, con);
+                                        s.getFeatureConcentrationMap().remove(f);
+                                    }
+                                    
+                                    if (s.getFeatureRatioMap().get(f) != null) {
+                                        Double ratio = s.getFeatureRatioMap().get(f);
+                                        s.getFeatureRatioMap().put(existing, ratio);
+                                        s.getFeatureRatioMap().remove(f);
+                                    }
+                                }
+		                    } else {
+		                        newList.add(checkedMap.get(f.getInternalId()));
+		                        if (s.getFeatureConcentrationMap().get(f) != null) {
+                                    LevelUnit con = s.getFeatureConcentrationMap().get(f);
+                                    s.getFeatureConcentrationMap().put(checkedMap.get(f.getInternalId()), con);
+                                    s.getFeatureConcentrationMap().remove(f);
+                                }
+		                        if (s.getFeatureRatioMap().get(f) != null) {
+                                    Double ratio = s.getFeatureRatioMap().get(f);
+                                    s.getFeatureRatioMap().put(checkedMap.get(f.getInternalId()), ratio);
+                                    s.getFeatureRatioMap().remove(f);
                                 }
 		                    }
                         } catch (SparqlException | SQLException e) {
@@ -360,10 +383,10 @@ public class GlygenArrayController {
                         }
 		            }
 		            s.setFeatures(newList);
-		        }
-		        if (s.getMetadata() == null) {
-		            errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
-		        }
+		            if (s.getMetadata() == null) {
+	                    errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
+	                }
+		        }   
 		    }
 		}
 		
@@ -3022,8 +3045,7 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Import slide layout from uploaded GAL file")
     @RequestMapping(value = "/addSlideLayoutFromGalFile", method=RequestMethod.POST, 
-            consumes={"application/json", "application/xml"},
-            produces={"application/json", "application/xml"})
+            consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide layout"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -3092,18 +3114,21 @@ public class GlygenArrayController {
                                     errorMessage.addError(new ObjectError("blockLayout", "NotFound"));
                                     throw new IllegalArgumentException("Block layout cannot be extracted from the GAL file", errorMessage);
                                 }
-                                List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
+                                
                                 // repeat the same block layout for all blocks
-                                for (int i=0; i < width; i++) {
-                                    for (int j=0; j < height; j++) {
-                                        org.glygen.array.persistence.rdf.Block block = new org.glygen.array.persistence.rdf.Block();
-                                        block.setRow(j);
-                                        block.setColumn(i);
-                                        block.setBlockLayout(blockLayout);
-                                        blocks.add(block);
+                                if (width > 0 && height > 0) { 
+                                    List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
+                                    for (int i=0; i < width; i++) {
+                                        for (int j=0; j < height; j++) {
+                                            org.glygen.array.persistence.rdf.Block block = new org.glygen.array.persistence.rdf.Block();
+                                            block.setRow(j);
+                                            block.setColumn(i);
+                                            block.setBlockLayout(blockLayout);
+                                            blocks.add(block);
+                                        }
                                     }
+                                    layout.setBlocks(blocks);
                                 }
-                                layout.setBlocks(blocks);
                             } else {
                                 // error
                                 errorMessage = new ErrorMessage();
@@ -3134,11 +3159,14 @@ public class GlygenArrayController {
                         }
                     } catch (IllegalArgumentException e) {
                         // need to ignore duplicate errors
-                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage && e.getCause().getMessage() != null && e.getCause().getMessage().contains("Duplicate") && e.getCause().getMessage().contains("name")) {
-                            // do nothing
-                        } else if (e.getCause() != null && e.getCause() instanceof ErrorMessage){
-                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
-                                errorMessage.addError(err);
+                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                            ErrorMessage error = (ErrorMessage) e.getCause();
+                            for (ObjectError err: error.getErrors()) {
+                                if (err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
+                                    // ignore
+                                } else {
+                                    errorMessage.addError(err);
+                                }
                             }
                         } else {
                             throw e;
