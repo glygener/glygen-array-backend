@@ -18,6 +18,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SlideLayoutEntity;
@@ -267,10 +268,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                             IRI concentrationContext = f.createIRI(concentrationContextURI);
                             statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
                             statements.add(f.createStatement(concentrationContext, hasFeature, feature, graphIRI));
+                            statements.add(f.createStatement(concentrationContext, hasConcentration, concentrationL, graphIRI));
                             statements.add(f.createStatement(concentrationL, hasConcentrationValue, concentrationValue, graphIRI));
                             statements.add(f.createStatement(concentrationL, hasConcentrationUnit, concentrationUnit, graphIRI));
                         }
-                        statements.add(f.createStatement(spot, hasConcentration, concentrationL, graphIRI));
+                        //statements.add(f.createStatement(spot, hasConcentration, concentrationL, graphIRI));
                     }
                 } else {
                     // error
@@ -408,33 +410,50 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		IRI blockLayout = f.createIRI(uri);
 		IRI graphIRI = f.createIRI(graph);
 		IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
-		IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
-		IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
 		
 		RepositoryResult<Statement> statements4 = sparqlDAO.getStatements(blockLayout, hasSpot, null, graphIRI);
 		while (statements4.hasNext()) {
 			Statement st = statements4.next();
-			if (st.getPredicate().equals(hasFeature)) {
-				Value v = st.getObject();
-				String featureURI = v.stringValue();
-				IRI feature = f.createIRI(featureURI);
-				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(feature, null, null, graphIRI);
-				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-			} else if (st.getPredicate().equals(hasConcentration)) {
-				Value v = st.getObject();
-				String conURI = v.stringValue();
-				IRI concentration = f.createIRI(conURI);
-				RepositoryResult<Statement> statements5 = sparqlDAO.getStatements(concentration, null, null, graphIRI);
-				sparqlDAO.removeStatements(Iterations.asList(statements5), graphIRI);
-			}
+			String spotURI = st.getObject().stringValue(); // get the spot and delete it
+			deleteSpotByURI (spotURI, graph);
 		}
 		
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(blockLayout, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
 	}
 	
-	
-	boolean canDeleteBlockLayout (String blockURI, String graph) throws SparqlException, SQLException { 
+	private void deleteSpotByURI(String spotURI, String graph) throws RepositoryException, SparqlException {
+	    ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
+        IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
+        IRI spot = f.createIRI(spotURI);
+        IRI graphIRI = f.createIRI(graph);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(spot, hasConcentrationContext, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next(); 
+            String contextURI = st.getObject().stringValue();
+            // delete all triples for the context
+            IRI concentrationContext = f.createIRI(contextURI);
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(concentrationContext, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+        }
+        
+        statements = sparqlDAO.getStatements(spot, hasRatioContext, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next(); 
+            String contextURI = st.getObject().stringValue();
+            // delete all triples for the context
+            IRI ratioContext = f.createIRI(contextURI);
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(ratioContext, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+        }
+        
+        statements = sparqlDAO.getStatements(spot, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+    }
+
+    boolean canDeleteBlockLayout (String blockURI, String graph) throws SparqlException, SQLException { 
         boolean canDelete = true;
         
         StringBuffer queryBuf = new StringBuffer();
@@ -1108,8 +1127,18 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	void extractFromStatements (RepositoryResult<Statement> statements, SlideLayout slideLayoutObject, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+	    String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            if (slideLayoutObject.getUri() != null && slideLayoutObject.getUri().contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
+        }
 	    ValueFactory f = sparqlDAO.getValueFactory();
         
+	    IRI graphIRI = f.createIRI(graph);
         IRI hasBlock = f.createIRI(ontPrefix + "has_block");
         IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
         IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
@@ -1119,6 +1148,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
         IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         while (statements.hasNext()) {
             Statement st = statements.next();
@@ -1168,6 +1203,37 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 String blockURI = v.stringValue();
                 Block block = getBlock (blockURI, loadAll, user);
                 slideLayoutObject.getBlocks().add(block);
+            } else if (st.getPredicate().equals(hasFile)) {
+                Value value = st.getObject();
+                if (!value.stringValue().startsWith("http"))
+                    continue;
+                // retrieve file details
+                FileWrapper file = new FileWrapper();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasFileName)) {
+                        Value val = st2.getObject();
+                        file.setIdentifier(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFileFormat)) {
+                        Value val = st2.getObject();
+                        file.setFileFormat(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFolder)) {
+                        Value val = st2.getObject();
+                        file.setFileFolder(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                        Value val = st2.getObject();
+                        file.setOriginalName(val.stringValue());
+                    }  else if (st2.getPredicate().equals(hasSize)) {
+                        Value val = st2.getObject();
+                        try {
+                            file.setFileSize(Long.parseLong(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.warn ("file size is not valid");
+                        }
+                    }
+                }
+                slideLayoutObject.setFile(file);    
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 slideLayoutObject.setIsPublic(true);
@@ -1935,10 +2001,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         IRI concentrationContext = f.createIRI(concentrationContextURI);
                         statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
                         statements.add(f.createStatement(concentrationContext, hasFeature, feature, graphIRI));
+                        statements.add(f.createStatement(concentrationContext, hasConcentration, concentrationL, graphIRI));
                         statements.add(f.createStatement(concentrationL, hasConcentrationValue, concentrationValue, graphIRI));
                         statements.add(f.createStatement(concentrationL, hasConcentrationUnit, concentrationUnit, graphIRI));
                     }
-                    statements.add(f.createStatement(spot, hasConcentration, concentrationL, graphIRI));
+                    
                 }
 				
 				

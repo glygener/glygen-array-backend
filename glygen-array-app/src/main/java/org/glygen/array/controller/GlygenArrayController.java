@@ -2710,7 +2710,14 @@ public class GlygenArrayController {
 			return new Confirmation("Block Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete block layout " + blockLayoutId);
-		} 
+		} catch (IllegalArgumentException e) {
+		    // in use, we cannot delete
+		    ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+		    errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+		    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+		    errorMessage.addError(new ObjectError("blockLayout", "InUse"));
+		    throw new IllegalArgumentException(e.getMessage(), errorMessage);
+		}
 	}
 	
 	@ApiOperation(value = "Delete given feature from the user's list")
@@ -2730,7 +2737,14 @@ public class GlygenArrayController {
 			return new Confirmation("Feature deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete feature " + featureId, e);
-		} 
+		} catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("feature", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
 	}
 	
 	@ApiOperation(value = "Delete given glycan from the user's list")
@@ -2750,7 +2764,14 @@ public class GlygenArrayController {
 			return new Confirmation("Glycan deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete glycan " + glycanId, e);
-		} 
+		} catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("glycan", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
 	}
 	
 	@ApiOperation(value = "Delete given linker from the user's list")
@@ -2770,7 +2791,14 @@ public class GlygenArrayController {
 			return new Confirmation("Linker deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete linker " + linkerId, e);
-		} 
+		} catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("linker", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
 	}
 	
 	@ApiOperation(value = "Delete given slide layout")
@@ -2790,7 +2818,14 @@ public class GlygenArrayController {
 			return new Confirmation("Slide Layout deleted successfully", HttpStatus.OK.value());
 		} catch (SparqlException | SQLException e) {
 			throw new GlycanRepositoryException("Cannot delete slide layout " + layoutId, e);
-		} 
+		} catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("slideLayout", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
 	}
 	
 	@ApiOperation(value = "Retrieve block layout with the given id")
@@ -3195,6 +3230,7 @@ public class GlygenArrayController {
                     fileWrapper.setFileFolder(uploadDir + File.separator + id);
                     fileWrapper.setFileSize(newFile.length());
                     fileWrapper.setIdentifier(uploadedFileName);
+                    fileWrapper.setFileFormat("GAL");    //TODO do we need to standardize this?
                     
                     importResult.getLayout().setFile(fileWrapper);
                     layoutRepository.updateSlideLayout(importResult.getLayout(), user);

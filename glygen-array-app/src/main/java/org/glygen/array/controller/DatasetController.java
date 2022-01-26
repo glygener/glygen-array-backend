@@ -4101,7 +4101,14 @@ public class DatasetController {
             return new Confirmation("Printed slide deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printed slide " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("printedSlide", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete the given array dataset from the user's list")
@@ -4654,7 +4661,14 @@ public class DatasetController {
             return new Confirmation("Sample deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete sample " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given image analysis software from the user's list")
@@ -4701,7 +4715,14 @@ public class DatasetController {
             return new Confirmation("Image analysis software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete image analysis software " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given slide metadata from the user's list")
@@ -4748,7 +4769,14 @@ public class DatasetController {
             return new Confirmation("Slide metadata deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete slide metadata " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given data processing software from the user's list")
@@ -4795,7 +4823,14 @@ public class DatasetController {
             return new Confirmation("Data processing software deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete data processing software " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given scanner from the user's list")
@@ -4842,7 +4877,14 @@ public class DatasetController {
             return new Confirmation("Scanner deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete scanner " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given printer from the user's list")
@@ -4889,7 +4931,14 @@ public class DatasetController {
             return new Confirmation("Printer deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given printrun from the user's list")
@@ -4936,7 +4985,14 @@ public class DatasetController {
             return new Confirmation("Print run deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete printer " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given assay metadata from the user's list")
@@ -4983,7 +5039,14 @@ public class DatasetController {
             return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete assay metadata " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Delete given spot metadata from the user's list")
@@ -5030,7 +5093,14 @@ public class DatasetController {
             return new Confirmation("Assay deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete spot metadata " + id, e);
-        } 
+        } catch (IllegalArgumentException e) {
+            // in use, we cannot delete
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("metadata", "InUse"));
+            throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
     }
     
     @ApiOperation(value = "Retrieve slide with the given id")
