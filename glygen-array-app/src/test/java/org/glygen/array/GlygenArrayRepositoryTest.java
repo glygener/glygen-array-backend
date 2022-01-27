@@ -2,7 +2,6 @@ package org.glygen.array;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,10 +25,10 @@ import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.Range;
+import org.glygen.array.persistence.rdf.RatioConcentration;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
-import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
@@ -317,9 +316,15 @@ public class GlygenArrayRepositoryTest {
 			// add features first
 			for (Spot s: blockLayout.getSpots()) {
 			    for (Feature f: s.getFeatures()) {
-			        featureRepository.addFeature(f, user);
+			        String uri = featureRepository.addFeature(f, user);
+			        String id = uri.substring(uri.lastIndexOf("/")+1);
+			        f.setId(id);
+			        RatioConcentration rc = new RatioConcentration();
+			        rc.setConcentration(s.getFeatureConcentrationMap().get(f));
+			        s.setRatioConcentration(id, rc);
 			    }
 			}
+			
 			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
 			BlockLayout existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
@@ -330,10 +335,16 @@ public class GlygenArrayRepositoryTest {
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
 			
 			// delete the glycans and linker and the block layout
-			linkerRepository.deleteLinker(linkerId1, user);
-			linkerRepository.deleteLinker(linkerId2, user);
-			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			// add features first
+            for (Spot s: blockLayout.getSpots()) {
+                for (Feature f: s.getFeatures()) {
+                    featureRepository.deleteFeature(f.getId(), user);
+                }
+            }
+			//linkerRepository.deleteLinker(linkerId1, user);
+			//linkerRepository.deleteLinker(linkerId2, user);
+			//glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			//glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
 			layoutRepository.deleteBlockLayout (blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			
 			existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);

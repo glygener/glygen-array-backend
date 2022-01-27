@@ -38,6 +38,7 @@ import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.RatioConcentration;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
@@ -231,7 +232,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     statements.add(f.createStatement(spot, hasFeature, feature, graphIRI));
                     Double ratio = s.getFeatureRatioMap().get(feat);
                     if (ratio == null) {
-                        ratio = s.getRatio(existing.getId());
+                        RatioConcentration rc = s.getRatioConcentration(existing.getId());
+                        if (rc != null) {
+                            ratio = rc.getRatio();
+                        }
                     }
                     if (ratio != null) {
                         // add ratio for the feature
@@ -248,7 +252,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     // add the concentration
                     LevelUnit concentration = s.getFeatureConcentrationMap().get(feat);
                     if (concentration == null) {
-                        concentration = s.getConcentration(existing.getId());
+                        RatioConcentration rc = s.getRatioConcentration(existing.getId());
+                        if (rc != null) {
+                            concentration = rc.getConcentration();
+                        }
                     }
                     if (concentration != null) {
                         // add concentration for the feature
@@ -1881,7 +1888,13 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     }  
                 }
                 if (concentration.getConcentration() != null && featureInContext != null) {
-                    s.setConcentration(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), concentration);
+                    String featureId = featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1);
+                    RatioConcentration rc = s.getRatioConcentration(featureId);
+                    if (rc == null) {
+                        rc = new RatioConcentration();
+                    }
+                    rc.setConcentration(concentration);
+                    s.setRatioConcentration(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), rc);
                 }
             } else if (st2.getPredicate().equals(hasFeature)) {
 				Value v = st2.getObject();
@@ -1911,7 +1924,13 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     }  
                 }
                 if (ratio != null && featureInContext != null) {
-                    s.setRatio(featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1), ratio);
+                    String featureId = featureInContext.getUri().substring(featureInContext.getUri().lastIndexOf("/")+1);
+                    RatioConcentration rc = s.getRatioConcentration(featureId);
+                    if (rc == null) {
+                        rc = new RatioConcentration();
+                    }
+                    rc.setRatio(ratio);
+                    s.setRatioConcentration(featureId, rc);
                 }
             } else if (st2.getPredicate().equals(hasSpotMetadata)) {
                 Value uriValue = st2.getObject();
@@ -1964,7 +1983,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				
 				Double ratio = s.getFeatureRatioMap().get(feat);
                 if (ratio == null) {
-                    ratio = s.getRatio(feat.getId());
+                    RatioConcentration rc = s.getRatioConcentration(feat.getId());
+                    if (rc != null) {
+                        ratio = rc.getRatio();
+                    }
                 }
                 if (ratio != null) {
                     // add ratio for the feature
@@ -1981,7 +2003,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 // add the concentration
                 LevelUnit concentration = s.getFeatureConcentrationMap().get(feat);
                 if (concentration == null) {
-                    concentration = s.getConcentration(feat.getId());
+                    RatioConcentration rc = s.getRatioConcentration(feat.getId());
+                    if (rc != null) {
+                        concentration = rc.getConcentration();
+                    }
                 }
                 if (concentration != null) {
                     // add concentration for the feature

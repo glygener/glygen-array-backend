@@ -23,8 +23,7 @@ public class Spot {
 	
 	SpotMetadata metadata;
 	
-	Map<String, Double> ratioMap = new HashMap<>(); // featureId to ratio in percentages
-	Map<String, LevelUnit> concentrationMap = new HashMap<>(); // featureId to concentration
+	Map<String, RatioConcentration> ratioConcentrationMap = new HashMap<>(); // featureId to concentration
 	Map<Feature, Double> featureRatioMap = new HashMap<Feature, Double>();
 	Map<Feature, LevelUnit> featureConcentrationMap = new HashMap<Feature, LevelUnit>();
 	
@@ -37,22 +36,14 @@ public class Spot {
         this.featureRatioMap = featureRatioMap;
     }
 	
-	//@JsonAnyGetter
-	public Map<String, Double> getRatioMap() {
-        return ratioMap;
-    }
-	
-	public void setRatioMap(Map<String, Double> ratioMap) {
-        this.ratioMap = ratioMap;
-    }
 	
 	@JsonAnySetter
-	public void setRatio (String key, Double value) {
-	    this.ratioMap.put(key, value);
+	public void setRatioConcentration (String key, RatioConcentration value) {
+	    this.ratioConcentrationMap.put(key, value);
 	}
 	
-	public Double getRatio (String featureId) {
-	    return this.ratioMap.get(featureId);
+	public RatioConcentration getRatioConcentration (String featureId) {
+	    return this.ratioConcentrationMap.get(featureId);
 	}
 	
 	public void setFlag(String flag) {
@@ -151,29 +142,6 @@ public class Spot {
     }
 
     /**
-     * @return the concentrationMap
-     */
-    public Map<String, LevelUnit> getConcentrationMap() {
-        return concentrationMap;
-    }
-
-    /**
-     * @param concentrationMap the concentrationMap to set
-     */
-    public void setConcentrationMap(Map<String, LevelUnit> concentrationMap) {
-        this.concentrationMap = concentrationMap;
-    }
-    
-    @JsonAnySetter
-    public void setConcentration (String key, LevelUnit value) {
-        this.concentrationMap.put(key, value);
-    }
-    
-    public LevelUnit getConcentration (String featureId) {
-        return this.concentrationMap.get(featureId);
-    }
-
-    /**
      * @return the featureConcentrationMap
      */
     @JsonIgnore
@@ -186,5 +154,19 @@ public class Spot {
      */
     public void setFeatureConcentrationMap(Map<Feature, LevelUnit> featureConcentrationMap) {
         this.featureConcentrationMap = featureConcentrationMap;
+    }
+
+    /**
+     * @return the ratioConcentrationMap
+     */
+    public Map<String, RatioConcentration> getRatioConcentrationMap() {
+        return ratioConcentrationMap;
+    }
+
+    /**
+     * @param ratioConcentrationMap the ratioConcentrationMap to set
+     */
+    public void setRatioConcentrationMap(Map<String, RatioConcentration> ratioConcentrationMap) {
+        this.ratioConcentrationMap = ratioConcentrationMap;
     }
 }

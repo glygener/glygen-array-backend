@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.RatioConcentration;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Measurement;
-import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.Block;
 import org.grits.toolbox.glycanarray.om.model.FileWrapper;
 import org.grits.toolbox.glycanarray.om.model.GlycanArrayExperiment;
@@ -60,10 +60,10 @@ public class RawdataParser {
                     f.setId(featureId ++);
                     f.setName(feature.getId());
                     spotData.setFeature(f);
-                    LevelUnit con = spot.getConcentration(feature.getId());
-                    if (con != null) {
-                        spotData.setConcentration(con.getConcentration());
-                        spotData.setProbeLevelUnit(con.getLevelUnit());
+                    RatioConcentration rc = spot.getRatioConcentration(feature.getId());
+                    if (rc != null && rc.getConcentration() != null) {
+                        spotData.setConcentration(rc.getConcentration().getConcentration());
+                        spotData.setProbeLevelUnit(rc.getConcentration().getLevelUnit());
                     }
                 }
             }
