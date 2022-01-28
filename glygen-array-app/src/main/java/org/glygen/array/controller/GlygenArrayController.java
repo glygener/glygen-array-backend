@@ -471,7 +471,7 @@ public class GlygenArrayController {
             }
 	    } else {
 	        // other types, i.e. controls
-	        if (feature.getLinker() == null) {
+	        if (feature.getLinker() == null && !feature.getType().equals(FeatureType.NEGATIVE_CONTROL)) {
                 errorMessage.addError(new ObjectError("linker", "NoEmpty"));
                 
 	        }
@@ -515,8 +515,10 @@ public class GlygenArrayController {
 		    try {
 		        if (feature.getLinker() != null) {
         		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
-            		    feature.getLinker().setId(addLinker(feature.getLinker(), 
-            		            feature.getLinker().getType().name().startsWith("UNKNOWN"), p));
+        		        if (feature.getLinker() instanceof Linker) {
+        		            ((Linker)feature.getLinker()).setId(addLinker((Linker)feature.getLinker(), 
+            		            ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), p));
+        		        } 
         		    } else {
         		        // check to make sure it is an existing linker
         		        String linkerId = feature.getLinker().getId();
