@@ -603,6 +603,22 @@ public class MetadataOntologyParser {
                         + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
                         + " column: " + (cell.getColumnIndex() + 1));
             }
+        } else if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+            String example = cell.getNumericCellValue() + "";
+            if (!example.equals("")) {
+                if (level == 1) {
+                    childDescriptor.setExample(example);
+                } else if (level == 0){
+                    descriptor.setExample(example);
+                } else if (level == 2){
+                    subDescriptor.setExample(example);
+                }
+            } else {
+                warningOut.println("WARNING: No value for Example provided on sheet: "
+                        + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)
+                        + " column: " + (cell.getColumnIndex() + 1));
+            }
+            
         } else {
             errorOut.println("ERROR: Invalid value for example on sheet: "
                     + sheet.getSheetName() + " at row: " + (cell.getRowIndex() + 1)

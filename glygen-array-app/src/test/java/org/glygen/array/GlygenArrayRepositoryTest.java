@@ -432,10 +432,10 @@ public class GlygenArrayRepositoryTest {
 			assertTrue(count >= 1);
 			
 			// delete the glycans and linker and the block layout and slide layout
-			linkerRepository.deleteLinker(linkerId1, user);
-			linkerRepository.deleteLinker(linkerId2, user);
-			glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			//linkerRepository.deleteLinker(linkerId1, user);
+			//linkerRepository.deleteLinker(linkerId2, user);
+			//glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+			//glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
 			layoutRepository.deleteBlockLayout(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			layoutRepository.deleteSlideLayout(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/")+1), user);
 			

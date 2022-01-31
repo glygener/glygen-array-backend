@@ -548,26 +548,11 @@ public class UtilityController {
         try {
             String uri = MetadataTemplateRepository.templatePrefix + id.trim();
             MetadataTemplate metadataTemplate = templateRepository.getTemplateFromURI(uri);
-            // if it is an assay template, reset the order
-          /*  if (metadataTemplate != null && metadataTemplate.getType() == MetadataTemplateType.ASSAY) {
-                // reset orders to 0 for optional ones
-                List<DescriptionTemplate> allMandatory = new ArrayList<DescriptionTemplate>();
-                for (DescriptionTemplate d: metadataTemplate.getDescriptors()) {
-                    if (d.isMandatory())
-                        allMandatory.add(d);
-                    else 
-                        d.setOrder(0);
-                }
-                Collections.sort(allMandatory);
-                int i=1;
-                for (DescriptionTemplate d: allMandatory) {
-                    d.setOrder(i++);
-                }
-               
-            } else {*/
+            if (metadataTemplate != null) {
                 Collections.sort(metadataTemplate.getDescriptors());
-            //}
-            processMandateGroups(metadataTemplate.getDescriptors());
+                processMandateGroups(metadataTemplate.getDescriptors());
+            }
+            
             return metadataTemplate;
         } catch (SparqlException e) {
             logger.error("Error retrieving templates for type\" + type", e);

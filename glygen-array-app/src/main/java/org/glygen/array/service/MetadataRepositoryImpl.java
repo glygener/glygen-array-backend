@@ -482,9 +482,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                             } else {
                                 descriptor = getDescriptionFromURI (descriptorURI, graph);
                             }
-                            if (descriptor.isGroup()) {
+                            if (descriptor != null && descriptor.isGroup()) {
                                 metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
-                            } else {
+                            } else if (descriptor != null){
                                 metadataObject.getDescriptors().add((Descriptor) descriptor);
                             }
                         }
@@ -511,54 +511,60 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         IRI notRecorded = f.createIRI(notRecordedPredicate);
         IRI notApplicable = f.createIRI(notApplicablePredicate);
         
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
-        while (statements.hasNext()) {
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, RDF.TYPE, null, graphIRI);
+        if (statements.hasNext()) {
             Statement st = statements.next();
-            if (st.getPredicate().equals(RDF.TYPE)) {
-                String value = st.getObject().stringValue();
-                if (value.contains("simple")) {
-                    descriptorObject = new Descriptor();
-                    descriptorObject.setUri(uri);
-                    descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-                } else if (value.contains("complex")) {
-                    descriptorObject = new DescriptorGroup();
-                    descriptorObject.setUri(uri);
-                    descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-                }
-            } else if (st.getPredicate().equals(RDFS.LABEL)) {
-                String value = st.getObject().stringValue();
-                descriptorObject.setName(value);
-            } else if (st.getPredicate().equals(hasKey)) {
-                // retrieve descriptorTemplate from template repository
-                String tempURI = st.getObject().stringValue();
-                DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
-                descriptorObject.setKey(key);
-                if (key != null) descriptorObject.setName(key.getName());
-            } else if (st.getPredicate().equals(hasValue)) {
-                String val = st.getObject().stringValue();
-                ((Descriptor)descriptorObject).setValue(val);
-            } else if (st.getPredicate().equals(hasUnit)) {
-                String val = st.getObject().stringValue();
-                ((Descriptor)descriptorObject).setUnit(val);
-            } else if (st.getPredicate().equals(notRecorded)) {
-                String val = st.getObject().stringValue();
-                descriptorObject.setNotRecorded(Boolean.parseBoolean(val));
-            } else if (st.getPredicate().equals(notApplicable)) {
-                String val = st.getObject().stringValue();
-                descriptorObject.setNotApplicable(Boolean.parseBoolean(val));
-            } else if (st.getPredicate().equals(hasDescriptor)) {
-                String descURI = st.getObject().stringValue();
-                Description d = getDescriptionFromURI(descURI, graph);
-                if (d.isGroup()) 
-                    descriptorGroupList.add(d);
-                else 
-                    descriptorList.add(d);
-            } else if (st.getPredicate().equals(hasOrder)) {
-                String val = st.getObject().stringValue();
-                try {
-                    descriptorObject.setOrder(Integer.parseInt(val));
-                } catch (NumberFormatException e) {
-                    logger.warn("order is not valid for " + descriptorObject.getUri(), e);
+            String value = st.getObject().stringValue();
+            if (value.contains("simple")) {
+                descriptorObject = new Descriptor();
+                descriptorObject.setUri(uri);
+                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            } else if (value.contains("complex")) {
+                descriptorObject = new DescriptorGroup();
+                descriptorObject.setUri(uri);
+                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            }
+        }
+        
+        if (descriptorObject != null) {
+            statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                if (st.getPredicate().equals(RDFS.LABEL)) {
+                    String value = st.getObject().stringValue();
+                    descriptorObject.setName(value);
+                } else if (st.getPredicate().equals(hasKey)) {
+                    // retrieve descriptorTemplate from template repository
+                    String tempURI = st.getObject().stringValue();
+                    DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
+                    descriptorObject.setKey(key);
+                    if (key != null) descriptorObject.setName(key.getName());
+                } else if (st.getPredicate().equals(hasValue)) {
+                    String val = st.getObject().stringValue();
+                    ((Descriptor)descriptorObject).setValue(val);
+                } else if (st.getPredicate().equals(hasUnit)) {
+                    String val = st.getObject().stringValue();
+                    ((Descriptor)descriptorObject).setUnit(val);
+                } else if (st.getPredicate().equals(notRecorded)) {
+                    String val = st.getObject().stringValue();
+                    descriptorObject.setNotRecorded(Boolean.parseBoolean(val));
+                } else if (st.getPredicate().equals(notApplicable)) {
+                    String val = st.getObject().stringValue();
+                    descriptorObject.setNotApplicable(Boolean.parseBoolean(val));
+                } else if (st.getPredicate().equals(hasDescriptor)) {
+                    String descURI = st.getObject().stringValue();
+                    Description d = getDescriptionFromURI(descURI, graph);
+                    if (d.isGroup()) 
+                        descriptorGroupList.add(d);
+                    else 
+                        descriptorList.add(d);
+                } else if (st.getPredicate().equals(hasOrder)) {
+                    String val = st.getObject().stringValue();
+                    try {
+                        descriptorObject.setOrder(Integer.parseInt(val));
+                    } catch (NumberFormatException e) {
+                        logger.warn("order is not valid for " + descriptorObject.getUri(), e);
+                    }
                 }
             }
         }

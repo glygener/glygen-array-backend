@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-74402A5D9A8314E3FC3329102D9F85A1"/>
+	<rdfs:domain rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-858F8C621480BE4E39404D3A60232004"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-74402A5D9A8314E3FC3329102D9F85A1">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-858F8C621480BE4E39404D3A60232004">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-39905559E89F5CFDAEDB65033414CED1"/>
+	<owl:unionOf rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-DB67F864645020AB2E85D067EB831F30"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-39905559E89F5CFDAEDB65033414CED1">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-DB67F864645020AB2E85D067EB831F30">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-5A9615FB39962131445CC9C12DF661D7"/>
+	<rdf:rest rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-0D2A16F0DA9A2A4C0858AFECEF202B4E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-5A9615FB39962131445CC9C12DF661D7">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-0D2A16F0DA9A2A4C0858AFECEF202B4E">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-1CC481170F7F9CAB9E4D5E65B68F4445"/>
+	<rdfs:domain rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-E00EDE5B45BC4AEE5A8B1BFBDEA0CD81"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-1CC481170F7F9CAB9E4D5E65B68F4445">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-E00EDE5B45BC4AEE5A8B1BFBDEA0CD81">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-0374BE011BD50BC5A35F033E2EBDAD45"/>
+	<owl:unionOf rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-5F50E69E54C4E0654D27D612BF30948C"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-0374BE011BD50BC5A35F033E2EBDAD45">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-5F50E69E54C4E0654D27D612BF30948C">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-25FBD123242F7B9470321973A7B933D5"/>
+	<rdf:rest rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-01767FD8002E2FAC87DA701D826613B3"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-25FBD123242F7B9470321973A7B933D5">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-01767FD8002E2FAC87DA701D826613B3">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -216,20 +216,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A8B2ABB82115C38C7DD5198B3319F6F5"/>
+	<rdfs:domain rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-FFB45178C8E58E6CE2A6BA081F618A77"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A8B2ABB82115C38C7DD5198B3319F6F5">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-FFB45178C8E58E6CE2A6BA081F618A77">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A1437AFDFC7CD8016DB7FDBD16E5478F"/>
+	<owl:unionOf rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-D458AE1BCCC6AD94186AEE52C388C33E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-A1437AFDFC7CD8016DB7FDBD16E5478F">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-D458AE1BCCC6AD94186AEE52C388C33E">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-7EF2E02A0279898F6F84E71D2E7DDD92"/>
+	<rdf:rest rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-51186F75919DE80FBD0C86F15B9EC910"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-aab557e77fd449e5b039d0d2ccfb029b-7EF2E02A0279898F6F84E71D2E7DDD92">
+<rdf:Description rdf:nodeID="genid-6cbda74ae6a9447c909acacc305c306a-51186F75919DE80FBD0C86F15B9EC910">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -617,7 +617,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext4">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>34.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Biospecimen#Organism_details</template:has_url>
@@ -940,7 +940,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext14">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Biospecimen#Perturbation</template:has_url>
@@ -1348,7 +1348,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Non-commercial</template:has_url>
@@ -1494,7 +1494,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Sample_reference</template:has_url>
@@ -1904,7 +1904,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Molecule#Purity</template:has_url>
@@ -2411,7 +2411,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Non-commercial</template:has_url>
@@ -2557,7 +2557,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Sample_reference</template:has_url>
@@ -2984,7 +2984,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext76">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Micro-organism#Deactivation_method</template:has_url>
@@ -3135,7 +3135,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext81">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Micro-organism#Preparation_method</template:has_url>
@@ -3543,7 +3543,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext93">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Non-commercial</template:has_url>
@@ -3689,7 +3689,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Sample_reference</template:has_url>
@@ -4694,7 +4694,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext124">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Antibody#Expression</template:has_url>
@@ -5600,7 +5600,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext151">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Antibody#Purity</template:has_url>
@@ -6008,7 +6008,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext163">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Non-commercial</template:has_url>
@@ -6154,7 +6154,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext167">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Sample_reference</template:has_url>
@@ -6712,7 +6712,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext184">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>123.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Expression__system</template:has_url>
@@ -6746,7 +6746,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext185">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>1043.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Expression__system</template:has_url>
@@ -6865,7 +6865,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext189">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Expression__system</template:has_url>
@@ -7101,7 +7101,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext196">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
@@ -7391,7 +7391,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext204">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Tag</template:has_url>
@@ -7765,7 +7765,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext216">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Chemical_label</template:has_url>
@@ -7950,7 +7950,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext222">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Other_modification</template:has_url>
@@ -8143,7 +8143,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext228">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Purity</template:has_url>
@@ -8551,7 +8551,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext240">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Non-commercial</template:has_url>
@@ -8697,7 +8697,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext244">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Sample_reference</template:has_url>
@@ -9174,24 +9174,43 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext409">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
+	<rdfs:label>Manual Printing</rdfs:label>
+	<rdfs:comment>Manual printing without robot</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor409">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor410">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Manual Printing</rdfs:label>
+	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Describe the printing procedure</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext409">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor409"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor410"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor409">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor410">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </rdf:Description>
 
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
+	<template:cardinality>1</template:cardinality>
+	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
+	<template:has_example></template:has_example>
+	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
+	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Printer#Manual_Printing</template:has_url>
+	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
+	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
+	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
+</rdf:Description>
+
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext409">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext410"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -9208,35 +9227,35 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext409"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Delivery method</rdfs:label>
 	<rdfs:comment>Description of the method used to deliver the features to the slide</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor412">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of the printer (contact, non-contact)</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor411"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor412"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection412">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor411">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-selection411"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor412">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-selection412"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection412">
 	<rdfs:label>selection</rdfs:label>
 	<template:has_selection>pin-spotting</template:has_selection>
 	<template:has_selection>inkjet</template:has_selection>
@@ -9245,7 +9264,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_selection>pipetting</template:has_selection>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
@@ -9258,7 +9277,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
 	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup7-XOR2"/>
 </rdf:Description>
 
@@ -9268,35 +9287,35 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_id>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext411"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext412"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor412">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor413">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other Type</rdfs:label>
 	<rdfs:comment>Any other delivery type</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor412"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor413"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor412">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor413">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
@@ -9309,29 +9328,29 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext412"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext413"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor413">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor414">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Description of the method</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor413"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor414"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor413">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor414">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example> Acoustic liquid handler</template:has_example>
@@ -9343,46 +9362,46 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext413"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext414"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor415">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor416">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor415"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor416"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection415">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection416">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#namespace"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor415">
-	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-selection415"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor416">
+	<template:has_namespace rdf:resource="http://purl.org/gadr/template#Namespace-selection416"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection415">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Namespace-selection416">
 	<rdfs:label>selection</rdfs:label>
 	<template:has_selection>PMID</template:has_selection>
 	<template:has_selection>DOI</template:has_selection>
 	<template:has_selection>URL</template:has_selection>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
@@ -9394,29 +9413,29 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext415"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext416"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor416">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor417">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor416"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor417"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor416">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor417">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
@@ -9428,8 +9447,8 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext416"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext415">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext417"/>
 	<template:cardinality>n</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -9441,29 +9460,29 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext414"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext415"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor417">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor418">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Number of tips</rdfs:label>
 	<rdfs:comment>Number of tips used by the printer</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor417"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor418"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor417">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor418">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -9475,29 +9494,29 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext417"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext418"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor418">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor419">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type of dispensing tips</rdfs:label>
 	<rdfs:comment>Type of tip used to dispense the material</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor418"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor419"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor418">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor419">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#token"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -9509,8 +9528,8 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext418"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext411">
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext419"/>
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
 	<template:has_example></template:has_example>
@@ -9523,28 +9542,28 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata7">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext410"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext411"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext420">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor419">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor420">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the printing hardware</rdfs:comment>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
-	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor419"/>
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext420">
+	<template:has_descriptor rdf:resource="http://purl.org/gadr/template#Descriptor420"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor419">
+<rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor420">
 	<template:has_namespace rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext420">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
 	<template:has_example></template:has_example>
@@ -9557,7 +9576,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata7">
-	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext419"/>
+	<template:has_description_context rdf:resource="http://purl.org/gadr/template#DescriptionContext420"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata8">
@@ -9680,7 +9699,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext805">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>10.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Fluorescence</template:has_url>
@@ -9782,7 +9801,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext808">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>0.9</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Fluorescence</template:has_url>
@@ -9816,7 +9835,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext809">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>400.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Fluorescence</template:has_url>
@@ -9850,7 +9869,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext810">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>65536.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Fluorescence</template:has_url>
@@ -9921,7 +9940,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext812">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>10.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Colorimetric</template:has_url>
@@ -9989,7 +10008,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext814">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>85.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Colorimetric</template:has_url>
@@ -10023,7 +10042,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext815">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>400.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Colorimetric</template:has_url>
@@ -10057,7 +10076,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext816">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>65536.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Scanner#Colorimetric</template:has_url>
@@ -10213,6 +10232,23 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Slide#Type</template:has_url>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup9-XOR1">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1201">
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup9-XOR1"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup9-XOR1">
+	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+	<rdfs:label>Substrate type</rdfs:label>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1201">
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -10247,6 +10283,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Slide#Other_type</template:has_url>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup9-XOR1"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -10436,6 +10473,23 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Slide#Commerical_source</template:has_url>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup9-XOR2">
+	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1203">
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup9-XOR2"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup9-XOR2">
+	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_xor>
+	<rdfs:label>Source</rdfs:label>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_id>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1203">
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -10625,6 +10679,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Slide#Non-commercial_source</template:has_url>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup9-XOR2"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">4</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -10885,7 +10940,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1603">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>16.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Main_Page</template:has_url>
@@ -12218,7 +12273,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2416">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>120.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Assay#Enzymatic_treatment</template:has_url>
@@ -12254,7 +12309,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2417">
 	<template:cardinality>1</template:cardinality>
 	<template:is_required rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_required>
-	<template:has_example></template:has_example>
+	<template:has_example>21.0</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_metadata/Assay#Enzymatic_treatment</template:has_url>
