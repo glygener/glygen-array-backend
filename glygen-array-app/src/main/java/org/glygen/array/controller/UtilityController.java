@@ -552,6 +552,13 @@ public class UtilityController {
                 Collections.sort(metadataTemplate.getDescriptors());
                 processMandateGroups(metadataTemplate.getDescriptors());
             }
+            if (metadataTemplate == null) {
+                ErrorMessage errorMessage = new ErrorMessage("Template not found");
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("template", "NotFound"));
+                throw new IllegalArgumentException("Invalid Input: Not a valid template information", errorMessage);
+            }
             
             return metadataTemplate;
         } catch (SparqlException e) {
