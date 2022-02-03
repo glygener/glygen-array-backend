@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-89DE0D894A599D0F240E133265C3653C"/>
+	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-267383ADA8545B88CA921B983A4CE9A7"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-89DE0D894A599D0F240E133265C3653C">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-267383ADA8545B88CA921B983A4CE9A7">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-C2944ADC04944F58125B021A2FAF2035"/>
+	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-C973CC3C4E7BDCC150607432C26B8AA4"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-C2944ADC04944F58125B021A2FAF2035">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-C973CC3C4E7BDCC150607432C26B8AA4">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-34B4E7D30A71B80605ACF3EC98CE4CEF"/>
+	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-9DE71176E663DC8F954D558D7B35CD8A"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-34B4E7D30A71B80605ACF3EC98CE4CEF">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-9DE71176E663DC8F954D558D7B35CD8A">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-17BB4D4D32C9D36164F6867A30857376"/>
+	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-988923F5B56A3D9248BF6179359AF422"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-17BB4D4D32C9D36164F6867A30857376">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-988923F5B56A3D9248BF6179359AF422">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-72E315E37924B0166C4163306F82AD7B"/>
+	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-FC55A0975BD3EF6F29E5CDF3F196D723"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-72E315E37924B0166C4163306F82AD7B">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-FC55A0975BD3EF6F29E5CDF3F196D723">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-FB0A06FE436323BB4A62B9337BA17144"/>
+	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-EF5CCFC590B72EE7846931272C23224E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-FB0A06FE436323BB4A62B9337BA17144">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-EF5CCFC590B72EE7846931272C23224E">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -216,20 +216,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-D4E134B7AE27572E7C463FBDB0228432"/>
+	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-504D20FE9CC641B175BEE609045DC2AE"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-D4E134B7AE27572E7C463FBDB0228432">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-504D20FE9CC641B175BEE609045DC2AE">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-276BC64473C48F205E4A77D570B6E981"/>
+	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-8148EE8681025E908088C33851ED3151"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-276BC64473C48F205E4A77D570B6E981">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-8148EE8681025E908088C33851ED3151">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-9DD77EDC55986BC5E4893A391A54C976"/>
+	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-D005F9B13E4DC32F377A0FA4E3E40239"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-f88abf4b14db47b0a81353788b46e54f-9DD77EDC55986BC5E4893A391A54C976">
+<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-D005F9B13E4DC32F377A0FA4E3E40239">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -1046,17 +1046,17 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup2-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup2-OR31">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext17">
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup2-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup2-OR31"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup2-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup2-OR31">
 	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_xor>
-	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">31</template:has_id>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext17">
@@ -1094,7 +1094,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup2-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup2-OR31"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -2109,17 +2109,17 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup3-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup3-OR31">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup3-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup3-OR31"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup3-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup3-OR31">
 	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_xor>
-	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">31</template:has_id>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
@@ -2157,7 +2157,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup3-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup3-OR31"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -3241,17 +3241,17 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup4-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup4-OR31">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup4-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup4-OR31"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup4-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup4-OR31">
 	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_xor>
-	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">31</template:has_id>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
@@ -3289,7 +3289,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup4-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup4-OR31"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -5706,17 +5706,17 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup5-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup5-OR31">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext154">
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup5-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup5-OR31"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup5-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup5-OR31">
 	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_xor>
-	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">31</template:has_id>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext154">
@@ -5754,7 +5754,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup5-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup5-OR31"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -8249,17 +8249,17 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup6-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup6-OR31">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#mandate_group"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext231">
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup6-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup6-OR31"/>
 </rdf:Description>
 
-<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup6-OR1">
+<rdf:Description rdf:about="http://purl.org/gadr/template#mandateGroup6-OR31">
 	<template:is_xor rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_xor>
-	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_id>
+	<template:has_id rdf:datatype="http://www.w3.org/2001/XMLSchema#int">31</template:has_id>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext231">
@@ -8297,7 +8297,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
 	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample#Commercial</template:has_url>
-	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup6-OR1"/>
+	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup6-OR31"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
