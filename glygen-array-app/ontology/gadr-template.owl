@@ -363,6 +363,21 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#has_display_name -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_display_name">
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/descriptor"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/template#description_context"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#has_example -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/template#has_example">

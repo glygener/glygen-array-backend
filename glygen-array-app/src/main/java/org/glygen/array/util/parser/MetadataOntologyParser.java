@@ -53,7 +53,8 @@ class Config {
     int mirage = 12;
     int groupName = 14;
     int review = 17;
-    int totalCols = 18;
+    int displayLabel = 18;
+    int totalCols = 19;
 }
 
 public class MetadataOntologyParser {
@@ -264,7 +265,9 @@ public class MetadataOntologyParser {
                                     readNotRecorded(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
                                 } else if (cell.getColumnIndex() == config.review) {
                                     readReview(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
-                                } 
+                                } else if (cell.getColumnIndex() == config.displayLabel) {
+                                    readDisplayLabel(cell, descriptor, childDescriptor, subDescriptor, sheet, level);
+                                }
                                 else {
                                     continue;
                                 }
@@ -295,6 +298,24 @@ public class MetadataOntologyParser {
                         childDescriptor.setReview(true);
                     } else if (level == 0){
                         descriptor.setReview(true);
+                    }
+                }
+            }
+        }   
+    }
+    
+    private void readDisplayLabel(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor,
+            Sheet sheet, int level) {
+        if (cell != null && !cell.getStringCellValue().isEmpty()) {
+            if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
+                String label = cell.getRichStringCellValue().getString();
+                if (label != null && !label.trim().isEmpty()) {
+                    if (level == 2) {
+                        subDescriptor.setDisplayLabel(label);
+                    } else if (level == 1) {
+                        childDescriptor.setDisplayLabel(label);
+                    } else if (level == 0){
+                        descriptor.setDisplayLabel(label);
                     }
                 }
             }
@@ -992,6 +1013,7 @@ public class MetadataOntologyParser {
     private String addDescriptionToOntology(Model model, ValueFactory f, DescriptionTemplate description, int metadataId) {
         String uri = prefix + "DescriptionContext" + descriptorId;
         IRI descriptionContext = f.createIRI(uri);
+        IRI hasDisplayLabel = f.createIRI(prefix + "has_display_label");
         if (description instanceof DescriptorTemplate) {
             model.add(f.createStatement(descriptionContext, RDF.TYPE, f.createIRI(prefix + "simple_description_context")));
             String descriptorURI = prefix + "Descriptor" + descriptorId;
@@ -1001,6 +1023,8 @@ public class MetadataOntologyParser {
             model.add(f.createStatement(descriptor, RDFS.LABEL, f.createLiteral(description.getName())));
             if (description.getDescription() != null)
                 model.add(f.createStatement(descriptor, RDFS.COMMENT, f.createLiteral(description.getDescription())));
+            if (description.getDisplayLabel() != null)
+                model.add(f.createStatement(descriptor, hasDisplayLabel, f.createLiteral(description.getDisplayLabel())));
             model.add(f.createStatement(descriptionContext, hasDescriptor, descriptor));
             if (((DescriptorTemplate) description).getUnits() != null && !((DescriptorTemplate) description).getUnits().isEmpty()) {
                 IRI hasUnit = f.createIRI(dataprefix + "has_unit_of_measurement");
@@ -1045,7 +1069,8 @@ public class MetadataOntologyParser {
             model.add(f.createStatement(descriptionContext, RDFS.LABEL, f.createLiteral(description.getName())));
             if (description.getDescription() != null)
                 model.add(f.createStatement(descriptionContext, RDFS.COMMENT, f.createLiteral(description.getDescription())));
-            
+            if (description.getDisplayLabel() != null)
+                model.add(f.createStatement(descriptionContext, hasDisplayLabel, f.createLiteral(description.getDisplayLabel())));
             for (DescriptionTemplate d: ((DescriptorGroupTemplate) description).getDescriptors()) {
                 descriptorId++;
                 String descURI = addDescriptionToOntology(model, f, d, metadataId);
@@ -1065,6 +1090,7 @@ public class MetadataOntologyParser {
         IRI allowNotRecorded = f.createIRI(prefix + "allows_not_recorded");
         IRI allowNotApplicable = f.createIRI(prefix + "allows_not_applicable");
         IRI allowReview = f.createIRI(prefix + "allows_review");
+        
         Literal card = description.getMaxOccurrence() == 1 ? f.createLiteral("1"): f.createLiteral("n");
         Literal required = f.createLiteral(description.isMandatory());
         model.add(f.createStatement(descriptionContext, cardinality, card));
@@ -1172,6 +1198,7 @@ public class MetadataOntologyParser {
         description.setAllowNotRecorded(d.allowNotRecorded);
         description.setAllowNotApplicable(d.getAllowNotApplicable());
         description.setReview(d.review);
+        description.setDisplayLabel (d.displayLabel);
         return description;
         
     }
@@ -1196,6 +1223,7 @@ public class MetadataOntologyParser {
         Boolean allowNotRecorded = false;
         Boolean allowNotApplicable = false;
         Boolean review = false;
+        String displayLabel = "";
 
         /**
          * @return the name
@@ -1474,6 +1502,20 @@ public class MetadataOntologyParser {
          */
         public void setReview(Boolean review) {
             this.review = review;
+        }
+
+        /**
+         * @return the displayLabel
+         */
+        public String getDisplayLabel() {
+            return displayLabel;
+        }
+
+        /**
+         * @param displayLabel the displayLabel to set
+         */
+        public void setDisplayLabel(String displayLabel) {
+            this.displayLabel = displayLabel;
         }
 
     }

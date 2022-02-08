@@ -216,6 +216,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         IRI allowNotApplicable = f.createIRI(templatePrefix + "allows_not_applicable");
         IRI allowReview = f.createIRI(templatePrefix + "allows_review");
         IRI hasUnit = f.createIRI(GlygenArrayRepository.ontPrefix2 + "has_unit_of_measurement");
+        IRI hasDisplayLabel = f.createIRI(templatePrefix + "has_display_label");
         
         // get all statements
         statements = sparqlDAO.getStatements(descriptionContext, null, null, graphIRI);
@@ -227,6 +228,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 description.setName(st.getObject().stringValue());
             } else if (st.getPredicate().equals(RDFS.COMMENT)) {
                 description.setDescription(st.getObject().stringValue());
+            } else if (st.getPredicate().equals(hasDisplayLabel)) {
+                description.setDisplayLabel(st.getObject().stringValue());
             } else if (st.getPredicate().equals(hasDescriptor)) {
                 String descriptorURI = st.getObject().stringValue();
                 // get details of the descriptor
@@ -237,6 +240,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                         description.setName(st2.getObject().stringValue());
                     } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
                         description.setDescription(st2.getObject().stringValue());
+                    } else if (st.getPredicate().equals(hasDisplayLabel)) {
+                        description.setDisplayLabel(st.getObject().stringValue());
                     } else if (st2.getPredicate().equals(hasNamespace)) { 
                         Namespace namespace = new Namespace();
                         String namespaceURI = st2.getObject().stringValue();

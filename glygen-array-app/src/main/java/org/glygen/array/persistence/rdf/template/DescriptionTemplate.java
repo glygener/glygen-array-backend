@@ -23,6 +23,7 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
     Boolean allowNotRecorded = false;
     Boolean allowNotApplicable = false;
     Boolean review = false;
+    String displayLabel;
     
     public abstract boolean isGroup();
 
@@ -237,5 +238,19 @@ public abstract class DescriptionTemplate implements Comparable<DescriptionTempl
      */
     public void setReview(Boolean review) {
         this.review = review;
+    }
+
+    /**
+     * @return the displayLabel
+     */
+    public String getDisplayLabel() {
+        return displayLabel;
+    }
+
+    /**
+     * @param displayLabel the displayLabel to set
+     */
+    public void setDisplayLabel(String displayLabel) {
+        this.displayLabel = displayLabel;
     }
 }

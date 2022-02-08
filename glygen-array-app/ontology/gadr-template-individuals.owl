@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-267383ADA8545B88CA921B983A4CE9A7"/>
+	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0714973A77245C3137E3A4FA879D3498"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-267383ADA8545B88CA921B983A4CE9A7">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0714973A77245C3137E3A4FA879D3498">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-C973CC3C4E7BDCC150607432C26B8AA4"/>
+	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-B0913E657AC1CE0D2AD781754F8D0F1D"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-C973CC3C4E7BDCC150607432C26B8AA4">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-B0913E657AC1CE0D2AD781754F8D0F1D">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-9DE71176E663DC8F954D558D7B35CD8A"/>
+	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-F8B8D58AFC4FAAB8E0A73D7478475900"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-9DE71176E663DC8F954D558D7B35CD8A">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-F8B8D58AFC4FAAB8E0A73D7478475900">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-988923F5B56A3D9248BF6179359AF422"/>
+	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-2BF16F3C99FC8A836AC40581F0B1E21E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-988923F5B56A3D9248BF6179359AF422">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-2BF16F3C99FC8A836AC40581F0B1E21E">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-FC55A0975BD3EF6F29E5CDF3F196D723"/>
+	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-56A21B5E70204695404D90A665160D13"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-FC55A0975BD3EF6F29E5CDF3F196D723">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-56A21B5E70204695404D90A665160D13">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-EF5CCFC590B72EE7846931272C23224E"/>
+	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-123D52169FEDCE2F9B75609251915322"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-EF5CCFC590B72EE7846931272C23224E">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-123D52169FEDCE2F9B75609251915322">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -216,20 +216,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-504D20FE9CC641B175BEE609045DC2AE"/>
+	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0B7BDA71B4FFF7E06DE998BB1EBB9DF3"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-504D20FE9CC641B175BEE609045DC2AE">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0B7BDA71B4FFF7E06DE998BB1EBB9DF3">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-8148EE8681025E908088C33851ED3151"/>
+	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-943AEAB8320343FB0B0A416F0C6CD5DC"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-8148EE8681025E908088C33851ED3151">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-943AEAB8320343FB0B0A416F0C6CD5DC">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-D005F9B13E4DC32F377A0FA4E3E40239"/>
+	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-FE7DC27E13A58D996234DB41F19CCCBC"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-61a26e0c30f745ed9dbf8d44a9b2b2e0-D005F9B13E4DC32F377A0FA4E3E40239">
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-FE7DC27E13A58D996234DB41F19CCCBC">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -269,6 +269,26 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdfs:domain rdf:resource="http://purl.org/gadr/template#description_context"/>
 	<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
 	<rdfs:comment>A data property to store value of allowed occurance of a descriptor in a given conext.</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#has_display_name">
+	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-C0680FC3E33BA22C5E02B5AFBC315F05"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-C0680FC3E33BA22C5E02B5AFBC315F05">
+	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
+	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-5F6473BE45F00F24EACBEF66563B6091"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-5F6473BE45F00F24EACBEF66563B6091">
+	<rdf:first rdf:resource="http://purl.org/gadr/data/descriptor"/>
+	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0228CF0E5355FC0FF691C401AC7619EA"/>
+</rdf:Description>
+
+<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0228CF0E5355FC0FF691C401AC7619EA">
+	<rdf:first rdf:resource="http://purl.org/gadr/template#description_context"/>
+	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_example">
@@ -512,6 +532,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>The species of the origin</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1">
@@ -554,6 +575,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Biospecimen type</rdfs:label>
 	<rdfs:comment>Type of biospecimen (e.g. urine, serum, plasma)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2">
@@ -592,6 +614,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Organism details</rdfs:label>
 	<rdfs:comment>Details for the fluid origin for e.g. patient anonymised</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext4">
@@ -602,6 +625,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Age</rdfs:label>
 	<rdfs:comment>Age of the subject</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext4">
@@ -638,6 +662,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sex</rdfs:label>
 	<rdfs:comment>Sex of the subject</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext5">
@@ -686,6 +711,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Race</rdfs:label>
 	<rdfs:comment>Race of the subject</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext6">
@@ -729,6 +755,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Disease</rdfs:label>
 	<rdfs:comment>Disease that the fluid hosts was exposed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext8">
@@ -739,6 +766,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Name</rdfs:label>
 	<rdfs:comment>Name of the disease</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext8">
@@ -781,6 +809,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>ICD10</rdfs:label>
 	<rdfs:comment>ICD10 ID of the disease</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext9">
@@ -832,6 +861,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Perturbation</rdfs:label>
 	<rdfs:comment>Any modification the source of fluid was exposed to (radiation, medication)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -842,6 +872,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>A description of the perturbation (e.g. name of the medication)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext11">
@@ -872,6 +903,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>PMID, DOI or URL of relevant publications describing the fusion construct for the recombinant protein sample if known. </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext13">
@@ -882,6 +914,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext13">
@@ -927,6 +960,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext14">
@@ -983,6 +1017,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext16">
@@ -993,6 +1028,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext16">
@@ -1027,6 +1063,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext17">
@@ -1077,6 +1114,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext18">
@@ -1138,6 +1176,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext20">
@@ -1148,6 +1187,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the sample </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext20">
@@ -1182,6 +1222,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext21">
@@ -1216,6 +1257,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Date of preparation</rdfs:label>
 	<rdfs:comment>The date sample is prepared</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext22">
@@ -1250,6 +1292,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Description of the sample preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext23">
@@ -1280,6 +1323,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext25">
@@ -1290,6 +1334,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext25">
@@ -1335,6 +1380,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext26">
@@ -1382,6 +1428,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comment on the utilized method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext27">
@@ -1426,6 +1473,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample reference</rdfs:label>
 	<rdfs:comment>A reference that describes the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext29">
@@ -1436,6 +1484,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext29">
@@ -1481,6 +1530,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext30">
@@ -1524,6 +1574,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Database entry</rdfs:label>
 	<rdfs:comment>Entry of the sample in a reference database (e.g. Uniprot)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
@@ -1534,6 +1585,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database</rdfs:label>
 	<rdfs:comment>Name of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext32">
@@ -1568,6 +1620,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database URL</rdfs:label>
 	<rdfs:comment>Web link of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext33">
@@ -1602,6 +1655,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Id</rdfs:label>
 	<rdfs:comment>Identifier of the sample in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext34">
@@ -1636,6 +1690,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext35">
@@ -1683,6 +1738,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext36">
@@ -1722,6 +1778,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Origin</rdfs:label>
 	<rdfs:comment>Information if the molecule was synthetic</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext37">
@@ -1762,6 +1819,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Purity</rdfs:label>
 	<rdfs:comment>Information about the purity of the molecule</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext39">
@@ -1772,6 +1830,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>Percent value of purity</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext39">
@@ -1806,6 +1865,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method of  purity determination</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext40">
@@ -1836,6 +1896,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
@@ -1846,6 +1907,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext42">
@@ -1891,6 +1953,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext43">
@@ -1947,6 +2010,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Digital sequence</rdfs:label>
 	<rdfs:comment>Digital sequence of the molecule</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext45">
@@ -1957,6 +2021,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Format</rdfs:label>
 	<rdfs:comment>Sequence format (inchi, smiles, FASTA)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext45">
@@ -2003,6 +2068,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sequence</rdfs:label>
 	<rdfs:comment>Sequence as text</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext46">
@@ -2046,6 +2112,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext48">
@@ -2056,6 +2123,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext48">
@@ -2090,6 +2158,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext49">
@@ -2140,6 +2209,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext50">
@@ -2201,6 +2271,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
@@ -2211,6 +2282,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the sample </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext52">
@@ -2245,6 +2317,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext53">
@@ -2279,6 +2352,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Date of preparation</rdfs:label>
 	<rdfs:comment>The date sample is prepared</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext54">
@@ -2313,6 +2387,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Description of the sample preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext55">
@@ -2343,6 +2418,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext57">
@@ -2353,6 +2429,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext57">
@@ -2398,6 +2475,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext58">
@@ -2445,6 +2523,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comment on the utilized method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext59">
@@ -2489,6 +2568,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample reference</rdfs:label>
 	<rdfs:comment>A reference that describes the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext61">
@@ -2499,6 +2579,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext61">
@@ -2544,6 +2625,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext62">
@@ -2587,6 +2669,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Database entry</rdfs:label>
 	<rdfs:comment>Entry of the sample in a reference database (e.g. Uniprot)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext64">
@@ -2597,6 +2680,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database</rdfs:label>
 	<rdfs:comment>Name of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext64">
@@ -2631,6 +2715,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database URL</rdfs:label>
 	<rdfs:comment>Web link of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext65">
@@ -2665,6 +2750,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Id</rdfs:label>
 	<rdfs:comment>Identifier of the sample in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext66">
@@ -2699,6 +2785,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext67">
@@ -2746,6 +2833,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext68">
@@ -2781,6 +2869,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>Describe the organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext70">
@@ -2791,6 +2880,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>The species of the micro-organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext70">
@@ -2833,6 +2923,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the species </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext71">
@@ -2876,6 +2967,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Deactivation method</rdfs:label>
 	<rdfs:comment>Method used to deactivate/fix the organism (e.g. virus)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext73">
@@ -2886,6 +2978,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Description of the method used to deactivate/fix the organism </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext73">
@@ -2916,6 +3009,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext75">
@@ -2926,6 +3020,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext75">
@@ -2971,6 +3066,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext76">
@@ -3027,6 +3123,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Describe preparation method used</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext78">
@@ -3037,6 +3134,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method used to prepare </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext78">
@@ -3067,6 +3165,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
@@ -3077,6 +3176,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext80">
@@ -3122,6 +3222,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext81">
@@ -3178,6 +3279,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext83">
@@ -3188,6 +3290,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext83">
@@ -3222,6 +3325,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext84">
@@ -3272,6 +3376,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext85">
@@ -3333,6 +3438,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext87">
@@ -3343,6 +3449,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the sample </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext87">
@@ -3377,6 +3484,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext88">
@@ -3411,6 +3519,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Date of preparation</rdfs:label>
 	<rdfs:comment>The date sample is prepared</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext89">
@@ -3445,6 +3554,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Description of the sample preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext90">
@@ -3475,6 +3585,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
@@ -3485,6 +3596,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext92">
@@ -3530,6 +3642,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext93">
@@ -3577,6 +3690,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comment on the utilized method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext94">
@@ -3621,6 +3735,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample reference</rdfs:label>
 	<rdfs:comment>A reference that describes the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext96">
@@ -3631,6 +3746,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext96">
@@ -3676,6 +3792,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext97">
@@ -3719,6 +3836,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Database entry</rdfs:label>
 	<rdfs:comment>Entry of the sample in a reference database (e.g. Uniprot)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext99">
@@ -3729,6 +3847,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database</rdfs:label>
 	<rdfs:comment>Name of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext99">
@@ -3763,6 +3882,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database URL</rdfs:label>
 	<rdfs:comment>Web link of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext100">
@@ -3797,6 +3917,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Id</rdfs:label>
 	<rdfs:comment>Identifier of the sample in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext101">
@@ -3831,6 +3952,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext102">
@@ -3878,6 +4000,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext103">
@@ -3917,6 +4040,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Antibody name</rdfs:label>
 	<rdfs:comment>Name of the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext104">
@@ -3951,6 +4075,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of antibody preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext105">
@@ -4013,6 +4138,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other type</rdfs:label>
 	<rdfs:comment>Other type of antibody preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext106">
@@ -4048,6 +4174,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Clonality</rdfs:label>
 	<rdfs:comment>Monoclonal/polyclonal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext107">
@@ -4092,6 +4219,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Isotype</rdfs:label>
 	<rdfs:comment>Isotype of the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext108">
@@ -4156,6 +4284,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other isotype</rdfs:label>
 	<rdfs:comment>Other isotype of the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext109">
@@ -4191,6 +4320,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Subtype</rdfs:label>
 	<rdfs:comment>Subtype of the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext110">
@@ -4256,6 +4386,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other subtpe</rdfs:label>
 	<rdfs:comment>Other subtype of the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext111">
@@ -4291,6 +4422,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Epitope</rdfs:label>
 	<rdfs:comment>Known epitope for the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext112">
@@ -4325,6 +4457,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Host species</rdfs:label>
 	<rdfs:comment>Species in which the antibody was raised originally</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext113">
@@ -4367,6 +4500,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Target species</rdfs:label>
 	<rdfs:comment>Species in towards which the antibody was made</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext114">
@@ -4409,6 +4543,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Immunogen</rdfs:label>
 	<rdfs:comment>Immunogen description</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext115">
@@ -4439,6 +4574,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Expression</rdfs:label>
 	<rdfs:comment>If the antibody was recombinantly expressed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext117">
@@ -4449,6 +4585,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Cell free expression system</rdfs:label>
 	<rdfs:comment>Was a cell free expression system used?</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext117">
@@ -4496,6 +4633,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>Species of the expression system</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext119">
@@ -4506,6 +4644,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>Name of the species</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext119">
@@ -4548,6 +4687,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the expression system</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext120">
@@ -4596,6 +4736,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method used to express / purify the antibody</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext121">
@@ -4626,6 +4767,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext123">
@@ -4636,6 +4778,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext123">
@@ -4681,6 +4824,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext124">
@@ -4754,12 +4898,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Immunization</rdfs:label>
 	<rdfs:comment>If the antibody was prepared by immunization</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext126">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>Species the immunizes animal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext127">
@@ -4770,6 +4916,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>Name of species</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext127">
@@ -4812,6 +4959,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext128">
@@ -4859,6 +5007,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Age of subject</rdfs:label>
 	<rdfs:comment>Age of immunized animal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext129">
@@ -4895,6 +5044,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sex of subject</rdfs:label>
 	<rdfs:comment>Sex of immunized animal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext130">
@@ -4943,6 +5093,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Carrier conjugate</rdfs:label>
 	<rdfs:comment>If conjugated to a carrier, describe the carrier</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext131">
@@ -4977,6 +5128,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Adjuvant</rdfs:label>
 	<rdfs:comment>Any adjuvants used </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext132">
@@ -5011,6 +5163,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Dose</rdfs:label>
 	<rdfs:comment>Amount and route of administration</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext133">
@@ -5045,6 +5198,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Immunization schedule</rdfs:label>
 	<rdfs:comment>Immunization schedule</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext134">
@@ -5079,6 +5233,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time of blood draws after immunization</rdfs:label>
 	<rdfs:comment>Time from immunization after which blood was drawn</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext135">
@@ -5113,6 +5268,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Serum collection and processing</rdfs:label>
 	<rdfs:comment>Describe how serum was collected and processed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext136">
@@ -5147,6 +5303,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Post-collection processing</rdfs:label>
 	<rdfs:comment>Describe any post-collection processing steps performed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext137">
@@ -5191,12 +5348,14 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Natural immunity</rdfs:label>
 	<rdfs:comment>If the antibody was derived from a naturally immunized animal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext139">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>Species of the natural immunized animal</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext140">
@@ -5207,6 +5366,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>Species name</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext140">
@@ -5249,6 +5409,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext141">
@@ -5296,6 +5457,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Age of subject</rdfs:label>
 	<rdfs:comment>Age of organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext142">
@@ -5332,6 +5494,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sex of subject</rdfs:label>
 	<rdfs:comment>Sex of organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext143">
@@ -5380,6 +5543,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Serum collection and processing</rdfs:label>
 	<rdfs:comment>Describe how serum was collected and processed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext144">
@@ -5414,6 +5578,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Post-collection processing</rdfs:label>
 	<rdfs:comment>Describe any post-collection processing steps performed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext145">
@@ -5458,6 +5623,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Purity</rdfs:label>
 	<rdfs:comment>Information about the purity of the molecule</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext147">
@@ -5468,6 +5634,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>Percent value of purity</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext147">
@@ -5502,6 +5669,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method of purity determination</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext148">
@@ -5532,6 +5700,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext150">
@@ -5542,6 +5711,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext150">
@@ -5587,6 +5757,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext151">
@@ -5643,6 +5814,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext153">
@@ -5653,6 +5825,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext153">
@@ -5687,6 +5860,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext154">
@@ -5737,6 +5911,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext155">
@@ -5798,6 +5973,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext157">
@@ -5808,6 +5984,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the sample </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext157">
@@ -5842,6 +6019,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext158">
@@ -5876,6 +6054,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Date of preparation</rdfs:label>
 	<rdfs:comment>The date sample is prepared</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext159">
@@ -5910,6 +6089,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Description of the sample preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext160">
@@ -5940,6 +6120,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext162">
@@ -5950,6 +6131,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext162">
@@ -5995,6 +6177,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext163">
@@ -6042,6 +6225,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comment on the utilized method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext164">
@@ -6086,6 +6270,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample reference</rdfs:label>
 	<rdfs:comment>A reference that describes the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext166">
@@ -6096,6 +6281,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext166">
@@ -6141,6 +6327,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext167">
@@ -6184,6 +6371,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Database entry</rdfs:label>
 	<rdfs:comment>Entry of the sample in a reference database (e.g. Uniprot)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext169">
@@ -6194,6 +6382,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database</rdfs:label>
 	<rdfs:comment>Name of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext169">
@@ -6228,6 +6417,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database URL</rdfs:label>
 	<rdfs:comment>Web link of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext170">
@@ -6262,6 +6452,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Id</rdfs:label>
 	<rdfs:comment>Identifier of the sample in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext171">
@@ -6296,6 +6487,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext172">
@@ -6343,6 +6535,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext173">
@@ -6378,6 +6571,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext175">
@@ -6388,6 +6582,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>The species of the origin of the protein</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext175">
@@ -6430,6 +6625,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the origin (if applicable)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext176">
@@ -6477,6 +6673,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Protein name</rdfs:label>
 	<rdfs:comment>Name of the protein</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext177">
@@ -6511,6 +6708,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other names</rdfs:label>
 	<rdfs:comment>Synonyms for the protein name</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext178">
@@ -6542,6 +6740,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdfs:label>Expression  system</rdfs:label>
 	<rdfs:comment>
 Provide information if the protein is recombinantly expressed or synthesized.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext180">
@@ -6552,6 +6751,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Cell free expression system</rdfs:label>
 	<rdfs:comment>Was a cell free expression system used?</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext180">
@@ -6599,6 +6799,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Species</rdfs:label>
 	<rdfs:comment>Expression system based on an organism</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext182">
@@ -6609,6 +6810,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Species name</rdfs:label>
 	<rdfs:comment>Species of  expression system</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext182">
@@ -6651,6 +6853,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Strain</rdfs:label>
 	<rdfs:comment>Strain of the expression system</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext183">
@@ -6699,6 +6902,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Range start</rdfs:label>
 	<rdfs:comment>Number of the first amino acid that was expressed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext184">
@@ -6733,6 +6937,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Range end</rdfs:label>
 	<rdfs:comment>Number of the last amino acid that was expressed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext185">
@@ -6767,6 +6972,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method used to prepare the protein</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext186">
@@ -6797,6 +7003,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext188">
@@ -6807,6 +7014,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext188">
@@ -6852,6 +7060,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext189">
@@ -6899,6 +7108,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>Any additional comments</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext190">
@@ -6933,6 +7143,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>AA sequence</rdfs:label>
 	<rdfs:comment>Amino acid sequence in single letter format</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext191">
@@ -6993,6 +7204,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Natural souce</rdfs:label>
 	<rdfs:comment>Provide information if the protein is from natural souces.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext193">
@@ -7003,6 +7215,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Isolation method </rdfs:label>
 	<rdfs:comment>Method used to prepare the protein (including source)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext193">
@@ -7033,6 +7246,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext195">
@@ -7043,6 +7257,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext195">
@@ -7088,6 +7303,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext196">
@@ -7135,6 +7351,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>AA sequence</rdfs:label>
 	<rdfs:comment>Amino acid sequence in single letter format</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext197">
@@ -7179,6 +7396,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Tag</rdfs:label>
 	<rdfs:comment>Provide information if relevant for recombinant proteins (fusion constructs). </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext199">
@@ -7189,6 +7407,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Standard tag</rdfs:label>
 	<rdfs:comment>Name of the tag.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext199">
@@ -7258,6 +7477,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other tag</rdfs:label>
 	<rdfs:comment>Name of the tag if not in the standard tag list.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext200">
@@ -7293,6 +7513,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Position</rdfs:label>
 	<rdfs:comment>The Position of the fusion tag if known. </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext201">
@@ -7323,6 +7544,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>PMID, DOI or URL of relevant publications describing the fusion construct for the recombinant protein sample if known. </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext203">
@@ -7333,6 +7555,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext203">
@@ -7378,6 +7601,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext204">
@@ -7434,6 +7658,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Chemical label</rdfs:label>
 	<rdfs:comment>Provide information if the protein is directly labelled.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext206">
@@ -7444,6 +7669,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Name</rdfs:label>
 	<rdfs:comment>Name of the label.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext206">
@@ -7478,6 +7704,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>PubChem ID</rdfs:label>
 	<rdfs:comment>PubChem ID of the label</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext207">
@@ -7508,6 +7735,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reagent</rdfs:label>
 	<rdfs:comment>Reagent used for labeling</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext209">
@@ -7518,6 +7746,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext209">
@@ -7552,6 +7781,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext210">
@@ -7586,6 +7816,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Name</rdfs:label>
 	<rdfs:comment>Names of reagents used in labelling procedure. </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext211">
@@ -7620,6 +7851,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>URL with information of the Reagent (Pubchem, Vendor page)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext212">
@@ -7667,6 +7899,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Description of the labeling method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext213">
@@ -7697,6 +7930,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext215">
@@ -7707,6 +7941,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext215">
@@ -7752,6 +7987,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext216">
@@ -7808,6 +8044,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Other modification</rdfs:label>
 	<rdfs:comment>Describe any other modification of the protein.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext218">
@@ -7818,6 +8055,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Description of the modifciation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext218">
@@ -7852,6 +8090,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Position</rdfs:label>
 	<rdfs:comment>The Position of the modification.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext219">
@@ -7882,6 +8121,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>PMID, DOI or URL of relevant publications describing the modification. </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext221">
@@ -7892,6 +8132,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext221">
@@ -7937,6 +8178,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext222">
@@ -7993,6 +8235,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Purity</rdfs:label>
 	<rdfs:comment>Information about the purity of the protein</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext224">
@@ -8003,6 +8246,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>Value for purity</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext224">
@@ -8037,6 +8281,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method of purity determination</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext225">
@@ -8075,6 +8320,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext227">
@@ -8085,6 +8331,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext227">
@@ -8130,6 +8377,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext228">
@@ -8186,6 +8434,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext230">
@@ -8196,6 +8445,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the sample was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext230">
@@ -8230,6 +8480,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the sample.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext231">
@@ -8280,6 +8531,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext232">
@@ -8341,6 +8593,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the sample is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext234">
@@ -8351,6 +8604,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the sample </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext234">
@@ -8385,6 +8639,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext235">
@@ -8419,6 +8674,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Date of preparation</rdfs:label>
 	<rdfs:comment>The date sample is prepared</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext236">
@@ -8453,6 +8709,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Preparation method</rdfs:label>
 	<rdfs:comment>Description of the sample preparation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext237">
@@ -8483,6 +8740,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext239">
@@ -8493,6 +8751,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext239">
@@ -8538,6 +8797,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext240">
@@ -8585,6 +8845,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comment on the utilized method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext241">
@@ -8629,6 +8890,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample reference</rdfs:label>
 	<rdfs:comment>A reference that describes the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext243">
@@ -8639,6 +8901,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext243">
@@ -8684,6 +8947,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext244">
@@ -8727,6 +8991,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Database entry</rdfs:label>
 	<rdfs:comment>Entry of the sample in a reference database (e.g. Uniprot)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext246">
@@ -8737,6 +9002,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database</rdfs:label>
 	<rdfs:comment>Name of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext246">
@@ -8771,6 +9037,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Database URL</rdfs:label>
 	<rdfs:comment>Web link of the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext247">
@@ -8805,6 +9072,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Id</rdfs:label>
 	<rdfs:comment>Identifier of the sample in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext248">
@@ -8839,6 +9107,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment>Web link of the protein in the database</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext249">
@@ -8886,6 +9155,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the sample</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext250">
@@ -8921,6 +9191,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial Printer </rdfs:label>
 	<rdfs:comment>Robot used for the printing</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext402">
@@ -8931,6 +9202,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Vendor of the robot</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext402">
@@ -8965,6 +9237,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Model</rdfs:label>
 	<rdfs:comment>Model name and number of the robot</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext403">
@@ -9025,6 +9298,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Custom Printer</rdfs:label>
 	<rdfs:comment>If the instrument is not commercially available, provide sufficient information to indicate the instrument is comparable to a commercially available arrayer.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext405">
@@ -9035,6 +9309,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Description of the custom printer</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext405">
@@ -9065,6 +9340,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext407">
@@ -9075,6 +9351,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext407">
@@ -9120,6 +9397,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext408">
@@ -9177,6 +9455,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Manual Printing</rdfs:label>
 	<rdfs:comment>Manual printing without robot</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
@@ -9187,6 +9466,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Describe the printing procedure</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext410">
@@ -9231,6 +9511,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Delivery method</rdfs:label>
 	<rdfs:comment>Description of the method used to deliver the features to the slide</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
@@ -9241,6 +9522,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of the printer (contact, non-contact)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext412">
@@ -9305,6 +9587,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other Type</rdfs:label>
 	<rdfs:comment>Any other delivery type</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext413">
@@ -9340,6 +9623,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Description of the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext414">
@@ -9370,6 +9654,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
@@ -9380,6 +9665,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext416">
@@ -9425,6 +9711,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext417">
@@ -9472,6 +9759,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Number of tips</rdfs:label>
 	<rdfs:comment>Number of tips used by the printer</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext418">
@@ -9506,6 +9794,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type of dispensing tips</rdfs:label>
 	<rdfs:comment>Type of tip used to dispense the material</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext419">
@@ -9553,6 +9842,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments about the printing hardware</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext420">
@@ -9588,6 +9878,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Scanner</rdfs:label>
 	<rdfs:comment>Description of the scanner</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext802">
@@ -9598,6 +9889,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the Vendor of the scanner</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext802">
@@ -9632,6 +9924,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Model</rdfs:label>
 	<rdfs:comment>Model and model number of the scanner</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext803">
@@ -9675,6 +9968,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Fluorescence</rdfs:label>
 	<rdfs:comment>Fluorescence detection settings</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext805">
@@ -9685,6 +9979,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Resolution</rdfs:label>
 	<rdfs:comment>The resolution of the scanned image</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext805">
@@ -9720,6 +10015,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Excitation wavelength</rdfs:label>
 	<rdfs:comment>Wavelength or laser used for excitation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext806">
@@ -9754,6 +10050,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Emmission wavelength</rdfs:label>
 	<rdfs:comment>Wavelength or filter used for emission</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext807">
@@ -9788,6 +10085,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Power</rdfs:label>
 	<rdfs:comment>Laser power or light source power</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext808">
@@ -9822,6 +10120,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sensitivity</rdfs:label>
 	<rdfs:comment>PMT or Gain</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext809">
@@ -9856,6 +10155,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Linear Range</rdfs:label>
 	<rdfs:comment>Maximum intensity value</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext810">
@@ -9916,6 +10216,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Colorimetric</rdfs:label>
 	<rdfs:comment>Colorimetric detection settings</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext812">
@@ -9926,6 +10227,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Resolution</rdfs:label>
 	<rdfs:comment>The resolution of the scanned image</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext812">
@@ -9961,6 +10263,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Wavelength</rdfs:label>
 	<rdfs:comment>Wavelength or light source used for colorimetric detection</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext813">
@@ -9995,6 +10298,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Power</rdfs:label>
 	<rdfs:comment>light source power</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext814">
@@ -10029,6 +10333,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sensitivity</rdfs:label>
 	<rdfs:comment>PMT or Gain</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext815">
@@ -10063,6 +10368,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Linear Range</rdfs:label>
 	<rdfs:comment>Maximum intensity value</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext816">
@@ -10107,6 +10413,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Other Detection Method</rdfs:label>
 	<rdfs:comment>Other detection method settings</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext818">
@@ -10117,6 +10424,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Describe what was the detection method used to acquire the image</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext818">
@@ -10165,6 +10473,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>A general field for comments regarding the detector</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext819">
@@ -10204,6 +10513,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Microscope slide, planar surface or microtiter plates</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1201">
@@ -10266,6 +10576,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other type</rdfs:label>
 	<rdfs:comment>Other types of slide surface</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1202">
@@ -10297,6 +10608,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commerical source</rdfs:label>
 	<rdfs:comment>If the slide was bought provide information about the product</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1204">
@@ -10307,6 +10619,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Company that produces or sells the printing surface</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1204">
@@ -10341,6 +10654,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Product name</rdfs:label>
 	<rdfs:comment>Slide name/model/brand</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1205">
@@ -10375,6 +10689,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Surface type</rdfs:label>
 	<rdfs:comment>Surface/Chemistry Type</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1206">
@@ -10409,6 +10724,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number from the vendor</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1207">
@@ -10443,6 +10759,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1208">
@@ -10503,6 +10820,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial source</rdfs:label>
 	<rdfs:comment>If the slide was not bought provide information about the item</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1210">
@@ -10513,6 +10831,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Lab name</rdfs:label>
 	<rdfs:comment>Company/Lab that produces the printing surface</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1210">
@@ -10547,6 +10866,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Product name</rdfs:label>
 	<rdfs:comment>Slide name/model/brand</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1211">
@@ -10581,6 +10901,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Surface type</rdfs:label>
 	<rdfs:comment>Surface/Chemistry Type</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1212">
@@ -10615,6 +10936,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number from the vendor</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1213">
@@ -10649,6 +10971,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>URL</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1214">
@@ -10693,6 +11016,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Pre-printing Treatment</rdfs:label>
 	<rdfs:comment>Was the surface modified prior to printing from the original vendor</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1216">
@@ -10703,6 +11027,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Describe any treatment that modfies the original surface</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1216">
@@ -10733,6 +11058,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1218">
@@ -10743,6 +11069,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1218">
@@ -10788,6 +11115,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1219">
@@ -10848,6 +11176,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1220">
@@ -10883,6 +11212,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Software</rdfs:label>
 	<rdfs:comment>Software used for data processing</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1602">
@@ -10893,6 +11223,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Name</rdfs:label>
 	<rdfs:comment>Name of the software</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1602">
@@ -10927,6 +11258,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Version</rdfs:label>
 	<rdfs:comment>Version of the software</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1603">
@@ -10961,6 +11293,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Vendor of the software</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1604">
@@ -10995,6 +11328,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Role/Functionalty</rdfs:label>
 	<rdfs:comment>What was the software used for (e.g., data processing, heatmaps)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1605">
@@ -11025,6 +11359,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>Reference of the software</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1607">
@@ -11035,6 +11370,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1607">
@@ -11080,6 +11416,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1608">
@@ -11140,6 +11477,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>Comment used for data processi1g</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext1609">
@@ -11175,6 +11513,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Software</rdfs:label>
 	<rdfs:comment>The software used to quantify the binding intensity</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2002">
@@ -11185,6 +11524,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Name</rdfs:label>
 	<rdfs:comment>Name of the software used for image analysis</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2002">
@@ -11219,6 +11559,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Version</rdfs:label>
 	<rdfs:comment>Version of the software used (if applicable)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2003">
@@ -11253,6 +11594,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor that created the software (if commercial software)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2004">
@@ -11283,6 +11625,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the software used</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2006">
@@ -11293,6 +11636,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2006">
@@ -11338,6 +11682,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2007">
@@ -11394,6 +11739,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Background calculation</rdfs:label>
 	<rdfs:comment>If background subtraction was performed mention the type and parameters of background subtraction used.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2009">
@@ -11404,6 +11750,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Common method</rdfs:label>
 	<rdfs:comment>Common background calculation methods, such as local or global.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2009">
@@ -11468,6 +11815,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other method</rdfs:label>
 	<rdfs:comment>Other method to calculate the background</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2010">
@@ -11503,6 +11851,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Parameters</rdfs:label>
 	<rdfs:comment>Describe the parameters for background subtraction</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2011">
@@ -11546,6 +11895,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Software features</rdfs:label>
 	<rdfs:comment>Settings of the image analysis software</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2013">
@@ -11556,6 +11906,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Saturation Level</rdfs:label>
 	<rdfs:comment>Maximum signal for scanner saturation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2013">
@@ -11590,6 +11941,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Other software settings</rdfs:label>
 	<rdfs:comment>Any other settings important to reproduce the results</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2014">
@@ -11633,6 +11985,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Spot alignment</rdfs:label>
 	<rdfs:comment>Method for spot alignment that has been used</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2016">
@@ -11643,6 +11996,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method for spot alignment.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2016">
@@ -11688,6 +12042,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Description</rdfs:label>
 	<rdfs:comment>Description of settings and configurations of the method that effect the end result.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2017">
@@ -11735,6 +12090,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments regarding the image analysis</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2018">
@@ -11770,6 +12126,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Pre-complex of detection reagents</rdfs:label>
 	<rdfs:comment>Pre-mixing of detection reagents to reduce detection steps and/or increase avidity </rdfs:comment>
+	<template:has_display_label>Pre-complexation of detection reagents</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2402">
@@ -11780,6 +12137,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Concentration or ratios of detection reagents used in the pre-complex mixture</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2402">
@@ -11816,6 +12174,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Buffer composition</rdfs:label>
 	<rdfs:comment>Composition of solution used for dilution of the pre-complex mixture</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2403">
@@ -11860,6 +12219,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Enzymatic treatment</rdfs:label>
 	<rdfs:comment>Arrays pre-treated with enzymes to modify glycans present on the microarray</rdfs:comment>
+	<template:has_display_label>Enzymatic treatment of slide</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2405">
@@ -11870,6 +12230,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>UniProtKB Accession</rdfs:label>
 	<rdfs:comment>UniProtKB ID of the enzyme</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2405">
@@ -11920,6 +12281,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Gene name</rdfs:label>
 	<rdfs:comment>Gene name of the enzyme</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2406">
@@ -11951,6 +12313,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>If the enzyme was bought, provide the vendor information.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2408">
@@ -11961,6 +12324,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the enzyme vendor.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2408">
@@ -11995,6 +12359,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catelogue number of the enzyme.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2409">
@@ -12029,6 +12394,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID of the enzyme.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2410">
@@ -12089,6 +12455,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>If the enzyme was retrieved from a non-commercial source, provide the information.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2412">
@@ -12099,6 +12466,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Name of the lab providing the enzyme.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2412">
@@ -12133,6 +12501,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch Id or date of acquisition.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2413">
@@ -12181,6 +12550,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Enzyme concentration</rdfs:label>
 	<rdfs:comment>Concentration, dilution or activity of overlayed enzyme</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2414">
@@ -12221,6 +12591,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Buffer</rdfs:label>
 	<rdfs:comment>Composition of solution used for dilution</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2415">
@@ -12256,6 +12627,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of the enzyme overlay</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2416">
@@ -12294,6 +12666,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>The temperature of the enzyme overlay</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2417">
@@ -12330,6 +12703,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution added to each array or subarray</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2418">
@@ -12377,6 +12751,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Wetting</rdfs:label>
 	<rdfs:comment>Wetting step with water or buffer solution prior to applying the sample to be tested</rdfs:comment>
+	<template:has_display_label>Wetting of slide</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2420">
@@ -12387,6 +12762,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Buffer composition</rdfs:label>
 	<rdfs:comment>Composition of the buffer used for wetting including pH</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2420">
@@ -12421,6 +12797,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of wetting</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2421">
@@ -12466,6 +12843,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Blocking</rdfs:label>
 	<rdfs:comment>Blocking step with blocking solution to inactivate active slide chemistry</rdfs:comment>
+	<template:has_display_label>Blocking of slide</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2423">
@@ -12476,6 +12854,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Blocker composition</rdfs:label>
 	<rdfs:comment>Final composition of the blocking solution including all reagents</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2423">
@@ -12510,6 +12889,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution used for blocking. For single arrays, note array volume. For bulk arrays, total immersion volume</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2424">
@@ -12548,6 +12928,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of blocking</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2425">
@@ -12584,6 +12965,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Washing solution</rdfs:label>
 	<rdfs:comment>Solution used to remove blocking buffer</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2426">
@@ -12618,6 +13000,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Number of washing</rdfs:label>
 	<rdfs:comment>Times slides were washed after blocking</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2427">
@@ -12661,6 +13044,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Sample overlay</rdfs:label>
 	<rdfs:comment>Overlay step of the sample on the array</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2429">
@@ -12671,6 +13055,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Sample concentration</rdfs:label>
 	<rdfs:comment>Concentration (or dilution) of overlay material</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2429">
@@ -12705,6 +13090,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Diluent/Buffer</rdfs:label>
 	<rdfs:comment>Composition of solution/buffer used for dilution</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2430">
@@ -12740,6 +13126,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>Time sample was applied to the microarray</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2431">
@@ -12778,6 +13165,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>The temperature of the sample overlay</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2432">
@@ -12814,6 +13202,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution added to each array or subarray</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2433">
@@ -12861,6 +13250,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Fixation</rdfs:label>
 	<rdfs:comment>Fixation step after sample overlay (only applicable if samples were fixed)</rdfs:comment>
+	<template:has_display_label>Sample fixation</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2435">
@@ -12871,6 +13261,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Fixing solution</rdfs:label>
 	<rdfs:comment>Composition of solution used for fixation step</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2435">
@@ -12905,6 +13296,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution added to each array or subarray</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2436">
@@ -12943,6 +13335,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of the fixation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2437">
@@ -12981,6 +13374,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>The temperature during fixation </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2438">
@@ -13026,6 +13420,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Detection reagent overlay</rdfs:label>
 	<rdfs:comment>Incubation step of secondary reagent(s) to detect sample overlay  </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2440">
@@ -13036,6 +13431,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Reagent name</rdfs:label>
 	<rdfs:comment>Name of the detection reagent(s) such as antibodies, other proteins (Streptavidin) or chemical reagents</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2440">
@@ -13066,6 +13462,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial</rdfs:label>
 	<rdfs:comment>Provide information if the reagent is from a commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2442">
@@ -13076,6 +13473,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Vendor providing the reagent</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2442">
@@ -13110,6 +13508,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the reagent.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2443">
@@ -13160,6 +13559,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch Number or LOT number if known</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2444">
@@ -13221,6 +13621,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment>Provide information if the reagent is from a non-commercial source</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2446">
@@ -13231,6 +13632,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the reagent</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2446">
@@ -13265,6 +13667,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2447">
@@ -13299,6 +13702,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>Additional information about the reagent source (production method, papers etc.)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2448">
@@ -13347,6 +13751,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Concentration or dilution</rdfs:label>
 	<rdfs:comment>Concentration (or dilution) of the reagent used</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2449">
@@ -13387,6 +13792,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution added to each array or subarray</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2450">
@@ -13425,6 +13831,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of the detection reagent overlay</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2451">
@@ -13463,6 +13870,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>The temperature of the detection reagent overlay</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2452">
@@ -13508,6 +13916,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Drying</rdfs:label>
 	<rdfs:comment>Drying step of the microarray slide after sample overlay</rdfs:comment>
+	<template:has_display_label>Drying</template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2454">
@@ -13518,6 +13927,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of drying</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2454">
@@ -13556,6 +13966,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>The temperature of drying</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2455">
@@ -13592,6 +14003,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method used to dry the slides</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2456">
@@ -13626,6 +14038,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Custom slide drying apparatus or centrifuge vendor</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2457">
@@ -13669,6 +14082,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Washing steps</rdfs:label>
 	<rdfs:comment>Washing steps used to remove unbound overlayed samples</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2459">
@@ -13679,6 +14093,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Washing solution</rdfs:label>
 	<rdfs:comment>Composition of the solution(s) used for the wash step </rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2459">
@@ -13714,6 +14129,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume</rdfs:label>
 	<rdfs:comment>Volume of solution added to each array or subarray or total volume if arrays are washed in bulk</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2460">
@@ -13752,6 +14168,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Number of washes </rdfs:label>
 	<rdfs:comment>Number of washing steps</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2461">
@@ -13786,6 +14203,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>The duration of each wash</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2462">
@@ -13831,6 +14249,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the assay protocol</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2464">
@@ -13841,6 +14260,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2464">
@@ -13886,6 +14306,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2465">
@@ -13933,6 +14354,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>A general fields for comment</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2466">
@@ -13968,6 +14390,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Purity</rdfs:label>
 	<rdfs:comment>Information about the confirmed purity of the  feature</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2802">
@@ -13978,6 +14401,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>Percent value of purity</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2802">
@@ -14012,6 +14436,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method of purity verification</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2803">
@@ -14042,6 +14467,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2805">
@@ -14052,6 +14478,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2805">
@@ -14097,6 +14524,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2806">
@@ -14153,6 +14581,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Commercial source</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2808">
@@ -14163,6 +14592,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Vendor</rdfs:label>
 	<rdfs:comment>Name of the vendor where the feature was purchased.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2808">
@@ -14197,6 +14627,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Catalogue number</rdfs:label>
 	<rdfs:comment>Catalogue Number of the feature</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2809">
@@ -14231,6 +14662,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID or LOT number if known.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2810">
@@ -14291,6 +14723,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Non-commercial</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2812">
@@ -14301,6 +14734,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Provider lab</rdfs:label>
 	<rdfs:comment>Provide information on the lab of origin of the feature</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2812">
@@ -14335,6 +14769,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Batch ID</rdfs:label>
 	<rdfs:comment>Batch ID could be the date of production</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2813">
@@ -14369,6 +14804,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Method used to create the feature.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2814">
@@ -14399,6 +14835,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describest the method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2816">
@@ -14409,6 +14846,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2816">
@@ -14454,6 +14892,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2817">
@@ -14515,6 +14954,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>A general fields for comment on the feature  such as comments on the oiginal glycan or tag as appropriate.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2818">
@@ -14550,6 +14990,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Dispenses</rdfs:label>
 	<rdfs:comment>Formulation of the material printed</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3202">
@@ -14560,6 +15001,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Carrier reagent(s)</rdfs:label>
 	<rdfs:comment>List of the carrier reagent(s)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3202">
@@ -14594,6 +15036,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Printing solution</rdfs:label>
 	<rdfs:comment>Buffer composition</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3203">
@@ -14628,6 +15071,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Method</rdfs:label>
 	<rdfs:comment>Description of the dispense method</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3204">
@@ -14658,6 +15102,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the formulation</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3206">
@@ -14668,6 +15113,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3206">
@@ -14713,6 +15159,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3207">
@@ -14760,6 +15207,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Volume of solution on spot</rdfs:label>
 	<rdfs:comment>The volume of solution deposited per spot per drop (if known)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3208">
@@ -14797,6 +15245,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Number dispenses</rdfs:label>
 	<rdfs:comment>The number of drops or times pin contacts made per spot (drops / contacts / strikes)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3209">
@@ -14840,6 +15289,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3211">
@@ -14850,6 +15300,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>General comments regarding the spot.</rdfs:label>
 	<rdfs:comment></rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3211">
@@ -14898,6 +15349,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Printing condition</rdfs:label>
 	<rdfs:comment>Condition throughout the printing run</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3602">
@@ -14908,6 +15360,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>Temperature in the printer</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3602">
@@ -14944,6 +15397,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Humidity</rdfs:label>
 	<rdfs:comment>Humidity in the printer</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3603">
@@ -14979,6 +15433,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Washing protocol</rdfs:label>
 	<rdfs:comment>Protocol for washing the tips</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3604">
@@ -15013,6 +15468,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Printing duration</rdfs:label>
 	<rdfs:comment>Duration of the printing</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3605">
@@ -15044,6 +15500,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Reference</rdfs:label>
 	<rdfs:comment>A reference that describes the printing condition</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3607">
@@ -15054,6 +15511,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Type</rdfs:label>
 	<rdfs:comment>Type of reference (DOI, PMID, URL)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3607">
@@ -15088,6 +15546,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Value</rdfs:label>
 	<rdfs:comment>URL, PMID or DOI</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3608">
@@ -15155,6 +15614,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Post printing condition</rdfs:label>
 	<rdfs:comment>Description of the (storage) conditions before finalizing (blocking) the slides.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3610">
@@ -15165,6 +15625,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Temperature</rdfs:label>
 	<rdfs:comment>Temperature the slide is stored in.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3610">
@@ -15201,6 +15662,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Humidity</rdfs:label>
 	<rdfs:comment>Humidity the slides is stored in.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3611">
@@ -15236,6 +15698,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Time</rdfs:label>
 	<rdfs:comment>Time in the storage</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3612">
@@ -15284,6 +15747,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
 	<rdfs:label>Post Reaction</rdfs:label>
 	<rdfs:comment>Description of the final treatment of the slide (e.g. blocking) and storage conditions.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3614">
@@ -15294,6 +15758,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Treatment</rdfs:label>
 	<rdfs:comment>Treatment of the slide after printing (e.g. blocking)</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3614">
@@ -15328,6 +15793,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Storage</rdfs:label>
 	<rdfs:comment>Condition of storage</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3615">
@@ -15375,6 +15841,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:label>Comment</rdfs:label>
 	<rdfs:comment>General comments regarding the printing.</rdfs:comment>
+	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext3616">
