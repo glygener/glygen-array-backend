@@ -34,6 +34,8 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.Channel;
 import org.glygen.array.persistence.rdf.data.ChannelUsageType;
+import org.glygen.array.persistence.rdf.data.ExclusionInfo;
+import org.glygen.array.persistence.rdf.data.ExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -59,6 +61,7 @@ import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.model.Coordinate;
+import org.grits.toolbox.glycanarray.om.parser.ProscanParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -824,7 +827,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI integrates = f.createIRI(integratesPredicate);
         IRI integratedBy = f.createIRI(integratedByPredicate);   
         IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
-        IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
         IRI hasFileName = f.createIRI(hasFileNamePredicate);
         IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
         IRI hasFolder = f.createIRI(hasFolderPredicate);
@@ -904,10 +906,62 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // don't link the to dataset, it should be linked to the raw data
         //IRI arraydataset = f.createIRI(uriPre + datasetId);
         //statements.add(f.createStatement(arraydataset, hasProcessedData, processed, graphIRI));
+        
+        addExclusionInfo (processedData, processedURI, statements, graph);
         sparqlDAO.addStatements(statements, graphIRI);
         return processedURI;
     }
  
+    private void addExclusionInfo(ProcessedData processedData, String processedURI, List<Statement> statements, String graph) throws SparqlException, SQLException {
+        String uriPre = uriPrefix;
+        if (graph != null && graph.equals(DEFAULT_GRAPH)) {  
+            uriPre = uriPrefixPublic;
+        } 
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI processed = f.createIRI(processedURI);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasTechnicalExclusion = f.createIRI(ontPrefix + "has_technical_exclusion");
+        IRI hasFilterExclusion = f.createIRI(ontPrefix + "has_filter_exclusion");
+        
+        
+        if (processedData.getFilteredDataList() != null) {
+            for (ExclusionInfo info: processedData.getFilteredDataList()) {
+                String infoURI = generateUniqueURI(uriPre + "EX", allGraphs);
+                IRI infoIRI = f.createIRI(infoURI);
+                statements.add(f.createStatement(processed, hasFilterExclusion, infoIRI, graphIRI));
+                addExclusionInfo(info, infoIRI, statements, graphIRI);
+            }
+        }
+        
+        if (processedData.getTechnicalExclusions() != null) {
+            for (ExclusionInfo info: processedData.getTechnicalExclusions()) {
+                String infoURI = generateUniqueURI(uriPre + "EX", allGraphs);
+                IRI infoIRI = f.createIRI(infoURI);
+                statements.add(f.createStatement(processed, hasTechnicalExclusion, infoIRI, graphIRI));
+                addExclusionInfo(info, infoIRI, statements, graphIRI);
+            }
+        }
+    }
+    
+    void addExclusionInfo (ExclusionInfo info, IRI infoIRI, List<Statement> statements, IRI graphIRI) {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasReason = f.createIRI(ontPrefix + "has_reason");
+        IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+        if (info.getFeatures() != null) {
+            for (Feature feat: info.getFeatures()) {
+                statements.add(f.createStatement(infoIRI, hasFeature, f.createIRI(feat.getUri()), graphIRI));
+            }
+            if (info.getReason() != null) {
+                Literal reason = f.createLiteral(info.getReason().getLabel());
+                statements.add(f.createStatement(infoIRI, hasReason, reason, graphIRI));
+            } else if (info.getOtherReason() != null) {
+                Literal reason = f.createLiteral(info.getOtherReason());
+                statements.add(f.createStatement(infoIRI, hasReason, reason, graphIRI));
+            }
+        }
+    }
+
     @Override
     public ArrayDataset getArrayDataset(String datasetId, UserEntity user) throws SparqlException, SQLException {
         return getArrayDataset(datasetId, true, user);
@@ -1282,11 +1336,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
+        IRI hasTechnicalExclusion = f.createIRI(ontPrefix + "has_technical_exclusion");
+        IRI hasFilterExclusion = f.createIRI(ontPrefix + "has_filter_exclusion");
         
         ProcessedData processedObject = new ProcessedData();
         processedObject.setUri(uriValue);
         processedObject.setId(uriValue.substring(uriValue.lastIndexOf("/")+ 1));
         List<Intensity> intensities = new ArrayList<Intensity>();
+        List<ExclusionInfo> technicalExclusions = new ArrayList<>();
+        List<ExclusionInfo> filterExclusions = new ArrayList<>();
         processedObject.setIntensity(intensities);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         while (statements.hasNext()) {
@@ -1339,6 +1397,18 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 String metadataURI = st.getObject().stringValue();
                 DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(metadataURI, loadAll, user);
                 processedObject.setMetadata(metadata);
+            } else if (st.getPredicate().equals(hasTechnicalExclusion)) {
+                String exclusionURI = st.getObject().stringValue();
+                ExclusionInfo info = getExclusionInfoFromURI (exclusionURI, user);
+                if (info != null) {
+                    technicalExclusions.add(info);
+                }
+            } else if (st.getPredicate().equals(hasFilterExclusion)) {
+                String exclusionURI = st.getObject().stringValue();
+                ExclusionInfo info = getExclusionInfoFromURI (exclusionURI, user);
+                if (info != null) {
+                    filterExclusions.add(info);
+                }
             } else if (st.getPredicate().equals(integratedBy)) {
                 String methodURI = st.getObject().stringValue();
                 StatisticalMethod method = new StatisticalMethod();
@@ -1386,10 +1456,59 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
+        if (!technicalExclusions.isEmpty())
+            processedObject.setTechnicalExclusions(technicalExclusions);
+        
+        if (!filterExclusions.isEmpty())
+            processedObject.setFilteredDataList(filterExclusions);
+        
         getStatusFromURI (processedObject.getUri(), processedObject, graph);
         return processedObject;
     }
 
+
+    private ExclusionInfo getExclusionInfoFromURI(String exclusionURI, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            if (exclusionURI.contains("public"))
+                graph = DEFAULT_GRAPH;
+            else
+                graph = getGraphForUser(user);
+        }
+    
+        ExclusionInfo info = new ExclusionInfo();
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI exclusionIRI = f.createIRI(exclusionURI);
+       
+        IRI hasReason = f.createIRI(ontPrefix + "has_reason");
+        IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+        
+        List<Feature> features = new ArrayList<Feature>();
+        
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(exclusionIRI, null, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            if (st.getPredicate().equals(hasFeature)) {
+                Value val = st.getObject();
+                Feature feat = featureRepository.getFeatureFromURI(val.stringValue(), user);
+                if (feat != null) features.add(feat);
+            } else if (st.getPredicate().equals(hasReason)) {
+                Value val = st.getObject();
+                ExclusionReasonType reason = ExclusionReasonType.forValue(val.stringValue());
+                if (reason != null) {
+                    info.setReason(reason);
+                } else {
+                    info.setOtherReason(val.stringValue());
+                }
+            }
+        }
+        
+        info.setFeatures(features);
+        return info;
+    }
 
     @Override
     public Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {

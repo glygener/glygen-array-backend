@@ -346,11 +346,16 @@ public class GlygenArrayController {
 		            List<org.glygen.array.persistence.rdf.Feature> newList = new ArrayList<org.glygen.array.persistence.rdf.Feature>();
 		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
 		                try {
-		                    if (checkedMap.get(f.getInternalId()) == null) {
+		                    String key = f.getInternalId();
+		                    if (checkedMap.get(f.getInternalId()) == null && checkedMap.get(f.getId()) == null) {
                                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", user);
-                                checkedMap.put(f.getInternalId(), existing);
                                 if (existing == null) {
-                                    errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
+                                    // check by uri
+                                    existing = featureRepository.getFeatureFromURI(f.getUri(), user);
+                                    key = f.getId();
+                                    if (existing == null) {
+                                        errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
+                                    } 
                                 } else {
                                     newList.add(existing);
                                     if (s.getFeatureConcentrationMap().get(f) != null) {
@@ -365,16 +370,17 @@ public class GlygenArrayController {
                                         s.getFeatureRatioMap().remove(f);
                                     }
                                 }
+                                checkedMap.put(key, existing);
 		                    } else {
-		                        newList.add(checkedMap.get(f.getInternalId()));
+		                        newList.add(checkedMap.get(key));
 		                        if (s.getFeatureConcentrationMap().get(f) != null) {
                                     LevelUnit con = s.getFeatureConcentrationMap().get(f);
-                                    s.getFeatureConcentrationMap().put(checkedMap.get(f.getInternalId()), con);
+                                    s.getFeatureConcentrationMap().put(checkedMap.get(key), con);
                                     s.getFeatureConcentrationMap().remove(f);
                                 }
 		                        if (s.getFeatureRatioMap().get(f) != null) {
                                     Double ratio = s.getFeatureRatioMap().get(f);
-                                    s.getFeatureRatioMap().put(checkedMap.get(f.getInternalId()), ratio);
+                                    s.getFeatureRatioMap().put(checkedMap.get(key), ratio);
                                     s.getFeatureRatioMap().remove(f);
                                 }
 		                    }

@@ -1,7 +1,9 @@
 package org.glygen.array.controller;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.persistence.rdf.data.ExclusionInfo;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -107,6 +110,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -2131,6 +2137,150 @@ public class DatasetController {
             throw e;
         } catch (Exception e) {
             throw new GlycanRepositoryException("Cannot add the intensities to the repository", e);
+        }
+    }
+    
+    
+    @ApiOperation(value = "Download exclusion lists for the processed data to a file")
+    @RequestMapping(value = "/downloadProcessedDataExclusionInfo", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ResponseEntity<Resource> downloadProcessedDataExclusionInfo (
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to retrieve the exclusion info") 
+            @RequestParam("arraydatasetId")
+            String datasetId,
+            @ApiParam(required=true, value="the name for downloaded file") 
+            @RequestParam("filename")
+            String fileName,        
+            @ApiParam(required=true, value="an existing processed data id") 
+            @RequestParam("processedDataId")
+            String processedDataId,
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        ArrayDataset dataset;
+        UserEntity owner = user;
+        // check if the dataset with the given id exists
+        try {
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
+            if (dataset == null) {
+                // check if the user can access this dataset as a co-owner
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId.trim());
+                if (coOwnedGraph != null) {
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
+                        owner = originalUser;
+                    }
+                }
+            }
+            if (dataset == null)
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
+        
+        String uri = GlygenArrayRepositoryImpl.uriPrefix + processedDataId;
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            ProcessedData existing = datasetRepository.getProcessedDataFromURI(uri, true, owner);
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+                throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
+            }
+            
+            ProcessedData emptyData = new ProcessedData();
+            emptyData.setFilteredDataList(existing.getFilteredDataList());
+            emptyData.setTechnicalExclusions(existing.getTechnicalExclusions());
+            // serialize this and save it to a file
+            try {
+                String jsonValue = new ObjectMapper().writeValueAsString(emptyData);
+                try {
+                    FileWriter file = new FileWriter(newFile);
+                    file.write(jsonValue);
+                    file.close();
+                 } catch (IOException e) {
+                     errorMessage.addError(new ObjectError("file", "NotFound"));
+                 }
+                
+            } catch (JsonProcessingException e) {
+                logger.error("Could not serialize processed data exclusion info into JSON", e);
+                throw new GlycanRepositoryException("Could not serialize processed data exclusion info into JSON", e);
+            }
+            
+            
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        FileSystemResource r = new FileSystemResource(newFile);
+        MediaType mediaType = MediaTypeFactory
+                .getMediaType(r)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
+        
+        HttpHeaders respHeaders = new HttpHeaders();
+        respHeaders.setContentType(mediaType);
+        respHeaders.setContentLength(newFile.length());
+
+        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                .filename(fileName)
+                .build();
+
+        respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+        respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
+        
+        return new ResponseEntity<Resource>(
+                r, respHeaders, HttpStatus.OK
+        );
+    }
+    
+    
+    @ApiOperation(value = "Add the exclusion info given in the file to the processed data")
+    @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return an (otherwise) empty processed data object containing only the exclusion lists"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ProcessedData addExclusionInfoFromFile (
+            @ApiParam(required=true, value="uploaded file with the exclusion information")
+            @RequestParam("file") String uploadedFileName,
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        File file = new File (uploadDir, uploadedFileName);
+        if (file.exists()) {
+            try {
+                List<String> allLines = Files.readAllLines(file.toPath());
+                StringBuffer jsonString = new StringBuffer();
+                for (String line: allLines) {
+                    jsonString.append(line + "\n");
+                }
+                ProcessedData emptyData = new ObjectMapper().readValue(jsonString.toString(), ProcessedData.class);
+                return emptyData;
+            } catch (Exception e) {
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File cannot be read properly", errorMessage);
+            }
+        } else {
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            throw new IllegalArgumentException("File cannot be found", errorMessage);
         }
     }
     

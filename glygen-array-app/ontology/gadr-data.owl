@@ -165,7 +165,14 @@
     <!-- http://purl.org/gadr/data/has_feature -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature">
-        <rdfs:domain rdf:resource="http://purl.org/gadr/data/spot"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/exclusion_info"/>
+                    <rdf:Description rdf:about="http://purl.org/gadr/data/spot"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/feature"/>
         <rdfs:comment>Links a spot on the array with the molecules that are printed on a spot.</rdfs:comment>
     </owl:ObjectProperty>
@@ -194,6 +201,15 @@
             </owl:Class>
         </rdfs:domain>
         <rdfs:range rdf:resource="http://purl.org/gadr/data/File"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_filter_exclusion -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_filter_exclusion">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/exclusion_info"/>
     </owl:ObjectProperty>
     
 
@@ -470,6 +486,15 @@
                 </owl:unionOf>
             </owl:Class>
         </rdfs:range>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://purl.org/gadr/data/has_technical_exclusion -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_technical_exclusion">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/processed_data"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/exclusion_info"/>
     </owl:ObjectProperty>
     
 
@@ -983,6 +1008,16 @@ Inverse of created_by object property</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/data/has_reason -->
+
+    <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_reason">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/exclusion_info"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_row -->
 
     <owl:DatatypeProperty rdf:about="http://purl.org/gadr/data/has_row">
@@ -1324,6 +1359,15 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
     <owl:Class rdf:about="http://purl.org/gadr/data/descriptor">
         <rdfs:comment>A keyword/descriptor that can be used to describe metadata by assigning a value to it. For example &quot;species&quot; is a descriptor that could be assigned the value &quot;Homo sapiens&quot;.</rdfs:comment>
         <rdfs:label>Descriptor</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/exclusion_info -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/exclusion_info">
+        <rdfs:comment>declares the list of features that are excluded from the final processed data and the reason for the exclusion</rdfs:comment>
+        <rdfs:label>Exclusion Info</rdfs:label>
     </owl:Class>
     
 
