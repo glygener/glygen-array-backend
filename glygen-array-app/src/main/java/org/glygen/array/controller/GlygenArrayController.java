@@ -359,7 +359,7 @@ public class GlygenArrayController {
                                         key = f.getId();
                                     }
                                     if (existing == null) {
-                                        errorMessage.addError(new ObjectError("feature", f.getName() + " does not exist in the repository"));
+                                        errorMessage.addError(new ObjectError("feature", f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
                                     } 
                                 } else {
                                     newList.add(existing);
@@ -395,7 +395,7 @@ public class GlygenArrayController {
                                         s.getFeatureRatioMap().remove(f);
                                     }
 		                        } else {
-		                            errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
+		                            errorMessage.addError(new ObjectError("feature", f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
 		                        }
 		                    }
                         } catch (SparqlException | SQLException e) {
