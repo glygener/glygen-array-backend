@@ -359,7 +359,7 @@ public class GlygenArrayController {
                                         key = f.getId();
                                     }
                                     if (existing == null) {
-                                        errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
+                                        errorMessage.addError(new ObjectError("feature", f.getName() + " does not exist in the repository"));
                                     } 
                                 } else {
                                     newList.add(existing);
