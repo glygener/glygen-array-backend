@@ -351,8 +351,13 @@ public class GlygenArrayController {
                                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", user);
                                 if (existing == null) {
                                     // check by uri
-                                    existing = featureRepository.getFeatureFromURI(f.getUri(), user);
-                                    key = f.getId();
+                                    if (f.getUri() != null) {
+                                        existing = featureRepository.getFeatureFromURI(f.getUri(), user);
+                                        key = f.getUri().substring(f.getUri().lastIndexOf("/")+1);
+                                    } else if (f.getId() != null) {
+                                        existing = featureRepository.getFeatureFromURI(GlygenArrayRepositoryImpl.uriPrefix + f.getId(), user);
+                                        key = f.getId();
+                                    }
                                     if (existing == null) {
                                         errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
                                     } 
