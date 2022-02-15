@@ -372,17 +372,26 @@ public class GlygenArrayController {
                                 }
                                 checkedMap.put(key, existing);
 		                    } else {
-		                        newList.add(checkedMap.get(key));
-		                        if (s.getFeatureConcentrationMap().get(f) != null) {
-                                    LevelUnit con = s.getFeatureConcentrationMap().get(f);
-                                    s.getFeatureConcentrationMap().put(checkedMap.get(key), con);
-                                    s.getFeatureConcentrationMap().remove(f);
-                                }
-		                        if (s.getFeatureRatioMap().get(f) != null) {
-                                    Double ratio = s.getFeatureRatioMap().get(f);
-                                    s.getFeatureRatioMap().put(checkedMap.get(key), ratio);
-                                    s.getFeatureRatioMap().remove(f);
-                                }
+		                        org.glygen.array.persistence.rdf.Feature feat = checkedMap.get(f.getInternalId());
+		                        if (feat == null) {
+		                            feat = checkedMap.get(f.getId());
+		                            key = f.getId();
+		                        }
+		                        if (feat != null) {
+    		                        newList.add(feat);
+    		                        if (s.getFeatureConcentrationMap().get(f) != null) {
+                                        LevelUnit con = s.getFeatureConcentrationMap().get(f);
+                                        s.getFeatureConcentrationMap().put(checkedMap.get(key), con);
+                                        s.getFeatureConcentrationMap().remove(f);
+                                    }
+    		                        if (s.getFeatureRatioMap().get(f) != null) {
+                                        Double ratio = s.getFeatureRatioMap().get(f);
+                                        s.getFeatureRatioMap().put(checkedMap.get(key), ratio);
+                                        s.getFeatureRatioMap().remove(f);
+                                    }
+		                        } else {
+		                            errorMessage.addError(new ObjectError("feature", f.getId() + " does not exist"));
+		                        }
 		                    }
                         } catch (SparqlException | SQLException e) {
                             throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
