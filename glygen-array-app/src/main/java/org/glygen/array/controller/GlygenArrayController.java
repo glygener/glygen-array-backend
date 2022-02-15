@@ -3122,6 +3122,7 @@ public class GlygenArrayController {
             @RequestParam(required=false, value="height")
 	        Integer height,
 	        Principal p) {
+	    
 	    if (uploadedFileName != null) {
 	        //uploadedFileName = moveToTempFile (uploadedFileName);
             File galFile = new File(uploadDir, uploadedFileName);
@@ -3178,13 +3179,15 @@ public class GlygenArrayController {
                                     for (int i=0; i < width; i++) {
                                         for (int j=0; j < height; j++) {
                                             org.glygen.array.persistence.rdf.Block block = new org.glygen.array.persistence.rdf.Block();
-                                            block.setRow(j);
-                                            block.setColumn(i);
+                                            block.setRow(j+1);
+                                            block.setColumn(i+1);
                                             block.setBlockLayout(blockLayout);
                                             blocks.add(block);
                                         }
                                     }
                                     layout.setBlocks(blocks);
+                                    layout.setHeight(height);
+                                    layout.setWidth(width);
                                 }
                             } else {
                                 // error
