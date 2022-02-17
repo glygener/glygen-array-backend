@@ -98,6 +98,7 @@ import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.GlycanRepositoryImpl;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
@@ -147,10 +148,16 @@ import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -4814,6 +4821,78 @@ public class GlygenArrayController {
         }
     }
 	
+	@ApiOperation(value = "Export slide layout in extended GAL format")
+    @RequestMapping(value = "/exportSlideLayout", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ResponseEntity<Resource> exportSlideLayout (
+            @ApiParam(required=true, value="id of the slide layout") 
+            @RequestParam("slidelayoutid")
+            String slidelayoutid,
+            @ApiParam(required=true, value="the name for downloaded file") 
+            @RequestParam("filename")
+            String fileName,        
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        String uri = GlygenArrayRepositoryImpl.uriPrefix + slidelayoutid;
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            SlideLayout layout = layoutRepository.getSlideLayoutFromURI(uri, true, user);
+            if (layout == null) {
+                // check if it is public
+                layout = layoutRepository.getSlideLayoutFromURI(uri, true, null);
+                if (layout == null) {
+                    errorMessage.addError(new ObjectError("slidelayoutid", "NotFound"));
+                }
+            }
+            if (layout != null) {
+                try {
+                    galFileParser.exportToFile(layout, newFile.getAbsolutePath());
+                    
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                }
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            FileSystemResource r = new FileSystemResource(newFile);
+            MediaType mediaType = MediaTypeFactory
+                    .getMediaType(r)
+                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
+            
+            HttpHeaders respHeaders = new HttpHeaders();
+            respHeaders.setContentType(mediaType);
+            respHeaders.setContentLength(newFile.length());
+
+            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                    .filename(fileName)
+                    .build();
+
+            respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+            respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
+            
+            return new ResponseEntity<Resource>(
+                    r, respHeaders, HttpStatus.OK
+            );
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
+    }
+	
+	
+	
 	@ApiOperation(value = "Check status for upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
@@ -4844,7 +4923,6 @@ public class GlygenArrayController {
             throw new UploadNotFinishedException("Not found");  // this will return HttpStatus no_content 204
         }
     }
-	
 	
 	@ApiOperation(value = "Update given block layout for the user")
 	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST, 

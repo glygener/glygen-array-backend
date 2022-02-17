@@ -1,8 +1,11 @@
 package org.glygen.array.util;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +17,13 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.RatioConcentration;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
@@ -641,6 +646,169 @@ public class ExtendedGalFileParser {
             return null;
         }
         
+        return null;
+    }
+    
+    
+    public void exportToFile (SlideLayout layout, String outputFile) throws IOException {
+        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+        //write header
+        out.append("Block\tRow\tColumn\tID\tName\tRepoID\tGroup\tConcentration\tRatio\tBuffer\tVolume\tDispenses\tCarrier\tMethod\tReference\tComment\tPrinting Flags");
+        out.append("\n");
+        
+        for (Block block: layout.getBlocks()) {
+            for (Spot s: block.getBlockLayout().getSpots()) {
+                StringBuffer row = new StringBuffer();
+                row.append(block.getColumn() + "\t");
+                row.append (s.getColumn() + "\t" + s.getRow() + "\t");
+                if (s.getFeatures() != null && !s.getFeatures().isEmpty()) {
+                    int i=0;
+                    for (Feature f: s.getFeatures()) {
+                        row.append(f.getInternalId());
+                        if (i < s.getFeatures().size()-1) {
+                            row.append("||");
+                            
+                        }
+                        i++;
+                    }
+                    row.append("\t");
+                    i=0;
+                    for (Feature f: s.getFeatures()) {
+                        row.append(f.getName());
+                        if (i < s.getFeatures().size()-1) {
+                            row.append("||");
+                            
+                        }
+                        i++;
+                    }
+                    row.append("\t");
+                    
+                } else {
+                    row.append("Empty\tEmpty\t");
+                }
+                // repoID - no need leave it empty
+                row.append("\t");
+                if (s.getGroup() != null) {
+                    row.append(s.getGroup() + "\t");
+                } else {
+                    row.append("\t");
+                }
+                if (s.getRatioConcentrationMap() != null && !s.getRatioConcentrationMap().isEmpty()) {
+                    int i = 0;
+                    for (Feature f: s.getFeatures()) {
+                        RatioConcentration con = s.getRatioConcentrationMap().get(f.getId());
+                        if (con != null && con.getConcentration() != null) {
+                            row.append(con.getConcentration().getConcentration() + con.getConcentration().getLevelUnit().getLabel());
+                        } 
+                        if (i < s.getFeatures().size()-1) {
+                            row.append("||");
+                            
+                        }
+                        i++;
+                    }
+                    row.append("\t");
+                    i = 0;
+                    for (Feature f: s.getFeatures()) {
+                        RatioConcentration con = s.getRatioConcentrationMap().get(f.getId());
+                        if (con != null && con.getRatio() != null) {
+                            row.append(con.getRatio());
+                        } 
+                        if (i < s.getFeatures().size()-1) {
+                            row.append(":");
+                            
+                        }
+                        i++;
+                    }
+                    row.append("\t");
+                } else {
+                    row.append("\t\t");
+                }
+                    
+                if (s.getMetadata() != null) {
+                    String value = getMetadataValue (s.getMetadata(), metadataConfig.formulationSolutionDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.volumeDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.numberDispensesDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.formulationCarrierDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.formulationMethodDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.formulationReferenceDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                    value = getMetadataValue (s.getMetadata(), metadataConfig.commentDescription);
+                    if (value != null) {
+                        row.append(value + "\t");
+                    } else {
+                        row.append("\t");
+                    }
+                }
+                
+                if (s.getFlag() != null) {
+                    row.append(s.getFlag() + "\t");
+                } else {    
+                    row.append("\t");
+                }
+                out.println(row.toString());
+            }
+        }
+        out.close();
+    }
+
+
+    private String getMetadataValue(SpotMetadata metadata, String descriptorInfo) {
+        String[] groups = descriptorInfo.split("::");
+        if (groups.length > 1) {
+            // find the descriptor group
+            String group = groups[0];
+            String descriptor = groups[1];
+            for (DescriptorGroup descG: metadata.getDescriptorGroups()) {
+                if (descG.getName().equals(group)) {
+                    for (Description d: descG.getDescriptors()) {
+                        if (d instanceof Descriptor && d.getName().equals(descriptor)) {
+                            return ((Descriptor)d).getValue();
+                        }
+                    }
+                }
+            }
+        } else {
+            for (Descriptor desc: metadata.getDescriptors()) {
+                if (desc.getName().equals(descriptorInfo)) {
+                    return desc.getValue();
+                }
+             }
+            
+        }
         return null;
     }
 }
