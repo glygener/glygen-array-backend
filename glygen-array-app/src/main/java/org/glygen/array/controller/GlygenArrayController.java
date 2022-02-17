@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -98,7 +97,6 @@ import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
-import org.glygen.array.service.GlycanRepositoryImpl;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
@@ -166,7 +164,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -4823,10 +4820,10 @@ public class GlygenArrayController {
 	
 	@ApiOperation(value = "Export slide layout in extended GAL format")
     @RequestMapping(value = "/exportSlideLayout", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
+    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve slide layout"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public ResponseEntity<Resource> exportSlideLayout (
