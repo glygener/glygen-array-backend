@@ -364,6 +364,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             } else if (typePredicate.equals(featureMetadataTypePredicate)) {
                 metadataObject = new FeatureMetadata();
                 templatePredicate = null;
+            } else if (typePredicate.equals(printRunTypePredicate)) {
+                metadataObject = new PrintRun();
+                templatePredicate = hasPrintRunTemplatePredicate;
             } else {
                 logger.error("unknown template predicate" + typePredicate);
             }
