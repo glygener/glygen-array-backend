@@ -23,7 +23,6 @@ import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
-import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 import org.glygen.array.persistence.rdf.template.DescriptorGroupTemplate;
@@ -69,10 +68,12 @@ public class ExtendedGalFileParser {
      * 
      * @param filePath file path of the GAL file to be parsed
      * @param name name of the slide layout to be created 
+     * @param height the height of the slide layout
+     * @param width the width of the slide layout
      * @return import result with slide layout and all the block layouts to be created
      * @throws IOException if the file cannot be found or invalid
      */
-    public GalFileImportResult parse (String filePath, String name) throws IOException {
+    public GalFileImportResult parse (String filePath, String name, Integer height, Integer width) throws IOException {
         File file = new File(filePath);
         if (!file.exists())
             throw new FileNotFoundException(filePath + " does not exist!");
@@ -89,6 +90,7 @@ public class ExtendedGalFileParser {
         int maxGroup = 0;
         Map <String, Feature> featureMap = new HashMap<>();
         Map <String, Integer> featureGroupMap = new HashMap<>();
+        boolean useBlockCount = false;
         
         // these are the new structures to be imported into the repository
         List<BlockLayout> layoutList = new ArrayList<>();
@@ -97,7 +99,18 @@ public class ExtendedGalFileParser {
         
         SlideLayout slideLayout = new SlideLayout();
         slideLayout.setName(name);
-        slideLayout.setWidth(1);   // 1 dimensional by default
+        if (height == null) {
+            // rely on the block count
+            useBlockCount = true;
+        } else {
+            slideLayout.setHeight(height);
+        }
+        if (width == null) { 
+            slideLayout.setWidth(1);   // 1 dimensional by default
+            useBlockCount = true;
+        } else {
+            slideLayout.setWidth(width);
+        }
         slideLayout.setDescription(type);
         slideLayout.setBlocks(new ArrayList<Block>());
         
@@ -119,15 +132,31 @@ public class ExtendedGalFileParser {
                 try {
                     if (firstColumn.contains("\"BlockCount=")) {
                         String blockCount = firstColumn.substring(firstColumn.indexOf("BlockCount=")+11);
-                        Integer height = Integer.parseInt(blockCount.substring(0, blockCount.length()-1));
-                        slideLayout.setHeight(height);
+                        Integer h = Integer.parseInt(blockCount.substring(0, blockCount.length()-1));
+                        if (useBlockCount)
+                            slideLayout.setHeight(h);
+                        if (width != null && height != null) {
+                            if ((width * height) != h) {
+                                ErrorMessage error = new ErrorMessage("Width and height do not match the GAL file");
+                                error.addError(new ObjectError ("dimensions", "NoMatch"));
+                                errorList.add(error);
+                            }
+                        }
                     } else { // no quotes at the beginning and end
                         String blockCount = firstColumn.substring(firstColumn.indexOf("BlockCount=")+11);
-                        Integer height = Integer.parseInt(blockCount);
-                        slideLayout.setHeight(height);
+                        Integer h = Integer.parseInt(blockCount);
+                        if (useBlockCount)
+                            slideLayout.setHeight(h);
+                        if (width != null && height != null) {
+                            if ((width * height) != h) {
+                                ErrorMessage error = new ErrorMessage("Width and height do not match the block count in GAL file");
+                                error.addError(new ObjectError ("dimensions", "NoMatch"));
+                                errorList.add(error);
+                            }
+                        }
                     }
                 } catch (NumberFormatException e) {
-                    slideLayout.setHeight(32);   // default
+                    slideLayout.setHeight(height);   // default
                 }
             }
             // get the default values if exists
@@ -185,7 +214,7 @@ public class ExtendedGalFileParser {
                             block = new Block();
                             //block.setLayoutId(blockLayout.getId());
                             block.setBlockLayout(blockLayout);
-                            block.setColumn(1);   // we assume one dimension for the slide
+                            block.setColumn(1);   // we assume one dimension for the slide, we need to fix it at the end
                             block.setRow(blockLocation);
                             slideLayout.getBlocks().add(block);
                             
@@ -385,6 +414,28 @@ public class ExtendedGalFileParser {
         blockLayout.setHeight(maxRow);
         
         layoutList.add(blockLayout);
+        
+        if (!useBlockCount) {
+            // check if the total number of blocks and width/height agrees
+            if ((width * height) != slideLayout.getBlocks().size()) {
+                ErrorMessage error = new ErrorMessage("Width and height do not match the GAL file");
+                error.addError(new ObjectError ("dimensions", "NoMatch"));
+                errorList.add(error);
+            } else {
+                // need to arrange blocks based on width and height
+                int i=1;
+                int j=1;
+                for (Block b: slideLayout.getBlocks()) {
+                    b.setColumn(i);
+                    b.setRow(j);
+                    i++;
+                    if (i > width) {
+                        j++;
+                        i = 1;
+                    }
+                }
+            }
+        }
         
         GalFileImportResult result = new GalFileImportResult();
         result.setLayout(slideLayout);
@@ -656,10 +707,12 @@ public class ExtendedGalFileParser {
         out.append("Block\tRow\tColumn\tID\tName\tRepoID\tGroup\tConcentration\tRatio\tBuffer\tVolume\tDispenses\tCarrier\tMethod\tReference\tComment\tPrinting Flags");
         out.append("\n");
         
+        int noBlocks = 0;
         for (Block block: layout.getBlocks()) {
+            noBlocks ++;
             for (Spot s: block.getBlockLayout().getSpots()) {
                 StringBuffer row = new StringBuffer();
-                row.append(block.getColumn() + "\t");
+                row.append(noBlocks + "\t");
                 row.append (s.getColumn() + "\t" + s.getRow() + "\t");
                 if (s.getFeatures() != null && !s.getFeatures().isEmpty()) {
                     int i=0;

@@ -47,11 +47,13 @@ import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.DTOPublicationAuthor;
 import org.glygen.array.util.pubmed.PubmedUtil;
+import org.glygen.array.view.EnumerationView;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
 import org.glygen.array.view.Version;
+import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
@@ -382,15 +384,15 @@ public class UtilityController {
     @RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
-    public List<String> getUnitLevels(){
+    public List<EnumerationView> getUnitLevels(){
 
-        List<String> unitLevels=new ArrayList<String>();        
+        List<EnumerationView> unitLevels=new ArrayList<EnumerationView>();        
         try {   
-            unitLevels.add(UnitOfLevels.FMOL.getLabel());
-            unitLevels.add(UnitOfLevels.MMOL.getLabel());
-            unitLevels.add(UnitOfLevels.MICROMOL.getLabel());
-            unitLevels.add(UnitOfLevels.MICROML.getLabel());
-            unitLevels.add(UnitOfLevels.MILLML.getLabel());
+            unitLevels.add(new EnumerationView(UnitOfLevels.FMOL.name(), UnitOfLevels.FMOL.getLabel()));
+            unitLevels.add(new EnumerationView(UnitOfLevels.MMOL.name(), UnitOfLevels.MMOL.getLabel()));
+            unitLevels.add(new EnumerationView(UnitOfLevels.MICROMOL.name(), UnitOfLevels.MICROMOL.getLabel()));
+            unitLevels.add(new EnumerationView(UnitOfLevels.MICROML.name(), UnitOfLevels.MICROML.getLabel()));
+            unitLevels.add(new EnumerationView(UnitOfLevels.MILLML.name(), UnitOfLevels.MILLML.getLabel()));
             
         }catch(Exception exception) {
             ErrorMessage errorMessage = new ErrorMessage("Error Loading Unit levels");

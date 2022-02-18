@@ -3127,6 +3127,14 @@ public class GlygenArrayController {
 	        Integer height,
 	        Principal p) {
 	    
+	    ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+	    if ((height != null && width == null) || (width != null && height == null)) {
+	        // either both or none should be provided
+	        errorMessage.addError(new ObjectError("dimension", "NotValid")); 
+	    }
+	    
 	    if (uploadedFileName != null) {
 	        //uploadedFileName = moveToTempFile (uploadedFileName);
             File galFile = new File(uploadDir, uploadedFileName);
@@ -3137,19 +3145,17 @@ public class GlygenArrayController {
                     UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
                     SlideLayout existing = layoutRepository.getSlideLayoutByName(slideLayoutName.trim(), user);
                     if (existing != null) {
-                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage = new ErrorMessage("There is already a slide layout with that name");
                         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                         errorMessage.addError(new ObjectError("name", "Duplicate"));
                         throw new IllegalArgumentException("There is already a slide layout with that name", errorMessage);
                     }
 
-                    
                     // need to retrieve full list of linkers first
                     //LinkerListResultView result = listLinkers(0, null, null, null, null, p);
+                    GalFileImportResult importResult = galFileParser.parse(galFile.getAbsolutePath(), slideLayoutName.trim(), height, width);
                     
-                    GalFileImportResult importResult = galFileParser.parse(galFile.getAbsolutePath(), slideLayoutName.trim());
-                    
-                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage = new ErrorMessage();
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                     if (!importResult.getErrors().isEmpty()) {
                         for (ErrorMessage error: importResult.getErrors()) {
@@ -3271,14 +3277,10 @@ public class GlygenArrayController {
                     throw new GlycanRepositoryException("SlideLayout could not be added", e);
                 }
             } else {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 throw new IllegalArgumentException("File cannot be found", errorMessage);
             }
 	    } else {
-	        ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("file", "NotValid"));
             throw new IllegalArgumentException("File cannot be found", errorMessage);
 	    }
