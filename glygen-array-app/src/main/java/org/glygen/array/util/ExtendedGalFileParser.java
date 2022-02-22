@@ -482,13 +482,13 @@ public class ExtendedGalFileParser {
         
         DescriptorGroup group = new DescriptorGroup();
         group.setName(descriptorGroupName);
-        DescriptionTemplate key1 = getKeyFromTemplate (descriptorGroupName);
+        DescriptionTemplate key1 = getKeyFromTemplate (descriptorGroupName, this.spotMetadataTemplate);
         group.setKey(key1);
         group.setDescriptors(new ArrayList<Description>());
         String buffer = splitted[1];
         Descriptor desc1 = new Descriptor();
         desc1.setName(buffer);
-        DescriptionTemplate key2 = getKeyFromTemplate (buffer);
+        DescriptionTemplate key2 = getKeyFromTemplate (buffer, this.spotMetadataTemplate);
         desc1.setKey(key2);
         String bufferValue = (config.getBufferColumn() != -1 && splitted.length > config.getBufferColumn()) ? splittedRow[config.bufferColumn].trim() : "";
         if (bufferValue.isEmpty()) {
@@ -504,7 +504,7 @@ public class ExtendedGalFileParser {
         String carrier = metadataConfig.getFormulationCarrierDescription().split("::")[1];
         Descriptor desc2 = new Descriptor();
         desc2.setName(carrier);
-        DescriptionTemplate key3 = getKeyFromTemplate (carrier);
+        DescriptionTemplate key3 = getKeyFromTemplate (carrier, this.spotMetadataTemplate);
         desc2.setKey(key3);
         String carrierValue = (config.getCarrierColumn() != -1 && splitted.length > config.getCarrierColumn()) ? splittedRow[config.carrierColumn].trim() : "";
         if (carrierValue.isEmpty()) {
@@ -521,7 +521,7 @@ public class ExtendedGalFileParser {
         String method = metadataConfig.getFormulationMethodDescription().split("::")[1];
         Descriptor desc3 = new Descriptor();
         desc3.setName(method);
-        DescriptionTemplate key4 = getKeyFromTemplate (method);
+        DescriptionTemplate key4 = getKeyFromTemplate (method, this.spotMetadataTemplate);
         desc3.setKey(key4);
         String methodValue = (config.getMethodColumn() != -1 && splitted.length > config.getMethodColumn()) ? splittedRow[config.methodColumn].trim() : "";
         if (methodValue.isEmpty()) {
@@ -538,12 +538,12 @@ public class ExtendedGalFileParser {
         String reference = metadataConfig.getFormulationReferenceDescription().split("::")[1];
         DescriptorGroup desc4 = new DescriptorGroup();
         desc4.setName(reference);
-        DescriptionTemplate key5 = getKeyFromTemplate (reference);
+        DescriptionTemplate key5 = getKeyFromTemplate (reference, this.spotMetadataTemplate);
         desc4.setKey(key5);
         desc4.setDescriptors(new ArrayList<Description>());
         Descriptor subDesc4 = new Descriptor();
         subDesc4.setName("Value");
-        DescriptionTemplate key6 = getKeyFromTemplate ("Value");
+        DescriptionTemplate key6 = getKeyFromTemplate ("Value", this.spotMetadataTemplate);
         subDesc4.setKey(key6);
         String referenceValue =  (config.getReferenceColumn() != -1 && splitted.length > config.getReferenceColumn()) ? splittedRow[config.referenceColumn].trim() : "";
         if (referenceValue.isEmpty()) {
@@ -564,7 +564,7 @@ public class ExtendedGalFileParser {
         String volume = metadataConfig.getVolumeDescription().split("::")[1];
         Descriptor desc5 = new Descriptor();
         desc5.setName(volume);
-        DescriptionTemplate key7 = getKeyFromTemplate (volume);
+        DescriptionTemplate key7 = getKeyFromTemplate (volume, this.spotMetadataTemplate);
         desc5.setKey(key7);
         String volumeValue =  (config.getVolumeColumn() != -1 && splitted.length > config.getVolumeColumn()) ? splittedRow[config.volumeColumn].trim() : "";
         if (volumeValue.isEmpty()) {
@@ -581,7 +581,7 @@ public class ExtendedGalFileParser {
         String dispenses = metadataConfig.getNumberDispensesDescription().split("::")[1];
         Descriptor desc6 = new Descriptor();
         desc6.setName(dispenses);
-        DescriptionTemplate key8 = getKeyFromTemplate (dispenses);
+        DescriptionTemplate key8 = getKeyFromTemplate (dispenses, this.spotMetadataTemplate);
         desc6.setKey(key8);
         String dispensesValue =  (config.getDispensesColumn() != -1 && splitted.length > config.getDispensesColumn()) ? splittedRow[config.dispensesColumn].trim() : "";
         if (dispensesValue.isEmpty()) {
@@ -618,7 +618,7 @@ public class ExtendedGalFileParser {
         
         Descriptor comment = new Descriptor();
         comment.setName(metadataConfig.getCommentDescription());
-        DescriptionTemplate key9 = getKeyFromTemplate (comment.getName());
+        DescriptionTemplate key9 = getKeyFromTemplate (comment.getName(), this.spotMetadataTemplate);
         comment.setKey(key9);
         comment.setValue( (config.getCommentColumn() != -1 && splitted.length > config.getCommentColumn()) ? splittedRow[config.commentColumn]: "");
         descriptors.add(comment);
@@ -626,10 +626,10 @@ public class ExtendedGalFileParser {
         return spotMetadata; 
     }
 
-    private DescriptionTemplate getKeyFromTemplate(String descriptorName) {
+    public static DescriptionTemplate getKeyFromTemplate(String descriptorName, MetadataTemplate metadataTemplate) {
     	DescriptionTemplate template = null;
-		if (this.spotMetadataTemplate != null) {
-			for (DescriptionTemplate desc: this.spotMetadataTemplate.getDescriptors()) {
+		if (metadataTemplate != null) {
+			for (DescriptionTemplate desc: metadataTemplate.getDescriptors()) {
 				if (desc.getName().equalsIgnoreCase(descriptorName)) 
 					template = desc;
 				if (template == null && desc instanceof DescriptorGroupTemplate) {
@@ -640,7 +640,7 @@ public class ExtendedGalFileParser {
 		return template;
 	}
 
-	private DescriptionTemplate getKeyFromTemplate(DescriptorGroupTemplate group, String descriptorName) {
+	public static DescriptionTemplate getKeyFromTemplate(DescriptorGroupTemplate group, String descriptorName) {
 		DescriptionTemplate template = null;
 		for (DescriptionTemplate desc: group.getDescriptors()) {
 			if (desc.getName().equalsIgnoreCase(descriptorName)) 

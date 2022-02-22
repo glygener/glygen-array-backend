@@ -91,16 +91,24 @@ import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
+import org.glygen.array.persistence.rdf.Source;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
+import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
+import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
+import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.FixGlycoCtUtil;
 import org.glygen.array.util.GalFileImportResult;
@@ -108,6 +116,7 @@ import org.glygen.array.util.GlycanBaseTypeUtil;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.ParserConfiguration;
 import org.glygen.array.util.SequenceUtils;
+import org.glygen.array.util.SpotMetadataConfig;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -228,6 +237,12 @@ public class GlygenArrayController {
 	
 	@Autowired
 	ExtendedGalFileParser galFileParser;
+	
+	@Autowired
+    MetadataTemplateRepository templateRepository;
+	
+	@Autowired
+    SpotMetadataConfig metadataConfig;
 	
 	List<Glycan> glycanCache = new ArrayList<Glycan>();
 	
@@ -2559,7 +2574,7 @@ public class GlygenArrayController {
 		
 		if (linker.getClassification() == null && linker.getPubChemId() == null && linker.getInChiKey() == null) {   // at least one of them should be provided
 			if (!unknown) 
-			    errorMessage.addError(new ObjectError("classification", "NoEmpty"));
+			    errorMessage.addError(new ObjectError("pubChemId", "NoEmpty"));
 		} 
 	
 		// validate first
@@ -3029,6 +3044,46 @@ public class GlygenArrayController {
 	        		List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
 	        		int width = 0;
 	        		int height = 0;
+	        		
+	        		// create a SpotMetadata with no information since we don't get the information from the library file
+	                SpotMetadata spotMetadata = new SpotMetadata();
+	                spotMetadata.setName(slideLayout.getName() + "-spotMetadata");
+	                try {
+	        	        String uri = templateRepository.getTemplateByName("Default Spot", MetadataTemplateType.SPOT);
+	        	        if (uri != null) {
+	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
+	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Dispenses", template);
+	        	        	DescriptorGroup group = new DescriptorGroup();
+	        	            group.setKey(descT);
+	        	            group.setNotRecorded(true);
+	        	            spotMetadata.setDescriptorGroups(new ArrayList<>());
+	        	            spotMetadata.getDescriptorGroups().add(group);
+	        	        } else {
+	        	        	errorMessage.addError(new ObjectError("spot template", "NotFound"));
+	        	        }
+	                } catch (SparqlException | SQLException e) {
+	                	errorMessage.addError(new ObjectError("spot template", "NotValid"));
+	                }
+	                
+	                FeatureMetadata featureMetadata = new FeatureMetadata();
+	                featureMetadata.setName(slideLayout.getName() + "-featureMetadata");
+	                try {
+	        	        String uri = templateRepository.getTemplateByName("Feature Feature", MetadataTemplateType.FEATURE);
+	        	        if (uri != null) {
+	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
+	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Commercial source", template);
+	        	        	DescriptorGroup group = new DescriptorGroup();
+	        	            group.setKey(descT);
+	        	            group.setNotRecorded(true);
+	        	            featureMetadata.setDescriptorGroups(new ArrayList<>());
+	        	            featureMetadata.getDescriptorGroups().add(group);
+	        	        } else {
+	        	        	errorMessage.addError(new ObjectError("feature template", "NotFound"));
+	        	        }
+	                } catch (SparqlException | SQLException e) {
+	                	errorMessage.addError(new ObjectError("feature template", "NotValid"));
+	                }
+	                
 	        		for (Block block: slideLayout.getBlock()) {
 	        			org.glygen.array.persistence.rdf.Block myBlock = new org.glygen.array.persistence.rdf.Block();
 	        			myBlock.setColumn(block.getColumn());
@@ -3065,7 +3120,7 @@ public class GlygenArrayController {
 	        			myLayout.setDescription(comment);
 	        			myBlock.setBlockLayout(myLayout); 
 	        			try {
-    	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout);
+    	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout, spotMetadata, featureMetadata);
     	        			//myBlock.setSpots(spots);
     	        			myLayout.setSpots(spots);
     	        			blocks.add(myBlock);
@@ -3408,9 +3463,12 @@ public class GlygenArrayController {
         																		if (g.getName() != null) {
         																			// add name as an alias
         																		    if (g instanceof SequenceDefinedGlycan) {
-            																			String existingId = getGlycanBySequence(
-            																			     ((SequenceDefinedGlycan) g).getSequence(), p);
-            																			addAliasForGlycan(existingId, g.getName(), p);
+            																			String existingUri = glycanRepository.getGlycanBySequence(
+            																					((SequenceDefinedGlycan) g).getSequence(), user);
+            																			if (existingUri != null) {
+	            																			String existingId = existingUri.substring(existingUri.lastIndexOf("/") + 1);
+	            																			addAliasForGlycan(existingId, g.getName(), p);
+            																			}
         																		    }
         																		}
         																		break;
@@ -3861,10 +3919,12 @@ public class GlygenArrayController {
 	}
 	
 	
-	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout) {
+	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout, SpotMetadata spotMetadata, FeatureMetadata featureMetadata) {
 		List<org.glygen.array.persistence.rdf.Spot> spots = new ArrayList<>();
 		ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        Source glycanSource = new Source();
+        glycanSource.setNotRecorded(true);
     	for (Spot spot: blockLayout.getSpot()) {
     		org.glygen.array.persistence.rdf.Spot s = new org.glygen.array.persistence.rdf.Spot();
     		s.setRow(spot.getY());
@@ -3888,17 +3948,26 @@ public class GlygenArrayController {
         				for (Ratio r1 : probe.getRatio()) {
         					LinkedGlycan myFeature = new LinkedGlycan();
         					myFeature.setGlycans(new ArrayList<GlycanInFeature>());
+        					myFeature.setMetadata(featureMetadata);
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
-		        				SequenceDefinedGlycan myGlycan = new SequenceDefinedGlycan();
-		        				myGlycan.setSequence(glycan.getSequence());  
+		        				Glycan myGlycan = null;
+		        				if (glycan.getSequence() != null) {
+		        					myGlycan = new SequenceDefinedGlycan();
+		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence());  
+		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
+		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+		        				} else {
+		        					myGlycan = new UnknownGlycan();
+		        				}
+		        			
 		        				myGlycan.setName(glycan.getName());
 		        				myGlycan.setDescription(glycan.getComment());
-		        				myGlycan.setGlytoucanId(glycan.getGlyTouCanId());
-		        				myGlycan.setSequenceType(GlycanSequenceFormat.GLYCOCT);
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
 		        				GlycanInFeature glycanFeature = new GlycanInFeature();
 		        				glycanFeature.setGlycan(myGlycan);
+		        				glycanFeature.setSource(glycanSource);
+		        				//TODO check probe metadata to see if source information is available
 		        				myFeature.getGlycans().add(glycanFeature);
         					} else {
         					    // should have been there
@@ -3907,7 +3976,12 @@ public class GlygenArrayController {
 		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
 		        			if (linker != null) {
 		        				Linker myLinker = new SmallMoleculeLinker();
-		        				if (linker.getPubChemId() != null) ((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
+		        				if (linker.getPubChemId() != null) {
+		        					((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
+		        				} else {
+		        					// create unknown linker
+		        					myLinker.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
+		        				}
 		        				myLinker.setName(linker.getName());
 		        				myLinker.setDescription(linker.getComment());
 		        				myFeature.setLinker(myLinker);
@@ -3917,6 +3991,7 @@ public class GlygenArrayController {
                                 errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
                             }
 		        			myFeature.setName (feature.getName());
+		        			myFeature.setMetadata(featureMetadata);
 		        			ratioMap.put(myFeature, r1.getItemRatio());
 		        			//TODO get the concentration from probe once the library model is updated
 		        			concentrationMap.put(myFeature, spot.getConcentration());
@@ -3931,6 +4006,7 @@ public class GlygenArrayController {
     		s.setFeatureRatioMap(ratioMap);
     		s.setFeatureConcentrationMap(concentrationMap);
     		s.setFeatures(features);
+    		s.setMetadata(spotMetadata);
     		spots.add(s);
     	}
     	
