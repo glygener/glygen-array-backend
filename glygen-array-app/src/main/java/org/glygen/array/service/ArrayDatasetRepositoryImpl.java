@@ -397,8 +397,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         Literal comment = printedSlide.getDescription() == null ? null : f.createLiteral(printedSlide.getDescription().trim());
         IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
         IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI printedByRun = f.createIRI(printRunMetadataPredicate);
         IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
-        
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
         IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
@@ -424,7 +424,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         if (printedSlide.getPrinter() != null && printedSlide.getPrinter().getUri() != null) {
             statements.add(f.createStatement(iri, printedBy, f.createIRI(printedSlide.getPrinter().getUri()), graphIRI));
-        } 
+        }
+        if (printedSlide.getPrintRun() != null && printedSlide.getPrintRun().getUri() != null) {
+            statements.add(f.createStatement(iri, printedByRun, f.createIRI(printedSlide.getPrintRun().getUri()), graphIRI));
+        }
         if (printedSlide.getMetadata() != null && printedSlide.getMetadata().getUri() != null) {
             statements.add(f.createStatement(iri, hasSlideMetadata, f.createIRI(printedSlide.getMetadata().getUri()), graphIRI));
         }
@@ -2153,6 +2156,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI iri = f.createIRI(uri);
         IRI hasSlideMetadata = f.createIRI(slideMetadataPredicate);
         IRI printedBy = f.createIRI(printerMetadataPredicate);
+        IRI printedByRun = f.createIRI(printRunMetadataPredicate);
         IRI hasSlideLayout = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_slide_layout");
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
         IRI hasAddedToLibrary = f.createIRI(hasAddedToLibraryPredicate);
@@ -2227,6 +2231,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Value value = st.getObject();
                 Printer metadata = metadataRepository.getPrinterFromURI(value.stringValue(), loadAll, user);
                 slideObject.setPrinter(metadata);
+            } else if (st.getPredicate().equals(printedByRun)) {
+                Value value = st.getObject();
+                PrintRun metadata = metadataRepository.getPrintRunFromURI(value.stringValue(), loadAll, user);
+                slideObject.setPrintRun(metadata);
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the printed slide is already public

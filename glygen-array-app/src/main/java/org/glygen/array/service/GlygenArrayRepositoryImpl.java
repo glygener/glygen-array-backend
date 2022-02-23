@@ -118,6 +118,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String slideMetadataPredicate = ontPrefix + "has_slide_metadata";
     public final static String assayMetadataPredicate = ontPrefix + "has_assay_metadata";
     public final static String printerMetadataPredicate = ontPrefix + "printed_by";
+    public final static String printRunMetadataPredicate = ontPrefix + "printed_by_run";
     public final static String scannerMetadataPredicate = ontPrefix + "has_scanner_metadata";
     public final static String featureMetadataPredicate = ontPrefix + "has_feature_metadata";
     

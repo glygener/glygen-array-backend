@@ -1373,7 +1373,7 @@ public class DatasetController {
                     } else {
                         slide.setPrinter(printer);
                     }
-                } else if (slide.getMetadata().getId() != null) {
+                } else if (slide.getPrinter().getId() != null) {
                     Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getPrinter().getId(), user);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
@@ -1383,6 +1383,35 @@ public class DatasetController {
                 }
             } catch (SQLException | SparqlException e) {
                 throw new GlycanRepositoryException("Error checking for the existince of the printer", e);
+            }
+        }
+        
+        if (slide.getPrintRun() != null) {
+            try {
+                if (slide.getPrintRun().getName() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunByLabel(slide.getPrintRun().getName(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printrun", "NotFound"));
+                    } else {
+                        slide.setPrintRun(printer);
+                    }
+                } else if (slide.getPrintRun().getUri() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunFromURI(slide.getPrintRun().getUri(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printrun", "NotFound"));
+                    } else {
+                        slide.setPrintRun(printer);
+                    }
+                } else if (slide.getPrintRun().getId() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunFromURI(ArrayDatasetRepositoryImpl.uriPrefix + slide.getPrintRun().getId(), user);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printrun", "NotFound"));
+                    } else {
+                        slide.setPrintRun(printer);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the printrun", e);
             }
         }
         
@@ -3638,7 +3667,7 @@ public class DatasetController {
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable samples") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {

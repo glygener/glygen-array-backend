@@ -288,8 +288,11 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addBlockLayout (
-			@ApiParam(required=true, value="Block layout to be added, name, width, height, and spots are required")
-			@RequestBody BlockLayout layout, Principal p) {
+			@ApiParam(required=true, value="Block layout to be added, name, width, height, and spots are required, features should already exist in the repository")
+			@RequestBody BlockLayout layout, 
+			@ApiParam(required=false, value="true if there is no need to check again if feature exists")
+			@RequestParam
+			Boolean noFeatureCheck, Principal p) {
 		
 		ErrorMessage errorMessage = new ErrorMessage();
 		errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -345,88 +348,95 @@ public class GlygenArrayController {
 			throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
 		}
 		
-		// check if features exist
-		Map<String, org.glygen.array.persistence.rdf.Feature> checkedMap = new HashMap<>();
-		if (layout.getSpots() != null) {
-		    for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
-		       /* if (s.getRatioMap() != null) {
-		            double sum = 0.0;
-		            for (Double r: s.getRatioMap().values()) {
-		                if (r != null) {
-		                    sum += r;
-		                }
-		            }
-		            if (sum > 0.0 && sum != 100.0) {
-		                // ratios do not add up to 100
-		                errorMessage.addError(new ObjectError("ratio", "NotValid"));
-		            }
-		        }*/
-		        if (s.getFeatures() != null) {
-		            List<org.glygen.array.persistence.rdf.Feature> newList = new ArrayList<org.glygen.array.persistence.rdf.Feature>();
-		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
-		                try {
-		                    String key = f.getInternalId();
-		                    if (checkedMap.get(f.getInternalId()) == null && checkedMap.get(f.getId()) == null) {
-                                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", user);
-                                if (existing == null) {
-                                    // check by uri
-                                    if (f.getUri() != null) {
-                                        existing = featureRepository.getFeatureFromURI(f.getUri(), user);
-                                        key = f.getUri().substring(f.getUri().lastIndexOf("/")+1);
-                                    } else if (f.getId() != null) {
-                                        existing = featureRepository.getFeatureFromURI(GlygenArrayRepositoryImpl.uriPrefix + f.getId(), user);
-                                        key = f.getId();
-                                    }
+		if (noFeatureCheck != null && !noFeatureCheck) {
+    		// check if features exist
+    		Map<String, org.glygen.array.persistence.rdf.Feature> checkedMap = new HashMap<>();
+    		if (layout.getSpots() != null) {
+    		    for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
+    		       /* if (s.getRatioMap() != null) {
+    		            double sum = 0.0;
+    		            for (Double r: s.getRatioMap().values()) {
+    		                if (r != null) {
+    		                    sum += r;
+    		                }
+    		            }
+    		            if (sum > 0.0 && sum != 100.0) {
+    		                // ratios do not add up to 100
+    		                errorMessage.addError(new ObjectError("ratio", "NotValid"));
+    		            }
+    		        }*/
+    		        if (s.getFeatures() != null) {
+    		            List<org.glygen.array.persistence.rdf.Feature> newList = new ArrayList<org.glygen.array.persistence.rdf.Feature>();
+    		            for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+    		                try {
+    		                    String key = f.getInternalId();
+    		                    if (checkedMap.get(f.getInternalId()) == null && checkedMap.get(f.getId()) == null) {
+                                    org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", user);
                                     if (existing == null) {
-                                        errorMessage.addError(new ObjectError("feature", f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
-                                    } 
-                                } else {
-                                    newList.add(existing);
-                                    if (s.getFeatureConcentrationMap().get(f) != null) {
-                                        LevelUnit con = s.getFeatureConcentrationMap().get(f);
-                                        s.getFeatureConcentrationMap().put(existing, con);
-                                        s.getFeatureConcentrationMap().remove(f);
+                                        // check by uri
+                                        if (f.getUri() != null) {
+                                            existing = featureRepository.getFeatureFromURI(f.getUri(), user);
+                                            key = f.getUri().substring(f.getUri().lastIndexOf("/")+1);
+                                        } else if (f.getId() != null) {
+                                            existing = featureRepository.getFeatureFromURI(GlygenArrayRepositoryImpl.uriPrefix + f.getId(), user);
+                                            key = f.getId();
+                                        }
+                                        if (existing == null) {
+                                            // check the public one
+                                            existing = featureRepository.getFeatureByLabel(f.getInternalId(), "gadr:has_internal_id", null);
+                                            if (existing == null) {
+                                                errorMessage.addError(new ObjectError("feature", 
+                                                        f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
+                                            }
+                                        } 
+                                    } else {
+                                        newList.add(existing);
+                                        if (s.getFeatureConcentrationMap().get(f) != null) {
+                                            LevelUnit con = s.getFeatureConcentrationMap().get(f);
+                                            s.getFeatureConcentrationMap().put(existing, con);
+                                            s.getFeatureConcentrationMap().remove(f);
+                                        }
+                                        
+                                        if (s.getFeatureRatioMap().get(f) != null) {
+                                            Double ratio = s.getFeatureRatioMap().get(f);
+                                            s.getFeatureRatioMap().put(existing, ratio);
+                                            s.getFeatureRatioMap().remove(f);
+                                        }
                                     }
-                                    
-                                    if (s.getFeatureRatioMap().get(f) != null) {
-                                        Double ratio = s.getFeatureRatioMap().get(f);
-                                        s.getFeatureRatioMap().put(existing, ratio);
-                                        s.getFeatureRatioMap().remove(f);
-                                    }
-                                }
-                                checkedMap.put(key, existing);
-		                    } else {
-		                        org.glygen.array.persistence.rdf.Feature feat = checkedMap.get(f.getInternalId());
-		                        if (feat == null) {
-		                            feat = checkedMap.get(f.getId());
-		                            key = f.getId();
-		                        }
-		                        if (feat != null) {
-    		                        newList.add(feat);
-    		                        if (s.getFeatureConcentrationMap().get(f) != null) {
-                                        LevelUnit con = s.getFeatureConcentrationMap().get(f);
-                                        s.getFeatureConcentrationMap().put(checkedMap.get(key), con);
-                                        s.getFeatureConcentrationMap().remove(f);
-                                    }
-    		                        if (s.getFeatureRatioMap().get(f) != null) {
-                                        Double ratio = s.getFeatureRatioMap().get(f);
-                                        s.getFeatureRatioMap().put(checkedMap.get(key), ratio);
-                                        s.getFeatureRatioMap().remove(f);
-                                    }
-		                        } else {
-		                            errorMessage.addError(new ObjectError("feature", f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
-		                        }
-		                    }
-                        } catch (SparqlException | SQLException e) {
-                            throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
-                        }
-		            }
-		            s.setFeatures(newList);
-		            if (s.getMetadata() == null) {
-	                    errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
-	                }
-		        }   
-		    }
+                                    checkedMap.put(key, existing);
+    		                    } else {
+    		                        org.glygen.array.persistence.rdf.Feature feat = checkedMap.get(f.getInternalId());
+    		                        if (feat == null) {
+    		                            feat = checkedMap.get(f.getId());
+    		                            key = f.getId();
+    		                        }
+    		                        if (feat != null) {
+        		                        newList.add(feat);
+        		                        if (s.getFeatureConcentrationMap().get(f) != null) {
+                                            LevelUnit con = s.getFeatureConcentrationMap().get(f);
+                                            s.getFeatureConcentrationMap().put(checkedMap.get(key), con);
+                                            s.getFeatureConcentrationMap().remove(f);
+                                        }
+        		                        if (s.getFeatureRatioMap().get(f) != null) {
+                                            Double ratio = s.getFeatureRatioMap().get(f);
+                                            s.getFeatureRatioMap().put(checkedMap.get(key), ratio);
+                                            s.getFeatureRatioMap().remove(f);
+                                        }
+    		                        } else {
+    		                            errorMessage.addError(new ObjectError("feature", f.getInternalId() == null ? f.getName(): f.getInternalId() + " does not exist in the repository"));
+    		                        }
+    		                    }
+                            } catch (SparqlException | SQLException e) {
+                                throw new GlycanRepositoryException("Block layout cannot be added for user " + p.getName(), e);
+                            }
+    		            }
+    		            s.setFeatures(newList);
+    		            if (s.getMetadata() == null) {
+    	                    errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
+    	                }
+    		        }   
+    		    }
+    		}
 		}
 		
 		if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
@@ -3058,6 +3068,7 @@ public class GlygenArrayController {
 	        	            group.setNotRecorded(true);
 	        	            spotMetadata.setDescriptorGroups(new ArrayList<>());
 	        	            spotMetadata.getDescriptorGroups().add(group);
+	        	            spotMetadata.setTemplate(template.getName());
 	        	        } else {
 	        	        	errorMessage.addError(new ObjectError("spot template", "NotFound"));
 	        	        }
@@ -3077,6 +3088,7 @@ public class GlygenArrayController {
 	        	            group.setNotRecorded(true);
 	        	            featureMetadata.setDescriptorGroups(new ArrayList<>());
 	        	            featureMetadata.getDescriptorGroups().add(group);
+	        	            featureMetadata.setTemplate(template.getName());
 	        	        } else {
 	        	        	errorMessage.addError(new ObjectError("feature template", "NotFound"));
 	        	        }
@@ -3280,7 +3292,7 @@ public class GlygenArrayController {
                         //    addFeature(f, p);
                         //}
                         for (BlockLayout b: importResult.getLayoutList()) {
-                            addBlockLayout(b, p);
+                            addBlockLayout(b, false, p);
                         }
                     } catch (IllegalArgumentException e) {
                         // need to ignore duplicate errors
@@ -3521,11 +3533,30 @@ public class GlygenArrayController {
     															}
     														}
     													}
-    												}
+    												}	
     											}
+											    try {
+											        String id = addFeature(feature, p);
+											        feature.setId(id);
+											    } catch (Exception e) {
+											        boolean ignore = false;
+                                                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                                        ErrorMessage error = (ErrorMessage) e.getCause();
+                                                        for (ObjectError err: error.getErrors()) {
+                                                            if (err.getDefaultMessage().contains("Duplicate")) {
+                                                                // ignore the error, it is already created
+                                                                ignore = true;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (!ignore) {
+                                                        logger.info("Could not add feature: ", e);
+                                                        errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+                                                    }
+											    }
 											}
 										}
-										addBlockLayout(block.getBlockLayout(), p);
+										addBlockLayout(block.getBlockLayout(), false, p);
 									}
 								} catch (Exception e) {
 									logger.info("Could not add block layout", e);
@@ -3991,6 +4022,7 @@ public class GlygenArrayController {
                                 errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
                             }
 		        			myFeature.setName (feature.getName());
+		        			myFeature.setInternalId(feature.getName());
 		        			myFeature.setMetadata(featureMetadata);
 		        			ratioMap.put(myFeature, r1.getItemRatio());
 		        			//TODO get the concentration from probe once the library model is updated
