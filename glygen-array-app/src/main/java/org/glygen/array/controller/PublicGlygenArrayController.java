@@ -36,6 +36,7 @@ import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
@@ -1523,15 +1524,16 @@ public class PublicGlygenArrayController {
                 ProcessedData existing = null;
                 for (Slide slide: dataset.getSlides()) {
                     for (Image image: slide.getImages()) {
-                        if (image.getRawData() != null) {
-                            for (ProcessedData p: image.getRawData().getProcessedDataList()) {
-                                if (p.getId().equals(processedDataId)) {
-                                    existing = p;
+                        if (image.getRawDataList() != null) {
+                            for (RawData rawData: image.getRawDataList()) {
+                                for (ProcessedData p: rawData.getProcessedDataList()) {
+                                    if (p.getId().equals(processedDataId)) {
+                                        existing = p;
+                                    }
                                 }
                             }
                         }
                     }
-                    
                 }
                 if (existing == null) {
                     // check it in the arraydataset's list

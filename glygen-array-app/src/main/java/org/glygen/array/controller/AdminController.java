@@ -150,23 +150,26 @@ public class AdminController {
             //delete the files associated with the slide (image, raw data and processed data files)
             if (slide != null) {
                 for (Image image: slide.getImages()) {
-                    RawData rawData = image.getRawData();
-                    if (rawData != null && rawData.getFile() != null) {
-                        if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
-                            ErrorMessage errorMessage = new ErrorMessage();
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
-                        }
-                        if (rawData.getProcessedDataList() != null) {
-                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData != null && rawData.getFile() != null) {
+                                if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
                                     ErrorMessage errorMessage = new ErrorMessage();
                                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                    errorMessage.addError(new ObjectError("rawData", "NotDone"));
                                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                                     throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                }
+                                if (rawData.getProcessedDataList() != null) {
+                                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                        if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                            ErrorMessage errorMessage = new ErrorMessage();
+                                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -180,18 +183,21 @@ public class AdminController {
                             file.delete();
                         }
                     }
-                    RawData rawData = image.getRawData();
-                    if (rawData != null && rawData.getFile() != null) {
-                        File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
-                        if (rawDataFile.exists()) {
-                            rawDataFile.delete();
-                        }
-                        if (rawData.getProcessedDataList() != null) {
-                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                if (processedData.getFile() != null) {
-                                    File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
-                                    if (dataFile.exists()) {
-                                        dataFile.delete();
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData != null && rawData.getFile() != null) {
+                                File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
+                                if (rawDataFile.exists()) {
+                                    rawDataFile.delete();
+                                }
+                                if (rawData.getProcessedDataList() != null) {
+                                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                        if (processedData.getFile() != null) {
+                                            File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                            if (dataFile.exists()) {
+                                                dataFile.delete();
+                                            }
+                                        }
                                     }
                                 }
                             }

@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 
 public class Image {
@@ -9,7 +12,7 @@ public class Image {
     FileWrapper file;
     ScannerMetadata scanner; 
     String description;
-    RawData rawData;
+    List<RawData> rawDataList;
     
     /**
      * @return the id
@@ -72,16 +75,25 @@ public class Image {
         this.description = description;
     }
     /**
-     * @return the rawData
-     */
-    public RawData getRawData() {
-        return rawData;
-    }
-    /**
      * @param rawData the rawData to set
      */
-    public void setRawData(RawData rawData) {
-        this.rawData = rawData;
+    public void addRawData(RawData rawData) {
+        if (this.rawDataList == null) {
+            this.rawDataList = new ArrayList<RawData>();
+        }
+        this.rawDataList.add(rawData);
+    }
+    /**
+     * @return the rawDataList
+     */
+    public List<RawData> getRawDataList() {
+        return rawDataList;
+    }
+    /**
+     * @param rawDataList the rawDataList to set
+     */
+    public void setRawDataList(List<RawData> rawDataList) {
+        this.rawDataList = rawDataList;
     }
 
 }

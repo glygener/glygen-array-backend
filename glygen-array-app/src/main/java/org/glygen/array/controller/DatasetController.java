@@ -802,101 +802,103 @@ public class DatasetController {
                     }
                 }
                 // check the rawData
-                if (image.getRawData() == null) {
+                if (image.getRawDataList() == null || image.getRawDataList().isEmpty()) {
                     errorMessage.addError(new ObjectError("rawData", "NoEmpty"));
                 } else {
-                    // set the slide for rawData
-                    image.getRawData().setSlide(slide);
-                
-                    // check the file for rawData
-                    if (image.getRawData().getFile() == null || image.getRawData().getFile().getIdentifier() == null) {
-                        if (!allowPartialData) errorMessage.addError(new ObjectError("rawData filename", "NotFound"));
-                    } 
+                    for (RawData rawData: image.getRawDataList()) {
+                        // set the slide for rawData
+                            rawData.setSlide(slide);
                     
-                    if (image.getRawData().getMetadata() == null) {
-                        if (!allowPartialData) errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
-                    } else {
-                        try {
-                            if (image.getRawData().getMetadata().getName() != null) {
-                                ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwarByLabel(image.getRawData().getMetadata().getName(), owner);
-                                if (metadata == null) {
-                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
-                                } else {
-                                    image.getRawData().setMetadata(metadata);
+                        // check the file for rawData
+                        if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
+                            if (!allowPartialData) errorMessage.addError(new ObjectError("rawData filename", "NotFound"));
+                        } 
+                        
+                        if (rawData.getMetadata() == null) {
+                            if (!allowPartialData) errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NoEmpty"));
+                        } else {
+                            try {
+                                if (rawData.getMetadata().getName() != null) {
+                                    ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwarByLabel(rawData.getMetadata().getName(), owner);
+                                    if (metadata == null) {
+                                        errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                    } else {
+                                        rawData.setMetadata(metadata);
+                                    }
+                                } else if (rawData.getMetadata().getUri() != null) {
+                                    ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(rawData.getMetadata().getUri(), owner);
+                                    if (metadata == null) {
+                                        errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                    } else {
+                                        rawData.setMetadata(metadata);
+                                    }
+                                } else if (rawData.getMetadata().getId() != null) {
+                                    ImageAnalysisSoftware metadata = 
+                                            metadataRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getMetadata().getId(), owner);
+                                    if (metadata == null) {
+                                        errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                                    } else {
+                                        rawData.setMetadata(metadata);
+                                    }
                                 }
-                            } else if (image.getRawData().getMetadata().getUri() != null) {
-                                ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(image.getRawData().getMetadata().getUri(), owner);
-                                if (metadata == null) {
-                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
-                                } else {
-                                    image.getRawData().setMetadata(metadata);
-                                }
-                            } else if (image.getRawData().getMetadata().getId() != null) {
-                                ImageAnalysisSoftware metadata = 
-                                        metadataRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + image.getRawData().getMetadata().getId(), owner);
-                                if (metadata == null) {
-                                    errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
-                                } else {
-                                    image.getRawData().setMetadata(metadata);
-                                }
+                            } catch (SQLException | SparqlException e) {
+                                throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
                             }
-                        } catch (SQLException | SparqlException e) {
-                            throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
                         }
-                    }
-                    
-                    if (image.getRawData().getProcessedDataList() == null || image.getRawData().getProcessedDataList().isEmpty()) {
-                        errorMessage.addError(new ObjectError("processedData", "NoEmpty"));
-                    } else {
-                        for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
-                            if (processedData.getMetadata() == null) {
-                                if (!allowPartialData) errorMessage.addError(new ObjectError("dataProcessingSoftware", "NoEmpty"));
-                            } else {
-                                try {
-                                    if (processedData.getMetadata().getName() != null) {
-                                        DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareByLabel(processedData.getMetadata().getName(), owner);
-                                        if (metadata == null) {
-                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
-                                        } else {
-                                            processedData.setMetadata(metadata);
-                                        }
-                                    } else if (processedData.getMetadata().getUri() != null) {
-                                        DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(processedData.getMetadata().getUri(), owner);
-                                        if (metadata == null) {
-                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
-                                        } else {
-                                            processedData.setMetadata(metadata);
-                                        }
-                                    } else if (processedData.getMetadata().getId() != null) {
-                                        DataProcessingSoftware metadata = 
-                                                metadataRepository.getDataProcessingSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getMetadata().getId(), owner);
-                                        if (metadata == null) {
-                                            errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
-                                        } else {
-                                            processedData.setMetadata(metadata);
-                                        }
-                                    }
-                                } catch (SQLException | SparqlException e) {
-                                    throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
-                                }
-                            }
-                            if (processedData.getFile() == null || processedData.getFile().getIdentifier() == null) {
-                                errorMessage.addError(new ObjectError("processedData file", "NoEmpty"));
-                            }  else {
-                                // check for the existence of the file
-                                File excelFile = new File(uploadDir, processedData.getFile().getIdentifier());
-                                if (!excelFile.exists()) {
-                                    errorMessage.addError(new ObjectError("processedData file", "NotFound"));
+                        
+                        if (rawData.getProcessedDataList() == null || rawData.getProcessedDataList().isEmpty()) {
+                            errorMessage.addError(new ObjectError("processedData", "NoEmpty"));
+                        } else {
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                if (processedData.getMetadata() == null) {
+                                    if (!allowPartialData) errorMessage.addError(new ObjectError("dataProcessingSoftware", "NoEmpty"));
                                 } else {
-                                    // check for the fileFormat
-                                    if (processedData.getFile().getFileFormat() == null) {
-                                        errorMessage.addError(new ObjectError("processedData fileformat", "NoEmpty"));
+                                    try {
+                                        if (processedData.getMetadata().getName() != null) {
+                                            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareByLabel(processedData.getMetadata().getName(), owner);
+                                            if (metadata == null) {
+                                                errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                            } else {
+                                                processedData.setMetadata(metadata);
+                                            }
+                                        } else if (processedData.getMetadata().getUri() != null) {
+                                            DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(processedData.getMetadata().getUri(), owner);
+                                            if (metadata == null) {
+                                                errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                            } else {
+                                                processedData.setMetadata(metadata);
+                                            }
+                                        } else if (processedData.getMetadata().getId() != null) {
+                                            DataProcessingSoftware metadata = 
+                                                    metadataRepository.getDataProcessingSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + processedData.getMetadata().getId(), owner);
+                                            if (metadata == null) {
+                                                errorMessage.addError(new ObjectError("dataProcessingSoftware", "NotFound"));
+                                            } else {
+                                                processedData.setMetadata(metadata);
+                                            }
+                                        }
+                                    } catch (SQLException | SparqlException e) {
+                                        throw new GlycanRepositoryException("Error checking for the existince of the image analysis metadata", e);
                                     }
                                 }
-                            }
-                            
-                            if (processedData.getMethod() == null) {
-                                errorMessage.addError(new ObjectError("method", "NoEmpty"));
+                                if (processedData.getFile() == null || processedData.getFile().getIdentifier() == null) {
+                                    errorMessage.addError(new ObjectError("processedData file", "NoEmpty"));
+                                }  else {
+                                    // check for the existence of the file
+                                    File excelFile = new File(uploadDir, processedData.getFile().getIdentifier());
+                                    if (!excelFile.exists()) {
+                                        errorMessage.addError(new ObjectError("processedData file", "NotFound"));
+                                    } else {
+                                        // check for the fileFormat
+                                        if (processedData.getFile().getFileFormat() == null) {
+                                            errorMessage.addError(new ObjectError("processedData fileformat", "NoEmpty"));
+                                        }
+                                    }
+                                }
+                                
+                                if (processedData.getMethod() == null) {
+                                    errorMessage.addError(new ObjectError("method", "NoEmpty"));
+                                }
                             }
                         }
                     }
@@ -912,14 +914,18 @@ public class DatasetController {
         try {
             // save the rawData and the processed data first
             for (Image image: slide.getImages()) {
-                for (ProcessedData processedData: image.getRawData().getProcessedDataList()) {
-                    String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata() == null ? null : processedData.getMetadata().getId(), 
-                            processedData.getMethod().getName(), slide, p);
-                    processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+                if (image.getRawDataList() != null) {
+                    for (RawData rawData: image.getRawDataList()) {
+                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                            String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata() == null ? null : processedData.getMetadata().getId(), 
+                                    processedData.getMethod().getName(), slide, p);
+                            processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+                        }
+                        rawData.setSlide(slide);
+                        String id = addRawData(rawData, datasetId, p);
+                        rawData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+                    }
                 }
-                image.getRawData().setSlide(slide);
-                String id = addRawData(image.getRawData(), datasetId, p);
-                image.getRawData().setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
             }
             
             String slideURI = datasetRepository.addSlide(slide, datasetId, owner);
@@ -1173,13 +1179,22 @@ public class DatasetController {
                     // check blocks used and extract only those measurements
                     if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
                         Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
+                        List<String> foundBlocks = new ArrayList<String>();
                         for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
                             for (String blockId: rawData.getSlide().getBlocksUsed()) { 
                                 if (entry.getValue().getBlockLayoutUri().equals(uriPre + blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
+                                    if (!foundBlocks.contains(blockId)) {
+                                        foundBlocks.add(blockId);
+                                    }
                                     break;
                                 }
                             }
+                        }
+                        if (foundBlocks.size() != rawData.getSlide().getBlocksUsed().size()) {
+                            // we could not find the data for the selected blocks from the raw data file
+                            errorMessage.addError(new ObjectError("blocksUsed", "NotValid"));
+                            throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                         }
                         rawData.setDataMap(filteredMap); 
                     } else {
@@ -4513,20 +4528,23 @@ public class DatasetController {
             //delete the files associated with the slide (image, raw data and processed data files)
             if (slide != null) {
                 for (Image image: slide.getImages()) {
-                    RawData rawData = image.getRawData();
-                    if (rawData != null && rawData.getFile() != null) {
-                        if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
-                            
-                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
-                        }
-                        if (rawData.getProcessedDataList() != null) {
-                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
-                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData != null && rawData.getFile() != null) {
+                                if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                    
+                                    errorMessage.addError(new ObjectError("rawData", "NotDone"));
                                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                                     throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                }
+                                if (rawData.getProcessedDataList() != null) {
+                                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                        if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -4540,18 +4558,21 @@ public class DatasetController {
                             file.delete();
                         }
                     }
-                    RawData rawData = image.getRawData();
-                    if (rawData != null && rawData.getFile() != null) {
-                        File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
-                        if (rawDataFile.exists()) {
-                            rawDataFile.delete();
-                        }
-                        if (rawData.getProcessedDataList() != null) {
-                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                if (processedData.getFile() != null) {
-                                    File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
-                                    if (dataFile.exists()) {
-                                        dataFile.delete();
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData != null && rawData.getFile() != null) {
+                                File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
+                                if (rawDataFile.exists()) {
+                                    rawDataFile.delete();
+                                }
+                                if (rawData.getProcessedDataList() != null) {
+                                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                        if (processedData.getFile() != null) {
+                                            File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                            if (dataFile.exists()) {
+                                                dataFile.delete();
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -5916,7 +5937,7 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updatePrintedSlide(
-            @ApiParam(required=true, value="Printed slide with updated fields") 
+            @ApiParam(required=true, value="Printed slide with updated fields, only name and description can be changed") 
             @RequestBody PrintedSlide printedSlide, 
             @ApiParam(required=false, value="id of the array dataset that uses this printed slide") 
             @RequestParam(value="arraydatasetId", required=false)
@@ -5975,10 +5996,12 @@ public class DatasetController {
             errorMessage.addError(new ObjectError("name", "NoEmpty"));
         }
         
+        
+        // do not allow layout and metadata changes!!!
         // check to make sure, the slide layout is specified
-        if (printedSlide.getLayout() == null || (printedSlide.getLayout().getId() == null && printedSlide.getLayout().getUri() == null && printedSlide.getLayout().getName() == null)) {
+      /*  if (printedSlide.getLayout() == null || (printedSlide.getLayout().getId() == null && printedSlide.getLayout().getUri() == null && printedSlide.getLayout().getName() == null)) {
             errorMessage.addError(new ObjectError("slidelayout", "NoEmpty"));
-        } 
+        } */
 
         // check for duplicate name
         try {
@@ -5991,7 +6014,7 @@ public class DatasetController {
         }
         
         // check if the slide layout exists
-        if (printedSlide.getLayout() != null) {
+      /*  if (printedSlide.getLayout() != null) {
             try {
                 String slideLayoutId = printedSlide.getLayout().getId();
                 if (slideLayoutId == null) {
@@ -6064,7 +6087,7 @@ public class DatasetController {
                     } else {
                         printedSlide.setPrinter(printer);
                     }
-                } else if (printedSlide.getMetadata().getId() != null) {
+                } else if (printedSlide.getPrinter().getId() != null) {
                     Printer printer = metadataRepository.getPrinterFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrinter().getId(), owner);
                     if (printer == null) {
                         errorMessage.addError(new ObjectError("printer", "NotFound"));
@@ -6076,6 +6099,35 @@ public class DatasetController {
                 throw new GlycanRepositoryException("Error checking for the existince of the printer", e);
             }
         }
+        
+        if (printedSlide.getPrintRun() != null) {
+            try {
+                if (printedSlide.getPrintRun().getName() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunByLabel(printedSlide.getPrintRun().getName(), owner);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printRun", "NotFound"));
+                    } else {
+                        printedSlide.setPrintRun(printer);
+                    }
+                } else if (printedSlide.getPrintRun().getUri() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunFromURI(printedSlide.getPrintRun().getUri(), owner);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printRun", "NotFound"));
+                    } else {
+                        printedSlide.setPrintRun(printer);
+                    }
+                } else if (printedSlide.getPrintRun().getId() != null) {
+                    PrintRun printer = metadataRepository.getPrintRunFromURI(ArrayDatasetRepositoryImpl.uriPrefix + printedSlide.getPrintRun().getId(), owner);
+                    if (printer == null) {
+                        errorMessage.addError(new ObjectError("printRun", "NotFound"));
+                    } else {
+                        printedSlide.setPrintRun(printer);
+                    }
+                }
+            } catch (SQLException | SparqlException e) {
+                throw new GlycanRepositoryException("Error checking for the existince of the printer", e);
+            }
+        }*/
         
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 

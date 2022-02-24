@@ -440,10 +440,14 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                         continue;
                     Value value = st.getObject();
                     Description descriptor = getDescriptionFromURI (value.stringValue(), graph);
-                    if (descriptor.isGroup()) {
-                        metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
+                    if (descriptor != null) {
+                        if (descriptor.isGroup()) {
+                            metadataObject.getDescriptorGroups().add((DescriptorGroup)descriptor);
+                        } else {
+                            metadataObject.getDescriptors().add((Descriptor) descriptor);
+                        }
                     } else {
-                        metadataObject.getDescriptors().add((Descriptor) descriptor);
+                        logger.error("descriptor with uri " + value + " is not found!");
                     }
                 } else if (st.getPredicate().equals(hasInternalId)) {
                     if (metadataObject instanceof Sample) {
@@ -500,6 +504,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
     
     private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
+        if (uri.contains("public")) {
+            graph = DEFAULT_GRAPH;
+        }
         List<Description> descriptorList = new ArrayList<Description>();
         List<Description> descriptorGroupList = new ArrayList<Description>();
         Description descriptorObject = null;
