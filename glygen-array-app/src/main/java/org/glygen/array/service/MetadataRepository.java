@@ -30,6 +30,8 @@ public interface MetadataRepository {
 
     List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException;
+    List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException;
 
     SpotMetadata getSpotMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
 
@@ -47,6 +49,8 @@ public interface MetadataRepository {
     List<Sample> getSampleByUser (UserEntity user) throws SparqlException, SQLException;
     List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
+            throws SparqlException, SQLException;
     int getSampleCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     Sample getSampleFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
@@ -56,6 +60,8 @@ public interface MetadataRepository {
     List<Printer> getPrinterByUser (UserEntity user) throws SparqlException, SQLException;
     List<Printer> getPrinterByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
             throws SparqlException, SQLException;
     int getPrinterCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
@@ -68,6 +74,8 @@ public interface MetadataRepository {
     List<PrintRun> getPrintRunByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
+            throws SparqlException, SQLException;
     int getPrintRunCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     PrintRun getPrintRunFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     PrintRun getPrintRunFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
@@ -77,6 +85,8 @@ public interface MetadataRepository {
     List<ScannerMetadata> getScannerMetadataByUser (UserEntity user) throws SparqlException, SQLException;
     List<ScannerMetadata> getScannerMetadataByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
             throws SparqlException, SQLException;
     int getScannerMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
@@ -88,7 +98,8 @@ public interface MetadataRepository {
     List<SlideMetadata> getSlideMetadataByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
-    
+    List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
+            throws SparqlException, SQLException;
     SlideMetadata getSlideMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     SlideMetadata getSlideMetadataFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     SlideMetadata getSlideMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException;
@@ -97,6 +108,8 @@ public interface MetadataRepository {
     List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser (UserEntity user) throws SparqlException, SQLException;
     List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
             throws SparqlException, SQLException;
     int getImageAnalysisSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
@@ -108,6 +121,8 @@ public interface MetadataRepository {
     List<DataProcessingSoftware> getDataProcessingSoftwareByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
             throws SparqlException, SQLException;
+    List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
+            throws SparqlException, SQLException;
     int getDataProcessingSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user) throws SparqlException, SQLException;
     DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
@@ -117,6 +132,8 @@ public interface MetadataRepository {
     List<AssayMetadata> getAssayMetadataByUser (UserEntity user) throws SparqlException, SQLException;
     List<AssayMetadata> getAssayMetadataByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
     List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue)
+            throws SparqlException, SQLException;
+    List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order, String searchValue, Boolean loadAll)
             throws SparqlException, SQLException;
     int getAssayMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException;
     AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException;

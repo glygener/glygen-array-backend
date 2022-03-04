@@ -136,6 +136,7 @@ import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.ImportGRITSLibraryResult;
+import org.glygen.array.view.LibraryImportInput;
 import org.glygen.array.view.LinkerListResultView;
 import org.glygen.array.view.ResumableFileInfo;
 import org.glygen.array.view.ResumableInfoStorage;
@@ -3391,14 +3392,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public ImportGRITSLibraryResult addSlideLayoutFromLibrary (
-	        @ApiParam(required=true, value="uploaded file with slide layouts")
-	        @RequestBody
-            FileWrapper fileWrapper,
-			@ApiParam(required=true, value="list of slide layouts to be imported, only name is sufficient for a slide layout")
-			@RequestBody List<SlideLayout> slideLayouts, 
+			@ApiParam(required=true, value="uploaded file and the list of slide layouts to be imported, only name is sufficient for a slide layout")
+			@RequestBody LibraryImportInput input, 
 			Principal p) {
 		
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        FileWrapper fileWrapper = input.getFile();
+        List<SlideLayout> slideLayouts = input.getSlideLayouts();
 		if (fileWrapper != null && fileWrapper.getIdentifier() != null) {
 		    String uploadedFileName = fileWrapper.getIdentifier();
 		    uploadedFileName = moveToTempFile (uploadedFileName.trim());

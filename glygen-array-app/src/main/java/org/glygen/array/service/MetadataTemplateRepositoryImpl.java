@@ -121,9 +121,14 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
         
         return templates;
     }
-
+    
     @Override
     public MetadataTemplate getTemplateFromURI(String templateURI) throws SparqlException {
+        return getTemplateFromURI(templateURI, true);
+    }
+
+    @Override
+    public MetadataTemplate getTemplateFromURI(String templateURI, Boolean loadAll) throws SparqlException {
         
         MetadataTemplate templateObject = null;
         
@@ -152,6 +157,8 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
                 Value comment = st.getObject();
                 templateObject.setDescription(comment.stringValue());
             } else if (st.getPredicate().equals(hasDescriptionContext)) {
+                if (loadAll != null && !loadAll) 
+                    continue;
                 Value uriValue = st.getObject();
                 DescriptionTemplate description = getDescriptionFromURI(uriValue.stringValue());
                 templateObject.getDescriptors().add(description);

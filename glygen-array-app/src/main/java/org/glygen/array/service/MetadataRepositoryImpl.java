@@ -50,136 +50,75 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     MetadataTemplateRepository templateRepository;
     
     @Override
-    public Sample getSampleFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
-        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, loadAll, user);
+    public String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.ASSAY, hasAssayTemplatePredicate, assayTypePredicate, "A", user);
     }
 
 
     @Override
-    public Printer getPrinterFromURI(String uri, Boolean loadAll, UserEntity user)
+    public String addDataProcessingSoftware(DataProcessingSoftware metadata, UserEntity user)
             throws SparqlException, SQLException {
-        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, loadAll, user);
+        return addMetadataCategory (metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, hasDataprocessingTemplatePredicate, dataProcessingTypePredicate, "DPS", user);
     }
 
 
-    @Override
-    public ScannerMetadata getScannerMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, loadAll, user);
-    }
-
-
-    @Override
-    public SlideMetadata getSlideMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, loadAll, user);
-    }
-
-
-    @Override
-    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, loadAll, user);
-    }
-
-
-    @Override
-    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, loadAll, user);
-    }
-
-
-    @Override
-    public AssayMetadata getAssayMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, loadAll, user);
-    }  
-    
-    /**
-     * add metadata to repository and return the uri, if it already exists (same label), return the exising uri
-     * @param metadata
-     * @param metadataType
-     * @param templatePredicate
-     * @param typePredicate
-     * @param prefix
-     * @param user
-     * @return uri of the newly added metadata or the existing one
-     * @throws SparqlException
-     * @throws SQLException
-     */
-    @Override
-    public String addMetadataCategory (MetadataCategory metadata, MetadataTemplateType metadataType, 
-            String templatePredicate, String typePredicate, String prefix, UserEntity user) throws SparqlException, SQLException {
-        String graph = null;
-        if (user == null) {
-            graph = DEFAULT_GRAPH;
-        } else {
-            // check if there is already a private graph for user
-            graph = getGraphForUser(user);
+    private String addDescriptor (Descriptor descriptor, List<Statement> statements, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        String uriPre = uriPrefix;
+        if (graph.equals (DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
         }
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
+        String descrURI = generateUniqueURI(uriPre + "D", graph);
+        IRI descr = f.createIRI(descrURI);
+        IRI hasValue = f.createIRI(valuePredicate);
+        IRI hasKey = f.createIRI(keyPredicate);
+        IRI hasUnit = f.createIRI(unitPredicate);
+        IRI hasOrder = f.createIRI(orderPredicate);
+        IRI notRecorded = f.createIRI(notRecordedPredicate);
+        IRI notApplicable = f.createIRI(notApplicablePredicate);
         
-        IRI hasTemplate = f.createIRI(templatePredicate);
-        IRI type = f.createIRI(typePredicate);
-        // TODO check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
-        String existing = null;
-        if (metadata.getName() != null)
-        	existing = getEntityByLabel(metadata.getName().trim(), graph, typePredicate);
-        if (existing == null) {
-            // add to user's local repository
-            List<Statement> statements = new ArrayList<Statement>();
-            Date addedToLibrary = metadata.getDateAddedToLibrary() == null ? new Date() : metadata.getDateAddedToLibrary();
-            String metadataURI = addGenericInfo(metadata.getName(), metadata.getDescription(), addedToLibrary, statements, prefix, graph);
-            // add template
-            // find the template with given name and add the object property from sample to the metadatatemplate
-            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), metadataType);
-            IRI sampleIRI = f.createIRI(metadataURI);
-            if (templateURI != null) 
-                statements.add(f.createStatement(sampleIRI, hasTemplate, f.createIRI(templateURI), graphIRI));
-            statements.add(f.createStatement(sampleIRI, RDF.TYPE, type, graphIRI));
-            addMetadata (metadataURI, metadata, statements, graph);
-            sparqlDAO.addStatements(statements, graphIRI);
-            
-            return metadataURI;
-        } 
-        return existing;
-    }
-    
-    /**
-     * add all descriptors and descriptor groups to the given IRI in the given graph
-     * @param uri URI of the entity in the repository to add metadata
-     * @param metadata descriptors and descriptor groups 
-     * @param statements list of statements generated by adding the metadata
-     * @param graph graph to insert data
-     * @throws SparqlException 
-     */
-    private void addMetadata (String uri, MetadataCategory metadata, List<Statement> statements, String graph) throws SparqlException {
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        IRI iri = f.createIRI(uri);
-        IRI hasDescriptor = f.createIRI(describedbyPredicate);
-        if (metadata.getDescriptors() != null) {
-            for (Descriptor descriptor: metadata.getDescriptors()) {
-                if (descriptor == null) continue;
-                //if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
-                String descriptorURI = addDescriptor(descriptor, statements, graph);
-                IRI descrIRI = f.createIRI(descriptorURI);
-                statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
+        Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
+        Literal order = descriptor.getOrder() == null || descriptor.getOrder() == -1 ? null : f.createLiteral(descriptor.getOrder());
+        Literal notRec = descriptor.getNotRecorded() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotRecorded());
+        Literal notApp = descriptor.getNotApplicable() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotApplicable());
+        
+        if (descriptor.getKey().getUri() == null) {
+            // try to get the uri from id
+            if (descriptor.getKey().getId() != null) {
+                descriptor.getKey().setUri(MetadataTemplateRepository.templatePrefix + descriptor.getKey().getId()) ;
+            } else {
+                throw new SparqlException ("Descriptor template info is missing");
+            }
+        }
+        // check if template actually exists!
+        DescriptionTemplate descTemplate = templateRepository.getDescriptionFromURI(descriptor.getKey().getUri());
+        if (descTemplate == null) {
+            throw new SparqlException ("Descriptor template " + descriptor.getKey().getId() + " does not exist in the repository");
+        }
+        
+        if (order == null) {
+            if (descTemplate.getOrder() != null) {
+                order = f.createLiteral(descTemplate.getOrder());
             }
         }
         
-        if (metadata.getDescriptorGroups() != null) {
-            for (DescriptorGroup descriptorGroup: metadata.getDescriptorGroups()) {
-                if (descriptorGroup == null) continue;
-                String descriptorGroupURI = addDescriptorGroup(descriptorGroup, statements, graph);
-                IRI descrGroupIRI = f.createIRI(descriptorGroupURI);
-                statements.add(f.createStatement(iri, hasDescriptor, descrGroupIRI, graphIRI));
-            }
-        }
+        IRI descriptorTemplateIRI = f.createIRI(descriptor.getKey().getUri());
+        Literal dValue = descriptor.getValue() != null ? f.createLiteral(descriptor.getValue()) : null;
+        Literal name = f.createLiteral(descTemplate.getName());
+        statements.add(f.createStatement(descr, RDF.TYPE, f.createIRI(simpleDescriptionTypePredicate), graphIRI));
+        statements.add(f.createStatement(descr, RDFS.LABEL, name, graphIRI));
+        statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
+        if (dValue != null) statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
+        if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
+        if (order != null) statements.add(f.createStatement(descr, hasOrder, order, graphIRI));
+        statements.add(f.createStatement(descr, notRecorded, notRec, graphIRI));
+        statements.add(f.createStatement(descr, notApplicable, notApp, graphIRI));
+        
+        return descrURI;     
     }
-    
+
+
     private String addDescriptorGroup(DescriptorGroup descriptorGroup, List<Statement> statements, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
@@ -251,62 +190,606 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
 
-    private String addDescriptor (Descriptor descriptor, List<Statement> statements, String graph) throws SparqlException {
+    @Override
+    public String addImageAnalysisSoftware(ImageAnalysisSoftware metadata, UserEntity user)
+            throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, hasImageTemplatePredicate, imageAnalysisTypePredicate, "Im", user);
+    }
+
+
+    /**
+     * add all descriptors and descriptor groups to the given IRI in the given graph
+     * @param uri URI of the entity in the repository to add metadata
+     * @param metadata descriptors and descriptor groups 
+     * @param statements list of statements generated by adding the metadata
+     * @param graph graph to insert data
+     * @throws SparqlException 
+     */
+    private void addMetadata (String uri, MetadataCategory metadata, List<Statement> statements, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
+        IRI iri = f.createIRI(uri);
+        IRI hasDescriptor = f.createIRI(describedbyPredicate);
+        if (metadata.getDescriptors() != null) {
+            for (Descriptor descriptor: metadata.getDescriptors()) {
+                if (descriptor == null) continue;
+                //if (descriptor.getValue() == null || descriptor.getValue().isEmpty()) continue;
+                String descriptorURI = addDescriptor(descriptor, statements, graph);
+                IRI descrIRI = f.createIRI(descriptorURI);
+                statements.add(f.createStatement(iri, hasDescriptor, descrIRI, graphIRI));
+            }
+        }
+        
+        if (metadata.getDescriptorGroups() != null) {
+            for (DescriptorGroup descriptorGroup: metadata.getDescriptorGroups()) {
+                if (descriptorGroup == null) continue;
+                String descriptorGroupURI = addDescriptorGroup(descriptorGroup, statements, graph);
+                IRI descrGroupIRI = f.createIRI(descriptorGroupURI);
+                statements.add(f.createStatement(iri, hasDescriptor, descrGroupIRI, graphIRI));
+            }
+        }
+    }
+
+
+    /**
+     * add metadata to repository and return the uri, if it already exists (same label), return the exising uri
+     * @param metadata
+     * @param metadataType
+     * @param templatePredicate
+     * @param typePredicate
+     * @param prefix
+     * @param user
+     * @return uri of the newly added metadata or the existing one
+     * @throws SparqlException
+     * @throws SQLException
+     */
+    @Override
+    public String addMetadataCategory (MetadataCategory metadata, MetadataTemplateType metadataType, 
+            String templatePredicate, String typePredicate, String prefix, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        
+        IRI hasTemplate = f.createIRI(templatePredicate);
+        IRI type = f.createIRI(typePredicate);
+        // TODO check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
+        String existing = null;
+        if (metadata.getName() != null)
+        	existing = getEntityByLabel(metadata.getName().trim(), graph, typePredicate);
+        if (existing == null) {
+            // add to user's local repository
+            List<Statement> statements = new ArrayList<Statement>();
+            Date addedToLibrary = metadata.getDateAddedToLibrary() == null ? new Date() : metadata.getDateAddedToLibrary();
+            String metadataURI = addGenericInfo(metadata.getName(), metadata.getDescription(), addedToLibrary, statements, prefix, graph);
+            // add template
+            // find the template with given name and add the object property from sample to the metadatatemplate
+            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), metadataType);
+            IRI sampleIRI = f.createIRI(metadataURI);
+            if (templateURI != null) 
+                statements.add(f.createStatement(sampleIRI, hasTemplate, f.createIRI(templateURI), graphIRI));
+            statements.add(f.createStatement(sampleIRI, RDF.TYPE, type, graphIRI));
+            addMetadata (metadataURI, metadata, statements, graph);
+            sparqlDAO.addStatements(statements, graphIRI);
+            
+            return metadataURI;
+        } 
+        return existing;
+    }  
+    
+    @Override
+    public String addPrinter(Printer metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTER, hasPrinterTemplatePredicate, printerTypePredicate, "Pr", user);
+    }
+    
+    @Override
+    public String addPrintRun(PrintRun metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTRUN, hasPrinterTemplatePredicate, printRunTypePredicate, "Prr", user);
+    }
+    
+    @Override
+    public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
+        String sampleURI =  addMetadataCategory (sample, MetadataTemplateType.SAMPLE, hasSampleTemplatePredicate, sampleTypePredicate, "SA", user);
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        Literal internalId = sample.getInternalId() == null ? null : f.createLiteral(sample.getInternalId().trim());
+        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
+        if (internalId != null) {
+            List<Statement> statements = new ArrayList<Statement>();
+            statements.add(f.createStatement(f.createIRI(sampleURI), hasInternalId, internalId, graphIRI));
+            sparqlDAO.addStatements(statements, graphIRI);
+        }
+        return sampleURI;
+    }
+
+
+    @Override
+    public String addScannerMetadata(ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, hasScannerleTemplatePredicate, scannerTypePredicate, "Sc", user);
+    }
+    
+    @Override
+    public String addSlideMetadata(SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SLIDE, hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", user);
+    }
+    
+    @Override
+    public String addSpotMetadata(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, "Spm", user);
+    }
+    
+    @Override
+    public String addSpotMetadataValue(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
+        return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, "Spm", user);
+    }
+
+
+    private boolean canDeleteMetadata(String uri, String graph) throws SparqlException {
+        return canDeleteMetadata(uri, null, graph);
+    }
+    
+    private boolean canDeleteMetadata(String uri, String parentURI, String graph) throws SparqlException {
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("{?s gadr:has_sample <" +  uri + "> } ");
+        queryBuf.append ("UNION {?s gadr:has_image_processing_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_slide_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:printed_by <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +">  } ");
+        queryBuf.append ("} LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            if (parentURI != null) {
+                // check if the one preventing the delete is the given parentURI
+                String sURI = results.get(0).getValue("s");
+                if (!sURI.equals(parentURI)) {
+                    canDelete = false;
+                }
+            } else {
+                canDelete = false;
+            }
+        }
+        
+        return canDelete;
+    }
+
+
+    void deleteDescription (String descriptionURI, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI descriptor = f.createIRI(descriptionURI);
+        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptor, hasDescriptor, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String uri = v.stringValue();
+            deleteDescription (uri, graph);
+        }        
+        statements = sparqlDAO.getStatements(descriptor, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
+    }
+
+
+    @Override
+    public void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
         String uriPre = uriPrefix;
-        if (graph.equals (DEFAULT_GRAPH)) {
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
             uriPre = uriPrefixPublic;
         }
-        String descrURI = generateUniqueURI(uriPre + "D", graph);
-        IRI descr = f.createIRI(descrURI);
+        else {
+            graph = getGraphForUser(user);
+        }
+        if (graph != null) {
+            if (canDeleteMetadata(uriPre + metadataId, graph)) {
+                deleteMetadataById(metadataId, graph);
+            } else {
+                throw new IllegalArgumentException("Cannot delete metadata " + metadataId + ". It is used in an experiment");
+            }
+        }
+    }
+
+
+    @Override
+    public void deleteMetadataById (String metadataId, String graph) throws SparqlException {
+        String uriPre = uriPrefix;
+        if (graph.equals(DEFAULT_GRAPH)) {       
+            uriPre = uriPrefixPublic;
+        }
+        String uri = uriPre + metadataId;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI metadata = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasDescriptor = f.createIRI(describedbyPredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(metadata, hasDescriptor, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            Value v = st.getObject();
+            String descriptorURI = v.stringValue();
+            deleteDescription(descriptorURI, graph);
+        }
+        
+        statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+    }
+
+
+    @Override
+    public AssayMetadata getAssayMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, assayTypePredicate, user);
+        return metadata == null? null : (AssayMetadata) metadata;
+    }
+
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user) throws SparqlException, SQLException {
+       return getAssayMetadataByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getAssayMetadataByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        return getAssayMetadataByUser(user, offset, limit, field, order, searchValue, true);
+    }
+    
+    @Override
+    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<AssayMetadata> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, assayTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            metadataList.add(new AssayMetadata(m));
+        }
+        
+        return metadataList;
+    }
+
+    @Override
+    public int getAssayMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, assayTypePredicate, searchValue, false);
+    }
+
+    @Override
+    public AssayMetadata getAssayMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, true, user);
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, dataProcessingTypePredicate, user);
+        return metadata == null? null : (DataProcessingSoftware) metadata;
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user)
+            throws SparqlException, SQLException {
+        return getDataProcessingSoftwareByUser(user, 0, -1, "id", 0);
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order) throws SparqlException, SQLException {
+        return getDataProcessingSoftwareByUser(user, offset, limit, field, order, null);
+    }
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue) throws SparqlException, SQLException {
+        return getDataProcessingSoftwareByUser(user, offset, limit, field, order, searchValue, true);
+    }
+
+
+    @Override
+    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<DataProcessingSoftware> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, dataProcessingTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            metadataList.add(new DataProcessingSoftware(m));
+        }
+        
+        return metadataList;
+    }
+
+
+    @Override
+    public int getDataProcessingSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, dataProcessingTypePredicate, searchValue, false);
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user)
+            throws SparqlException, SQLException {
+        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, true, user);
+    }
+
+    private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
+        if (uri.contains("public")) {
+            graph = DEFAULT_GRAPH;
+        }
+        List<Description> descriptorList = new ArrayList<Description>();
+        List<Description> descriptorGroupList = new ArrayList<Description>();
+        Description descriptorObject = null;
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI descriptorIRI = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
         IRI hasValue = f.createIRI(valuePredicate);
         IRI hasKey = f.createIRI(keyPredicate);
         IRI hasUnit = f.createIRI(unitPredicate);
+        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
         IRI hasOrder = f.createIRI(orderPredicate);
         IRI notRecorded = f.createIRI(notRecordedPredicate);
         IRI notApplicable = f.createIRI(notApplicablePredicate);
         
-        Literal unit = descriptor.getUnit() == null ? null : f.createLiteral(descriptor.getUnit());
-        Literal order = descriptor.getOrder() == null || descriptor.getOrder() == -1 ? null : f.createLiteral(descriptor.getOrder());
-        Literal notRec = descriptor.getNotRecorded() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotRecorded());
-        Literal notApp = descriptor.getNotApplicable() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotApplicable());
-        
-        if (descriptor.getKey().getUri() == null) {
-            // try to get the uri from id
-            if (descriptor.getKey().getId() != null) {
-                descriptor.getKey().setUri(MetadataTemplateRepository.templatePrefix + descriptor.getKey().getId()) ;
-            } else {
-                throw new SparqlException ("Descriptor template info is missing");
-            }
-        }
-        // check if template actually exists!
-        DescriptionTemplate descTemplate = templateRepository.getDescriptionFromURI(descriptor.getKey().getUri());
-        if (descTemplate == null) {
-            throw new SparqlException ("Descriptor template " + descriptor.getKey().getId() + " does not exist in the repository");
-        }
-        
-        if (order == null) {
-            if (descTemplate.getOrder() != null) {
-                order = f.createLiteral(descTemplate.getOrder());
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, RDF.TYPE, null, graphIRI);
+        if (statements.hasNext()) {
+            Statement st = statements.next();
+            String value = st.getObject().stringValue();
+            if (value.contains("simple")) {
+                descriptorObject = new Descriptor();
+                descriptorObject.setUri(uri);
+                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            } else if (value.contains("complex")) {
+                descriptorObject = new DescriptorGroup();
+                descriptorObject.setUri(uri);
+                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
             }
         }
         
-        IRI descriptorTemplateIRI = f.createIRI(descriptor.getKey().getUri());
-        Literal dValue = descriptor.getValue() != null ? f.createLiteral(descriptor.getValue()) : null;
-        Literal name = f.createLiteral(descTemplate.getName());
-        statements.add(f.createStatement(descr, RDF.TYPE, f.createIRI(simpleDescriptionTypePredicate), graphIRI));
-        statements.add(f.createStatement(descr, RDFS.LABEL, name, graphIRI));
-        statements.add(f.createStatement(descr, hasKey, descriptorTemplateIRI, graphIRI));
-        if (dValue != null) statements.add(f.createStatement(descr, hasValue, dValue, graphIRI));
-        if (unit != null) statements.add(f.createStatement(descr, hasUnit, unit, graphIRI));
-        if (order != null) statements.add(f.createStatement(descr, hasOrder, order, graphIRI));
-        statements.add(f.createStatement(descr, notRecorded, notRec, graphIRI));
-        statements.add(f.createStatement(descr, notApplicable, notApp, graphIRI));
-        
-        return descrURI;     
+        if (descriptorObject != null) {
+            statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
+            while (statements.hasNext()) {
+                Statement st = statements.next();
+                if (st.getPredicate().equals(RDFS.LABEL)) {
+                    String value = st.getObject().stringValue();
+                    descriptorObject.setName(value);
+                } else if (st.getPredicate().equals(hasKey)) {
+                    // retrieve descriptorTemplate from template repository
+                    String tempURI = st.getObject().stringValue();
+                    DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
+                    descriptorObject.setKey(key);
+                    if (key != null) descriptorObject.setName(key.getName());
+                } else if (st.getPredicate().equals(hasValue)) {
+                    String val = st.getObject().stringValue();
+                    ((Descriptor)descriptorObject).setValue(val);
+                } else if (st.getPredicate().equals(hasUnit)) {
+                    String val = st.getObject().stringValue();
+                    ((Descriptor)descriptorObject).setUnit(val);
+                } else if (st.getPredicate().equals(notRecorded)) {
+                    String val = st.getObject().stringValue();
+                    descriptorObject.setNotRecorded(Boolean.parseBoolean(val));
+                } else if (st.getPredicate().equals(notApplicable)) {
+                    String val = st.getObject().stringValue();
+                    descriptorObject.setNotApplicable(Boolean.parseBoolean(val));
+                } else if (st.getPredicate().equals(hasDescriptor)) {
+                    String descURI = st.getObject().stringValue();
+                    Description d = getDescriptionFromURI(descURI, graph);
+                    if (d.isGroup()) 
+                        descriptorGroupList.add(d);
+                    else 
+                        descriptorList.add(d);
+                } else if (st.getPredicate().equals(hasOrder)) {
+                    String val = st.getObject().stringValue();
+                    try {
+                        descriptorObject.setOrder(Integer.parseInt(val));
+                    } catch (NumberFormatException e) {
+                        logger.warn("order is not valid for " + descriptorObject.getUri(), e);
+                    }
+                }
+            }
+        }
+        if (descriptorObject != null) {
+            descriptorObject.setUri(uri);
+            descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            if (descriptorObject.isGroup()) {
+                ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
+                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorList);
+                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorGroupList);
+            }
+        }
+        return descriptorObject;
     }
-    
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwarByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, imageAnalysisTypePredicate, user);
+        return metadata == null? null : (ImageAnalysisSoftware) metadata;
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user)
+            throws SparqlException, SQLException {
+        return getImageAnalysisSoftwareByUser(user, 0, -1, "id", 0 );
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order) throws SparqlException, SQLException {
+        return getImageAnalysisSoftwareByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue) throws SparqlException, SQLException {
+        return getImageAnalysisSoftwareByUser(user, offset, limit, field, order, searchValue, true);
+    }
+
+    @Override
+    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
+            String field, int order, String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<ImageAnalysisSoftware> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, imageAnalysisTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            metadataList.add(new ImageAnalysisSoftware(m));
+        }
+        
+        return metadataList;
+    }
+
+
+    @Override
+    public int getImageAnalysisSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, imageAnalysisTypePredicate, searchValue, false);
+    }
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, true, user);
+    }
+
+
+    @Override
+    public MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException {
+        if (label == null || label.isEmpty())
+            return null;
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+        queryBuf.append ( " ?s rdf:type  <" + typePredicate + "> . \n");
+        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
+                + "}\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (results.isEmpty())
+            return null;
+        else {
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                if (!uri.contains("public")) {
+                    return getMetadataCategoryFromURI(uri, typePredicate, false, user);
+                }
+            }
+            
+            String uri = results.get(0).getValue("s");
+            if (uri.contains("public"))
+                return getMetadataCategoryFromURI(uri, typePredicate, false, null);
+        }
+        return null;
+    }
+
+    public List<MetadataCategory> getMetadataCategoryByUser (UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, String typePredicate) throws SparqlException, SQLException {
+        return getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, typePredicate, true);
+    }
+
+
+    public List<MetadataCategory> getMetadataCategoryByUser (UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, String typePredicate, Boolean loadAll) throws SparqlException, SQLException {
+        List<MetadataCategory> list = new ArrayList<>();
+        
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else
+            graph = getGraphForUser(user);
+        if (graph != null) {
+            
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, typePredicate, false);
+            
+            for (SparqlEntity sparqlEntity : results) {
+                String uri = sparqlEntity.getValue("s");
+                MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, loadAll, user);
+                if (metadata != null)
+                    list.add(metadata);    
+            }
+        }
+        
+        return list;
+    }
+
+
     @Override
     public MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         MetadataCategory metadataObject = null;
@@ -426,13 +909,13 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                         metadataObject.setDateAddedToLibrary(date);
                     }
                 } else if (st.getPredicate().equals(hasTemplate)) {
-                    if (loadAll != null && !loadAll) 
-                        continue;
+                   /* if (loadAll != null && !loadAll) 
+                        continue;*/
                     Value uriValue = st.getObject();
                     String templateuri = uriValue.stringValue();
                     String id = templateuri.substring(templateuri.lastIndexOf("#")+1);
                     metadataObject.setTemplateType(id);  
-                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri);
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateuri, loadAll);
                     if (template != null)
                         metadataObject.setTemplate(template.getName());
                 } else if (st.getPredicate().equals(hasDescriptor)) {
@@ -464,12 +947,12 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                     while (statementsPublic.hasNext()) {
                         Statement stPublic = statementsPublic.next();
                         if (stPublic.getPredicate().equals(hasTemplate)) {
-                            if (loadAll != null && !loadAll) 
-                                continue;
+                            /*if (loadAll != null && !loadAll) 
+                                continue;*/
                             uriValue = stPublic.getObject();
                             String id = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("#")+1);
                             metadataObject.setTemplateType(id);     
-                            MetadataTemplate template = templateRepository.getTemplateFromURI(uriValue.stringValue());
+                            MetadataTemplate template = templateRepository.getTemplateFromURI(uriValue.stringValue(), loadAll);
                             if (template != null)
                                 metadataObject.setTemplate(template.getName());
                         } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
@@ -502,94 +985,143 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         
         return metadataObject;
     }
-    
-    private Description getDescriptionFromURI(String uri, String graph) throws SparqlException {
-        if (uri.contains("public")) {
-            graph = DEFAULT_GRAPH;
-        }
-        List<Description> descriptorList = new ArrayList<Description>();
-        List<Description> descriptorGroupList = new ArrayList<Description>();
-        Description descriptorObject = null;
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI descriptorIRI = f.createIRI(uri);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasValue = f.createIRI(valuePredicate);
-        IRI hasKey = f.createIRI(keyPredicate);
-        IRI hasUnit = f.createIRI(unitPredicate);
-        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
-        IRI hasOrder = f.createIRI(orderPredicate);
-        IRI notRecorded = f.createIRI(notRecordedPredicate);
-        IRI notApplicable = f.createIRI(notApplicablePredicate);
-        
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptorIRI, RDF.TYPE, null, graphIRI);
-        if (statements.hasNext()) {
-            Statement st = statements.next();
-            String value = st.getObject().stringValue();
-            if (value.contains("simple")) {
-                descriptorObject = new Descriptor();
-                descriptorObject.setUri(uri);
-                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-            } else if (value.contains("complex")) {
-                descriptorObject = new DescriptorGroup();
-                descriptorObject.setUri(uri);
-                descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-            }
-        }
-        
-        if (descriptorObject != null) {
-            statements = sparqlDAO.getStatements(descriptorIRI, null, null, graphIRI);
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                if (st.getPredicate().equals(RDFS.LABEL)) {
-                    String value = st.getObject().stringValue();
-                    descriptorObject.setName(value);
-                } else if (st.getPredicate().equals(hasKey)) {
-                    // retrieve descriptorTemplate from template repository
-                    String tempURI = st.getObject().stringValue();
-                    DescriptionTemplate key = templateRepository.getDescriptionFromURI(tempURI);
-                    descriptorObject.setKey(key);
-                    if (key != null) descriptorObject.setName(key.getName());
-                } else if (st.getPredicate().equals(hasValue)) {
-                    String val = st.getObject().stringValue();
-                    ((Descriptor)descriptorObject).setValue(val);
-                } else if (st.getPredicate().equals(hasUnit)) {
-                    String val = st.getObject().stringValue();
-                    ((Descriptor)descriptorObject).setUnit(val);
-                } else if (st.getPredicate().equals(notRecorded)) {
-                    String val = st.getObject().stringValue();
-                    descriptorObject.setNotRecorded(Boolean.parseBoolean(val));
-                } else if (st.getPredicate().equals(notApplicable)) {
-                    String val = st.getObject().stringValue();
-                    descriptorObject.setNotApplicable(Boolean.parseBoolean(val));
-                } else if (st.getPredicate().equals(hasDescriptor)) {
-                    String descURI = st.getObject().stringValue();
-                    Description d = getDescriptionFromURI(descURI, graph);
-                    if (d.isGroup()) 
-                        descriptorGroupList.add(d);
-                    else 
-                        descriptorList.add(d);
-                } else if (st.getPredicate().equals(hasOrder)) {
-                    String val = st.getObject().stringValue();
-                    try {
-                        descriptorObject.setOrder(Integer.parseInt(val));
-                    } catch (NumberFormatException e) {
-                        logger.warn("order is not valid for " + descriptorObject.getUri(), e);
-                    }
-                }
-            }
-        }
-        if (descriptorObject != null) {
-            descriptorObject.setUri(uri);
-            descriptorObject.setId(uri.substring(uri.lastIndexOf("/")+1));
-            if (descriptorObject.isGroup()) {
-                ((DescriptorGroup) descriptorObject).setDescriptors(new ArrayList<Description>());
-                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorList);
-                ((DescriptorGroup) descriptorObject).getDescriptors().addAll(descriptorGroupList);
-            }
-        }
-        return descriptorObject;
+
+
+    @Override
+    public Printer getPrinterByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, printerTypePredicate, user);
+        return metadata == null? null : (Printer) metadata;
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user) throws SparqlException, SQLException {
+        return getPrinterByUser(user, 0, -1, "id", 0 );
     }
     
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getPrinterByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        return getPrinterByUser(user, offset, limit, field, order, searchValue, true);
+    }
+
+
+    @Override
+    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<Printer> printers = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printerTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            printers.add(new Printer(m));
+        }
+        
+        return printers;
+    }
+
+
+    @Override
+    public int getPrinterCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, printerTypePredicate, searchValue, false);
+    }
+    
+    @Override
+    public Printer getPrinterFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, loadAll, user);
+    }
+    
+    @Override
+    public Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, true, user);
+    }
+    
+
+
+    @Override
+    public PrintRun getPrintRunByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, ArrayDatasetRepositoryImpl.printRunTypePredicate, user);
+        return metadata == null? null : (PrintRun) metadata;
+    }
+    
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user) throws SparqlException, SQLException {
+        return getPrintRunByUser(user, 0, -1, "id", 0);
+    }
+    
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getPrintRunByUser(user, offset, limit, field, order, null);
+    }
+    
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        return getPrintRunByUser(user, offset, limit, field, order, searchValue, true);
+    }
+    
+    @Override
+    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<PrintRun> printers = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printRunTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            printers.add(new PrintRun(m));
+        }
+        
+        return printers;
+    }
+
+
+    @Override
+    public int getPrintRunCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, printRunTypePredicate, searchValue, false);
+    }
+    
+    
+
+
+    @Override
+    public PrintRun getPrintRunFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (PrintRun) getMetadataCategoryFromURI(uri, printRunTypePredicate, true, user);
+    }
+
+
+    @Override
+    public PrintRun getPrintRunFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return getPrintRunFromURI(uri, true, user);
+    }
+
+
+    @Override
+    public Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, sampleTypePredicate, user);
+        return metadata == null? null : (Sample) metadata;
+    }
+
+
     @Override
     public List<Sample> getSampleByUser(UserEntity user) throws SparqlException, SQLException {
         return getSampleByUser(user, 0, -1, "id", 0 );
@@ -602,30 +1134,27 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         return getSampleByUser(user, offset, limit, field, order, null);
     }
 
-    public List<MetadataCategory> getMetadataCategoryByUser (UserEntity user, int offset, int limit, String field, int order,
-            String searchValue, String typePredicate) throws SparqlException, SQLException {
-        List<MetadataCategory> list = new ArrayList<>();
-        
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else
-            graph = getGraphForUser(user);
-        if (graph != null) {
-            
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, typePredicate, false);
-            
-            for (SparqlEntity sparqlEntity : results) {
-                String uri = sparqlEntity.getValue("s");
-                MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, true, user);
-                if (metadata != null)
-                    list.add(metadata);    
-            }
-        }
-        
-        return list;
+
+    @Override
+    public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        return getSampleByUser(user, offset, limit, field, order, searchValue, true);
     }
 
+
+    @Override
+    public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<Sample> samples = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, sampleTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            samples.add(new Sample(m));
+        }
+        
+        return samples;
+    }
+    
     @Override
     public int getSampleCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
         String graph = null;
@@ -636,55 +1165,23 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         }
         return getCountByUserByType(graph, sampleTypePredicate, searchValue, false);
     }
-
-
+    
     @Override
-    public String addPrinter(Printer metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.PRINTER, hasPrinterTemplatePredicate, printerTypePredicate, "Pr", user);
+    public Sample getSampleFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, loadAll, user);
     }
 
 
     @Override
-    public List<Printer> getPrinterByUser(UserEntity user) throws SparqlException, SQLException {
-        return getPrinterByUser(user, 0, -1, "id", 0 );
+    public Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, true, user);
     }
 
 
     @Override
-    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        return getPrinterByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<Printer> getPrinterByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<Printer> printers = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printerTypePredicate);
-        for (MetadataCategory m: list) {
-            printers.add(new Printer(m));
-        }
-        
-        return printers;
-    }
-
-    @Override
-    public int getPrinterCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, printerTypePredicate, searchValue, false);
-    }
-
-
-    @Override
-    public String addScannerMetadata(ScannerMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SCANNER, hasScannerleTemplatePredicate, scannerTypePredicate, "Sc", user);
+    public ScannerMetadata getScannerMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, scannerTypePredicate, user);
+        return metadata == null? null : (ScannerMetadata) metadata;
     }
 
 
@@ -704,15 +1201,22 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     @Override
     public List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field,
             int order, String searchValue) throws SparqlException, SQLException {
+        return getScannerMetadataByUser(user, offset, limit, field, order, searchValue, true);
+    }
+    
+    @Override
+    public List<ScannerMetadata> getScannerMetadataByUser(UserEntity user, int offset, int limit, String field,
+            int order, String searchValue, Boolean loadAll) throws SparqlException, SQLException {
         List<ScannerMetadata> metadataList = new ArrayList<>();
         
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, scannerTypePredicate);
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, scannerTypePredicate, loadAll);
         for (MetadataCategory m: list) {
             metadataList.add(new ScannerMetadata(m));
         }
         
         return metadataList;
     }
+
 
     @Override
     public int getScannerMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
@@ -724,11 +1228,22 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         }
         return getCountByUserByType(graph, scannerTypePredicate, searchValue, false);
     }
-
-
+    
     @Override
-    public String addSlideMetadata(SlideMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SLIDE, hasSlideTemplatePredicate, slideTemplateTypePredicate, "Slm", user);
+    public ScannerMetadata getScannerMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, loadAll, user);
+    }
+    
+    @Override
+    public ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, true, user);
+    }
+    
+    @Override
+    public SlideMetadata getSlideMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, slideTemplateTypePredicate, user);
+        return metadata == null? null : (SlideMetadata) metadata;
     }
 
 
@@ -748,15 +1263,22 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     @Override
     public List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue) throws SparqlException, SQLException {
+        return getSlideMetadataByUser(user, offset, limit, field, order, searchValue, true);
+    }
+
+    @Override
+    public List<SlideMetadata> getSlideMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
         List<SlideMetadata> metadataList = new ArrayList<>();
         
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, slideTemplateTypePredicate);
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, slideTemplateTypePredicate, loadAll);
         for (MetadataCategory m: list) {
             metadataList.add(new SlideMetadata(m));
         }
         
         return metadataList;
     }
+
 
     @Override
     public int getSlideMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
@@ -771,280 +1293,11 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
 
 
     @Override
-    public String addImageAnalysisSoftware(ImageAnalysisSoftware metadata, UserEntity user)
+    public SlideMetadata getSlideMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.IMAGEANALYSISSOFTWARE, hasImageTemplatePredicate, imageAnalysisTypePredicate, "Im", user);
-    }
-
-
-    @Override
-    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user)
-            throws SparqlException, SQLException {
-        return getImageAnalysisSoftwareByUser(user, 0, -1, "id", 0 );
-    }
-
-
-    @Override
-    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
-            String field, int order) throws SparqlException, SQLException {
-        return getImageAnalysisSoftwareByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<ImageAnalysisSoftware> getImageAnalysisSoftwareByUser(UserEntity user, int offset, int limit,
-            String field, int order, String searchValue) throws SparqlException, SQLException {
-        List<ImageAnalysisSoftware> metadataList = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, imageAnalysisTypePredicate);
-        for (MetadataCategory m: list) {
-            metadataList.add(new ImageAnalysisSoftware(m));
-        }
-        
-        return metadataList;
-    }
-
-    @Override
-    public int getImageAnalysisSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, imageAnalysisTypePredicate, searchValue, false);
-    }
-
-
-    @Override
-    public String addDataProcessingSoftware(DataProcessingSoftware metadata, UserEntity user)
-            throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.DATAPROCESSINGSOFTWARE, hasDataprocessingTemplatePredicate, dataProcessingTypePredicate, "DPS", user);
-    }
-
-
-    @Override
-    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user)
-            throws SparqlException, SQLException {
-        return getDataProcessingSoftwareByUser(user, 0, -1, "id", 0);
-    }
-
-
-    @Override
-    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
-            String field, int order) throws SparqlException, SQLException {
-        return getDataProcessingSoftwareByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<DataProcessingSoftware> getDataProcessingSoftwareByUser(UserEntity user, int offset, int limit,
-            String field, int order, String searchValue) throws SparqlException, SQLException {
-        List<DataProcessingSoftware> metadataList = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, dataProcessingTypePredicate);
-        for (MetadataCategory m: list) {
-            metadataList.add(new DataProcessingSoftware(m));
-        }
-        
-        return metadataList;
+        return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, loadAll, user);
     }
     
-    @Override
-    public String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.ASSAY, hasAssayTemplatePredicate, assayTypePredicate, "A", user);
-    }
-
-
-    @Override
-    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user) throws SparqlException, SQLException {
-       return getAssayMetadataByUser(user, 0, -1, "id", 0);
-    }
-
-
-    @Override
-    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        return getAssayMetadataByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<AssayMetadata> getAssayMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<AssayMetadata> metadataList = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, assayTypePredicate);
-        for (MetadataCategory m: list) {
-            metadataList.add(new AssayMetadata(m));
-        }
-        
-        return metadataList;
-    }
-    
-    @Override
-    public int getDataProcessingSoftwareCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, dataProcessingTypePredicate, searchValue, false);
-    }
-    
-    @Override
-    public int getAssayMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, assayTypePredicate, searchValue, false);
-    }
-    
-
-
-    @Override
-    public List<Sample> getSampleByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<Sample> samples = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, sampleTypePredicate);
-        for (MetadataCategory m: list) {
-            samples.add(new Sample(m));
-        }
-        
-        return samples;
-    }
-    
-    @Override
-    public void deleteMetadata (String metadataId, UserEntity user) throws SparqlException, SQLException {
-        String graph = null;
-        String uriPre = uriPrefix;
-        if (user == null) {
-            graph = DEFAULT_GRAPH;
-            uriPre = uriPrefixPublic;
-        }
-        else {
-            graph = getGraphForUser(user);
-        }
-        if (graph != null) {
-            if (canDeleteMetadata(uriPre + metadataId, graph)) {
-                deleteMetadataById(metadataId, graph);
-            } else {
-                throw new IllegalArgumentException("Cannot delete metadata " + metadataId + ". It is used in an experiment");
-            }
-        }
-    }
-    
-    @Override
-    public void deleteMetadataById (String metadataId, String graph) throws SparqlException {
-        String uriPre = uriPrefix;
-        if (graph.equals(DEFAULT_GRAPH)) {       
-            uriPre = uriPrefixPublic;
-        }
-        String uri = uriPre + metadataId;
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI metadata = f.createIRI(uri);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasDescriptor = f.createIRI(describedbyPredicate);
-        
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(metadata, hasDescriptor, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            Value v = st.getObject();
-            String descriptorURI = v.stringValue();
-            deleteDescription(descriptorURI, graph);
-        }
-        
-        statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
-    }
-    
-    private boolean canDeleteMetadata(String uri, String parentURI, String graph) throws SparqlException {
-        boolean canDelete = true;
-        
-        StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
-        queryBuf.append ("{?s gadr:has_sample <" +  uri + "> } ");
-        queryBuf.append ("UNION {?s gadr:has_image_processing_metadata <" + uri +">  } ");
-        queryBuf.append ("UNION {?s gadr:has_slide_metadata <" + uri +">  } ");
-        queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +">  } ");
-        queryBuf.append ("UNION {?s gadr:printed_by <" + uri +">  } ");
-        queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +">  } ");
-        queryBuf.append ("} LIMIT 1");
-        
-        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        if (!results.isEmpty()) {
-            if (parentURI != null) {
-                // check if the one preventing the delete is the given parentURI
-                String sURI = results.get(0).getValue("s");
-                if (!sURI.equals(parentURI)) {
-                    canDelete = false;
-                }
-            } else {
-                canDelete = false;
-            }
-        }
-        
-        return canDelete;
-    }
-    
-    private boolean canDeleteMetadata(String uri, String graph) throws SparqlException {
-        return canDeleteMetadata(uri, null, graph);
-    }
-
-
-    void deleteDescription (String descriptionURI, String graph) throws SparqlException {
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        IRI descriptor = f.createIRI(descriptionURI);
-        IRI hasDescriptor = f.createIRI(hasDescriptionPredicate);
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(descriptor, hasDescriptor, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            Value v = st.getObject();
-            String uri = v.stringValue();
-            deleteDescription (uri, graph);
-        }        
-        statements = sparqlDAO.getStatements(descriptor, null, null, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
-    }
-    
-    
-
-
-    @Override
-    public Sample getSampleByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, sampleTypePredicate, user);
-        return metadata == null? null : (Sample) metadata;
-    }
-
-
-    @Override
-    public Sample getSampleFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (Sample) getMetadataCategoryFromURI(uri, sampleTypePredicate, true, user);
-    }
-
-
-    @Override
-    public Printer getPrinterFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (Printer) getMetadataCategoryFromURI(uri, printerTypePredicate, true, user);
-    }
-
-
-    @Override
-    public ScannerMetadata getScannerMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (ScannerMetadata) getMetadataCategoryFromURI(uri, scannerTypePredicate, true, user);
-    }
-
-
     @Override
     public SlideMetadata getSlideMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
         return (SlideMetadata) getMetadataCategoryFromURI(uri, slideTemplateTypePredicate, true, user);
@@ -1052,23 +1305,84 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
 
 
     @Override
-    public ImageAnalysisSoftware getImageAnalysisSoftwareFromURI(String uri, UserEntity user)
-            throws SparqlException, SQLException {
-        return (ImageAnalysisSoftware) getMetadataCategoryFromURI(uri, imageAnalysisTypePredicate, true, user);
+    public SpotMetadata getSpotMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
+        MetadataCategory metadata = getMetadataByLabel(label, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, user);
+        return metadata == null? null : (SpotMetadata) metadata;
     }
 
 
     @Override
-    public DataProcessingSoftware getDataProcessingSoftwareFromURI(String uri, UserEntity user)
-            throws SparqlException, SQLException {
-        return (DataProcessingSoftware) getMetadataCategoryFromURI(uri, dataProcessingTypePredicate, true, user);
+    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user) throws SparqlException, SQLException {
+        return getSpotMetadataByUser(user, 0, -1, "id", 0);
     }
     
     @Override
-    public AssayMetadata getAssayMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return (AssayMetadata) getMetadataCategoryFromURI(uri, assayTypePredicate, true, user);
+    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
+            throws SparqlException, SQLException {
+        return getSpotMetadataByUser(user, offset, limit, field, order, null);
+    }
+
+
+    @Override
+    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue) throws SparqlException, SQLException {
+        return getSpotMetadataByUser(user, offset, limit, field, order, searchValue, true);
     }
     
+    @Override
+    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, Boolean loadAll) throws SparqlException, SQLException {
+        List<SpotMetadata> metadataList = new ArrayList<>();
+        
+        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, loadAll);
+        for (MetadataCategory m: list) {
+            metadataList.add(new SpotMetadata(m));
+        }
+        
+        return metadataList;
+    }
+
+
+    @Override
+    public int getSpotMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, searchValue, false);
+    }
+
+
+    @Override
+    public SpotMetadata getSpotMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        return (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, loadAll, user);
+    }
+
+
+    @Override
+    public SpotMetadata getSpotMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+       return getSpotMetadataFromURI(uri, true, user);
+    }
+
+
+    @Override
+    public SpotMetadata getSpotMetadataValueFromURI(String uri, Boolean loadAll, UserEntity user)
+            throws SparqlException, SQLException {
+        SpotMetadata metadata = (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, loadAll, user);
+        if (metadata != null) metadata.setIsTemplate(false);
+        return metadata;
+    }
+
+
+    @Override
+    public SpotMetadata getSpotMetadataValueFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
+       return getSpotMetadataFromURI(uri, true, user);
+    }
+
+
     @Override
     public void updateMetadata (MetadataCategory metadata, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
@@ -1131,47 +1445,6 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
 
 
     @Override
-    public Printer getPrinterByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, printerTypePredicate, user);
-        return metadata == null? null : (Printer) metadata;
-    }
-
-
-    @Override
-    public ScannerMetadata getScannerMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, scannerTypePredicate, user);
-        return metadata == null? null : (ScannerMetadata) metadata;
-    }
-
-
-    @Override
-    public SlideMetadata getSlideMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, slideTemplateTypePredicate, user);
-        return metadata == null? null : (SlideMetadata) metadata;
-    }
-
-
-    @Override
-    public ImageAnalysisSoftware getImageAnalysisSoftwarByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, imageAnalysisTypePredicate, user);
-        return metadata == null? null : (ImageAnalysisSoftware) metadata;
-    }
-
-
-    @Override
-    public DataProcessingSoftware getDataProcessingSoftwareByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, dataProcessingTypePredicate, user);
-        return metadata == null? null : (DataProcessingSoftware) metadata;
-    }
-    
-    @Override
-    public AssayMetadata getAssayMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, assayTypePredicate, user);
-        return metadata == null? null : (AssayMetadata) metadata;
-    }
-
-
-    @Override
     public void updateMetadataMirage(MetadataCategory metadata, UserEntity user) throws SQLException, SparqlException {
         String graph = null;
         String uriPre = uriPrefix;
@@ -1216,213 +1489,5 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         sparqlDAO.addStatements(statements, graphIRI);
         
     }
-    
-    @Override
-    public MetadataCategory getMetadataByLabel(String label, String typePredicate, UserEntity user) throws SparqlException, SQLException {
-        if (label == null || label.isEmpty())
-            return null;
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
-        queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
-        queryBuf.append ( " ?s rdf:type  <" + typePredicate + "> . \n");
-        queryBuf.append ( " ?s rdfs:label ?l FILTER (lcase(str(?l)) = \"\"\"" + label.toLowerCase() + "\"\"\") \n"
-                + "}\n");
-        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        if (results.isEmpty())
-            return null;
-        else {
-            for (SparqlEntity result: results) {
-                String uri = result.getValue("s");
-                if (!uri.contains("public")) {
-                    return getMetadataCategoryFromURI(uri, typePredicate, false, user);
-                }
-            }
-            
-            String uri = results.get(0).getValue("s");
-            if (uri.contains("public"))
-                return getMetadataCategoryFromURI(uri, typePredicate, false, null);
-        }
-        return null;
-    }
-    
-    @Override
-    public String addSpotMetadata(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, "Spm", user);
-    }
-    
-    @Override
-    public String addSpotMetadataValue(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.SPOT, ArrayDatasetRepositoryImpl.hasSpotMetadataTemplatePredicate, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, "Spm", user);
-    }
-
-
-    @Override
-    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user) throws SparqlException, SQLException {
-        return getSpotMetadataByUser(user, 0, -1, "id", 0);
-    }
-
-
-    @Override
-    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        return getSpotMetadataByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<SpotMetadata> getSpotMetadataByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<SpotMetadata> metadataList = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate);
-        for (MetadataCategory m: list) {
-            metadataList.add(new SpotMetadata(m));
-        }
-        
-        return metadataList;
-    }
-
-    @Override
-    public int getSpotMetadataCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, searchValue, false);
-    }
-
-
-    @Override
-    public SpotMetadata getSpotMetadataFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-       return getSpotMetadataFromURI(uri, true, user);
-    }
-
-
-    @Override
-    public SpotMetadata getSpotMetadataFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, loadAll, user);
-    }
-    
-    @Override
-    public SpotMetadata getSpotMetadataValueFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-       return getSpotMetadataFromURI(uri, true, user);
-    }
-
-
-    @Override
-    public SpotMetadata getSpotMetadataValueFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        SpotMetadata metadata = (SpotMetadata) getMetadataCategoryFromURI(uri, ArrayDatasetRepositoryImpl.spotMetadataValueTypePredicate, loadAll, user);
-        if (metadata != null) metadata.setIsTemplate(false);
-        return metadata;
-    }
-
-
-    @Override
-    public SpotMetadata getSpotMetadataByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, ArrayDatasetRepositoryImpl.spotMetadataTypePredicate, user);
-        return metadata == null? null : (SpotMetadata) metadata;
-    }
-    
-    @Override
-    public String addSample(Sample sample, UserEntity user) throws SparqlException, SQLException {
-        String sampleURI =  addMetadataCategory (sample, MetadataTemplateType.SAMPLE, hasSampleTemplatePredicate, sampleTypePredicate, "SA", user);
-        String graph = null;
-        if (user == null) {
-            graph = DEFAULT_GRAPH;
-        } else {
-            // check if there is already a private graph for user
-            graph = getGraphForUser(user);
-        }
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        Literal internalId = sample.getInternalId() == null ? null : f.createLiteral(sample.getInternalId().trim());
-        IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
-        if (internalId != null) {
-            List<Statement> statements = new ArrayList<Statement>();
-            statements.add(f.createStatement(f.createIRI(sampleURI), hasInternalId, internalId, graphIRI));
-            sparqlDAO.addStatements(statements, graphIRI);
-        }
-        return sampleURI;
-    }
-
-
-    @Override
-    public String addPrintRun(PrintRun metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.PRINTRUN, hasPrinterTemplatePredicate, printRunTypePredicate, "Prr", user);
-    }
-
-
-    @Override
-    public List<PrintRun> getPrintRunByUser(UserEntity user) throws SparqlException, SQLException {
-        return getPrintRunByUser(user, 0, -1, "id", 0);
-    }
-
-
-    @Override
-    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order)
-            throws SparqlException, SQLException {
-        return getPrintRunByUser(user, offset, limit, field, order, null);
-    }
-
-
-    @Override
-    public List<PrintRun> getPrintRunByUser(UserEntity user, int offset, int limit, String field, int order,
-            String searchValue) throws SparqlException, SQLException {
-        List<PrintRun> printers = new ArrayList<>();
-        
-        List<MetadataCategory> list = getMetadataCategoryByUser(user, offset, limit, field, order, searchValue, printRunTypePredicate);
-        for (MetadataCategory m: list) {
-            printers.add(new PrintRun(m));
-        }
-        
-        return printers;
-    }
-
-
-    @Override
-    public int getPrintRunCountByUser(UserEntity user, String searchValue) throws SQLException, SparqlException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        return getCountByUserByType(graph, printRunTypePredicate, searchValue, false);
-    }
-
-
-    @Override
-    public PrintRun getPrintRunFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
-        return getPrintRunFromURI(uri, true, user);
-    }
-
-
-    @Override
-    public PrintRun getPrintRunFromURI(String uri, Boolean loadAll, UserEntity user)
-            throws SparqlException, SQLException {
-        return (PrintRun) getMetadataCategoryFromURI(uri, printRunTypePredicate, true, user);
-    }
-
-
-    @Override
-    public PrintRun getPrintRunByLabel(String label, UserEntity user) throws SparqlException, SQLException {
-        MetadataCategory metadata = getMetadataByLabel(label, ArrayDatasetRepositoryImpl.printRunTypePredicate, user);
-        return metadata == null? null : (PrintRun) metadata;
-    }
-    
 
 }

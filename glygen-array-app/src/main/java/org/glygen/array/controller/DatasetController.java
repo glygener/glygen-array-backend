@@ -1508,8 +1508,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -1601,8 +1601,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -1694,8 +1694,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (printer, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -1787,8 +1787,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (printer, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -1880,8 +1880,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -1973,8 +1973,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -2548,8 +2548,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (sample, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -2642,8 +2642,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -2737,8 +2737,8 @@ public class DatasetController {
             }
             else {
                 // validate mandatory/multiple etc.
-                MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                 if (validate != null && validate) {
+                    MetadataTemplate template = templateRepository.getTemplateFromURI(templateURI);
                     ErrorMessage err = validateMetadata (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
@@ -3352,6 +3352,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3403,7 +3405,7 @@ public class DatasetController {
             
             int total = metadataRepository.getDataProcessingSoftwareCountByUser(owner, searchValue);
             
-            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(owner, offset, limit, field, order, searchValue);
+            List<DataProcessingSoftware> metadataList = metadataRepository.getDataProcessingSoftwareByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3434,6 +3436,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3485,7 +3489,7 @@ public class DatasetController {
             
             int total = metadataRepository.getImageAnalysisSoftwareCountByUser(owner, searchValue);
             
-            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(owner, offset, limit, field, order, searchValue);
+            List<ImageAnalysisSoftware> metadataList = metadataRepository.getImageAnalysisSoftwareByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3516,6 +3520,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3567,7 +3573,7 @@ public class DatasetController {
             
             int total = metadataRepository.getPrinterCountByUser(owner, searchValue);
             
-            List<Printer> metadataList = metadataRepository.getPrinterByUser(owner, offset, limit, field, order, searchValue);
+            List<Printer> metadataList = metadataRepository.getPrinterByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3598,6 +3604,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3649,7 +3657,7 @@ public class DatasetController {
             
             int total = metadataRepository.getPrintRunCountByUser(owner, searchValue);
             
-            List<PrintRun> metadataList = metadataRepository.getPrintRunByUser(owner, offset, limit, field, order, searchValue);
+            List<PrintRun> metadataList = metadataRepository.getPrintRunByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3680,6 +3688,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable samples") 
@@ -3731,7 +3741,7 @@ public class DatasetController {
             
             int total = metadataRepository.getSampleCountByUser (owner, searchValue);
             
-            List<Sample> metadataList = metadataRepository.getSampleByUser(owner, offset, limit, field, order, searchValue);
+            List<Sample> metadataList = metadataRepository.getSampleByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3762,6 +3772,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3813,7 +3825,7 @@ public class DatasetController {
             
             int total = metadataRepository.getScannerMetadataCountByUser(owner, searchValue);
             
-            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(owner, offset, limit, field, order, searchValue);
+            List<ScannerMetadata> metadataList = metadataRepository.getScannerMetadataByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3844,6 +3856,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3895,7 +3909,7 @@ public class DatasetController {
             
             int total = metadataRepository.getSlideMetadataCountByUser (owner, searchValue);
             
-            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(owner, offset, limit, field, order, searchValue);
+            List<SlideMetadata> metadataList = metadataRepository.getSlideMetadataByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -3926,6 +3940,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -3977,7 +3993,7 @@ public class DatasetController {
             
             int total = metadataRepository.getAssayMetadataCountByUser(owner, searchValue);
             
-            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(owner, offset, limit, field, order, searchValue);
+            List<AssayMetadata> metadataList = metadataRepository.getAssayMetadataByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
@@ -4008,6 +4024,8 @@ public class DatasetController {
             @RequestParam(value="sortBy", required=false) String field, 
             @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
             @RequestParam(value="order", required=false) Integer order, 
+            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
             @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
@@ -4059,7 +4077,7 @@ public class DatasetController {
             
             int total = metadataRepository.getSpotMetadataCountByUser(owner, searchValue);
             
-            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(owner, offset, limit, field, order, searchValue);
+            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(owner, offset, limit, field, order, searchValue, loadAll);
             List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
             resultList.addAll(metadataList);
             result.setRows(resultList);
