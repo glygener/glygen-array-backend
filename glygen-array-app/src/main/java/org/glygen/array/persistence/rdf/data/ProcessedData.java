@@ -15,8 +15,8 @@ public class ProcessedData extends FutureTask {
     StatisticalMethod method;
     FileWrapper file;
     
-    List<ExclusionInfo> technicalExclusions;
-    List<ExclusionInfo> filteredDataList;
+    List<TechnicalExclusionInfo> technicalExclusions;
+    List<FilterExclusionInfo> filteredDataList;
     
     /**
      * @return the intensity
@@ -93,25 +93,25 @@ public class ProcessedData extends FutureTask {
     /**
      * @return the technicalExclusions
      */
-    public List<ExclusionInfo> getTechnicalExclusions() {
+    public List<TechnicalExclusionInfo> getTechnicalExclusions() {
         return technicalExclusions;
     }
     /**
      * @param technicalExclusions the technicalExclusions to set
      */
-    public void setTechnicalExclusions(List<ExclusionInfo> technicalExclusions) {
+    public void setTechnicalExclusions(List<TechnicalExclusionInfo> technicalExclusions) {
         this.technicalExclusions = technicalExclusions;
     }
     /**
      * @return the filteredDataList
      */
-    public List<ExclusionInfo> getFilteredDataList() {
+    public List<FilterExclusionInfo> getFilteredDataList() {
         return filteredDataList;
     }
     /**
      * @param filteredDataList the filteredDataList to set
      */
-    public void setFilteredDataList(List<ExclusionInfo> filteredDataList) {
+    public void setFilteredDataList(List<FilterExclusionInfo> filteredDataList) {
         this.filteredDataList = filteredDataList;
     }
 }

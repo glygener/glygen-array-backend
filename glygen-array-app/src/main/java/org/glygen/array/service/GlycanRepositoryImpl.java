@@ -1059,7 +1059,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 
 		    }
 		}
-		retrieveChangeLog (glycanObject, glycanObject.getUri(), graph);
+		if (glycanObject != null) retrieveChangeLog (glycanObject, glycanObject.getUri(), graph);
 		return glycanObject;
 	}
 	

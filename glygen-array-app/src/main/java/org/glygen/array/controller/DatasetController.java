@@ -36,7 +36,7 @@ import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeType;
-import org.glygen.array.persistence.rdf.data.ExclusionInfo;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;

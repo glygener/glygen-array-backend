@@ -37,7 +37,11 @@ import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
+import org.eurocarbdb.MolecularFramework.sugar.Anomer;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
+import org.eurocarbdb.MolecularFramework.sugar.Modification;
+import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
+import org.eurocarbdb.MolecularFramework.sugar.Monosaccharide;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.analytical.mass.GlycoVisitorMass;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
@@ -87,6 +91,8 @@ import org.glygen.array.persistence.rdf.OtherLinker;
 import org.glygen.array.persistence.rdf.PeptideLinker;
 import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.ReducingEndConfiguration;
+import org.glygen.array.persistence.rdf.ReducingEndType;
 import org.glygen.array.persistence.rdf.SequenceBasedLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -1865,9 +1871,10 @@ public class GlygenArrayController {
                 } catch (Exception e) {
                     errorMessage.addError(new ObjectError("sequence", "NotValid"));
                 }
-				linkerURI = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
-				if (linkerURI != null) {
-				    linker.setUri(linkerURI);
+				String existing = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
+				if (existing != null && !existing.contains("public")) {
+                    linker.setUri(existing);
+                    linkerURI = existing;
 					errorMessage.addError(new ObjectError("sequence", "Duplicate"));
 				}
 			}
@@ -1960,16 +1967,18 @@ public class GlygenArrayController {
                     } catch (Exception e) {
                         errorMessage.addError(new ObjectError("sequence", "NotValid"));
                     }
-    				linkerURI = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
-    				if (linkerURI != null) {
-    				    linker.setUri(linkerURI);
+    				String existing = linkerRepository.getLinkerByField(linker.getSequence().trim(), "has_sequence", "string", linker.getType(), user);
+    				if (existing != null && !existing.contains("public")) {
+                        linker.setUri(existing);
+                        linkerURI = existing;
     				    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
     				}
     			}
     			else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
-    				linkerURI = linkerRepository.getLinkerByField(linker.getUniProtId().trim(), "has_uniProtId", "string", linker.getType(), user);
-    				if (linkerURI != null) {
-    				    linker.setUri(linkerURI);
+    				String existing = linkerRepository.getLinkerByField(linker.getUniProtId().trim(), "has_uniProtId", "string", linker.getType(), user);
+    				if (existing != null && !existing.contains("public")) {
+                        linker.setUri(existing);
+                        linkerURI = existing;
     				    errorMessage.addError(new ObjectError("uniProtId", "Duplicate"));
     				}
     			}
@@ -2611,16 +2620,18 @@ public class GlygenArrayController {
 			Linker l = null;
 			String linkerURI = null;
 			if (linker.getPubChemId() != null) {
-				linkerURI = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
-				if (linkerURI != null) {
-				    linker.setUri(linkerURI);
+				String existing = linkerRepository.getLinkerByField(linker.getPubChemId().toString(), "has_pubchem_compound_id", "long", user);
+				if (existing != null && !existing.contains("public")) {
+				    linker.setUri(existing);
+				    linkerURI = existing;
 					errorMessage.addError(new ObjectError("pubchemid", "Duplicate"));
 				}
 			}
 			else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
-				linkerURI = linkerRepository.getLinkerByField(linker.getInChiKey(), "has_inChI_key", "string", user);
-				if (linkerURI != null) {
-				    linker.setUri(linkerURI);
+				String existing = linkerRepository.getLinkerByField(linker.getInChiKey(), "has_inChI_key", "string", user);
+				if (existing != null && !existing.contains("public")) {
+				    linker.setUri(existing);
+				    linkerURI = existing;
 					errorMessage.addError(new ObjectError("inChiKey", "Duplicate"));	
 				}
 			}
@@ -3181,8 +3192,9 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
 	public String addSlideLayoutFromGalFile (
-	        @ApiParam(required=true, value="uploaded gal file with the slide layout") 
-	        @RequestParam("file") String uploadedFileName, 
+	        @ApiParam(required=true, value="uploaded GAL file information")
+	        @RequestBody
+            FileWrapper fileWrapper,
 	        @ApiParam(required=true, value="name of the slide layout to be created") 
 	        @RequestParam("name")
 	        String slideLayoutName, 
@@ -3202,8 +3214,9 @@ public class GlygenArrayController {
 	        errorMessage.addError(new ObjectError("dimension", "NotValid")); 
 	    }
 	    
-	    if (uploadedFileName != null) {
+	    if (fileWrapper != null && fileWrapper.getIdentifier() != null) {
 	        //uploadedFileName = moveToTempFile (uploadedFileName);
+	        String uploadedFileName = fileWrapper.getIdentifier();
             File galFile = new File(uploadDir, uploadedFileName);
             if (galFile.exists()) {
                 
@@ -3328,7 +3341,6 @@ public class GlygenArrayController {
                     } else { 
                         throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
                     }
-                    FileWrapper fileWrapper = new FileWrapper();
                     fileWrapper.setFileFolder(uploadDir + File.separator + id);
                     fileWrapper.setFileSize(newFile.length());
                     fileWrapper.setIdentifier(uploadedFileName);
@@ -3379,13 +3391,16 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public ImportGRITSLibraryResult addSlideLayoutFromLibrary (
-			@ApiParam(required=true, value="uploaded file with slide layouts")
-			@RequestParam("file") String uploadedFileName,
+	        @ApiParam(required=true, value="uploaded file with slide layouts")
+	        @RequestBody
+            FileWrapper fileWrapper,
 			@ApiParam(required=true, value="list of slide layouts to be imported, only name is sufficient for a slide layout")
 			@RequestBody List<SlideLayout> slideLayouts, 
 			Principal p) {
 		
-		if (uploadedFileName != null) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+		if (fileWrapper != null && fileWrapper.getIdentifier() != null) {
+		    String uploadedFileName = fileWrapper.getIdentifier();
 		    uploadedFileName = moveToTempFile (uploadedFileName.trim());
 			File libraryFile = new File(uploadDir, uploadedFileName);
 			if (libraryFile.exists()) {
@@ -3407,7 +3422,6 @@ public class GlygenArrayController {
 					if (slideLayout.getName() != null) {
 					    searchName = slideLayout.getName();
 						try {
-							UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 							SlideLayout existing = layoutRepository.getSlideLayoutByName(searchName, user);
 							if (existing != null) {
 								result.getDuplicates().add(createSlideLayoutView(slideLayout));
@@ -3449,7 +3463,7 @@ public class GlygenArrayController {
 						for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
 							if (block.getBlockLayout() != null) { 
 								try {
-									UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+									
 									BlockLayout existing = layoutRepository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
 									if (existing != null) { // already added no need to go through glycans/linkers
 										continue;
@@ -3465,7 +3479,9 @@ public class GlygenArrayController {
         													if (!glycanCache.contains(g)) {
         														glycanCache.add(g);
         														try {	
-        															addGlycan(g, p, true);   //don't want to register automatically!!!
+        															String glycanId = addGlycan(g, p, true);   //don't want to register automatically!!!
+        															g.setId(glycanId);
+        															g.setUri(GlygenArrayRepositoryImpl.uriPrefix + glycanId);
         														} catch (Exception e) {
         															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
         																ErrorMessage error = (ErrorMessage) e.getCause();
@@ -3499,8 +3515,10 @@ public class GlygenArrayController {
     													if (!linkerCache.contains(feature.getLinker())) {
     														linkerCache.add(feature.getLinker());
     														try {
-    															addLinker(feature.getLinker(),
+    															String linkerID = addLinker(feature.getLinker(),
     															        feature.getLinker().getType().name().startsWith("UNKNOWN"), p);
+    															feature.getLinker().setId(linkerID);
+    															feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
     														} catch (Exception e) {
     															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
     																ErrorMessage error = (ErrorMessage) e.getCause();
@@ -3520,7 +3538,9 @@ public class GlygenArrayController {
     																	Linker linker = feature.getLinker();
     																	linker.setName(linker.getName()+"B");
     																	try {
-    																		addLinker (linker, linker.getType().name().startsWith("UNKNOWN"), p);
+    																		String linkerID = addLinker (linker, linker.getType().name().startsWith("UNKNOWN"), p);
+    																		feature.getLinker().setId(linkerID);
+    																		feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
     																	} catch (IllegalArgumentException e1) {
     																		// ignore, probably already added
     																		logger.debug ("duplicate linker cannot be added", e1);
@@ -3538,6 +3558,7 @@ public class GlygenArrayController {
 											    try {
 											        String id = addFeature(feature, p);
 											        feature.setId(id);
+											        feature.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
 											    } catch (Exception e) {
 											        boolean ignore = false;
                                                     if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
@@ -3556,7 +3577,9 @@ public class GlygenArrayController {
 											    }
 											}
 										}
-										addBlockLayout(block.getBlockLayout(), false, p);
+										String id = addBlockLayout(block.getBlockLayout(), false, p);
+										block.getBlockLayout().setId(id);
+										block.getBlockLayout().setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
 									}
 								} catch (Exception e) {
 									logger.info("Could not add block layout", e);
@@ -3576,6 +3599,27 @@ public class GlygenArrayController {
 							String id = addSlideLayout(slideLayout, p);
 							slideLayout.setId(id);
 							result.getAddedLayouts().add(createSlideLayoutView(slideLayout));
+							
+							// save the original XML file with the layout
+		                    File slideLayoutFolder = new File (uploadDir + File.separator + id);
+		                    if (!slideLayoutFolder.exists()) {
+		                        slideLayoutFolder.mkdirs();
+		                    }
+		                    File newFile = new File(slideLayoutFolder + File.separator + uploadedFileName);
+		                    if(libraryFile.renameTo (newFile)) { 
+		                        // if file copied successfully then move the original file into temp folder, will be deleted later as part of the cleanup
+		                        moveToTempFile(uploadedFileName); 
+		                    } else { 
+		                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+		                    }
+		                    fileWrapper.setFileFolder(uploadDir + File.separator + id);
+		                    fileWrapper.setFileSize(newFile.length());
+		                    fileWrapper.setIdentifier(uploadedFileName);
+		                    fileWrapper.setFileFormat("XML");    //TODO do we need to standardize this?
+		                    
+		                    slideLayout.setFile(fileWrapper);
+		                    layoutRepository.updateSlideLayout(slideLayout, user);
+							
 						} catch (Exception e) {
 							if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
 								ErrorMessage error = (ErrorMessage) e.getCause();
@@ -3983,22 +4027,25 @@ public class GlygenArrayController {
         					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
         					if (glycan != null) {
 		        				Glycan myGlycan = null;
+		        				GlycanInFeature glycanFeature = new GlycanInFeature();
+		        				//TODO check probe metadata to see if source information is available
+                                glycanFeature.setSource(glycanSource);
 		        				if (glycan.getSequence() != null) {
 		        					myGlycan = new SequenceDefinedGlycan();
-		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence());  
+		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence().trim());  
 		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
 		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+		        					//determine the reducing end type
+		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
+	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
+	                                glycanFeature.setReducingEndConfiguration(redEnd);
 		        				} else {
 		        					myGlycan = new UnknownGlycan();
 		        				}
-		        			
+		        				glycanFeature.setGlycan(myGlycan);
 		        				myGlycan.setName(glycan.getName());
 		        				myGlycan.setDescription(glycan.getComment());
 		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
-		        				GlycanInFeature glycanFeature = new GlycanInFeature();
-		        				glycanFeature.setGlycan(myGlycan);
-		        				glycanFeature.setSource(glycanSource);
-		        				//TODO check probe metadata to see if source information is available
 		        				myFeature.getGlycans().add(glycanFeature);
         					} else {
         					    // should have been there
@@ -4940,7 +4987,7 @@ public class GlygenArrayController {
             @ApiParam(required=true, value="id of the slide layout") 
             @RequestParam("slidelayoutid")
             String slidelayoutid,
-            @ApiParam(required=true, value="the name for downloaded file") 
+            @ApiParam(required=false, value="the name for downloaded file") 
             @RequestParam("filename")
             String fileName,        
             Principal p) {
@@ -4950,6 +4997,9 @@ public class GlygenArrayController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
         String uri = GlygenArrayRepositoryImpl.uriPrefix + slidelayoutid;
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = slidelayoutid + ".gal";
+        }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
@@ -4997,8 +5047,6 @@ public class GlygenArrayController {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }
     }
-	
-	
 	
 	@ApiOperation(value = "Check status for upload file")
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
@@ -5613,4 +5661,38 @@ public class GlygenArrayController {
         }
         return t_image;
     }
+	
+	private ReducingEndType getReducingEnd (String glycoCT) {
+	    ReducingEndType type = ReducingEndType.UNKNOWN;
+	    try {
+	        SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+            Sugar sugar = importer.parse(glycoCT);
+            if (sugar == null) {
+                logger.info("Cannot get Sugar object for sequence: " + glycoCT + " to determine reducing end");
+                 
+            }
+            Monosaccharide root = GlycanBaseTypeUtil.getReducingEnd(sugar);
+            if (root.getRingStart() < 1)
+            {
+                return ReducingEndType.OPENSRING;
+            }
+            List<Modification> t_modifications = root.getModification();
+            for (Modification t_mod : t_modifications)
+            {
+                if (t_mod.getModificationType().equals(ModificationType.ALDI))
+                {
+                    return ReducingEndType.OPENSRING;
+                }
+            }
+            if (root.getAnomer() == Anomer.Beta) {
+                return ReducingEndType.BETA;
+            }
+            if (root.getAnomer() == Anomer.Alpha) {
+                return ReducingEndType.ALPHA;
+            }
+        } catch (GlycoconjugateException | SugarImporterException e) {
+            logger.info("reducing end cannot be found", e);
+        }
+	    return type;
+	}
 }

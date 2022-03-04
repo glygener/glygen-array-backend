@@ -4,21 +4,21 @@ import java.util.List;
 
 import org.glygen.array.persistence.rdf.Feature;
 
-public class ExclusionInfo { 
+public class FilterExclusionInfo { 
     List<Feature> features;
-    ExclusionReasonType reason;
+    FilterExclusionReasonType reason;
     String otherReason;
     
     /**
      * @return the reason
      */
-    public ExclusionReasonType getReason() {
+    public FilterExclusionReasonType getReason() {
         return reason;
     }
     /**
      * @param reason the reason to set
      */
-    public void setReason(ExclusionReasonType reason) {
+    public void setReason(FilterExclusionReasonType reason) {
         this.reason = reason;
     }
     /**

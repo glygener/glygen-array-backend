@@ -13,7 +13,7 @@ import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 public class GlycanBaseTypeUtil
 {
 
-    private static Monosaccharide getReducingEnd(Sugar a_sugar) throws GlycoconjugateException
+    public static Monosaccharide getReducingEnd(Sugar a_sugar) throws GlycoconjugateException
     {
         List<GlycoNode> t_roots = a_sugar.getRootNodes();
         if (t_roots.size() != 1)
@@ -122,5 +122,4 @@ public class GlycanBaseTypeUtil
         }
         return true;
     }
-
 }

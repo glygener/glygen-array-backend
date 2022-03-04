@@ -34,9 +34,11 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.Channel;
 import org.glygen.array.persistence.rdf.data.ChannelUsageType;
-import org.glygen.array.persistence.rdf.data.ExclusionInfo;
-import org.glygen.array.persistence.rdf.data.ExclusionReasonType;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.FilterExclusionInfo;
+import org.glygen.array.persistence.rdf.data.FilterExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.data.Grant;
@@ -929,16 +931,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         
         if (processedData.getFilteredDataList() != null) {
-            for (ExclusionInfo info: processedData.getFilteredDataList()) {
+            for (FilterExclusionInfo info: processedData.getFilteredDataList()) {
                 String infoURI = generateUniqueURI(uriPre + "EX", allGraphs);
                 IRI infoIRI = f.createIRI(infoURI);
                 statements.add(f.createStatement(processed, hasFilterExclusion, infoIRI, graphIRI));
-                addExclusionInfo(info, infoIRI, statements, graphIRI);
+                addFilterExclusionInfo(info, infoIRI, statements, graphIRI);
             }
         }
         
         if (processedData.getTechnicalExclusions() != null) {
-            for (ExclusionInfo info: processedData.getTechnicalExclusions()) {
+            for (TechnicalExclusionInfo info: processedData.getTechnicalExclusions()) {
                 String infoURI = generateUniqueURI(uriPre + "EX", allGraphs);
                 IRI infoIRI = f.createIRI(infoURI);
                 statements.add(f.createStatement(processed, hasTechnicalExclusion, infoIRI, graphIRI));
@@ -947,7 +949,25 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
     }
     
-    void addExclusionInfo (ExclusionInfo info, IRI infoIRI, List<Statement> statements, IRI graphIRI) {
+    void addExclusionInfo (TechnicalExclusionInfo info, IRI infoIRI, List<Statement> statements, IRI graphIRI) {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasReason = f.createIRI(ontPrefix + "has_reason");
+        IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
+        if (info.getFeatures() != null) {
+            for (Feature feat: info.getFeatures()) {
+                statements.add(f.createStatement(infoIRI, hasFeature, f.createIRI(feat.getUri()), graphIRI));
+            }
+            if (info.getReason() != null) {
+                Literal reason = f.createLiteral(info.getReason().getLabel());
+                statements.add(f.createStatement(infoIRI, hasReason, reason, graphIRI));
+            } else if (info.getOtherReason() != null) {
+                Literal reason = f.createLiteral(info.getOtherReason());
+                statements.add(f.createStatement(infoIRI, hasReason, reason, graphIRI));
+            }
+        }
+    }
+    
+    void addFilterExclusionInfo (FilterExclusionInfo info, IRI infoIRI, List<Statement> statements, IRI graphIRI) {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI hasReason = f.createIRI(ontPrefix + "has_reason");
         IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
@@ -1348,8 +1368,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         processedObject.setUri(uriValue);
         processedObject.setId(uriValue.substring(uriValue.lastIndexOf("/")+ 1));
         List<Intensity> intensities = new ArrayList<Intensity>();
-        List<ExclusionInfo> technicalExclusions = new ArrayList<>();
-        List<ExclusionInfo> filterExclusions = new ArrayList<>();
+        List<TechnicalExclusionInfo> technicalExclusions = new ArrayList<>();
+        List<FilterExclusionInfo> filterExclusions = new ArrayList<>();
         processedObject.setIntensity(intensities);
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         while (statements.hasNext()) {
@@ -1404,15 +1424,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 processedObject.setMetadata(metadata);
             } else if (st.getPredicate().equals(hasTechnicalExclusion)) {
                 String exclusionURI = st.getObject().stringValue();
-                ExclusionInfo info = getExclusionInfoFromURI (exclusionURI, user);
+                Object info = getExclusionInfoFromURI (exclusionURI, user, false);
                 if (info != null) {
-                    technicalExclusions.add(info);
+                    technicalExclusions.add((TechnicalExclusionInfo) info);
                 }
             } else if (st.getPredicate().equals(hasFilterExclusion)) {
                 String exclusionURI = st.getObject().stringValue();
-                ExclusionInfo info = getExclusionInfoFromURI (exclusionURI, user);
+                Object info = getExclusionInfoFromURI (exclusionURI, user, true);
                 if (info != null) {
-                    filterExclusions.add(info);
+                    filterExclusions.add((FilterExclusionInfo) info);
                 }
             } else if (st.getPredicate().equals(integratedBy)) {
                 String methodURI = st.getObject().stringValue();
@@ -1472,7 +1492,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
 
-    private ExclusionInfo getExclusionInfoFromURI(String exclusionURI, UserEntity user) throws SQLException, SparqlException {
+    private Object getExclusionInfoFromURI(String exclusionURI, UserEntity user, boolean filter) throws SQLException, SparqlException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -1483,7 +1503,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 graph = getGraphForUser(user);
         }
     
-        ExclusionInfo info = new ExclusionInfo();
+        Object info = null;
+        if (filter) {
+            info = new FilterExclusionInfo();
+        } else {
+            info = new TechnicalExclusionInfo();
+        }
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI graphIRI = f.createIRI(graph);
         IRI exclusionIRI = f.createIRI(exclusionURI);
@@ -1502,16 +1527,29 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (feat != null) features.add(feat);
             } else if (st.getPredicate().equals(hasReason)) {
                 Value val = st.getObject();
-                ExclusionReasonType reason = ExclusionReasonType.forValue(val.stringValue());
-                if (reason != null) {
-                    info.setReason(reason);
+                if (filter) {
+                    FilterExclusionReasonType reason = FilterExclusionReasonType.forValue(val.stringValue());
+                    if (reason != null) {
+                        ((FilterExclusionInfo) info).setReason(reason);
+                    } else {
+                        ((FilterExclusionInfo) info).setOtherReason(val.stringValue());
+                    }
                 } else {
-                    info.setOtherReason(val.stringValue());
+                    TechnicalExclusionReasonType reason = TechnicalExclusionReasonType.forValue(val.stringValue());
+                    if (reason != null) {
+                        ((TechnicalExclusionInfo) info).setReason(reason);
+                    } else {
+                        ((TechnicalExclusionInfo) info).setOtherReason(val.stringValue());
+                    }
                 }
             }
         }
         
-        info.setFeatures(features);
+        if (filter) {
+            ((FilterExclusionInfo) info).setFeatures(features);
+        } else {
+            ((TechnicalExclusionInfo) info).setFeatures(features);
+        }
         return info;
     }
 

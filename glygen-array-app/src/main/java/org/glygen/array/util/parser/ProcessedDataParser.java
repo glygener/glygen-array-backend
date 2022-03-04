@@ -31,7 +31,6 @@ import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
-import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;

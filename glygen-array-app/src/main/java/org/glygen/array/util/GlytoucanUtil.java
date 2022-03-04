@@ -1,9 +1,12 @@
 package org.glygen.array.util;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -27,6 +30,13 @@ import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
+import org.glygen.array.exception.GlycanRepositoryException;
+import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
+import org.glygen.array.persistence.rdf.data.FilterExclusionInfo;
+import org.glygen.array.persistence.rdf.data.FilterExclusionReasonType;
+import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
 import org.grits.toolbox.util.structure.glycan.database.GlycanStructure;
 import org.slf4j.Logger;
@@ -36,11 +46,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GlytoucanUtil {
 	
@@ -203,8 +216,8 @@ public class GlytoucanUtil {
 		GlytoucanUtil.getInstance().setApiKey("6d9fbfb1c0a52cbbffae7c113395a203ae0e3995a455c42ff3932862cbf7e62a");
         GlytoucanUtil.getInstance().setUserId("ff2dda587eb4597ab1dfb995b520e99b7ef68d7786af0f3ea626555e2c609c3d");
 		
-		//String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
-		//System.out.println(glyTouCanId);
+		String glyTouCanId = GlytoucanUtil.getInstance().registerGlycan("WURCS=2.0/6,13,12/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a1221m-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-1-2-3-1-4-5-6-1-3-1-5-4/a4-b1_a6-m1_b4-c1_c3-d1_c4-i1_c6-j1_d2-e1_e3-f1_e4-g1_g3-h2_j2-k1_k4-l1");
+		System.out.println(glyTouCanId);
 		
 		/*
 		GlytoucanUtil.getInstance().setApiKey("180accbf266f882f17b9e7067779872b5ed3360b7dc9f00a9ed58d5a6c77d6f7");
@@ -390,7 +403,7 @@ public class GlytoucanUtil {
         
         wurcs = "WURCS=2.0/6,15,14/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O][a1221m-1a_1-5]/1-1-2-3-1-4-5-1-4-5-3-1-4-5-6/a4-b1_a6-o1_b4-c1_d2-h1_e4-f1_f3-g2_h4-i1_i3-j2_k2-l1_l4-m1_m3-n2_c?-d1_c?-k1_d?-e1";
         System.out.println(wurcs);
-        String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+       // String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
         System.out.println(glyTouCanId);
         try {
             SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
@@ -401,8 +414,107 @@ public class GlytoucanUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        
+     // temporary code to generate exclusion info json
+        
+        ProcessedData dummyData = new ProcessedData();
+        List<TechnicalExclusionInfo> technical = new ArrayList<TechnicalExclusionInfo>();
+        List<FilterExclusionInfo> filter = new ArrayList<FilterExclusionInfo>();
+        
+        TechnicalExclusionInfo info1 = new TechnicalExclusionInfo();
+        info1.setReason(TechnicalExclusionReasonType.ARTEFACT);
+        info1.setFeatures(new ArrayList<Feature>());
+        Feature feature1 = new Feature();
+        feature1.setId("F12342465");
+        feature1.setName("feature1");
+        feature1.setInternalId("feature InternalId 1");
+        Feature feature2 = new Feature();
+        feature2.setId("F12342466");
+        feature2.setName("feature2");
+        feature2.setInternalId("feature InternalId 2");
+        Feature feature3 = new Feature();
+        feature3.setId("F12342467");
+        feature3.setName("feature3");
+        feature3.setInternalId("feature InternalId 3");
+        info1.getFeatures().add(feature1);
+        info1.getFeatures().add(feature2);
+        info1.getFeatures().add(feature3);
+        technical.add(info1);
+        
+        TechnicalExclusionInfo info2 = new TechnicalExclusionInfo();
+        info2.setReason(TechnicalExclusionReasonType.MISSING);
+        info2.setFeatures(new ArrayList<Feature>());
+        Feature feature4 = new Feature();
+        feature4.setId("F12342474");
+        feature4.setName("feature4");
+        feature4.setInternalId("feature InternalId 4");
+        Feature feature5 = new Feature();
+        feature5.setId("F12342475");
+        feature5.setName("feature5");
+        feature5.setInternalId("feature InternalId 5");
+        Feature feature6 = new Feature();
+        feature6.setId("F12342476");
+        feature6.setName("feature6");
+        feature6.setInternalId("feature InternalId 6");
+        info2.getFeatures().add(feature4);
+        info2.getFeatures().add(feature5);
+        info2.getFeatures().add(feature6);
+        technical.add(info2);
+        
+        dummyData.setTechnicalExclusions(technical);
+        
+        FilterExclusionInfo info3 = new FilterExclusionInfo();
+        info3.setReason(FilterExclusionReasonType.UNRELATED);
+        info3.setFeatures(new ArrayList<Feature>());
+        Feature feature7 = new Feature();
+        feature7.setId("F12342480");
+        feature7.setName("feature7");
+        feature7.setInternalId("feature InternalId 7");
+        Feature feature8 = new Feature();
+        feature8.setId("F12342481");
+        feature8.setName("feature8");
+        feature8.setInternalId("feature InternalId 8");
+        Feature feature9 = new Feature();
+        feature9.setId("F12342482");
+        feature9.setName("feature9");
+        feature9.setInternalId("feature InternalId 9");
+        info3.getFeatures().add(feature7);
+        info3.getFeatures().add(feature8);
+        info3.getFeatures().add(feature9);
+        filter.add(info3);
+        
+        FilterExclusionInfo info4 = new FilterExclusionInfo();
+        info4.setOtherReason("filtered out from this");
+        info4.setFeatures(new ArrayList<Feature>());
+        Feature feature10 = new Feature();
+        feature10.setId("F12342490");
+        feature10.setName("feature10");
+        feature10.setInternalId("feature InternalId 10");
+        Feature feature11 = new Feature();
+        feature11.setId("F12342491");
+        feature11.setName("feature11");
+        feature11.setInternalId("feature InternalId 11");
+        Feature feature12 = new Feature();
+        feature12.setId("F12342492");
+        feature12.setName("feature12");
+        feature12.setInternalId("feature InternalId 12");
+        info4.getFeatures().add(feature10);
+        info4.getFeatures().add(feature11);
+        info4.getFeatures().add(feature12);
+        filter.add(info4);
+        
+        dummyData.setFilteredDataList(filter);
+        
+     // serialize this and save it to a file
+        try {
+            String jsonValue = new ObjectMapper().writeValueAsString(dummyData);
+            System.out.println(jsonValue);
+        } catch (JsonProcessingException e) {
+            logger.error("Could not serialize processed data exclusion info into JSON", e);
+            throw new GlycanRepositoryException("Could not serialize processed data exclusion info into JSON", e);
+        }
 	}
-		
 	
 }
 

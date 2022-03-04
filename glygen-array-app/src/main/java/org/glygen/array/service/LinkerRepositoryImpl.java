@@ -788,16 +788,17 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         else {
             for (SparqlEntity result: results) {
                 String linkerURI = result.getValue("s");
-                if (!linkerURI.contains("public"))
+                if (user == null || !linkerURI.contains("public")) {
                     return getLinkerFromURI(linkerURI, user);
+                }
             }
             
             // if there is only the public one, we should come to this part
-            for (SparqlEntity result: results) {
+           /* for (SparqlEntity result: results) {
                 String linkerURI = result.getValue("s");
                 if (linkerURI.contains("public"))
                     return getLinkerFromURI(linkerURI, null);
-            } 
+            } */
         }
         return null;
 	}
