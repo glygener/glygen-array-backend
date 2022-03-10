@@ -109,12 +109,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             
         if (layoutFromRepository == null) {  // first time loading
             if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
-                layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user);
-                blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
+                layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user, false);
+                // since we are not getting the spots etc. do not put in the cache
+                //blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
             }
             else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
-                layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user);
-                blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
+                layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user, false);
+                // since we are not getting the spots etc. do not put in the cache
+                //blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
             }
         }
         
@@ -1089,7 +1091,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             }
         }
         
-        blockLayoutCache.clear();
+        if (loadAll) blockLayoutCache.clear();
         
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);

@@ -235,4 +235,11 @@ public class Feature implements ChangeTrackable {
     public void setDescription(String description) {
         this.description = description;
     }
+    
+    @Override
+    public int hashCode() {
+        if (uri != null)
+            return uri.hashCode();
+        return super.hashCode();
+    }
 }

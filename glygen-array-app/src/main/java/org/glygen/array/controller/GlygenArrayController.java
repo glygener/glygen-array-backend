@@ -572,8 +572,24 @@ public class GlygenArrayController {
 		        if (feature.getLinker() != null) {
         		    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
         		        if (feature.getLinker() instanceof Linker) {
-        		            ((Linker)feature.getLinker()).setId(addLinker((Linker)feature.getLinker(), 
-            		            ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), p));
+        		            try {
+        		                String id = addLinker((Linker)feature.getLinker(), 
+                                    ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), p);
+        		                ((Linker)feature.getLinker()).setId(id);
+        		            } catch (Exception e) {
+        		                // we can ignore if it is duplicate
+                                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                    ErrorMessage error = (ErrorMessage) e.getCause();
+                                    for (ObjectError err: error.getErrors()) {
+                                        if (!err.getDefaultMessage().contains("Duplicate")) {
+                                            errorMessage.addError(err);
+                                        }
+                                    }
+                                } else {
+                                    errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                                }
+        		                logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+        		            }
         		        } 
         		    } else {
         		        // check to make sure it is an existing linker
@@ -843,7 +859,21 @@ public class GlygenArrayController {
             for (GlycanInFeature gf: feature.getGlycans()) {
                 Glycan g = gf.getGlycan();
                 if (g.getUri() == null && g.getId() == null) {
-                    g.setId(addGlycan(g, p, true));
+                    try {
+                        g.setId(addGlycan(g, p, true));
+                    } catch (Exception e) {
+                        // need to ignore duplicate check errors
+                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                            ErrorMessage error = (ErrorMessage) e.getCause();
+                            for (ObjectError err: error.getErrors()) {
+                                if (!err.getDefaultMessage().contains("Duplicate")) {
+                                    errorMessage.addError(err);
+                                }
+                            }
+                        } else {
+                            errorMessage.addError(new ObjectError("glycan", e.getMessage()));
+                        }
+                    }
                 } else {
                     // check to make sure it is an existing glycan
                     String glycanId = g.getId();
@@ -929,6 +959,9 @@ public class GlygenArrayController {
                 }
             }
         }*/
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
@@ -2533,25 +2566,25 @@ public class GlygenArrayController {
 		// validate first
 		if (validator != null) {
 			if  (layout.getName() != null) {
-				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "name", layout.getName());
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "name", layout.getName());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("name", "LengthExceeded"));
 				}		
 			}
 			if (layout.getDescription() != null) {
-				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "description", layout.getDescription());
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "description", layout.getDescription());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("description", "LengthExceeded"));
 				}		
 			}
 			if (layout.getWidth() != null) {
-				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "width", layout.getWidth());
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "width", layout.getWidth());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("width", "PositiveOnly"));
 				}		
 			}
 			if (layout.getHeight() != null) {
-				Set<ConstraintViolation<BlockLayout>> violations = validator.validateValue(BlockLayout.class, "height", layout.getHeight());
+				Set<ConstraintViolation<SlideLayout>> violations = validator.validateValue(SlideLayout.class, "height", layout.getHeight());
 				if (!violations.isEmpty()) {
 					errorMessage.addError(new ObjectError("height", "PositiveOnly"));
 				}		
@@ -3464,7 +3497,7 @@ public class GlygenArrayController {
 							if (block.getBlockLayout() != null) { 
 								try {
 									
-									BlockLayout existing = layoutRepository.getBlockLayoutByName(block.getBlockLayout().getName(), user);
+									BlockLayout existing = layoutRepository.getBlockLayoutByName(block.getBlockLayout().getName(), user, false);
 									if (existing != null) { // already added no need to go through glycans/linkers
 										continue;
 									}
@@ -3472,6 +3505,16 @@ public class GlygenArrayController {
 										addedLayouts.add(block.getBlockLayout());
 										for (org.glygen.array.persistence.rdf.Spot spot: block.getBlockLayout().getSpots()) {
 											for (org.glygen.array.persistence.rdf.Feature feature: spot.getFeatures()) {
+											    // check if the feature already exists before trying to add glycans and linkers
+											    if (feature.getInternalId() != null) {
+											        org.glygen.array.persistence.rdf.Feature f = featureRepository.getFeatureByLabel(feature.getInternalId(), 
+									                        "gadr:has_internal_id", user);
+    											    if (f != null) { // already added no need to go through glycans/linkers
+    											        feature.setId(f.getId());
+                                                        feature.setUri(f.getUri());
+    			                                        continue;
+    			                                    }
+											    }
 											    if (feature.getType() == FeatureType.LINKEDGLYCAN) {
     												if (((LinkedGlycan) feature).getGlycans() != null) {
     												    for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
@@ -3486,19 +3529,16 @@ public class GlygenArrayController {
         															if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
         																ErrorMessage error = (ErrorMessage) e.getCause();
         																for (ObjectError err: error.getErrors()) {
-        																	if (err.getObjectName().equalsIgnoreCase("sequence") && 
-        																			err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
-        																		if (g.getName() != null) {
-        																			// add name as an alias
-        																		    if (g instanceof SequenceDefinedGlycan) {
-            																			String existingUri = glycanRepository.getGlycanBySequence(
-            																					((SequenceDefinedGlycan) g).getSequence(), user);
-            																			if (existingUri != null) {
-	            																			String existingId = existingUri.substring(existingUri.lastIndexOf("/") + 1);
-	            																			addAliasForGlycan(existingId, g.getName(), p);
+        																	if (err.getDefaultMessage().equalsIgnoreCase("duplicate")) {
+    																		    if (err.getObjectName().contains("sequence")) {
+    																		        if (g instanceof SequenceDefinedGlycan) {
+            																			if (g.getName() != null) {
+                                                                                            // add name as an alias
+            																			    addAliasForGlycan(g.getId(), g.getName(), p);
             																			}
-        																		    }
-        																		}
+        																			}
+    																		    }
+        																		
         																		break;
         																	} else {
         																	    errorMessage.addError(err);
@@ -3506,6 +3546,7 @@ public class GlygenArrayController {
         																}
         															} else {
         																logger.info("Could not add glycan: ", e);
+        																errorMessage.addError(new ObjectError("glycan", e.getMessage()));
         															}
         														}
         													}
@@ -3549,7 +3590,7 @@ public class GlygenArrayController {
     															}
     															else {
     																logger.info("Could not add linker: ", e);
-    																errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+    																errorMessage.addError(new ObjectError("linker", e.getMessage()));
     															}
     														}
     													}
@@ -3567,12 +3608,14 @@ public class GlygenArrayController {
                                                             if (err.getDefaultMessage().contains("Duplicate")) {
                                                                 // ignore the error, it is already created
                                                                 ignore = true;
+                                                            } else {
+                                                                errorMessage.addError(err);
                                                             }
                                                         }
                                                     }
                                                     if (!ignore) {
                                                         logger.info("Could not add feature: ", e);
-                                                        errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+                                                        errorMessage.addError(new ObjectError("feature", e.getMessage()));
                                                     }
 											    }
 											}
@@ -3589,7 +3632,7 @@ public class GlygenArrayController {
                                             errorMessage.addError(err);
                                         }
 									} else {
-									    errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+									    errorMessage.addError(new ObjectError("blockLayout", e.getMessage()));
 									}
 								}
 							}

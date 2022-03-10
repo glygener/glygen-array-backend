@@ -255,7 +255,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	            queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
 	        }
 			queryBuf.append ("WHERE {\n {\n");
-			queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
+			//queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
 			queryBuf.append (" ?s rdf:type  <" + type +">. ");
 			queryBuf.append(
 	                " OPTIONAL {?s gadr:has_public_uri ?public  } .\n");
