@@ -740,9 +740,7 @@ public class DatasetController {
             }
         }
         
-        if (slide.getImages() == null || slide.getImages().isEmpty()) {
-            errorMessage.addError(new ObjectError("images", "NoEmpty"));
-        } else {
+        if (slide.getImages() != null && !slide.getImages().isEmpty()) {
             // create a folder for the experiment, if it does not exists, and move the file into that folder
             File experimentFolder = new File (uploadDir + File.separator + datasetId);
             if (!experimentFolder.exists()) {
@@ -912,18 +910,22 @@ public class DatasetController {
         
         // save the slide 
         try {
-            // save the rawData and the processed data first
-            for (Image image: slide.getImages()) {
-                if (image.getRawDataList() != null) {
-                    for (RawData rawData: image.getRawDataList()) {
-                        for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                            String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata() == null ? null : processedData.getMetadata().getId(), 
-                                    processedData.getMethod().getName(), slide, p);
-                            processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+            if (slide.getImages() != null) {
+                // save the rawData and the processed data first
+                for (Image image: slide.getImages()) {
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData.getProcessedDataList() != null) {
+                                for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                    String id = addProcessedDataFromExcel(datasetId, processedData.getFile(), processedData.getMetadata() == null ? null : processedData.getMetadata().getId(), 
+                                            processedData.getMethod().getName(), slide, p);
+                                    processedData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+                                }
+                            }
+                            rawData.setSlide(slide);
+                            String id = addRawData(rawData, datasetId, p);
+                            rawData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                         }
-                        rawData.setSlide(slide);
-                        String id = addRawData(rawData, datasetId, p);
-                        rawData.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
                     }
                 }
             }
