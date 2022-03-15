@@ -37,7 +37,6 @@ import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
-import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.RatioConcentration;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -305,7 +304,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 	
 	@Override
-	public String addSlideLayout(SlideLayout s, UserEntity user) throws SparqlException, SQLException {
+    public String addSlideLayout(SlideLayout s, UserEntity user) throws SparqlException, SQLException {
+	    return addSlideLayout(s, user, false);
+	}
+	
+	@Override
+	public String addSlideLayout(SlideLayout s, UserEntity user, Boolean layoutOnly) throws SparqlException, SQLException {
 		String graph = null;
 		try {
 			// check if there is already a private graph for user
@@ -348,7 +352,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (slideLayoutWidth != null) statements.add(f.createStatement(slideLayout, hasWidth, slideLayoutWidth, graphIRI));
 		if (slideLayoutHeight != null) statements.add(f.createStatement(slideLayout, hasHeight, slideLayoutHeight, graphIRI));
 		
-		if (s.getBlocks() != null) {
+		if (!layoutOnly && s.getBlocks() != null) {
 			for (Block b: s.getBlocks()) {
 				if (b == null)
 					continue;
@@ -366,27 +370,90 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (s.getFile() != null)
             saveFile (s.getFile(), slideLayout, graph);
 		
-		// add it to the slidelayoutrepository as well
-		s.setUri(slideLayoutURI);
-		s.setId(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/") + 1));
-		s.setDateAddedToLibrary(date);
-		s.setDateCreated(date);
-		s.setDateModified(date);
-		Creator creator = new Creator();
-		creator.setName(user.getUsername());
-		creator.setUserId(user.getUserId());
-		s.setUser(creator);
-		SlideLayoutEntity slideLayoutEntity = new SlideLayoutEntity();
-		slideLayoutEntity.setUri(slideLayoutURI);
-		try {
-            slideLayoutEntity.setJsonValue(new ObjectMapper().writeValueAsString(s));
-            slideLayoutRepository.save(slideLayoutEntity);
-        } catch (JsonProcessingException e) {
-            logger.error("Could not serialize Slide layout into JSON for caching", e);
-        }
-		slideLayoutCache.put(slideLayoutURI, s);
+		if (!layoutOnly) {
+    		// add it to the slidelayoutrepository as well
+    		s.setUri(slideLayoutURI);
+    		s.setId(slideLayoutURI.substring(slideLayoutURI.lastIndexOf("/") + 1));
+    		s.setDateAddedToLibrary(date);
+    		s.setDateCreated(date);
+    		s.setDateModified(date);
+    		Creator creator = new Creator();
+    		creator.setName(user.getUsername());
+    		creator.setUserId(user.getUserId());
+    		s.setUser(creator);
+    		SlideLayoutEntity slideLayoutEntity = new SlideLayoutEntity();
+    		slideLayoutEntity.setUri(slideLayoutURI);
+    		try {
+                slideLayoutEntity.setJsonValue(new ObjectMapper().writeValueAsString(s));
+                slideLayoutRepository.save(slideLayoutEntity);
+            } catch (JsonProcessingException e) {
+                logger.error("Could not serialize Slide layout into JSON for caching", e);
+            }
+    		slideLayoutCache.put(slideLayoutURI, s);
+		}
 		
 		return slideLayoutURI;
+	}
+	
+	@Override
+	public String addBlocksToSlideLayout (SlideLayout s, UserEntity user) throws SparqlException, SQLException {
+	    String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            uriPre = uriPrefixPublic;
+            graph = DEFAULT_GRAPH;
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        List<Statement> statements = new ArrayList<Statement>();
+	    String uri = s.getUri();
+        if (uri == null && s.getId() != null) {
+            uri = uriPre + s.getId();
+        }
+        if (uri != null) {
+            IRI slideLayout = f.createIRI(uri);
+            IRI graphIRI = f.createIRI(graph);
+            
+            IRI hasBlock = f.createIRI(ontPrefix + "has_block");
+            if (s.getBlocks() != null) {
+                for (Block b: s.getBlocks()) {
+                    if (b == null)
+                        continue;
+                    String blockURI = addBlock (b, user, graph);
+                    if (blockURI == null)
+                        continue;
+                    b.setUri(blockURI);
+                    IRI block = f.createIRI(blockURI);
+                    statements.add(f.createStatement(slideLayout, hasBlock, block, graphIRI));
+                }
+            }
+            sparqlDAO.addStatements(statements, graphIRI);
+           
+            // add it to the slidelayoutrepository as well
+            Date date = new Date();
+            s.setUri(uri);
+            s.setId(uri.substring(uri.lastIndexOf("/") + 1));
+            s.setDateAddedToLibrary(date);
+            s.setDateCreated(date);
+            s.setDateModified(date);
+            Creator creator = new Creator();
+            creator.setName(user.getUsername());
+            creator.setUserId(user.getUserId());
+            s.setUser(creator);
+            SlideLayoutEntity slideLayoutEntity = new SlideLayoutEntity();
+            slideLayoutEntity.setUri(uri);
+            try {
+                slideLayoutEntity.setJsonValue(new ObjectMapper().writeValueAsString(s));
+                slideLayoutRepository.save(slideLayoutEntity);
+            } catch (JsonProcessingException e) {
+                logger.error("Could not serialize Slide layout into JSON for caching", e);
+            }
+            slideLayoutCache.put(uri, s);
+        }
+        
+        return uri;
 	}
 	
 	@Override
@@ -1132,6 +1199,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     	        }
             }
 		}
+		if (slideLayoutObject != null)
+		    getStatusFromURI (slideLayoutObject.getUri(), slideLayoutObject, graph);
 		return slideLayoutObject;
 	}
 	

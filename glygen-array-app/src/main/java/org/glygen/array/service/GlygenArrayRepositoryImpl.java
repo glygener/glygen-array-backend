@@ -27,7 +27,10 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.persistence.rdf.data.FutureTask;
+import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.util.SparqlUtils;
+import org.glygen.array.view.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -606,6 +609,79 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, hasFile, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
+        }
+    }
+    
+    
+    @Override
+    public void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI taskIRI = f.createIRI(uri);
+        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
+        IRI hasError = f.createIRI(ontPrefix + "has_error");
+        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
+        
+        // delete existing predicates
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI)), graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI)), graphIRI); 
+        
+        Literal status = f.createLiteral(task.getStatus().name());
+        Literal date = f.createLiteral(new Date());
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        statements.add(f.createStatement(taskIRI, hasStatus, status, graphIRI));
+        statements.add(f.createStatement(taskIRI, hasStatusDate, date, graphIRI));
+        
+        if (task.getError() != null) {
+            String error = task.getError().toString();
+            Literal errorMessage = f.createLiteral(error);
+            statements.add(f.createStatement(taskIRI, hasError, errorMessage, graphIRI));
+        }
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+    }
+    
+    
+    protected void getStatusFromURI(String uri, FutureTask task, String graph) {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI taskIRI = f.createIRI(uri);
+       
+        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
+        IRI hasError = f.createIRI(ontPrefix + "has_error");
+        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
+        
+        RepositoryResult<Statement> result = sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            task.setStatus(FutureTaskStatus.valueOf(st.getObject().stringValue()));
+        }
+        result = sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            if (st.getObject() instanceof Literal) {
+                Literal literal = (Literal)st.getObject();
+                XMLGregorianCalendar calendar = literal.calendarValue();
+                Date date = calendar.toGregorianCalendar().getTime();
+                task.setStartDate(date);
+            }
+        }
+        result = sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI);
+        while (result.hasNext()) {
+            Statement st = result.next();
+            String errorMessage = st.getObject().stringValue();
+            ErrorMessage error = ErrorMessage.fromString(errorMessage);
+            task.setError(error);  
         }
     }
 }

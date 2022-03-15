@@ -7,6 +7,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
+import org.glygen.array.persistence.rdf.data.FutureTask;
 
 public interface GlygenArrayRepository {
 	
@@ -41,4 +42,6 @@ public interface GlygenArrayRepository {
     String saveChangeLog(ChangeLog change, String entryURI, String graph) throws SparqlException, SQLException;
 
     void retrieveChangeLog(ChangeTrackable entity, String entityUri, String graph) throws SparqlException, SQLException;
+
+    void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
 }

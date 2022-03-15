@@ -1,13 +1,11 @@
 package org.glygen.array.view;
 
-import java.util.List;
-
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 
 public class LibraryImportInput {
     FileWrapper file;
-    List<SlideLayout> slideLayouts;
+    SlideLayout slideLayout;
     /**
      * @return the file
      */
@@ -21,16 +19,16 @@ public class LibraryImportInput {
         this.file = file;
     }
     /**
-     * @return the slideLayouts
+     * @return the slideLayout
      */
-    public List<SlideLayout> getSlideLayouts() {
-        return slideLayouts;
+    public SlideLayout getSlideLayout() {
+        return slideLayout;
     }
     /**
-     * @param slideLayouts the slideLayouts to set
+     * @param slideLayout the slideLayout to set
      */
-    public void setSlideLayouts(List<SlideLayout> slideLayouts) {
-        this.slideLayouts = slideLayouts;
+    public void setSlideLayout(SlideLayout slideLayout) {
+        this.slideLayout = slideLayout;
     }
 
 }

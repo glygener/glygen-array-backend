@@ -34,8 +34,6 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.Channel;
 import org.glygen.array.persistence.rdf.data.ChannelUsageType;
-import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
-import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FilterExclusionInfo;
 import org.glygen.array.persistence.rdf.data.FilterExclusionReasonType;
@@ -51,6 +49,8 @@ import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.persistence.rdf.data.RawData;
 import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.data.StatisticalMethod;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
@@ -63,7 +63,6 @@ import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.om.model.Coordinate;
-import org.grits.toolbox.glycanarray.om.parser.ProscanParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -2539,77 +2538,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         return slide;
-    }
-
-    @Override
-    public void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
-        
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        IRI taskIRI = f.createIRI(uri);
-        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
-        IRI hasError = f.createIRI(ontPrefix + "has_error");
-        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
-        
-        // delete existing predicates
-        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI)), graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI)), graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI)), graphIRI); 
-        
-        Literal status = f.createLiteral(task.getStatus().name());
-        Literal date = f.createLiteral(new Date());
-        List<Statement> statements = new ArrayList<Statement>();
-        
-        statements.add(f.createStatement(taskIRI, hasStatus, status, graphIRI));
-        statements.add(f.createStatement(taskIRI, hasStatusDate, date, graphIRI));
-        
-        if (task.getError() != null) {
-            String error = task.getError().toString();
-            Literal errorMessage = f.createLiteral(error);
-            statements.add(f.createStatement(taskIRI, hasError, errorMessage, graphIRI));
-        }
-        
-        sparqlDAO.addStatements(statements, graphIRI);
-        
-    }
-    
-    private void getStatusFromURI(String uri, FutureTask task, String graph) {
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        IRI taskIRI = f.createIRI(uri);
-       
-        IRI hasStatus = f.createIRI(ontPrefix + "has_status");
-        IRI hasError = f.createIRI(ontPrefix + "has_error");
-        IRI hasStatusDate = f.createIRI(ontPrefix + "has_status_date");
-        
-        RepositoryResult<Statement> result = sparqlDAO.getStatements(taskIRI, hasStatus, null, graphIRI);
-        while (result.hasNext()) {
-            Statement st = result.next();
-            task.setStatus(FutureTaskStatus.valueOf(st.getObject().stringValue()));
-        }
-        result = sparqlDAO.getStatements(taskIRI, hasStatusDate, null, graphIRI);
-        while (result.hasNext()) {
-            Statement st = result.next();
-            if (st.getObject() instanceof Literal) {
-                Literal literal = (Literal)st.getObject();
-                XMLGregorianCalendar calendar = literal.calendarValue();
-                Date date = calendar.toGregorianCalendar().getTime();
-                task.setStartDate(date);
-            }
-        }
-        result = sparqlDAO.getStatements(taskIRI, hasError, null, graphIRI);
-        while (result.hasNext()) {
-            Statement st = result.next();
-            String errorMessage = st.getObject().stringValue();
-            ErrorMessage error = ErrorMessage.fromString(errorMessage);
-            task.setError(error);  
-        }
     }
 
     @Override

@@ -1,7 +1,5 @@
 package org.glygen.array.util;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -9,20 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
 import org.apache.commons.codec.binary.Base64;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.MolecularFramework.util.visitor.GlycoVisitorException;
-import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
-import org.eurocarbdb.application.glycanbuilder.Glycan;
-import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.GlycanFormatconverter.Glycan.GlyContainer;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.GlyContainerToSugar;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.WURCSGraphToGlyContainer.WURCSGraphToGlyContainer;
@@ -32,13 +22,11 @@ import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.persistence.rdf.Feature;
-import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
-import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.FilterExclusionInfo;
 import org.glygen.array.persistence.rdf.data.FilterExclusionReasonType;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
-import org.grits.toolbox.util.structure.glycan.database.GlycanDatabase;
-import org.grits.toolbox.util.structure.glycan.database.GlycanStructure;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
+import org.glygen.array.persistence.rdf.data.TechnicalExclusionReasonType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -46,7 +34,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -61,7 +48,7 @@ public class GlytoucanUtil {
 	String userId;
 	
 	static String glycanURL = "https://sparqlist.glycosmos.org/sparqlist/api/gtc_wurcs_by_accession?accNum=";
-	static String retrieveURL ="https://api.glycosmos.org/glytoucan/sparql/wurcs2gtcids?wurcs=";
+	static String retrieveURL ="https://api.glycosmos.org/sparqlist/wurcs2gtcids?wurcs=";
 	static String registerURL = "https://api.glytoucan.org/glycan/register";
 	
 	private static RestTemplate restTemplate = new RestTemplate();

@@ -72,4 +72,6 @@ public interface LayoutRepository {
     String getPublicBlockLayoutUri(String blockLayoutUri, UserEntity user) throws SQLException, SparqlException;
     SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    String addSlideLayout(SlideLayout s, UserEntity user, Boolean layoutOnly) throws SparqlException, SQLException;
+    String addBlocksToSlideLayout(SlideLayout s, UserEntity user) throws SparqlException, SQLException;
 }

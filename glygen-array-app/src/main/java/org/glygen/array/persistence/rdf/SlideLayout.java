@@ -8,8 +8,9 @@ import javax.validation.constraints.Size;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
+import org.glygen.array.persistence.rdf.data.FutureTask;
 
-public class SlideLayout {
+public class SlideLayout extends FutureTask {
 	String id;
 	String uri;
 	String name;
