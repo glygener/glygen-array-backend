@@ -286,9 +286,6 @@ public class PublicGlygenArrayController {
             List<ArrayDataset> resultList = datasetRepository.getDatasetByGlycan (glycanId.trim(), offset, limit, field, order, false, null);
             // need to clear rawdata, processed data etc.
             for (ArrayDataset dataset: resultList) {
-                dataset.setImages(null);
-                dataset.setRawDataList(null);
-                dataset.setProcessedData(null);
                 dataset.setSlides(null);
             }
             result.setRows(resultList); 
@@ -1536,16 +1533,8 @@ public class PublicGlygenArrayController {
                     }
                 }
                 if (existing == null) {
-                    // check it in the arraydataset's list
-                    for (ProcessedData p: dataset.getProcessedData()) {
-                        if (p.getId().equals(processedDataId)) {
-                            existing = p;
-                        }
-                    }
-                    if (existing == null) {
-                        errorMessage.addError(new ObjectError("processedData", "NotFound"));
-                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
-                    }
+                    errorMessage.addError(new ObjectError("processedData", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                 }
                 if (existing != null){      
                     int total = datasetRepository.getIntensityDataListCount(processedDataId.trim(), null, searchValue);

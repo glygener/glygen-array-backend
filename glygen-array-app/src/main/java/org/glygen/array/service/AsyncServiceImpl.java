@@ -224,6 +224,7 @@ public class AsyncServiceImpl implements AsyncService {
                                                                 if (g.getName() != null) {
                                                                     // add name as an alias
                                                                     glycanRepository.addAliasForGlycan(g.getId(), g.getName(), user);
+                                                                    //TODO need to update the glycan object of the feature with the duplicate glycan
                                                                 }
                                                             }
                                                         }

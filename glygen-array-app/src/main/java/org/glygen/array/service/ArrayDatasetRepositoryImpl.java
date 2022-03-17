@@ -168,17 +168,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             
             String datasetId = datasetURI.substring(datasetURI.lastIndexOf("/")+1);
-            if (dataset.getProcessedData() != null && dataset.getProcessedData().isEmpty()) {
-                for (ProcessedData processedData: dataset.getProcessedData()) {
-                    addProcessedData(processedData, datasetId, user);
-                }
-            }
-            
-            if (dataset.getRawDataList() != null && !dataset.getRawDataList().isEmpty()) {
-                for (RawData rawData: dataset.getRawDataList()) {
-                    addRawData(rawData, datasetId, user);
-                }
-            }
             
             if (dataset.getPublications() != null && !dataset.getPublications().isEmpty()) {
                 for (Publication pub: dataset.getPublications()) {
@@ -198,25 +187,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            // slides and images are created with rawData
-            // here we are only creating the relationship to the dataset
             if (dataset.getSlides() != null) {
                 for (Slide slide: dataset.getSlides()) {
                     String slideURI = slide.getUri();
                     if (slideURI != null) {
                         IRI slideIRI = f.createIRI(slideURI);
                         statements.add(f.createStatement(arraydataset, hasSlide, slideIRI, graphIRI));
-                    }
-                }
-            }
-            
-            //add images
-            if (dataset.getImages() != null) {
-                for (Image image: dataset.getImages()) {
-                    String imageURI = image.getUri();
-                    if (imageURI != null) {
-                        IRI imageIRI = f.createIRI(imageURI);
-                        statements.add(f.createStatement(arraydataset, hasImage, imageIRI, graphIRI));
+                    } else if (slide.getId() != null) {
+                        IRI slideIRI = f.createIRI(uriPrefix + slide.getId());
+                        statements.add(f.createStatement(arraydataset, hasSlide, slideIRI, graphIRI));
+                    } else {
+                        addSlide(slide, datasetId, user);
                     }
                 }
             }
@@ -350,10 +331,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             for (Image image: slide.getImages()) {
                 if (image.getUri() != null) {
                     statements.add(f.createStatement(f.createIRI(image.getUri()), scanOf, slideIRI, graphIRI));
-                } else {
-                    String imageURI = addImage (image, datasetId, user);
+                } /*else {
+                    String imageURI = addImage (image, slideURI.substring(slideURI.lastIndexOf("/")+1), user);
                     statements.add(f.createStatement(f.createIRI(imageURI), scanOf, slideIRI, graphIRI));
-                }
+                }*/
             }
         }
         
@@ -448,7 +429,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
      * It also assumes, processed data were already added into the repository
      */
     @Override
-    public String addRawData(RawData rawData, String datasetId, UserEntity user) throws SparqlException, SQLException {
+    public String addRawData(RawData rawData, String imageId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -472,14 +453,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI graphIRI = f.createIRI(graph);
         IRI raw = f.createIRI(rawDataURI);
-        IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
-        IRI arraydataset = f.createIRI(uriPre + datasetId);
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI processedFrom = f.createIRI(processedFromPredicate);
         IRI hasPowerLevel = f.createIRI(ontPrefix + "has_powerlevel");
         IRI hasWavelength = f.createIRI(ontPrefix + "has_wavelength");
         IRI hasChannelType = f.createIRI(ontPrefix + "has_channel_type");
         IRI hasChannel = f.createIRI(ontPrefix + "has_channel");
+        IRI derivedFrom = f.createIRI(derivedFromPredicate);
         
         if (rawData.getMetadata() != null) {
             String imageProcessingMetadataURI = rawData.getMetadata().getUri();
@@ -508,40 +488,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (slideURI != null) {
                 statements.add(f.createStatement(raw, hasSlide, f.createIRI(slideURI), graphIRI));
             }
-            // measurements are to be added asynchronously later
-            /*if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
-                for (Measurement measurement: rawData.getDataMap().keySet()) {
-                    String measurementURI = addMeasurement (measurement, statements, graph);
-                    Spot spot = rawData.getDataMap().get(measurement);
-                    if (spot.getUri() != null)
-                        statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
-                    else {
-                        // find the spot
-                        if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null)
-                            throw new SparqlException ("The slide layout should be provided");
-                        
-                        String slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getId();
-                        if (slideLayoutId == null) {
-                            slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getUri().substring(
-                                    rawData.getSlide().getPrintedSlide().getLayout().getUri().lastIndexOf("/")+1);
-                        }
-                        
-                        Spot existing;
-                        if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic())
-                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
-                                spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), null);
-                        else 
-                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
-                                    spot.getBlockLayoutId(), spot.getRow(), spot.getColumn(), user);
-                        if (existing != null)
-                            statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing.getUri()), graphIRI));
-                        else {
-                            throw new SparqlException ("The spot cannot be located in the repository");
-                        }
-                    }
-                    statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
-                }
-            }*/
         }
         
         if (rawData.getFile() != null) {
@@ -565,12 +511,18 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (processedData.getUri() != null) {
                     IRI processed = f.createIRI(processedData.getUri());
                     statements.add(f.createStatement(processed, processedFrom, raw, graphIRI));
-                }
+                } else if (processedData.getId() != null) {
+                    IRI processed = f.createIRI(uriPre + processedData.getId());
+                    statements.add(f.createStatement(processed, processedFrom, raw, graphIRI));
+                } /*else {
+                    addProcessedData(processedData, rawDataURI.substring(rawDataURI.lastIndexOf("/")+1), user);
+                }*/
             }
         }
         
-        // TODO should we create this predicate ???
-        statements.add(f.createStatement(arraydataset, hasRawData, raw, graphIRI));
+        IRI imageIRI = f.createIRI(uriPre + imageId);
+        statements.add(f.createStatement(raw, derivedFrom, imageIRI, graphIRI));
+        
         sparqlDAO.addStatements(statements, graphIRI);
         return rawDataURI;
     }
@@ -805,7 +757,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
 
     @Override
-    public String addProcessedData(ProcessedData processedData, String datasetId, UserEntity user) throws SparqlException, SQLException {
+    public String addProcessedData(ProcessedData processedData, String rawDataId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -837,6 +789,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasFile = f.createIRI(hasFilePredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
+        IRI processedFrom = f.createIRI(processedFromPredicate);
         
         if (processedData.getIntensity() != null) {
             for (Intensity intensity: processedData.getIntensity()) {
@@ -907,9 +860,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
         }
         
-        // don't link the to dataset, it should be linked to the raw data
-        //IRI arraydataset = f.createIRI(uriPre + datasetId);
-        //statements.add(f.createStatement(arraydataset, hasProcessedData, processed, graphIRI));
+        IRI raw = f.createIRI(uriPre + rawDataId);
+        statements.add(f.createStatement(processed, processedFrom, raw, graphIRI));
         
         addExclusionInfo (processedData, processedURI, statements, graph);
         sparqlDAO.addStatements(statements, graphIRI);
@@ -1032,13 +984,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
         IRI hasSample = f.createIRI(ontPrefix + "has_sample");
-        IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
-        IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
-        IRI hasImage = f.createIRI(hasImagePredicate);
         IRI hasPub = f.createIRI(hasPublication);
         IRI hasGrantPred = f.createIRI(hasGrant);
         IRI hasCollab = f.createIRI(hasCollaborator);
+        IRI hasKeyword = f.createIRI(ontPrefix + "has_keyword");
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -1054,13 +1004,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (uri.contains("public")) {
                 datasetObject.setIsPublic(true);
             }
-            datasetObject.setRawDataList(new ArrayList<RawData>());
-            datasetObject.setProcessedData(new ArrayList<ProcessedData>());
             datasetObject.setSlides(new ArrayList<Slide>());
-            datasetObject.setImages(new ArrayList<Image>());
             datasetObject.setPublications(new ArrayList<Publication>());
             datasetObject.setGrants(new ArrayList<>());
             datasetObject.setCollaborators(new ArrayList<>());
+            datasetObject.setKeywords(new ArrayList<String>());
         }
         
         while (statements.hasNext()) {
@@ -1103,10 +1051,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasSample)) {
                 Value uriValue = st.getObject();
                 datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, user));            
-            } else if (st.getPredicate().equals(hasRawData)) {
-                Value uriValue = st.getObject();
-                RawData rawData = getRawDataFromURI(uriValue.stringValue(), loadAll, user);
-                datasetObject.getRawDataList().add(rawData);
+            } else if (st.getPredicate().equals(hasKeyword)) {
+                Value keyword = st.getObject();
+                datasetObject.getKeywords().add(keyword.stringValue());
             } else if (st.getPredicate().equals(hasSlide)) {
                 Value uriValue = st.getObject();
                 datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));            
@@ -1129,12 +1076,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasGrantPred)) {
                 Value uriValue = st.getObject();
                 datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
-            } else if (st.getPredicate().equals(hasImage)) {
-                Value uriValue = st.getObject();
-                datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));      
-            } else if (st.getPredicate().equals(hasProcessedData)) {
-                Value uriValue = st.getObject();
-                datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, user));            
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the arrray dataset is already public
@@ -1155,10 +1096,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = stPublic.getObject();
                         datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, user));            
-                    } else if (stPublic.getPredicate().equals(hasRawData)) {
-                        uriValue = stPublic.getObject();
-                        RawData rawData = getRawDataFromURI(uriValue.stringValue(), loadAll, user);
-                        datasetObject.getRawDataList().add(rawData);
+                    } else if (st.getPredicate().equals(hasKeyword)) {
+                        Value keyword = stPublic.getObject();
+                        datasetObject.getKeywords().add(keyword.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));        
@@ -1181,13 +1121,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (stPublic.getPredicate().equals(hasGrantPred)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
-                    } else if (stPublic.getPredicate().equals(hasImage)) {
-                        uriValue = stPublic.getObject();
-                        datasetObject.getImages().add(getImageFromURI(uriValue.stringValue(), loadAll, user));      
-                    } else if (stPublic.getPredicate().equals(hasProcessedData)) {
-                        uriValue = stPublic.getObject();
-                        datasetObject.getProcessedData().add(getProcessedDataFromURI(uriValue.stringValue(), loadAll, user));            
-                    }
+                    } 
                 }
             }
         }
@@ -1252,16 +1186,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     /**
-     * raw data must have been added already 
+     * raw data must have been added already or the list should be empty if raw data are to be added later
      *    
-     * @param image
-     * @param datasetId
-     * @param statements
-     * @param graph
-     * @return
-     * @throws SparqlException
+     * @param image image to be added
+     * @param slideId id of the slide to add this image
+     * @param user the user or null for public user
+     * @return the URI of the created image
+     * @throws SparqlException, SQLException
      */
-    private String addImage(Image image, String datasetId, UserEntity user) throws SparqlException, SQLException {
+    @Override
+    public String addImage(Image image, String slideId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -1291,6 +1225,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI derivedFrom = f.createIRI(derivedFromPredicate);
         
+        
+        
         List<Statement> statements = new ArrayList<Statement>();
         
         if (image.getFile() != null) {
@@ -1309,18 +1245,26 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
         }
         
-        IRI arraydataset = f.createIRI(uriPre + datasetId);
-        IRI hasImage = f.createIRI(hasImagePredicate);
-        // add the image to its dataset as well
-        statements.add(f.createStatement(arraydataset, hasImage, imageIRI, graphIRI));
+        IRI slideIRI = f.createIRI(uriPre + slideId);
+        IRI scanOf = f.createIRI(scanOfPredicate);
+        // add the image to its slide 
+        statements.add(f.createStatement(imageIRI, scanOf, slideIRI, graphIRI));
         if (image.getRawDataList() != null) { 
             for (RawData rawData: image.getRawDataList()) {
                 String rawDataURI = rawData.getUri();
                 if (rawDataURI == null) {
-                    throw new SparqlException ("Raw data should have been added already");
+                    if (rawData.getId() != null) {
+                        rawDataURI = uriPre + rawData.getId();
+                    }
+                   /* if (rawDataURI == null) {
+                        // add the rawData
+                        rawDataURI = addRawData(rawData, imageURI.substring(imageURI.lastIndexOf("/")+1), user);
+                    }*/
                 }
-                IRI raw = f.createIRI(rawDataURI);
-                statements.add(f.createStatement(raw, derivedFrom, imageIRI, graphIRI));
+                if (rawDataURI != null) {
+                    IRI raw = f.createIRI(rawDataURI);
+                    statements.add(f.createStatement(raw, derivedFrom, imageIRI, graphIRI));
+                }
             }
         }
         
@@ -1604,8 +1548,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return slideObject;
     }
 
-
-    private Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException  {
+    @Override
+    public Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException  {
         String graph = null;
         if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
@@ -1634,6 +1578,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             imageObject = new Image();
             imageObject.setUri(uri);
             imageObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+        } else {
+            // check the other way
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(null, null, imageIRI, graphIRI);
+            if (statements2.hasNext()) {
+                imageObject = new Image();
+                imageObject.setUri(uri);
+                imageObject.setId(uri.substring(uri.lastIndexOf("/")+1));
+            }
         }
         
         while (statements.hasNext()) {
@@ -1689,7 +1641,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
             imageObject.addRawData(getRawDataFromURI(rawDataURI, loadAll, user));
         }
-        
             
         return imageObject;
     }
@@ -1821,7 +1772,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         rawDataObject.setSpot(measurement.getId(), spotURI.substring(spotURI.lastIndexOf("/")+1));
                     }
                 } 
-            } 
+            } /* else if (st.getPredicate().equals(hasSlide)) {
+                Value uriValue = st.getObject();
+                rawDataObject.setSlide(getSlideFromURI(uriValue.stringValue(), loadAll, user));   
+            }*/
         }
         
         // retrieve the processedData
@@ -2937,27 +2891,29 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         if (dataset.getSlides() != null && !dataset.getSlides().isEmpty()) {
             for (Slide slide: dataset.getSlides()) {
+                String slideURI = addSlide(slide, datasetId, null);
                 for (Image image: slide.getImages()) {
+                    String imageURI = addImage(image, slideURI.substring(slideURI.lastIndexOf("/")+1), null);
                     if (image.getRawDataList() != null) {
                         for (RawData rawData: image.getRawDataList()) {
                             if (rawData != null) {
-                                if (rawData.getProcessedDataList() != null) {
+                                String rawDataURI = addRawData(rawData, imageURI.substring(imageURI.lastIndexOf("/")+1), null);
+                                rawData.setSlide(slide);
+                                rawData.setUri(rawDataURI);
+                                addMeasurementsToRawData(rawData, null);
+                                if (rawData.getProcessedDataList() != null && !rawData.getProcessedDataList().isEmpty()) {
                                     for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                        String processedDataURI = addProcessedData(processedData, datasetId, null);
+                                        String processedDataURI = addProcessedData(processedData, rawDataURI.substring(rawDataURI.lastIndexOf("/")+1), null);
                                         processedData.setUri(processedDataURI);
                                     }
                                 } else {
                                     logger.warn("Processed data is not found for rawData: " + rawData.getUri());
                                 }
-                                String rawDataURI = addRawData(rawData, datasetId, null);
-                                rawData.setSlide(slide);
-                                rawData.setUri(rawDataURI);
-                                addMeasurementsToRawData(rawData, null);
+                                
                             }
                         }
                     }
                 }
-                addSlide(slide, datasetId, null);
             }
         }
         

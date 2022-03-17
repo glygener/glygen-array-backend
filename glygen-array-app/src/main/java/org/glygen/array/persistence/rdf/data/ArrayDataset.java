@@ -16,16 +16,13 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     String uri;
     String name;
     String description;
-    List<String> keywords;
-    
+   
     Sample sample;
-    List<RawData> rawDataList;
-    List<ProcessedData> processedData;
-    List<Image> images;
     List<Slide> slides;
     List<Publication> publications;
     List<Creator> collaborators;
     List<Grant> grants;
+    List<String> keywords;
     
     boolean isPublic = false;
     Creator user;
@@ -109,42 +106,6 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
      */
     public void setSample(Sample sample) {
         this.sample = sample;
-    }
-
-    public List<RawData> getRawDataList() {
-        return rawDataList;
-    }
-    
-    public void setRawDataList(List<RawData> rawDataList) {
-        this.rawDataList = rawDataList;
-    }
-
-    /**
-     * @return the processedData
-     */
-    public List<ProcessedData> getProcessedData() {
-        return processedData;
-    }
-
-    /**
-     * @param processedData the processedData to set
-     */
-    public void setProcessedData(List<ProcessedData> processedData) {
-        this.processedData = processedData;
-    }
-
-    /**
-     * @return the images
-     */
-    public List<Image> getImages() {
-        return images;
-    }
-
-    /**
-     * @param images the images to set
-     */
-    public void setImages(List<Image> images) {
-        this.images = images;
     }
 
     /**
@@ -247,15 +208,7 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     
     @Override
     public FutureTaskStatus getStatus() {
-        if (this.processedData != null) {
-            for (ProcessedData p: this.processedData) {
-                if (p.getStatus() == FutureTaskStatus.PROCESSING)
-                    return FutureTaskStatus.PROCESSING;
-                if (p.getStatus() == FutureTaskStatus.ERROR)
-                    return FutureTaskStatus.PROCESSING;
-            }
-        }
-        return super.getStatus();
+        return status;
     }
 
     /**

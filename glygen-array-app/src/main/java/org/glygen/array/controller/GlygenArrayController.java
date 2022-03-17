@@ -1706,7 +1706,7 @@ public class GlygenArrayController {
                         String uri = layoutRepository.addSlideLayout(slideLayout, user, true);  
                         slideLayout.setUri(uri);
                         String id = uri.substring(uri.lastIndexOf("/")+1);
-                        if (slideLayout.getError() != null)
+                        if (slideLayout.getError() == null)
                             slideLayout.setStatus(FutureTaskStatus.PROCESSING);
                         else 
                             slideLayout.setStatus(FutureTaskStatus.ERROR);

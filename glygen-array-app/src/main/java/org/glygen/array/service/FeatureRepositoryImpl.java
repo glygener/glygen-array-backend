@@ -2053,7 +2053,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     if (linkerPublic) {
                         where += " ?f gadr:has_public_uri ?pf . ?pf gadr:has_linker <\" + linker.getUri() + \"> . \n";
                     } else {
-                        where += " ?f gadr:has_linker <\" + linker.getUri() + \"> . \n";
+                        where += " ?f gadr:has_linker <" + linker.getUri() + "> . \n";
                     }
                 }
             } else if (slideLayoutURI != null) {
@@ -2084,7 +2084,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     if (linkerPublic) {
                         where += " ?f gadr:has_public_uri ?pf . ?pf gadr:has_linker <\" + linker.getUri() + \"> . \n";
                     } else {
-                        where += " ?f gadr:has_linker <\" + linker.getUri() + \"> . \n";
+                        where += " ?f gadr:has_linker <" + linker.getUri() + "> . \n";
                     }
                 }
             } 

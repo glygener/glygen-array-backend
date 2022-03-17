@@ -12,6 +12,7 @@ import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.Grant;
+import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -43,10 +44,10 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     void updateArrayDataset (ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     
-    String addProcessedData(ProcessedData processedData, String datasetId, UserEntity user)
+    String addProcessedData(ProcessedData processedData, String rawDataId, UserEntity user)
             throws SparqlException, SQLException;
     String addSlide(Slide slide, String datasetId, UserEntity user) throws SparqlException, SQLException;
-    String addRawData(RawData rawData, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    String addRawData(RawData rawData, String imageId, UserEntity user) throws SparqlException, SQLException;
     String addPublication (Publication publication, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void addCowner (UserEntity coowner, String datasetURI, UserEntity user) throws SparqlException, SQLException;
     
@@ -117,5 +118,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     int getPrintedSlideCountByUser(UserEntity user, String searchValue, boolean includePublic)
             throws SQLException, SparqlException;
+    String addImage(Image image, String slideId, UserEntity user) throws SparqlException, SQLException;
+    Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     
 }

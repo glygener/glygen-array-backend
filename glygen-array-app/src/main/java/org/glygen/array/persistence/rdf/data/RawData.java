@@ -206,6 +206,7 @@ public class RawData extends FutureTask {
     /**
      * @return the slide
      */
+    @JsonIgnore
     public Slide getSlide() {
         return slide;
     }
