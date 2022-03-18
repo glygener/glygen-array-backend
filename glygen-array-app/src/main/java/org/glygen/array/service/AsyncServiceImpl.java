@@ -125,8 +125,6 @@ public class AsyncServiceImpl implements AsyncService {
                             errorMessage.addError(new ObjectError ("format", "NotValid"));
                             throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
                         }
-                        // find the slidelayoutid (format name --> slide layout name)
-                        
                         config.setSlideLayoutUri(slide.getPrintedSlide().getLayout().getUri());
                         intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
                                 config, user);
@@ -136,7 +134,7 @@ public class AsyncServiceImpl implements AsyncService {
                     }
                     return CompletableFuture.completedFuture(intensities);
                 } else {
-                    errorMessage.addError(new ObjectError("file", "NotValid"));
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
                     throw new IllegalArgumentException("File cannot be found", errorMessage);
                 }
             } else {
@@ -144,7 +142,7 @@ public class AsyncServiceImpl implements AsyncService {
                 throw new IllegalArgumentException("File cannot be found", errorMessage);
             }
         } catch (InvalidFormatException | IOException e) {
-            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.addError(new ObjectError("file", e.getMessage()));
             throw new IllegalArgumentException("File cannot be parsed", errorMessage);
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof ErrorMessage) {
@@ -173,8 +171,16 @@ public class AsyncServiceImpl implements AsyncService {
             config.setSheetNumber(0);
             config.setStDevColumnId(31);
             config.setStartRow(1);
-        } else {
-            return null;
+        } else if (fileFormat.startsWith("Glygen")){
+            config.setCvColumnId(-1);
+            config.setFeatureColumnId(-1);
+            config.setFeatureNameColumnId(1);
+            config.setRfuColumnId(3);
+            config.setStDevColumnId(4);
+            config.setGroupColumnId(2);
+            config.setResultFileType("Glygen array data file");
+            config.setSheetName("Repo Data");
+            config.setStartRow(1);
         }
         return config;
         

@@ -29,6 +29,7 @@ public class RawdataParser {
     public static Map<Measurement, Spot> parse (org.glygen.array.persistence.rdf.data.FileWrapper file, SlideLayout layout, Double powerLevel) throws Exception {
         
         Map<Measurement, Spot> dataMap = new HashMap<Measurement, Spot>();
+        Map <Integer, String> groupIdMap = new HashMap<Integer, String>();
         
         GlycanArrayExperiment experiment = new GlycanArrayExperiment();
         Slide slide = new Slide();
@@ -49,7 +50,9 @@ public class RawdataParser {
                 int x = spot.getColumn();
                 Well well = new Well(x, y);
                 SpotData spotData = new SpotData();
-                spotData.setGroup(spot.getGroup());
+                int hashcode = spot.getGroup().hashCode();
+                groupIdMap.put (hashcode, spot.getGroup());
+                spotData.setGroup(hashcode);
                 
                 block.setPosition(new Well(b.getColumn(), b.getRow()));
                 layoutData.put(well, spotData);
@@ -110,7 +113,7 @@ public class RawdataParser {
                         Spot spot = new Spot();
                         spot.setRow(spotData.getPosition().getY());
                         spot.setColumn(spotData.getPosition().getX());
-                        spot.setGroup(spotData.getGroup());
+                        spot.setGroup(groupIdMap.get(spotData.getGroup()));
                        // LevelUnit con = new LevelUnit();
                         //con.setConcentration(spotData.getConcentration());
                         //con.setLevelUnit(spotData.getProbeLevelUnit());

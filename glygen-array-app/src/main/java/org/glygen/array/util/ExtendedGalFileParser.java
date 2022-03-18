@@ -89,7 +89,7 @@ public class ExtendedGalFileParser {
         int groupId = 1;
         int maxGroup = 0;
         Map <String, Feature> featureMap = new HashMap<>();
-        Map <String, Integer> featureGroupMap = new HashMap<>();
+        Map <String, String> featureGroupMap = new HashMap<>();
         boolean useBlockCount = false;
         
         // these are the new structures to be imported into the repository
@@ -325,7 +325,7 @@ public class ExtendedGalFileParser {
                             }
                             try {
                                 if (!group.isEmpty())
-                                    spot.setGroup(Integer.parseInt(group));
+                                    spot.setGroup(group.trim());
                         	} catch (NumberFormatException e) {
                         		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
                                 String[] codes = new String[] {"Row " + x, "Row " + y};
@@ -377,7 +377,7 @@ public class ExtendedGalFileParser {
                                 if (!group.isEmpty()) {
                                 	// use the group from the file
                                 	try {
-                                		spot.setGroup(Integer.parseInt(group));
+                                		spot.setGroup(group.trim());
                                 	} catch (NumberFormatException e) {
                                 		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
                                         String[] codes = new String[] {"Row " + x, "Row " + y};
@@ -385,7 +385,7 @@ public class ExtendedGalFileParser {
                                         errorList.add(error);
                                 	}
                                 } else {
-                                	spot.setGroup(groupId++);
+                                	spot.setGroup("" + groupId++);
                                 }
                                 if (levelUnit != null)
                                     spot.getFeatureConcentrationMap().put(feature, levelUnit);  

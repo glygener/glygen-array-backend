@@ -2103,7 +2103,7 @@ public class GlygenArrayController {
     		org.glygen.array.persistence.rdf.Spot s = new org.glygen.array.persistence.rdf.Spot();
     		s.setRow(spot.getY());
     		s.setColumn(spot.getX());
-    		s.setGroup(spot.getGroup());
+    		s.setGroup(spot.getGroup()+"");
     		//s.setConcentration(spot.getConcentration());
     		Feature feature = LibraryInterface.getFeature(library, spot.getFeatureId());
     		List<org.glygen.array.persistence.rdf.Feature> features = new ArrayList<>();

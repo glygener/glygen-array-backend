@@ -1927,7 +1927,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				s.setColumn(Integer.parseInt(v.stringValue()));
 			} else if (st2.getPredicate().equals(hasGroup)) {
 				Value v = st2.getObject();
-				s.setGroup(Integer.parseInt(v.stringValue()));
+				s.setGroup(v.stringValue().trim());
 			} else if (st2.getPredicate().equals(hasConcentrationContext)) {
                 Value positionContext = st2.getObject();
                 String contextURI = positionContext.stringValue();
@@ -2205,7 +2205,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
     @Override
     public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String blockLayoutURI,
-            UserEntity user) throws SparqlException, SQLException {
+            String groupId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null) {
             graph = DEFAULT_GRAPH;
@@ -2240,6 +2240,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         for (Feature f: features) {
             where += "?s gadr:has_feature <" + f.getUri() + "> . \n";
         }
+        if (groupId != null && !groupId.isEmpty()) {
+            where += " ?s gadr:has_group \'" + groupId + "'^^xsd:string . \n";
+        }
         if (blockLayoutURI != null) {
             where +=  "<" + blockLayoutURI + "> template:has_spot ?s .  \n";
         } else if (slideLayoutURI != null) {
@@ -2254,9 +2257,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             for (Feature f: features) {
                 where += "?s gadr:has_feature ?f" + i + " . \n";
                 where += "<" + f.getUri() + "> gadr:has_public_uri ?f"+ i  +". \n"; 
-               
                 i++;
             }
+            if (groupId != null && !groupId.isEmpty()) {
+                where += " ?s gadr:has_group \'" + groupId + "'^^xsd:string . \n";
+            }
+            
             if (blockLayoutURI != null) {
                 if (blockLayoutURI.contains("public")) {
                     where +=  "<" + blockLayoutURI + ">  template:has_spot ?s .  \n";

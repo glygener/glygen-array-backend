@@ -441,6 +441,7 @@ public class UtilityController {
     public List<String> getProcessedDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
         fileFormats.add("CFG_V5.2");
+        fileFormats.add("Glygen Array Data File");
         return fileFormats;
     }
     

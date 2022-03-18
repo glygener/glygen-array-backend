@@ -16,7 +16,7 @@ public class Spot {
 	List<Feature> features;
 	Integer row;
 	Integer column;
-	Integer group;
+	String group;
 	String blockLayoutUri;
 	String uri;
 	String flag;
@@ -95,13 +95,13 @@ public class Spot {
 	/**
 	 * @return the group
 	 */
-	public Integer getGroup() {
+	public String getGroup() {
 		return group;
 	}
 	/**
 	 * @param group the group to set
 	 */
-	public void setGroup(Integer group) {
+	public void setGroup(String group) {
 		this.group = group;
 	}
 	

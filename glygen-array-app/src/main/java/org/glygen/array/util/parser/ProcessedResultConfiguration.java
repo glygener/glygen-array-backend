@@ -2,7 +2,7 @@ package org.glygen.array.util.parser;
 
 public class ProcessedResultConfiguration {
     
-    Integer sheetNumber = 1;
+    Integer sheetNumber = -1;
     Integer featureColumnId;
     Integer rfuColumnId;
     Integer stDevColumnId;
@@ -10,7 +10,9 @@ public class ProcessedResultConfiguration {
     Integer startRow = 1;
     Integer featureNameColumnId;
     Integer concentrationLevelColumnId;
+    Integer groupColumnId;
     
+    String sheetName;
     String resultFileType = "cfg";
     String slideLayoutUri;
     String blockLayoutUri = null;
@@ -143,5 +145,29 @@ public class ProcessedResultConfiguration {
      */
     public void setBlockLayoutUri(String blockLayoutUri) {
         this.blockLayoutUri = blockLayoutUri;
+    }
+    /**
+     * @return the groupColumnId
+     */
+    public Integer getGroupColumnId() {
+        return groupColumnId;
+    }
+    /**
+     * @param groupColumnId the groupColumnId to set
+     */
+    public void setGroupColumnId(Integer groupColumnId) {
+        this.groupColumnId = groupColumnId;
+    }
+    /**
+     * @return the sheetName
+     */
+    public String getSheetName() {
+        return sheetName;
+    }
+    /**
+     * @param sheetName the sheetName to set
+     */
+    public void setSheetName(String sheetName) {
+        this.sheetName = sheetName;
     }
 }

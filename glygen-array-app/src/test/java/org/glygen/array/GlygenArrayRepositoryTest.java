@@ -871,7 +871,7 @@ public class GlygenArrayRepositoryTest {
 				spot.setRow(j);
 				spot.setColumn(i);
 				spot.getFeatureConcentrationMap().put(feature, concentration);
-				spot.setGroup(j);
+				spot.setGroup(j + "");
 				List<Feature> features = new ArrayList<Feature>();
 				features.add(feature);
 				spot.setFeatures(features);

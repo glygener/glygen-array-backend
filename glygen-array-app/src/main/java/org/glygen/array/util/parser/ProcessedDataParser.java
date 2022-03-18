@@ -83,12 +83,19 @@ public class ProcessedDataParser {
             readErrorMapFile (errorMapFile);
         }
         
-        
         //Create Workbook instance holding reference to .xls file
         Workbook workbook = WorkbookFactory.create(file);
-        
+        Sheet sheet = null;
         // get the sheet with the masterlist numbers and structures
-        Sheet sheet = workbook.getSheetAt(config.getSheetNumber());
+        if (config.getSheetNumber() != null && config.getSheetNumber() != -1) {
+            sheet = workbook.getSheetAt(config.getSheetNumber());
+        } else if (config.getSheetName() != null) {
+            sheet = workbook.getSheet(config.getSheetName());
+        }
+        
+        if (sheet == null) {
+            throw new InvalidFormatException("The required sheet is not found");
+        }
         //Iterate through each row one by one
         Iterator<Row> rowIterator = sheet.iterator();
         for (int i=0; i < config.getStartRow(); i++)
@@ -99,10 +106,15 @@ public class ProcessedDataParser {
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell featureCell = null;
+            Cell groupCell = null;
             if (config.getFeatureColumnId() != null && config.getFeatureColumnId() != -1) 
                 featureCell = row.getCell(config.getFeatureColumnId());
             else if (config.getFeatureNameColumnId() != null && config.getFeatureNameColumnId() != -1) 
                 featureCell = row.getCell(config.getFeatureNameColumnId());
+            
+            if (config.getGroupColumnId() != null && config.getGroupColumnId() != -1) 
+                groupCell = row.getCell(config.getGroupColumnId());
+            
             
             Cell rfuCell = row.getCell(config.getRfuColumnId());
             Cell stDevCell = row.getCell(config.getStDevColumnId());
@@ -256,7 +268,7 @@ public class ProcessedDataParser {
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
                                 features.add(feature);
-                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
+                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), null, user);
                                 if (spots != null) {
                                     for (Spot spot: spots) {
                                         spot.setBlockLayoutUri(config.getBlockLayoutUri());
@@ -267,7 +279,7 @@ public class ProcessedDataParser {
                         } else {
                             List<Feature> features = new ArrayList<Feature>();
                             features.add(feature);
-                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
+                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), null, user);
                             if (spots != null) {
                                 for (Spot spot: spots) {
                                     spot.setBlockLayoutUri(config.getBlockLayoutUri());
@@ -283,12 +295,81 @@ public class ProcessedDataParser {
                     error.addError(new ObjectError("feature", e.getMessage()));
                     errorList.add(error); 
                 }
-            } else { // feature column contains the name of the feature
-                // GLAD? // Imperial?
-                // TODO
-                
-                // Imperial extract concentration level
-                
+            } else { // repository format: repoID column contains the internal id of the feature in the repository
+                String featureString = featureCell.getStringCellValue().trim(); 
+                List<Feature> features = new ArrayList<Feature>();
+                if (featureString.contains("||")) {
+                    // mixture
+                    String[] featureIds = featureString.split("\\|\\|");
+                    for (String fId: featureIds) {
+                        try {
+                            Feature feature = featureRepository.getFeatureByLabel(fId, "gadr:has_internal_id", user);
+                            if (feature == null) {
+                                // error
+                                ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + fId + " cannot be found in the repository");
+                                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                error.setStatus(HttpStatus.BAD_REQUEST.value());
+                                String[] codes = {row.getRowNum()+""};
+                                error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the repo id " + fId + " cannot be found in the repository"));
+                                errorList.add(error); 
+                            } else {
+                                features.add(feature);
+                            }
+                        } catch (SparqlException | SQLException e) {
+                            ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());
+                            error.setErrorCode(ErrorCodes.PARSE_ERROR);
+                            error.setStatus(HttpStatus.BAD_REQUEST.value());
+                            error.addError(new ObjectError("feature", e.getMessage()));
+                            errorList.add(error); 
+                        }
+                    }
+                    
+                } else {
+                    try {
+                        Feature feature = featureRepository.getFeatureByLabel(featureString, "gadr:has_internal_id", user);
+                        if (feature == null) {
+                            // error
+                            ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
+                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setStatus(HttpStatus.BAD_REQUEST.value());
+                            String[] codes = {row.getRowNum()+""};
+                            error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the repo id " + featureString + " cannot be found in the repository"));
+                            errorList.add(error); 
+                        } else {
+                            features.add(feature);
+                        }
+                    } catch (SparqlException | SQLException e) {
+                        ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());
+                        error.setErrorCode(ErrorCodes.PARSE_ERROR);
+                        error.setStatus(HttpStatus.BAD_REQUEST.value());
+                        error.addError(new ObjectError("feature", e.getMessage()));
+                        errorList.add(error); 
+                    }
+                }
+                try {
+                    //use group information, if provided, to find the correct spots
+                    String groupId = null;
+                    if (groupCell != null) {
+                        if (groupCell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                            groupId = groupCell.getNumericCellValue() + "";
+                        } else if (groupCell.getCellType() == Cell.CELL_TYPE_STRING){
+                            groupId = groupCell.getStringCellValue().trim();
+                        }
+                    }
+                    List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), groupId, user);
+                    if (spots != null) {
+                        for (Spot spot: spots) {
+                            spot.setBlockLayoutUri(config.getBlockLayoutUri());
+                        }
+                    }
+                    intensity.setSpots(spots);
+                } catch (SparqlException | SQLException e) {
+                    ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());
+                    error.setErrorCode(ErrorCodes.PARSE_ERROR);
+                    error.setStatus(HttpStatus.BAD_REQUEST.value());
+                    error.addError(new ObjectError("spot", e.getMessage()));
+                    errorList.add(error); 
+                }
             }
             intensities.add(intensity);
         }

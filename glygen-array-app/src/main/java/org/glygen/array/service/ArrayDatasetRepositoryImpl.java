@@ -699,7 +699,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                             } else {
                                 // need to locate the spot
-                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), user);
+                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), null, user);
                                 if (existing != null && !existing.isEmpty()) {
                                     for (Spot s: existing) {
                                         IRI spotIRI = f.createIRI(s.getUri());
@@ -809,7 +809,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                             statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                         } else {
                             // need to locate the spot
-                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), user);
+                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), null, user);
                             if (existing != null && !existing.isEmpty()) {
                                 for (Spot s: existing) {
                                     IRI spotIRI = f.createIRI(s.getUri());
