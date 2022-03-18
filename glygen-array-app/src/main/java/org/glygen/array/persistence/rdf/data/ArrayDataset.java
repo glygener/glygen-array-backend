@@ -23,6 +23,7 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     List<Creator> collaborators;
     List<Grant> grants;
     List<String> keywords;
+    List<FileWrapper> files;
     
     boolean isPublic = false;
     Creator user;
@@ -297,6 +298,20 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
      */
     public void setPublicId(String publicId) {
         this.publicId = publicId;
+    }
+
+    /**
+     * @return the files
+     */
+    public List<FileWrapper> getFiles() {
+        return files;
+    }
+
+    /**
+     * @param files the files to set
+     */
+    public void setFiles(List<FileWrapper> files) {
+        this.files = files;
     }
 
 }

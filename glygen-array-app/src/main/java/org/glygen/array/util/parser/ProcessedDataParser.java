@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,8 +26,10 @@ import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Intensity;
+import org.glygen.array.persistence.rdf.data.ProcessedData;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
@@ -428,6 +431,37 @@ public class ProcessedDataParser {
             errors.add(parseError);
         }
         return null;
+    }
+    
+    
+    public static void exportToFile (ProcessedData processedData, String outputFile) throws IOException {
+        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+        //write header
+        out.append("ID\tRepoID\tGroupID\tRFU\tSD\n");
+        int idx = 1;
+        for (Intensity intensity: processedData.getIntensity()) {
+            for (Spot spot: intensity.getSpots()) {
+                StringBuffer row = new StringBuffer();
+                row.append(idx + "\t");
+                String featureString = "";
+                int i=0;
+                for (Feature f: spot.getFeatures()) {
+                    featureString += f.getInternalId();
+                    if (i < spot.getFeatures().size()-1) {
+                        featureString += "||";
+                    }
+                    i++;
+                }
+                row.append(featureString + "\t");
+                row.append(spot.getGroup() + "\t");
+                row.append(intensity.getRfu() + "\t");
+                row.append(intensity.getStDev() + "\t");
+                out.println(row);
+                idx++;
+                break;   // do not list all the spots. one intensity for one feature
+            }
+        }
+        out.close();
     }
 
 }

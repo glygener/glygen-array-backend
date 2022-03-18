@@ -146,9 +146,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI arraydataset = f.createIRI(datasetURI);
             IRI graphIRI = f.createIRI(graph);
             IRI hasSample = f.createIRI(ontPrefix + "has_sample");
-            IRI hasImage = f.createIRI(hasImagePredicate);
             IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
             IRI type = f.createIRI(datasetTypePredicate);
+            IRI hasFile = f.createIRI(hasFilePredicate);
+            IRI hasFileName = f.createIRI(hasFileNamePredicate);
+            IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+            IRI hasFolder = f.createIRI(hasFolderPredicate);
+            IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+            IRI hasSize = f.createIRI(hasSizePredicate);
+            
             statements.add(f.createStatement(arraydataset, RDF.TYPE, type, graphIRI));
             
             String sampleURI = null;
@@ -199,6 +205,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else {
                         addSlide(slide, datasetId, user);
                     }
+                }
+            }
+            
+            if (dataset.getFiles() != null) {
+                for (FileWrapper file: dataset.getFiles()) {
+                    addFile(file, datasetId, user); 
                 }
             }
             
@@ -300,6 +312,46 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         
         statements.add(f.createStatement(dataset, hasCollab, username, graphIRI));
+        sparqlDAO.addStatements(statements, graphIRI);
+    }
+    
+    @Override
+    public void addFile(FileWrapper file, String datasetId, UserEntity user) throws SparqlException, SQLException {
+        String graph;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        } else {
+            graph = getGraphForUser(user);
+        }
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI dataset = f.createIRI(uriPre + datasetId);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
+        
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        String fileURI = generateUniqueURI(uriPrefix + "FILE", allGraphs);
+        Literal fileName = f.createLiteral(file.getIdentifier());
+        Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
+        Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
+        Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
+        Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
+        IRI fileIRI = f.createIRI(fileURI);
+        statements.add(f.createStatement(dataset, hasFile, fileIRI, graphIRI));
+        statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+        if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+        if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+        if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+        if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+        
         sparqlDAO.addStatements(statements, graphIRI);
     }
 
@@ -989,6 +1041,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasGrantPred = f.createIRI(hasGrant);
         IRI hasCollab = f.createIRI(hasCollaborator);
         IRI hasKeyword = f.createIRI(ontPrefix + "has_keyword");
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -1009,6 +1067,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             datasetObject.setGrants(new ArrayList<>());
             datasetObject.setCollaborators(new ArrayList<>());
             datasetObject.setKeywords(new ArrayList<String>());
+            datasetObject.setFiles(new ArrayList<FileWrapper>());
         }
         
         while (statements.hasNext()) {
@@ -1076,6 +1135,37 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasGrantPred)) {
                 Value uriValue = st.getObject();
                 datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
+            } else if (st.getPredicate().equals(hasFile)) {
+                Value value = st.getObject();
+                if (!value.stringValue().startsWith("http"))
+                    continue;
+                // retrieve file details
+                FileWrapper file = new FileWrapper();
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                while (statements2.hasNext()) {
+                    Statement st2 = statements2.next();
+                    if (st2.getPredicate().equals(hasFileName)) {
+                        Value val = st2.getObject();
+                        file.setIdentifier(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFileFormat)) {
+                        Value val = st2.getObject();
+                        file.setFileFormat(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasFolder)) {
+                        Value val = st2.getObject();
+                        file.setFileFolder(val.stringValue());
+                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                        Value val = st2.getObject();
+                        file.setOriginalName(val.stringValue());
+                    }  else if (st2.getPredicate().equals(hasSize)) {
+                        Value val = st2.getObject();
+                        try {
+                            file.setFileSize(Long.parseLong(val.stringValue()));
+                        } catch (NumberFormatException e) {
+                            logger.warn ("file size is not valid");
+                        }
+                    }
+                }
+                datasetObject.getFiles().add(file);    
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the arrray dataset is already public
@@ -1121,7 +1211,38 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (stPublic.getPredicate().equals(hasGrantPred)) {
                         uriValue = stPublic.getObject();
                         datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
-                    } 
+                    } else if (stPublic.getPredicate().equals(hasFile)) {
+                        Value value = stPublic.getObject();
+                        if (!value.stringValue().startsWith("http"))
+                            continue;
+                        // retrieve file details
+                        FileWrapper file = new FileWrapper();
+                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                        while (statements2.hasNext()) {
+                            Statement st2 = statements2.next();
+                            if (st2.getPredicate().equals(hasFileName)) {
+                                Value val = st2.getObject();
+                                file.setIdentifier(val.stringValue());
+                            } else if (st2.getPredicate().equals(hasFileFormat)) {
+                                Value val = st2.getObject();
+                                file.setFileFormat(val.stringValue());
+                            } else if (st2.getPredicate().equals(hasFolder)) {
+                                Value val = st2.getObject();
+                                file.setFileFolder(val.stringValue());
+                            } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                                Value val = st2.getObject();
+                                file.setOriginalName(val.stringValue());
+                            }  else if (st2.getPredicate().equals(hasSize)) {
+                                Value val = st2.getObject();
+                                try {
+                                    file.setFileSize(Long.parseLong(val.stringValue()));
+                                } catch (NumberFormatException e) {
+                                    logger.warn ("file size is not valid");
+                                }
+                            }
+                        }
+                        datasetObject.getFiles().add(file);    
+                    }
                 }
             }
         }
@@ -2666,6 +2787,22 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         addCollaborator(collab, dataset.getId(), user);
                     } else {
                         addCollaborator(collab, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                    }
+                }
+            }
+            
+            if (dataset.getFiles() != null) {
+                if (publicIRI == null) {
+                    deleteFiles(dataset.getUri(), graph);
+                } else {
+                    deleteFiles(publicURI, null);
+                }
+                
+                for (FileWrapper file: dataset.getFiles()) {
+                    if (publicIRI == null) {
+                        addFile(file, dataset.getId(), user);
+                    } else {
+                        addFile(file, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
                     }
                 }
             }

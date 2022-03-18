@@ -10,6 +10,7 @@ import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.Grant;
 import org.glygen.array.persistence.rdf.data.Image;
@@ -120,5 +121,6 @@ public interface ArrayDatasetRepository {
             throws SQLException, SparqlException;
     String addImage(Image image, String slideId, UserEntity user) throws SparqlException, SQLException;
     Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    void addFile(FileWrapper file, String datasetId, UserEntity user) throws SparqlException, SQLException;
     
 }

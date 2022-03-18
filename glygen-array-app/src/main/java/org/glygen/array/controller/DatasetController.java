@@ -78,6 +78,7 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
+import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.PubmedUtil;
@@ -242,6 +243,19 @@ public class DatasetController {
             }
         }
         
+        String fileFolder = uploadDir;
+        if (dataset.getFiles() != null && !dataset.getFiles().isEmpty()) {
+            // check the existence of the files and move them to the dataset folder
+            for (FileWrapper file: dataset.getFiles()) {
+                if (file.getFileFolder() != null)
+                    fileFolder = file.getFileFolder();
+                File newFile = new File (fileFolder, file.getIdentifier());
+                if (!newFile.exists()) {
+                    errorMessage.addError(new ObjectError("file" + file.getIdentifier(), "NotFound"));
+                }
+            }
+        }
+        
         // check for duplicate name
         try {
             if (dataset.getName() != null) {
@@ -260,11 +274,28 @@ public class DatasetController {
         try {
             String uri = datasetRepository.addArrayDataset(dataset, user);    
             String id = uri.substring(uri.lastIndexOf("/")+1);
+            
+            // save the files with the dataset
+            // create a folder for the experiment, if it does not exists, and move the file into that folder
+            File experimentFolder = new File (uploadDir + File.separator + id);
+            if (!experimentFolder.exists()) {
+                experimentFolder.mkdirs();
+            }
+            for (FileWrapper file: dataset.getFiles()) {
+                    File f = new File (fileFolder, file.getIdentifier());
+                    File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
+                    if (!f.renameTo (newFile)) { 
+                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+                    } 
+                    file.setFileFolder(experimentFolder.getAbsolutePath());
+                    file.setFileSize(newFile.length());
+                
+            }
+            datasetRepository.updateArrayDataset(dataset, user);
             return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
         }
-        
     } 
     
     @ApiOperation(value = "Add given publication to the dataset for the user")
@@ -7134,5 +7165,77 @@ public class DatasetController {
         return new ResponseEntity<Resource>(
                 r, respHeaders, HttpStatus.OK
         );
+    }
+    
+    @ApiOperation(value = "Export processed data in glygen array data file format")
+    @RequestMapping(value = "/exportProcessedData", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve processed data"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ResponseEntity<Resource> exportProcessedData (
+            @ApiParam(required=true, value="id of the processed data") 
+            @RequestParam("processeddataid")
+            String processedDataId,
+            @ApiParam(required=false, value="the name for downloaded file") 
+            @RequestParam("filename")
+            String fileName,        
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        String uri = GlygenArrayRepositoryImpl.uriPrefix + processedDataId;
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = processedDataId + ".txt";
+        }
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            ProcessedData data = datasetRepository.getProcessedDataFromURI(uri, true, user);
+            if (data == null) {
+                // check if it is public
+                data = datasetRepository.getProcessedDataFromURI(uri, true, null);
+                if (data == null) {
+                    errorMessage.addError(new ObjectError("processeddataid", "NotFound"));
+                }
+            }
+            if (data != null) {
+                try {
+                    ProcessedDataParser.exportToFile(data, newFile.getAbsolutePath());  
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                }
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            FileSystemResource r = new FileSystemResource(newFile);
+            MediaType mediaType = MediaTypeFactory
+                    .getMediaType(r)
+                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
+            
+            HttpHeaders respHeaders = new HttpHeaders();
+            respHeaders.setContentType(mediaType);
+            respHeaders.setContentLength(newFile.length());
+
+            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                    .filename(fileName)
+                    .build();
+
+            respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
+            respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
+            
+            return new ResponseEntity<Resource>(
+                    r, respHeaders, HttpStatus.OK
+            );
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
     }
 }
