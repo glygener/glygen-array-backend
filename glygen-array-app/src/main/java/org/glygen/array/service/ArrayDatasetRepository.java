@@ -122,5 +122,7 @@ public interface ArrayDatasetRepository {
     String addImage(Image image, String slideId, UserEntity user) throws SparqlException, SQLException;
     Image getImageFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
     void addFile(FileWrapper file, String datasetId, UserEntity user) throws SparqlException, SQLException;
+    void addExclusionInfoToProcessedData(ProcessedData processedData, UserEntity user)
+            throws SparqlException, SQLException;
     
 }

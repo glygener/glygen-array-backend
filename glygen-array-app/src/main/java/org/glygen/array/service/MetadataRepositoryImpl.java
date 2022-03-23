@@ -780,6 +780,8 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
+                if (user != null && uri.contains("public"))
+                    continue;
                 MetadataCategory metadata = getMetadataCategoryFromURI(uri, typePredicate, loadAll, user);
                 if (metadata != null)
                     list.add(metadata);    

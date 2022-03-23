@@ -3,9 +3,9 @@ package org.glygen.array.util.parser;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,13 +20,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
-import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.Intensity;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -435,7 +435,62 @@ public class ProcessedDataParser {
     
     
     public static void exportToFile (ProcessedData processedData, String outputFile) throws IOException {
-        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+        //TODO write to Excel
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Repo Data");
+        int idx = 0;
+        Row header = sheet.createRow(idx++);
+        Cell cell1 = header.createCell(0, Cell.CELL_TYPE_STRING);
+        cell1.setCellValue("ID");
+        Cell cell2 = header.createCell(1, Cell.CELL_TYPE_STRING);
+        cell2.setCellValue("RepoID");
+        Cell cell3 = header.createCell(2, Cell.CELL_TYPE_STRING);
+        cell3.setCellValue("GroupID");
+        Cell cell4 = header.createCell(3, Cell.CELL_TYPE_STRING);
+        cell4.setCellValue("RFU");
+        Cell cell5 = header.createCell(4, Cell.CELL_TYPE_STRING);
+        cell5.setCellValue("SD");
+        idx++;
+        
+        for (Intensity intensity: processedData.getIntensity()) {
+            for (Spot spot: intensity.getSpots()) {
+                Row row = sheet.createRow(idx);
+                cell1 = row.createCell(0, Cell.CELL_TYPE_NUMERIC);
+                cell1.setCellValue(idx++);
+                cell2 = row.createCell(1, Cell.CELL_TYPE_STRING);
+                String featureString = "";
+                int i=0;
+                for (Feature f: spot.getFeatures()) {
+                    featureString += f.getInternalId();
+                    if (i < spot.getFeatures().size()-1) {
+                        featureString += "||";
+                    }
+                    i++;
+                }
+                cell2.setCellValue(featureString);
+                cell3 = row.createCell(2, Cell.CELL_TYPE_STRING);
+                cell3.setCellValue(spot.getGroup());
+                cell4 = row.createCell(3, Cell.CELL_TYPE_STRING);
+                cell4.setCellValue(intensity.getRfu());
+                cell5 = row.createCell(4, Cell.CELL_TYPE_STRING);
+                cell5.setCellValue(intensity.getStDev());
+                break;
+            }
+        }
+        
+        /*ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            workbook.write(out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return out.toByteArray();*/
+        
+        FileOutputStream os = new FileOutputStream(outputFile);
+        workbook.write(os);
+        os.close();
+        
+       /* PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
         //write header
         out.append("ID\tRepoID\tGroupID\tRFU\tSD\n");
         int idx = 1;
@@ -461,7 +516,7 @@ public class ProcessedDataParser {
                 break;   // do not list all the spots. one intensity for one feature
             }
         }
-        out.close();
+        out.close();*/
     }
 
 }

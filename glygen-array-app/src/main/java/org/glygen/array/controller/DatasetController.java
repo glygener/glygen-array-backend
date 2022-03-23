@@ -1,5 +1,7 @@
 package org.glygen.array.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
+import org.apache.commons.io.FileUtils;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -78,6 +81,7 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
+import org.glygen.array.util.ExclusionInfoParser;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -93,8 +97,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.http.HttpProperties.Encoding;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ContentDisposition;
@@ -110,6 +117,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -119,6 +127,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import javassist.bytecode.ByteArray;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -1591,6 +1600,10 @@ public class DatasetController {
                         errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
                     } else {
                         slide.setLayout(existing);
+                        // check if the slide layout is done
+                        if (existing.getStatus() != FutureTaskStatus.DONE) {
+                            errorMessage.addError(new ObjectError ("slideLayout", "NotDone"));
+                        }  
                     }
                 } else if (slide.getLayout().getName() != null) {
                     SlideLayout existing = layoutRepository.getSlideLayoutByName(slide.getLayout().getName(), user);
@@ -1598,6 +1611,10 @@ public class DatasetController {
                         errorMessage.addError(new ObjectError("slidelayout", "NotFound"));
                     } else {
                         slide.setLayout(existing);
+                        // check if the slide layout is done
+                        if (existing.getStatus() != FutureTaskStatus.DONE) {
+                            errorMessage.addError(new ObjectError ("slideLayout", "NotDone"));
+                        }
                     }
                 }
             } catch (SQLException | SparqlException e) {
@@ -2326,6 +2343,11 @@ public class DatasetController {
             rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + rawDataId, false, user);
             if (rawData == null) {
                 errorMessage.addError(new ObjectError("rawdata", "NotFound"));
+            } else {
+                // check if it is done
+                if (rawData.getStatus() != FutureTaskStatus.DONE) {
+                    errorMessage.addError(new ObjectError("rawdata", "NotDone"));
+                }
             }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("RawData " + rawDataId + " cannot be retrieved for user " + p.getName(), e);
@@ -2533,7 +2555,7 @@ public class DatasetController {
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
-            ProcessedData existing = datasetRepository.getProcessedDataFromURI(uri, true, owner);
+            ProcessedData existing = datasetRepository.getProcessedDataFromURI(uri, false, owner);
             if (existing == null) {
                 errorMessage.addError(new ObjectError("id", "NotFound"));
                 throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
@@ -2591,40 +2613,79 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add the exclusion info given in the file to the processed data")
-    @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST, 
-            produces={"application/json", "application/xml"})
+    @ApiOperation(value = "Add the exclusion info given in the file to the given processed data")
+    @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST
+            )
     @ApiResponses (value ={@ApiResponse(code=200, message="return an (otherwise) empty processed data object containing only the exclusion lists"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public ProcessedData addExclusionInfoFromFile (
+    public String addExclusionInfoFromFile (
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
+            @RequestParam("arraydatasetId")
+            String datasetId, 
             @ApiParam(required=true, value="uploaded file with the exclusion information")
             @RequestParam("file") String uploadedFileName,
+            @ApiParam(required=true, value="processed data to add the exclusion information")
+            @RequestParam("processeddataid") String processedDataId,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        File file = new File (uploadDir, uploadedFileName);
-        if (file.exists()) {
-            try {
-                List<String> allLines = Files.readAllLines(file.toPath());
-                StringBuffer jsonString = new StringBuffer();
-                for (String line: allLines) {
-                    jsonString.append(line + "\n");
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        ArrayDataset dataset;
+        UserEntity owner = user;
+        // check if the dataset with the given id exists
+        try {
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
+            if (dataset == null) {
+                // check if the user can access this dataset as a co-owner
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId.trim());
+                if (coOwnedGraph != null) {
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
+                        owner = originalUser;
+                    }
                 }
-                ProcessedData emptyData = new ObjectMapper().readValue(jsonString.toString(), ProcessedData.class);
-                return emptyData;
-            } catch (Exception e) {
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                throw new IllegalArgumentException("File cannot be read properly", errorMessage);
             }
-        } else {
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            throw new IllegalArgumentException("File cannot be found", errorMessage);
+            if (dataset == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+                throw new IllegalArgumentException("dataset cannot be found", errorMessage);
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }
+        
+        try {
+            ProcessedData existing = datasetRepository.getProcessedDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + processedDataId, false, owner);
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+            } else {
+                File file = new File (uploadDir, uploadedFileName);
+                if (file.exists()) {
+                    ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                    ProcessedData emptyData = parser.parse(file.getAbsolutePath(), user);
+                    existing.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                    existing.setFilteredDataList(emptyData.getFilteredDataList());
+                    datasetRepository.addExclusionInfoToProcessedData(existing, user);
+                    return existing.getId();
+                } else {
+                    errorMessage.addError(new ObjectError("file", "NotValid"));
+                    throw new IllegalArgumentException("File cannot be found", errorMessage);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
+        }
+        
+        return null;
     }
     
     @ApiOperation(value = "Update processed data with results from uploaded excel file")
@@ -7146,14 +7207,20 @@ public class DatasetController {
             //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
 
+        return download (file, originalName);
+    }
+    
+    public static ResponseEntity<Resource> download (File file, String originalName) {
         FileSystemResource r = new FileSystemResource(file);
         MediaType mediaType = MediaTypeFactory
                 .getMediaType(r)
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
+       
         
         HttpHeaders respHeaders = new HttpHeaders();
         respHeaders.setContentType(mediaType);
         respHeaders.setContentLength(file.length());
+       //respHeaders.add("Content-Transfer-Encoding", "binary");
 
         ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
                 .filename(originalName)
@@ -7168,7 +7235,7 @@ public class DatasetController {
     }
     
     @ApiOperation(value = "Export processed data in glygen array data file format")
-    @RequestMapping(value = "/exportProcessedData", method=RequestMethod.GET)
+    @RequestMapping(value = "/downloadProcessedData", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -7190,7 +7257,7 @@ public class DatasetController {
         
         String uri = GlygenArrayRepositoryImpl.uriPrefix + processedDataId;
         if (fileName == null || fileName.isEmpty()) {
-            fileName = processedDataId + ".txt";
+            fileName = processedDataId + ".xlsx";
         }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
@@ -7203,6 +7270,7 @@ public class DatasetController {
                     errorMessage.addError(new ObjectError("processeddataid", "NotFound"));
                 }
             }
+          
             if (data != null) {
                 try {
                     ProcessedDataParser.exportToFile(data, newFile.getAbsolutePath());  
@@ -7215,25 +7283,7 @@ public class DatasetController {
                 return ResponseEntity.notFound().build();
             }
             
-            FileSystemResource r = new FileSystemResource(newFile);
-            MediaType mediaType = MediaTypeFactory
-                    .getMediaType(r)
-                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
-            
-            HttpHeaders respHeaders = new HttpHeaders();
-            respHeaders.setContentType(mediaType);
-            respHeaders.setContentLength(newFile.length());
-
-            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                    .filename(fileName)
-                    .build();
-
-            respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-            respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
-            
-            return new ResponseEntity<Resource>(
-                    r, respHeaders, HttpStatus.OK
-            );
+            return download (newFile, fileName);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }

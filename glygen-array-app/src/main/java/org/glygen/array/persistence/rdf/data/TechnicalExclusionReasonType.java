@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum TechnicalExclusionReasonType {
-    MISPRINTED ("Signals from misprinted or misshapen spot"),
-    ARTEFACT ("Signals caused by defect on slide (Artefact on slide)"),
-    MISSING ("Missing spots due to the printer fault");
+    Spot_Issues ("Signals from misprinted or misshapen spot"),
+    Artifact ("Signals caused by defect on slide (Artifact on slide)"),
+    Missing_Spot("Missing spots due to the printer fault");
     
     String label;
     
@@ -26,11 +26,11 @@ public enum TechnicalExclusionReasonType {
     @JsonCreator
     public static TechnicalExclusionReasonType forValue(String value) {
         if (value.equals("Signals from misprinted or misshapen spot"))
-            return MISPRINTED;
+            return Spot_Issues;
         else if (value.equals("Signals caused by defect on slide (Artefact on slide)"))
-            return ARTEFACT;
+            return Artifact;
         else if (value.equals("Missing spots due to the printer fault"))
-            return MISSING;
+            return Missing_Spot;
         return null;
     }
     

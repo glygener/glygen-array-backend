@@ -410,7 +410,7 @@ public class GlytoucanUtil {
         List<FilterExclusionInfo> filter = new ArrayList<FilterExclusionInfo>();
         
         TechnicalExclusionInfo info1 = new TechnicalExclusionInfo();
-        info1.setReason(TechnicalExclusionReasonType.ARTEFACT);
+        info1.setReason(TechnicalExclusionReasonType.Artifact);
         info1.setFeatures(new ArrayList<Feature>());
         Feature feature1 = new Feature();
         feature1.setId("F12342465");
@@ -430,7 +430,7 @@ public class GlytoucanUtil {
         technical.add(info1);
         
         TechnicalExclusionInfo info2 = new TechnicalExclusionInfo();
-        info2.setReason(TechnicalExclusionReasonType.MISSING);
+        info2.setReason(TechnicalExclusionReasonType.Missing_Spot);
         info2.setFeatures(new ArrayList<Feature>());
         Feature feature4 = new Feature();
         feature4.setId("F12342474");
@@ -452,7 +452,7 @@ public class GlytoucanUtil {
         dummyData.setTechnicalExclusions(technical);
         
         FilterExclusionInfo info3 = new FilterExclusionInfo();
-        info3.setReason(FilterExclusionReasonType.UNRELATED);
+        info3.setReason(FilterExclusionReasonType.Unrelated_feature);
         info3.setFeatures(new ArrayList<Feature>());
         Feature feature7 = new Feature();
         feature7.setId("F12342480");

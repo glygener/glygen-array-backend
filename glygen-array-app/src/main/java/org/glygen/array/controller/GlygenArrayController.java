@@ -113,8 +113,10 @@ import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.ParserConfiguration;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.util.SpotMetadataConfig;
+import org.glygen.array.view.BatchFeatureUploadResult;
 import org.glygen.array.view.BatchGlycanFileType;
 import org.glygen.array.view.BatchGlycanUploadResult;
+import org.glygen.array.view.BatchLinkerUploadResult;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
@@ -525,7 +527,7 @@ public class GlygenArrayController {
                             ErrorMessage error = (ErrorMessage)e.getCause();
                             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                                 ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes().length != 0) {
+                                if (err.getCodes() != null && err.getCodes().length != 0) {
                                     Glycan duplicateGlycan = new Glycan();
                                     try {
                                         duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
@@ -537,6 +539,8 @@ public class GlygenArrayController {
                                     } catch (SparqlException | SQLException e1) {
                                         logger.error("Error retrieving duplicate glycan", e1);
                                     }
+                                } else {
+                                    result.addDuplicateSequence(glycan);
                                 }
                             } 
                         } else {
@@ -552,6 +556,228 @@ public class GlygenArrayController {
             return result;
         } catch (IOException | JSONException e) {
             throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+        }
+    }
+    
+    @ApiOperation(value = "Register all linkers listed in a file")
+    @RequestMapping(value = "/addBatchLinker", method=RequestMethod.POST, 
+            consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Linkers processed successfully"), 
+            @ApiResponse(code=400, message="Invalid request if file is not a valid file"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register linkers"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public BatchLinkerUploadResult addLinkerFromFile (
+            @ApiParam(required=true, name="file", value="details of the uploded file") 
+            @RequestBody
+            FileWrapper fileWrapper, Principal p, 
+            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Exported From Repository") 
+            @RequestParam(required=true, value="filetype") String fileType) {
+        
+        String fileFolder = uploadDir;
+        if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
+            fileFolder = fileWrapper.getFileFolder();
+        File file = new File (fileFolder, fileWrapper.getIdentifier());
+        if (!file.exists()) {
+            ErrorMessage errorMessage = new ErrorMessage("file is not in the uploads folder");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotFound"));
+            throw new IllegalArgumentException("File is not acceptable", errorMessage);
+        }
+        else {
+            byte[] fileContent;
+            try {
+                fileContent = Files.readAllBytes(file.toPath());
+                if (fileType.equalsIgnoreCase("exported from repository")) {
+                    return addLinkersFromExportFile(fileContent, p);
+                } else {
+                    ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("filetype", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("File is not acceptable", errorMessage);
+                }
+            } catch (IOException e) {
+                ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File cannot be read", errorMessage);
+            }
+        }
+    }
+   
+    private BatchLinkerUploadResult addLinkersFromExportFile(byte[] contents,
+            Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        BatchLinkerUploadResult result = new BatchLinkerUploadResult();
+        try {
+            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
+            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            
+            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
+            if (!isTextFile) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            }
+            
+            JSONArray inputArray = new JSONArray(fileAsString);
+            int countSuccess = 0;
+            for (int i=0; i < inputArray.length(); i++) {
+                JSONObject jo = inputArray.getJSONObject(i);
+                ObjectMapper objectMapper = new ObjectMapper();
+                Linker linker = objectMapper.readValue(jo.toString(), Linker.class);
+                try {  
+                    String id = addLinker(linker, linker.getType().name().contains("UNKNOWN"), p);
+                    linker.setId(id);
+                    result.getAddedLinkers().add(linker);
+                    countSuccess ++;
+                } catch (Exception e) {
+                    logger.error ("Exception adding the linker: " + linker.getName(), e);
+                    if (e.getCause() instanceof ErrorMessage) {
+                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                            ErrorMessage error = (ErrorMessage)e.getCause();
+                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                ObjectError err = error.getErrors().get(0);
+                                if (err.getCodes() != null && err.getCodes().length != 0) {
+                                    try {
+                                        Linker duplicate = linkerRepository.getLinkerById(err.getCodes()[0], user);
+                                        result.getDuplicateLinkers().add(duplicate);
+                                    } catch (SparqlException | SQLException e1) {
+                                        logger.error("Error retrieving duplicate linker", e1);
+                                    }
+                                } else {
+                                    result.getDuplicateLinkers().add(linker);
+                                }
+                            } 
+                        } else {
+                            result.getErrors().add((ErrorMessage)e.getCause());
+                        }
+                    } else { 
+                        ErrorMessage error = new ErrorMessage(e.getMessage());
+                        result.getErrors().add(error);
+                    }
+                }
+            }
+         
+            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " linkers are added");
+            return result;
+        } catch (IOException | JSONException e) {
+            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+        }
+    }
+    
+    private BatchFeatureUploadResult addFeaturesFromExportFile(byte[] contents,
+            Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        BatchFeatureUploadResult result = new BatchFeatureUploadResult();
+        try {
+            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
+            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+            
+            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
+            if (!isTextFile) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            }
+            
+            JSONArray inputArray = new JSONArray(fileAsString);
+            int countSuccess = 0;
+            for (int i=0; i < inputArray.length(); i++) {
+                JSONObject jo = inputArray.getJSONObject(i);
+                ObjectMapper objectMapper = new ObjectMapper();
+                org.glygen.array.persistence.rdf.Feature feature = objectMapper.readValue(jo.toString(), org.glygen.array.persistence.rdf.Feature.class);
+                try {  
+                    String id = addFeature(feature, p);
+                    feature.setId(id);
+                    result.getAddedFeatures().add(feature);
+                    countSuccess ++;
+                } catch (Exception e) {
+                    logger.error ("Exception adding the feature: " + feature.getName(), e);
+                    if (e.getCause() instanceof ErrorMessage) {
+                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                            ErrorMessage error = (ErrorMessage)e.getCause();
+                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                ObjectError err = error.getErrors().get(0);
+                                if (err.getCodes() != null && err.getCodes().length != 0) {
+                                    try {
+                                        org.glygen.array.persistence.rdf.Feature duplicate = featureRepository.getFeatureById(err.getCodes()[0], user);
+                                        result.getDuplicateFeatures().add(duplicate);
+                                    } catch (SparqlException | SQLException e1) {
+                                        logger.error("Error retrieving duplicate feature", e1);
+                                    }
+                                } else {
+                                    result.getDuplicateFeatures().add(feature);
+                                }
+                            } 
+                        } else {
+                            result.getErrors().add((ErrorMessage)e.getCause());
+                        }
+                    } else { 
+                        ErrorMessage error = new ErrorMessage(e.getMessage());
+                        result.getErrors().add(error);
+                    }
+                }
+            }
+         
+            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " features are added");
+            return result;
+        } catch (IOException | JSONException e) {
+            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+        }
+    }
+    
+    @ApiOperation(value = "Register all features listed in a file")
+    @RequestMapping(value = "/addBatchFeature", method=RequestMethod.POST, 
+            consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Features processed successfully"), 
+            @ApiResponse(code=400, message="Invalid request if file is not a valid file"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to register linkers"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public BatchFeatureUploadResult addFeatureFromFile (
+            @ApiParam(required=true, name="file", value="details of the uploded file") 
+            @RequestBody
+            FileWrapper fileWrapper, Principal p, 
+            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Exported From Repository") 
+            @RequestParam(required=true, value="filetype") String fileType) {
+        
+        String fileFolder = uploadDir;
+        if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
+            fileFolder = fileWrapper.getFileFolder();
+        File file = new File (fileFolder, fileWrapper.getIdentifier());
+        if (!file.exists()) {
+            ErrorMessage errorMessage = new ErrorMessage("file is not in the uploads folder");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotFound"));
+            throw new IllegalArgumentException("File is not acceptable", errorMessage);
+        }
+        else {
+            byte[] fileContent;
+            try {
+                fileContent = Files.readAllBytes(file.toPath());
+                if (fileType.equalsIgnoreCase("exported from repository")) {
+                    return addFeaturesFromExportFile(fileContent, p);
+                } else {
+                    ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("filetype", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("File is not acceptable", errorMessage);
+                }
+            } catch (IOException e) {
+                ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File cannot be read", errorMessage);
+            }
         }
     }
 
@@ -3052,14 +3278,27 @@ public class GlygenArrayController {
     @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
             @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
             @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to export glycans"),
+            @ApiResponse(code=403, message="Not enough privileges to export linkers"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public @ResponseBody String exportLinkers (Principal p) {
+    public @ResponseBody String exportLinkers (
+            @ApiParam(required=true, value="type of the molecule", allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER") 
+            @RequestParam("type") String moleculeType,
+            Principal p) {
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            List<Linker> myLinkers = linkerRepository.getLinkerByUser(user, 0, -1, null, 0, null);
+            
+            LinkerType linkerType = LinkerType.valueOf(moleculeType);
+            if (linkerType == null) {
+                ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("moleculeType", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
+            }
+            
+            List<Linker> myLinkers = linkerRepository.getLinkerByUser(user, 0, -1, null, 0, null, linkerType);
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myLinkers);
             return json;
@@ -3074,8 +3313,51 @@ public class GlygenArrayController {
         }
     }
 	
+	@ApiOperation(value = "Export features into a file")
+    @RequestMapping(value = "/exportfeatures", method=RequestMethod.GET, 
+        produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
+            @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to export features"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody String exportFeatures (
+            @ApiParam(required=true, value="type of the feature", 
+            allowableValues="LINKEDGLYCAN, GLYCOLIPID, GLYCOPEPTIDE, "
+                    + "GLYCOPROTEIN, GPLINKEDGLYCOPEPTIDE, CONTROL, NEGATIVE_CONTROL, COMPOUND, LANDING_LIGHT") 
+            @RequestParam("type") String type,
+            Principal p) {
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            
+            FeatureType featureType = FeatureType.valueOf(type);
+            if (featureType == null) {
+                ErrorMessage errorMessage = new ErrorMessage("Incorrect feature type");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("type", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Incorrect feature type", errorMessage);
+            }
+            
+            List<org.glygen.array.persistence.rdf.Feature> myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null, featureType, false);
+            ObjectMapper mapper = new ObjectMapper();         
+            String json = mapper.writeValueAsString(myFeatures);
+            return json;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Features cannot be retrieved for user " + p.getName(), e);
+        } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Cannot generate the feature list");
+            errorMessage.setStatus(HttpStatus.NOT_FOUND.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Cannot generate the feature list", errorMessage);
+        }
+    }
+	
 	@ApiOperation(value = "Export slide layout in extended GAL format")
-    @RequestMapping(value = "/exportSlideLayout", method=RequestMethod.GET)
+    @RequestMapping(value = "/downloadSlideLayout", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -3123,25 +3405,7 @@ public class GlygenArrayController {
                 return ResponseEntity.notFound().build();
             }
             
-            FileSystemResource r = new FileSystemResource(newFile);
-            MediaType mediaType = MediaTypeFactory
-                    .getMediaType(r)
-                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
-            
-            HttpHeaders respHeaders = new HttpHeaders();
-            respHeaders.setContentType(mediaType);
-            respHeaders.setContentLength(newFile.length());
-
-            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                    .filename(fileName)
-                    .build();
-
-            respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-            respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
-            
-            return new ResponseEntity<Resource>(
-                    r, respHeaders, HttpStatus.OK
-            );
+            return DatasetController.download (newFile, fileName);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }

@@ -919,6 +919,26 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         sparqlDAO.addStatements(statements, graphIRI);
         return processedURI;
     }
+    
+    @Override
+    public void addExclusionInfoToProcessedData(ProcessedData processedData, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;   
+        } else {
+            // check if there is already a private graph for user
+            graph = getGraphForUser(user);
+        }
+        if (processedData.getUri() == null) {
+            // cannot update 
+            throw new SparqlException ("The processed data should exist in the repository. URI cannot be null");
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        List<Statement> statements = new ArrayList<Statement>();
+        addExclusionInfo (processedData, processedData.getUri(), statements, graph);
+        sparqlDAO.addStatements(statements, graphIRI);
+    }
  
     private void addExclusionInfo(ProcessedData processedData, String processedURI, List<Statement> statements, String graph) throws SparqlException, SQLException {
         String uriPre = uriPrefix;
@@ -2071,13 +2091,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // delete files
         deleteFiles (processedDataURI, graph);
         
+        //TODO delete exclusion lists!
+        
         statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);     
     }
     
-    
-
-
     @Override
     public void deleteRawData (String rawDataId, String datasetId, UserEntity user) throws SQLException, SparqlException {
         String graph = null;

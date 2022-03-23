@@ -171,7 +171,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
                 if (local != null && local.getType() == linker.getType()) {
                     linker.setId(local.getId());
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                    String[] codes = {local.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));    
                 }
             }
             
@@ -232,7 +233,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 if (existing != null && !existing.contains("public")) {
                     linker.setUri(existing);
                     linkerURI = existing;
-                    errorMessage.addError(new ObjectError("sequence", "Duplicate"));
+                    String[] codes = {existing.substring(existing.lastIndexOf("/")+1)};
+                    errorMessage.addError(new ObjectError("sequence", codes, null, "Duplicate"));
                 }
             }
             
@@ -254,7 +256,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
                 if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
                     linker.setId(local.getId());
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                    String[] codes = {local.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));    
                 }
             }
             
@@ -326,7 +329,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                     if (existing != null && !existing.contains("public")) {
                         linker.setUri(existing);
                         linkerURI = existing;
-                        errorMessage.addError(new ObjectError("sequence", "Duplicate"));
+                        String[] codes = {existing.substring(existing.lastIndexOf("/")+1)};
+                        errorMessage.addError(new ObjectError("sequence", codes, null, "Duplicate"));
                     }
                 }
                 else if (linker.getUniProtId() != null && !linker.getUniProtId().trim().isEmpty()) {
@@ -355,7 +359,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
                 if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
                     linker.setId(local.getId());
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                    String[] codes = {local.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));    
                 }
             }
             
@@ -658,7 +663,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);
                 if (existing != null) {
                     feature.setId(existing.getId());
-                    errorMessage.addError(new ObjectError("name", "Duplicate"));
+                    String[] codes = {existing.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
                 }
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Could not query existing features", e);
@@ -671,7 +677,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         "gadr:has_internal_id", user);
                 if (existing != null) {
                     feature.setId(existing.getId());
-                    errorMessage.addError(new ObjectError("internalId", "Duplicate"));
+                    String[] codes = {existing.getId()};
+                    errorMessage.addError(new ObjectError("internalId", codes, null, "Duplicate"));
                 }
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Could not query existing features", e);
@@ -1115,7 +1122,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 if (existing != null && !existing.contains("public")) {
                     linker.setUri(existing);
                     linkerURI = existing;
-                    errorMessage.addError(new ObjectError("pubchemid", "Duplicate"));
+                    String[] codes = {existing.substring(existing.lastIndexOf("/")+1)};
+                    errorMessage.addError(new ObjectError("pubchemid", codes, null, "Duplicate"));
                 }
             }
             else if (linker.getInChiKey() != null && !linker.getInChiKey().trim().isEmpty()) {
@@ -1123,7 +1131,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 if (existing != null && !existing.contains("public")) {
                     linker.setUri(existing);
                     linkerURI = existing;
-                    errorMessage.addError(new ObjectError("inChiKey", "Duplicate"));    
+                    String[] codes = {existing.substring(existing.lastIndexOf("/")+1)};
+                    errorMessage.addError(new ObjectError("inChiKey", codes, null, "Duplicate"));    
                 }
             }
             if (linkerURI == null) {
@@ -1180,7 +1189,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                     Linker local = linkerRepository.getLinkerByLabel(linker.getName().trim(), linker.getType(), user);
                     if (local != null && (local.getType() == linker.getType() || local.getType() == otherType)) {
                         linker.setId(local.getId());
-                        errorMessage.addError(new ObjectError("name", "Duplicate"));    
+                        String[] codes = {local.getId()};
+                        errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));    
                     }
                 }
                 
@@ -1797,7 +1807,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
             BlockLayout existing = layoutRepository.getBlockLayoutByName(layout.getName(), user, false);
             if (existing != null) {
                 // duplicate
-                errorMessage.addError(new ObjectError("name", "Duplicate"));
+                String[] codes = {existing.getId()};
+                errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
                 throw new IllegalArgumentException("A block layout with the same name already exists", errorMessage);
             } 
         } catch (SparqlException | SQLException e) {
