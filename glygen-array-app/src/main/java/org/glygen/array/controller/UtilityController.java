@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
@@ -40,7 +39,6 @@ import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.typeahead.NamespaceHandler;
-import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.util.UniProtUtil;
 import org.glygen.array.util.pubchem.PubChemAPI;
@@ -53,7 +51,6 @@ import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
 import org.glygen.array.view.Version;
-import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
 import org.grits.toolbox.glycanarray.om.parser.cfg.CFGMasterListParser;
 import org.slf4j.Logger;
@@ -131,7 +128,7 @@ public class UtilityController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Publication getPublicationDetailsFromPubMed (
-            @ApiParam(required=true, value="pubmed id for the publication") 
+            @ApiParam(required=true, value="pubmed id for the publication", example="111") 
             @PathVariable("pubmedid") Integer pubmedid) {
         if (pubmedid == null) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -177,7 +174,7 @@ public class UtilityController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public String getPublicationTextFromPubMed (
-            @ApiParam(required=true, value="pubmed id for the publication") 
+            @ApiParam(required=true, value="pubmed id for the publication", example="111") 
             @PathVariable("pubmedid") Integer pubmedid) {
         if (pubmedid == null) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -585,7 +582,7 @@ public class UtilityController {
             @ApiParam(required=true, value="value to match") 
             @RequestParam("value")
             String key, 
-            @ApiParam(required=false, value="limit of number of matches") 
+            @ApiParam(required=false, value="limit of number of matches", example="10") 
             @RequestParam(name="limit", required=false)
             Integer limit) {
         

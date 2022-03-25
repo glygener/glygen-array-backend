@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -57,7 +58,7 @@ public class AdminController {
      
 
     @ApiOperation(value = "Deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
-            + "It is therefore necessary to restart the triple store after executing this web service.")
+            + "It is therefore necessary to restart the triple store after executing this web service.", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
@@ -70,7 +71,7 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Deletes templates for metadata")
+    @ApiOperation(value = "Deletes templates for metadata", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteTemplates", method = RequestMethod.POST)
     public void deleteTemplates (Principal p) { 
         try {
@@ -83,7 +84,7 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Delete and recreate templates using the current version of the template ontology.")
+    @ApiOperation(value = "Delete and recreate templates using the current version of the template ontology.", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/populateTemplates", method = RequestMethod.POST)
     public void populateTemplates (Principal p) { 
         try {
@@ -96,7 +97,7 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Delete the given array dataset from public repository")
+    @ApiOperation(value = "Delete the given array dataset from public repository", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletepublicdataset/{datasetId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Dataset deleted successfully"), 

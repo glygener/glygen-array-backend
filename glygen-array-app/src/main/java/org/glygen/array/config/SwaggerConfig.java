@@ -3,6 +3,8 @@ package org.glygen.array.config;
 import static com.google.common.collect.Lists.newArrayList;
 import static springfox.documentation.builders.PathSelectors.ant;
 
+import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.glygen.array.view.LoginRequest;
@@ -57,8 +59,9 @@ public class SwaggerConfig {
           .additionalModels(new TypeResolver().resolve(LoginRequest.class))
           .select()                                  
           .apis( RequestHandlerSelectors.basePackage( "org.glygen.array" ) )          
-          .paths(PathSelectors.any())  
+          .paths(PathSelectors.any()) 
           .build()
+          .ignoredParameterTypes(Principal.class)
           .securitySchemes(newArrayList(apiKey()))
           .securityContexts(newArrayList(securityContext()));
     }
@@ -71,7 +74,7 @@ public class SwaggerConfig {
     }
     
     private ApiKey apiKey() {
-        return new ApiKey("Bearer", "Authorization", "header");
+        return new ApiKey("Authorization", "Authorization", "header");
     }
     
     @Bean
@@ -109,9 +112,16 @@ public class SwaggerConfig {
                 .build();
 
         return SecurityContext.builder()
-                .securityReferences(newArrayList(securityReference2))
+                .securityReferences(defaultAuth())
                 .forPaths(ant("/array**"))
                 .forPaths(ant("/users/get**"))
                 .build();
+    }
+    
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = authorizationScope;
+        return Arrays.asList(new SecurityReference("Authorization", authorizationScopes));
     }
 }

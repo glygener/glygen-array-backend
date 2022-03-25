@@ -148,15 +148,11 @@ import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -174,6 +170,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -247,7 +244,7 @@ public class GlygenArrayController {
 	
 	List<Linker> linkerCache = new ArrayList<Linker>();
 	
-	@ApiOperation(value = "Add an alias to given glycan for the user")
+	@ApiOperation(value = "Add an alias to given glycan for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/addAlias/{glycanId}", method = RequestMethod.POST, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Alias added to glycan successfully"), 
@@ -277,7 +274,7 @@ public class GlygenArrayController {
 		return new Confirmation("Glycan updated successfully with new alias", HttpStatus.OK.value());
 	}
 	
-	@ApiOperation(value = "Add given block layout for the user")
+	@ApiOperation(value = "Add given block layout for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addblocklayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block layout added successfully"), 
@@ -297,7 +294,7 @@ public class GlygenArrayController {
 	}
 	
 
-	@ApiOperation(value = "Add given feature for the user")
+	@ApiOperation(value = "Add given feature for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addfeature", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added feature"), 
@@ -406,7 +403,7 @@ public class GlygenArrayController {
 		}		
 	}*/
 	
-	@ApiOperation(value = "Add given glycan for the user")
+	@ApiOperation(value = "Add given glycan for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addglycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="id of the added glycan"), 
@@ -427,7 +424,7 @@ public class GlygenArrayController {
 		return addService.addGlycan(glycan, user, noGlytoucanRegistration);
 	}
 	
-    @ApiOperation(value = "Register all glycans listed in a file")
+    @ApiOperation(value = "Register all glycans listed in a file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/addBatchGlycan", method=RequestMethod.POST, 
 			consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 
@@ -559,7 +556,7 @@ public class GlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Register all linkers listed in a file")
+    @ApiOperation(value = "Register all linkers listed in a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/addBatchLinker", method=RequestMethod.POST, 
             consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linkers processed successfully"), 
@@ -733,7 +730,7 @@ public class GlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Register all features listed in a file")
+    @ApiOperation(value = "Register all features listed in a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/addBatchFeature", method=RequestMethod.POST, 
             consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Features processed successfully"), 
@@ -1112,7 +1109,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Add given linker for the user")
+	@ApiOperation(value = "Add given linker for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added linker"), 
@@ -1142,7 +1139,7 @@ public class GlygenArrayController {
 		return addService.addLinker(linker, unknown, user);
 	}
 
-	@ApiOperation(value = "Add given slide layout for the user")
+	@ApiOperation(value = "Add given slide layout for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addslidelayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout added successfully"), 
@@ -1224,7 +1221,8 @@ public class GlygenArrayController {
 	
 	
 	
-	@ApiOperation(value = "Checks whether the given slidelayout name is available to be used (returns true if available, false if alredy in use", response = Boolean.class)
+	@ApiOperation(value = "Checks whether the given slidelayout name is available to be used (returns true if available, false if alredy in use", 
+	        response = Boolean.class, authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/checkSlidelayoutName", method = RequestMethod.GET)
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Check performed successfully"),
 			@ApiResponse(code = 415, message = "Media type is not supported"),
@@ -1245,7 +1243,7 @@ public class GlygenArrayController {
 		return true;
 	}
 	
-	@ApiOperation(value = "Delete given block layout")
+	@ApiOperation(value = "Delete given block layout", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/deleteblocklayout/{layoutId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout deleted successfully"), 
@@ -1272,7 +1270,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Delete given feature from the user's list")
+	@ApiOperation(value = "Delete given feature from the user's list", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/deletefeature/{featureId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Feature deleted successfully"), 
@@ -1299,7 +1297,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Delete given glycan from the user's list")
+	@ApiOperation(value = "Delete given glycan from the user's list", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/delete/{glycanId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan deleted successfully"), 
@@ -1326,7 +1324,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Delete given linker from the user's list")
+	@ApiOperation(value = "Delete given linker from the user's list", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/deletelinker/{linkerId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linker deleted successfully"), 
@@ -1353,7 +1351,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Delete given slide layout")
+	@ApiOperation(value = "Delete given slide layout", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/deleteslidelayout/{layoutId}", method = RequestMethod.DELETE, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout deleted successfully"), 
@@ -1380,7 +1378,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Retrieve block layout with the given id")
+	@ApiOperation(value = "Retrieve block layout with the given id", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/getblocklayout/{layoutId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block Layout retrieved successfully"), 
@@ -1672,7 +1670,7 @@ public class GlygenArrayController {
 		return null;
 	}
 	
-	@ApiOperation(value = "Import slide layout from uploaded GAL file")
+	@ApiOperation(value = "Import slide layout from uploaded GAL file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/addSlideLayoutFromGalFile", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide layout"), 
@@ -1688,10 +1686,10 @@ public class GlygenArrayController {
 	        @ApiParam(required=true, value="name of the slide layout to be created") 
 	        @RequestParam("name")
 	        String slideLayoutName, 
-	        @ApiParam(required=false, value="width of the slide layout") 
+	        @ApiParam(required=false, value="width of the slide layout", example="1") 
             @RequestParam(required=false, value="width")
 	        Integer width,
-	        @ApiParam(required=false, value="height of the slide layout") 
+	        @ApiParam(required=false, value="height of the slide layout", example="1") 
             @RequestParam(required=false, value="height")
 	        Integer height,
 	        Principal p) {
@@ -1870,7 +1868,7 @@ public class GlygenArrayController {
         return uploadedFileName;
     }
 
-    @ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file")
+    @ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts imported into repository successfully"), 
@@ -2024,7 +2022,7 @@ public class GlygenArrayController {
 	    return view;
 	}
 	
-	@ApiOperation(value = "Retrieve glycan with the given id")
+	@ApiOperation(value = "Retrieve glycan with the given id", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
@@ -2075,7 +2073,7 @@ public class GlygenArrayController {
 		
 	}
 	
-	@ApiOperation(value = "Retrieve id for a glycan given the sequence")
+	@ApiOperation(value = "Retrieve id for a glycan given the sequence", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/getGlycanBySequence", method = RequestMethod.GET)
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycan id retrieved successfully", response = String.class), 
 			@ApiResponse(code=401, message="Unauthorized"),
@@ -2134,7 +2132,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Retrieve linker with the given id")
+	@ApiOperation(value = "Retrieve linker with the given id", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/getlinker/{linkerId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
@@ -2165,7 +2163,7 @@ public class GlygenArrayController {
 		
 	}
 	
-	@ApiOperation(value = "Retrieve slide layout with the given id")
+	@ApiOperation(value = "Retrieve slide layout with the given id", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/getslidelayout/{layoutId}", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout retrieved successfully"), 
@@ -2212,7 +2210,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Retrieve feature with the given id")
+	@ApiOperation(value = "Retrieve feature with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getfeature/{featureId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Feature retrieved successfully"), 
@@ -2249,7 +2247,7 @@ public class GlygenArrayController {
 	 * @return list of slide layouts in the library
 	 */
 	@SuppressWarnings("rawtypes")
-    @ApiOperation(value = "Retrieve slide layouts from uploaded GRITS array library file")
+    @ApiOperation(value = "Retrieve slide layouts from uploaded GRITS array library file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/getSlideLayoutFromLibrary", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layout retrieved from file successfully"), 
@@ -2419,7 +2417,7 @@ public class GlygenArrayController {
     	return spots;
 	}
 	
-	@ApiOperation(value = "List all block layouts for the user")
+	@ApiOperation(value = "List all block layouts for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/listBlocklayouts", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Block layouts retrieved successfully"), 
@@ -2429,13 +2427,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
 	public BlockLayoutResultView listBlockLayouts (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+			@ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
 			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam (required=false, defaultValue = "true", value="if false, do not load spot details. Default is true (to load all)")
 			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
@@ -2489,7 +2487,7 @@ public class GlygenArrayController {
 		return result;
 	}
 
-	@ApiOperation(value = "List all features for the user")
+	@ApiOperation(value = "List all features for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/listFeatures", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Features retrieved successfully"), 
@@ -2499,13 +2497,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public FeatureListResultView listFeature (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=false, value="limit of the number of features to be retrieved") 
+			@ApiParam(required=false, value="limit of the number of features to be retrieved", example="10") 
 			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
@@ -2548,7 +2546,7 @@ public class GlygenArrayController {
 		return result;
 	}
 	
-	@ApiOperation(value = "List all features of given type for the user")
+	@ApiOperation(value = "List all features of given type for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listFeaturesByType", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Features retrieved successfully"), 
@@ -2558,13 +2556,13 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public FeatureListResultView listFeaturesByType (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of features to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of features to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
@@ -2620,7 +2618,7 @@ public class GlygenArrayController {
         return result;
     }
 
-	@ApiOperation(value = "List all glycans for the user")
+	@ApiOperation(value = "List all glycans for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
@@ -2630,13 +2628,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
 	public GlycanListResultView listGlycans (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+			@ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
 			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
@@ -2697,7 +2695,7 @@ public class GlygenArrayController {
 	
 	
 
-    @ApiOperation(value = "List all glycans for the user and the public ones")
+    @ApiOperation(value = "List all glycans for the user and the public ones", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listAllGlycans", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
@@ -2707,13 +2705,13 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public GlycanListResultView listAllGlycans (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
@@ -2793,7 +2791,7 @@ public class GlygenArrayController {
         return result;
     }
 	
-	@ApiOperation(value = "List all linkers for the user and the public ones")
+	@ApiOperation(value = "List all linkers for the user and the public ones", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/listAllLinkers", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
@@ -2803,13 +2801,13 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
 	public LinkerListResultView listAllLinkers (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+			@ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
 			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
@@ -2845,7 +2843,7 @@ public class GlygenArrayController {
 		return result;
 	}
 	
-	@ApiOperation(value = "List all linkers for the user")
+	@ApiOperation(value = "List all linkers for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
@@ -2855,13 +2853,13 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public LinkerListResultView listLinkers (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
@@ -2898,7 +2896,7 @@ public class GlygenArrayController {
         return result;
     }
 	
-	@ApiOperation(value = "List all linkers of the given type for the user")
+	@ApiOperation(value = "List all linkers of the given type for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listMoleculesByType", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
@@ -2908,13 +2906,13 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public LinkerListResultView listLinkersByType (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
@@ -2964,7 +2962,7 @@ public class GlygenArrayController {
         return result;
     }
 	
-	@ApiOperation(value = "List all linkers of the given type for the user and the public ones")
+	@ApiOperation(value = "List all linkers of the given type for the user and the public ones", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listAllMoleculesByType", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
@@ -2974,13 +2972,13 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public LinkerListResultView listAllLinkersByType (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
@@ -3028,7 +3026,7 @@ public class GlygenArrayController {
         return result;
     }
 	
-	@ApiOperation(value = "List all slide layouts for the user")
+	@ApiOperation(value = "List all slide layouts for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
@@ -3038,13 +3036,13 @@ public class GlygenArrayController {
 			@ApiResponse(code=415, message="Media type is not supported"),
 			@ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
 	public SlideLayoutResultView listSlideLayouts (
-			@ApiParam(required=true, value="offset for pagination, start from 0") 
+			@ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
 			@RequestParam("offset") Integer offset,
-			@ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+			@ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
 			@RequestParam(value="limit", required=false) Integer limit, 
 			@ApiParam(required=false, value="name of the sort field, defaults to id") 
 			@RequestParam(value="sortBy", required=false) String field, 
-			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+			@ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
 			@RequestParam(value="order", required=false) Integer order, 
 			@ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
 			@RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
@@ -3104,7 +3102,7 @@ public class GlygenArrayController {
 		return result;
 	}
 	
-	@ApiOperation(value = "make given glycan public")
+	@ApiOperation(value = "Make given glycan public", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/makeglycanpublic/{glycanId}", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="id of the public glycan"), 
@@ -3159,7 +3157,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "make given linker public")
+	@ApiOperation(value = "Make given linker public", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/makelinkerpublic/{linkerId}", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="id of the public linker"), 
@@ -3198,7 +3196,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "make given slide layout public")
+	@ApiOperation(value = "Make given slide layout public", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/makeslidelayoutpublic/{layoutId}", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="id of the public slide layout"), 
@@ -3244,7 +3242,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Export glycans into a file")
+	@ApiOperation(value = "Export glycans into a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/exportglycans", method=RequestMethod.GET, 
         produces={"application/json", "application/xml"})
 	@ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
@@ -3272,7 +3270,7 @@ public class GlygenArrayController {
         }
 	}
 	
-	@ApiOperation(value = "Export linkers into a file")
+	@ApiOperation(value = "Export linkers into a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/exportlinkers", method=RequestMethod.GET, 
         produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
@@ -3313,7 +3311,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Export features into a file")
+	@ApiOperation(value = "Export features into a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/exportfeatures", method=RequestMethod.GET, 
         produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
@@ -3356,7 +3354,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Export slide layout in extended GAL format")
+	@ApiOperation(value = "Export slide layout in extended GAL format", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/downloadSlideLayout", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
@@ -3411,7 +3409,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Check status for upload file")
+	@ApiOperation(value = "Check status for upload file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/upload", method=RequestMethod.GET, 
 			produces={"application/json", "application/xml"})
 	public Confirmation resumeUpload (
@@ -3442,7 +3440,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Update given block layout for the user")
+	@ApiOperation(value = "Update given block layout for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/updateBlockLayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -3504,7 +3502,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Update given glycan for the user")
+	@ApiOperation(value = "Update given glycan for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/updateGlycan", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -3594,7 +3592,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Update given linker for the user")
+	@ApiOperation(value = "Update given linker for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/updateLinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -3711,7 +3709,7 @@ public class GlygenArrayController {
 	}
 	
 	
-	@ApiOperation(value = "Update given feature for the user")
+	@ApiOperation(value = "Update given feature for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateFeature", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -3839,7 +3837,7 @@ public class GlygenArrayController {
         }
     }
 	
-	@ApiOperation(value = "Update given slide layout for the user")
+	@ApiOperation(value = "Update given slide layout for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/updateSlideLayout", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"},
 			produces={"application/json", "application/xml"})
@@ -3901,7 +3899,7 @@ public class GlygenArrayController {
 		}
 	}
 	
-	@ApiOperation(value = "Upload file")
+	@ApiOperation(value = "Upload file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/upload", method=RequestMethod.POST, 
 	        consumes= {"application/octet-stream"},
 			produces={"application/json", "application/xml"})

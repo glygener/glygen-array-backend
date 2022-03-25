@@ -1,11 +1,7 @@
 package org.glygen.array.controller;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,7 +18,6 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
-import org.apache.commons.io.FileUtils;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -39,7 +34,6 @@ import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeType;
-import org.glygen.array.persistence.rdf.data.TechnicalExclusionInfo;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -97,11 +91,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.http.HttpProperties.Encoding;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.ContentDisposition;
@@ -117,17 +108,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import javassist.bytecode.ByteArray;
+import io.swagger.annotations.Authorization;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -179,7 +166,7 @@ public class DatasetController {
     @Autowired
     AsyncService parserAsyncService;
     
-    @ApiOperation(value = "Add given array dataset  for the user")
+    @ApiOperation(value = "Add given array dataset  for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addDataset", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added array dataset"), 
@@ -307,7 +294,7 @@ public class DatasetController {
         }
     } 
     
-    @ApiOperation(value = "Add given publication to the dataset for the user")
+    @ApiOperation(value = "Add given publication to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addPublication", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added publication"), 
@@ -395,7 +382,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given grant to the dataset for the user")
+    @ApiOperation(value = "Add given grant to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addGrant", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added grant"), 
@@ -464,7 +451,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given collaborator to the dataset for the user")
+    @ApiOperation(value = "Add given collaborator to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addCollaborator", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
@@ -544,7 +531,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add the given user as a co-owner to the given dataset")
+    @ApiOperation(value = "Add the given user as a co-owner to the given dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addCoowner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation message"), 
@@ -590,7 +577,7 @@ public class DatasetController {
         return new Confirmation("Co-owner added successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Delete the given user as a co-owner from the given dataset")
+    @ApiOperation(value = "Delete the given user as a co-owner from the given dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteCoowner/{username}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation if co-owner deleted successfully"), 
@@ -639,7 +626,7 @@ public class DatasetController {
         return new Confirmation("Co-owner deleted successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Add given slide to the dataset for the user")
+    @ApiOperation(value = "Add given slide to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide"), 
@@ -957,7 +944,7 @@ public class DatasetController {
         return null;
     }
     
-    @ApiOperation(value = "Add given Image to the slide of the dataset for the user")
+    @ApiOperation(value = "Add given Image to the slide of the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addImage", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added image"), 
@@ -1208,7 +1195,7 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given Rawdata to the image of the dataset for the user")
+    @ApiOperation(value = "Add given Rawdata to the image of the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addRawdata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added rawdata"), 
@@ -1529,7 +1516,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given printed slide set for the user")
+    @ApiOperation(value = "Add given printed slide set for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addPrintedSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added printed slide"), 
@@ -1722,7 +1709,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given data processing software for the user")
+    @ApiOperation(value = "Add given data processing software for the user, authorizations = { @Authorization(value=\"Authorization\") }")
     @RequestMapping(value="/addDataProcessingSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added data processing metadata"), 
@@ -1815,7 +1802,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given image analysis software for the user")
+    @ApiOperation(value = "Add given image analysis software for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addImageAnalysis", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added image analysis metadata"), 
@@ -1908,7 +1895,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given printer metadata for the user")
+    @ApiOperation(value = "Add given printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addPrinter", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added printer"), 
@@ -2001,7 +1988,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given print run metadata for the user")
+    @ApiOperation(value = "Add given print run metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addPrintrun", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added print run"), 
@@ -2094,7 +2081,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given assay metadata for the user")
+    @ApiOperation(value = "Add given assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addAssayMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added assay metadata"), 
@@ -2187,7 +2174,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given spot metadata for the user")
+    @ApiOperation(value = "Add given spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addSpotMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added spot metadata"), 
@@ -2279,7 +2266,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Import processed data results from uploaded excel file")
+    @ApiOperation(value = "Import processed data results from uploaded excel file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given raw data of the given array dataset"), 
@@ -2506,7 +2493,7 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Download exclusion lists for the processed data to a file")
+    @ApiOperation(value = "Download exclusion lists for the processed data to a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/downloadProcessedDataExclusionInfo", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
@@ -2561,26 +2548,11 @@ public class DatasetController {
                 throw new IllegalArgumentException("Processed data cannot be found in the repository", errorMessage);
             }
             
-            ProcessedData emptyData = new ProcessedData();
-            emptyData.setFilteredDataList(existing.getFilteredDataList());
-            emptyData.setTechnicalExclusions(existing.getTechnicalExclusions());
-            // serialize this and save it to a file
             try {
-                String jsonValue = new ObjectMapper().writeValueAsString(emptyData);
-                try {
-                    FileWriter file = new FileWriter(newFile);
-                    file.write(jsonValue);
-                    file.close();
-                 } catch (IOException e) {
-                     errorMessage.addError(new ObjectError("file", "NotFound"));
-                 }
-                
-            } catch (JsonProcessingException e) {
-                logger.error("Could not serialize processed data exclusion info into JSON", e);
-                throw new GlycanRepositoryException("Could not serialize processed data exclusion info into JSON", e);
+                ExclusionInfoParser.exportToFile(existing, newFile.getAbsolutePath());
+            } catch (IOException e) {
+                errorMessage.addError(new ObjectError("file", "NotFound"));
             }
-            
-            
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
@@ -2590,32 +2562,13 @@ public class DatasetController {
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
-        FileSystemResource r = new FileSystemResource(newFile);
-        MediaType mediaType = MediaTypeFactory
-                .getMediaType(r)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
         
-        HttpHeaders respHeaders = new HttpHeaders();
-        respHeaders.setContentType(mediaType);
-        respHeaders.setContentLength(newFile.length());
-
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename(fileName)
-                .build();
-
-        respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-        respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
-        
-        return new ResponseEntity<Resource>(
-                r, respHeaders, HttpStatus.OK
-        );
+        return download(newFile, fileName);
     }
     
     
-    @ApiOperation(value = "Add the exclusion info given in the file to the given processed data")
-    @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST
-            )
+    @ApiOperation(value = "Add the exclusion info given in the file to the given processed data", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST)
     @ApiResponses (value ={@ApiResponse(code=200, message="return an (otherwise) empty processed data object containing only the exclusion lists"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -2672,6 +2625,7 @@ public class DatasetController {
                     ProcessedData emptyData = parser.parse(file.getAbsolutePath(), user);
                     existing.setTechnicalExclusions(emptyData.getTechnicalExclusions());
                     existing.setFilteredDataList(emptyData.getFilteredDataList());
+                    //TODO do we need to check if the listed features belong to the slide of this processed data?
                     datasetRepository.addExclusionInfoToProcessedData(existing, user);
                     return existing.getId();
                 } else {
@@ -2688,7 +2642,7 @@ public class DatasetController {
         return null;
     }
     
-    @ApiOperation(value = "Update processed data with results from uploaded excel file")
+    @ApiOperation(value = "Update processed data with results from uploaded excel file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -2838,7 +2792,7 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given sample metadata for the user")
+    @ApiOperation(value = "Add given sample metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
@@ -2936,7 +2890,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given scanner metadata for the user")
+    @ApiOperation(value = "Add given scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addScanner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added scanner"), 
@@ -3031,7 +2985,7 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given slide metadata for the user")
+    @ApiOperation(value = "Add given slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addSlideMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide metadata"), 
@@ -3125,7 +3079,7 @@ public class DatasetController {
     }
     
     @GetMapping("/availableMetadataname")
-    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class)
+    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class, authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges"),
@@ -3179,7 +3133,7 @@ public class DatasetController {
     }
     
     @GetMapping("/isMirageCompliant/{id}")
-    @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class)
+    @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class, authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges"),
@@ -3349,7 +3303,7 @@ public class DatasetController {
         return errorMessage;
     }
 
-    @ApiOperation(value = "List all datasets for the user")
+    @ApiOperation(value = "List all datasets for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
@@ -3359,13 +3313,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public ArrayDatasetListView listArrayDataset (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3403,7 +3357,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all datasets for the user (as a coowner)")
+    @ApiOperation(value = "List all datasets for the user (as a coowner)", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listArrayDatasetCoowner", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
@@ -3413,13 +3367,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public ArrayDatasetListView listArrayDatasetByCoowner (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3458,7 +3412,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List co-owners for the dataset")
+    @ApiOperation(value = "List co-owners for the dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listcoowners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Co-owners retrieved successfully"), 
@@ -3489,7 +3443,7 @@ public class DatasetController {
         return users;  
     }
     
-    @ApiOperation(value = "List all printed slides for the user")
+    @ApiOperation(value = "List all printed slides for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
@@ -3499,13 +3453,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public PrintedSlideListView listPrintedSlide (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
@@ -3582,7 +3536,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printed slides for the user and the public ones")
+    @ApiOperation(value = "List all printed slides for the user and the public ones", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listAllPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
@@ -3592,13 +3546,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public PrintedSlideListView listAllPrintedSlides (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load slide layout details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3694,7 +3648,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all data processing software metadata for the user")
+    @ApiOperation(value = "List all data processing software metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listDataProcessingSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software metadata list retrieved successfully"), 
@@ -3704,13 +3658,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listDataProcessingSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3778,7 +3732,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all image analysis software metadata for the user")
+    @ApiOperation(value = "List all image analysis software metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listImageAnalysisSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software metadata list retrieved successfully"), 
@@ -3788,13 +3742,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listImageAnalysisSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3862,7 +3816,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printer metadata for the user")
+    @ApiOperation(value = "List all printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listPrinters", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
@@ -3872,13 +3826,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listPrinters (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -3946,7 +3900,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printer metadata for the user")
+    @ApiOperation(value = "List all printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listPrintruns", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
@@ -3956,13 +3910,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listPrintRuns (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4030,7 +3984,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all samples for the user")
+    @ApiOperation(value = "List all samples for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Samples retrieved successfully"), 
@@ -4040,13 +3994,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listSamples (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4114,7 +4068,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all scanner metadata for the user")
+    @ApiOperation(value = "List all scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listScanners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Scanner list retrieved successfully"), 
@@ -4124,13 +4078,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listScanners (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4198,7 +4152,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all slide metadata for the user")
+    @ApiOperation(value = "List all slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listSlideMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata list retrieved successfully"), 
@@ -4208,13 +4162,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listSlideMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4282,7 +4236,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all assay metadata for the user")
+    @ApiOperation(value = "List all assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata list retrieved successfully"), 
@@ -4292,13 +4246,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listAssayMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4366,7 +4320,7 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all spot metadata for the user")
+    @ApiOperation(value = "List all spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/listSpotMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Spot metadata list retrieved successfully"), 
@@ -4376,13 +4330,13 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listSpotMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -4629,7 +4583,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Delete given printed slide from the user's list")
+    @ApiOperation(value = "Delete given printed slide from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteprintedslide/{slideId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
@@ -4683,7 +4637,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete the given array dataset from the user's list")
+    @ApiOperation(value = "Delete the given array dataset from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletedataset/{datasetId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Dataset deleted successfully"), 
@@ -4727,7 +4681,7 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given raw data from the given array dataset")
+    @ApiOperation(value = "Delete the given raw data from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleterawdata/{rawdataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="RawData deleted successfully"), 
@@ -4847,7 +4801,7 @@ public class DatasetController {
     }
     */
     
-    @ApiOperation(value = "Delete the given slide from the given array dataset")
+    @ApiOperation(value = "Delete the given slide from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteslide/{slideId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
@@ -4969,7 +4923,7 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given publication from the given array dataset")
+    @ApiOperation(value = "Delete the given publication from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletepublication/{publicationid}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Publication deleted successfully"), 
@@ -5045,7 +4999,7 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given grant from the given array dataset")
+    @ApiOperation(value = "Delete the given grant from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletegrant/{grantid}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="grant deleted successfully"), 
@@ -5121,7 +5075,7 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given collaborator from the given array dataset")
+    @ApiOperation(value = "Delete the given collaborator from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletecollaborator/{username}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Collaborator deleted successfully"), 
@@ -5195,7 +5149,7 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete given sample from the user's list")
+    @ApiOperation(value = "Delete given sample from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletesample/{sampleId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Sample deleted successfully"), 
@@ -5249,7 +5203,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given image analysis software from the user's list")
+    @ApiOperation(value = "Delete given image analysis software from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteimagemetadata/{imageAnaysisMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software deleted successfully"), 
@@ -5303,7 +5257,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given slide metadata from the user's list")
+    @ApiOperation(value = "Delete given slide metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteslidemetadata/{slideMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata deleted successfully"), 
@@ -5357,7 +5311,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given data processing software from the user's list")
+    @ApiOperation(value = "Delete given data processing software from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletedataprocessingmetadata/{dataProcessingMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software deleted successfully"), 
@@ -5411,7 +5365,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given scanner from the user's list")
+    @ApiOperation(value = "Delete given scanner from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletescannermetadata/{scannerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Scanner deleted successfully"), 
@@ -5465,7 +5419,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given printer from the user's list")
+    @ApiOperation(value = "Delete given printer from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteprintermetadata/{printerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
@@ -5519,7 +5473,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given printrun from the user's list")
+    @ApiOperation(value = "Delete given printrun from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteprintrunmetadata/{printrunId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
@@ -5573,7 +5527,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given assay metadata from the user's list")
+    @ApiOperation(value = "Delete given assay metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteassaymetadata/{assayId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
@@ -5627,7 +5581,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given spot metadata from the user's list")
+    @ApiOperation(value = "Delete given spot metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletespotmetadata/{spotMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
@@ -5681,7 +5635,7 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Retrieve slide with the given id")
+    @ApiOperation(value = "Retrieve slide with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getprintedslide/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printed Slide retrieved successfully"), 
@@ -5750,7 +5704,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve dataset with the given id")
+    @ApiOperation(value = "Retrieve dataset with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getarraydataset/{datasetid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Dataset retrieved successfully"), 
@@ -5788,7 +5742,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve processed data with the given id")
+    @ApiOperation(value = "Retrieve processed data with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getprocesseddata/{id}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Processed data retrieved successfully"), 
@@ -5846,7 +5800,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve sample with the given id")
+    @ApiOperation(value = "Retrieve sample with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getsample/{sampleId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
@@ -5897,7 +5851,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve printer with the given id")
+    @ApiOperation(value = "Retrieve printer with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getPrinter/{printerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printer retrieved successfully"), 
@@ -5949,7 +5903,7 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Retrieve print run with the given id")
+    @ApiOperation(value = "Retrieve print run with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getPrintRun/{printRunId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Printrun retrieved successfully"), 
@@ -6000,7 +5954,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve scanner with the given id")
+    @ApiOperation(value = "Retrieve scanner with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getScanner/{scannerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Scanner retrieved successfully"), 
@@ -6050,7 +6004,7 @@ public class DatasetController {
             throw new GlycanRepositoryException("ScannerMetadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
-    @ApiOperation(value = "Retrieve SlideMetadata with the given id")
+    @ApiOperation(value = "Retrieve SlideMetadata with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="SlideMetadata retrieved successfully"), 
@@ -6100,7 +6054,7 @@ public class DatasetController {
             throw new GlycanRepositoryException("SlideMetadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
-    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id")
+    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="ImageAnalysisSoftware retrieved successfully"), 
@@ -6151,7 +6105,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id")
+    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getDataProcessingSoftware/{dataprocessingId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware retrieved successfully"), 
@@ -6202,7 +6156,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve assay metadata with the given id")
+    @ApiOperation(value = "Retrieve assay metadata with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getAssayMetadata/{assayId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
@@ -6253,7 +6207,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve spot metadata with the given id")
+    @ApiOperation(value = "Retrieve spot metadata with the given id", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/getSpotMetadata/{spotMetadataId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
@@ -6304,7 +6258,7 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Update given printed slide for the user")
+    @ApiOperation(value = "Update given printed slide for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updatePrintedSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6519,7 +6473,7 @@ public class DatasetController {
         return new Confirmation("Printed slide updated successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Update given array dataset for the user")
+    @ApiOperation(value = "Update given array dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updatearraydataset", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6657,7 +6611,7 @@ public class DatasetController {
         return new Confirmation("Array dataset updated successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Update given sample for the user")
+    @ApiOperation(value = "Update given sample for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6678,7 +6632,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given printer for the user")
+    @ApiOperation(value = "Update given printer for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updatePrinter", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6699,7 +6653,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given printrun for the user")
+    @ApiOperation(value = "Update given printrun for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updatePrintrun", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6720,7 +6674,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given scanner metadata for the user")
+    @ApiOperation(value = "Update given scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateScanner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6741,7 +6695,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given slide metadata for the user")
+    @ApiOperation(value = "Update given slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateSlideMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6762,7 +6716,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given image analysis software for the user")
+    @ApiOperation(value = "Update given image analysis software for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateImageAnalysisSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6783,7 +6737,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given data processing software for the user")
+    @ApiOperation(value = "Update given data processing software for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateDataProcessingSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6804,7 +6758,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given assay metadata for the user")
+    @ApiOperation(value = "Update given assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateAssayMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6825,7 +6779,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given spot metadata for the user")
+    @ApiOperation(value = "Update given spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/updateSpotMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
@@ -6993,7 +6947,7 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Make the given array dataset public")
+    @ApiOperation(value = "Make the given array dataset public", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/makearraydatasetpublic/{datasetid}", method = RequestMethod.POST)
     @ApiResponses (value = {
             @ApiResponse(code=200, message="id of the public array dataset"), 
@@ -7157,7 +7111,7 @@ public class DatasetController {
         return FutureTaskStatus.DONE;
     }
 
-    @ApiOperation(value = "Download the given file")
+    @ApiOperation(value = "Download the given file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/download", method = RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
             @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
@@ -7234,7 +7188,7 @@ public class DatasetController {
         );
     }
     
-    @ApiOperation(value = "Export processed data in glygen array data file format")
+    @ApiOperation(value = "Export processed data in glygen array data file format", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/downloadProcessedData", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),

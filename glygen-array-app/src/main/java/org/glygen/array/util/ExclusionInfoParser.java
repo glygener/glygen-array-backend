@@ -2,6 +2,7 @@ package org.glygen.array.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Feature;
@@ -189,9 +191,9 @@ public class ExclusionInfoParser {
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 Iterator<Cell> cellIterator = row.cellIterator();
-                int col = 0;
                 while (cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
+                    int col = cell.getColumnIndex();
                     if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
                         String repoId = cell.getStringCellValue().trim();
                         if (!repoId.isEmpty()) {
@@ -199,12 +201,136 @@ public class ExclusionInfoParser {
                                 map.get(reasonCols.get(col)).add(repoId);
                         }
                     }
-                    col++;
                 }
             }
         }
         
         return map;
     }
-
+    
+    
+    public static void exportToFile (ProcessedData processedData, String outputFile) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Technical");
+        Row header = sheet.createRow(0);
+        Map<String, Integer>  colNumberMap = new HashMap<String, Integer>();
+        Cell cell1 = header.createCell(0, Cell.CELL_TYPE_STRING);
+        cell1.setCellValue(TechnicalExclusionReasonType.Spot_Issues.name().replace("_", " "));
+        colNumberMap.put(TechnicalExclusionReasonType.Spot_Issues.name(), 0);
+        Cell cell2 = header.createCell(1, Cell.CELL_TYPE_STRING);
+        cell2.setCellValue(TechnicalExclusionReasonType.Artifact.name().replace("_", " "));
+        colNumberMap.put(TechnicalExclusionReasonType.Artifact.name(), 1);
+        Cell cell3 = header.createCell(2, Cell.CELL_TYPE_STRING);
+        cell3.setCellValue(TechnicalExclusionReasonType.Missing_Spot.name().replace("_", " "));
+        colNumberMap.put(TechnicalExclusionReasonType.Missing_Spot.name(), 2);
+        
+        List<String> otherReasons = new ArrayList<String>();
+        if (processedData.getTechnicalExclusions() != null) {
+            for (TechnicalExclusionInfo info: processedData.getTechnicalExclusions()) {
+                if (info.getOtherReason() != null) {
+                    if (!otherReasons.contains(info.getOtherReason())) {
+                        otherReasons.add(info.getOtherReason());
+                    }
+                }
+            }
+        }
+        
+        int i=3;
+        for (String other: otherReasons) {
+            Cell cell4 = header.createCell(i, Cell.CELL_TYPE_STRING);
+            cell4.setCellValue(other);
+            colNumberMap.put(other, i);
+            i++;
+        }
+        
+        // add rows
+        if (processedData.getTechnicalExclusions() != null) {
+            Row row = null;
+            for (TechnicalExclusionInfo info: processedData.getTechnicalExclusions()) {
+                for (int fIdx=0; fIdx < info.getFeatures().size(); fIdx++) {
+                    if (sheet.getRow(fIdx+1) == null) {
+                        // create the row
+                        row = sheet.createRow(fIdx+1);
+                    } else {
+                        row = sheet.getRow(fIdx + 1);
+                    }
+                    Integer col = null;
+                    if (info.getReason() != null) {
+                        col = colNumberMap.get(info.getReason().name());
+                    } else if (info.getOtherReason() != null) {
+                        col = colNumberMap.get(info.getOtherReason());
+                    }
+                    if (col != null) {
+                        if (row.getCell(col) == null) {
+                            Cell cell = row.createCell (col, Cell.CELL_TYPE_STRING);
+                            cell.setCellValue(info.getFeatures().get(fIdx).getInternalId());
+                        }
+                    }
+                }
+            }
+        }
+        
+        colNumberMap = new HashMap<String, Integer>();
+        Sheet sheet2 = workbook.createSheet("Filtered data");
+        header = sheet2.createRow(0);
+        cell1 = header.createCell(0, Cell.CELL_TYPE_STRING);
+        cell1.setCellValue(FilterExclusionReasonType.Probe_unqualifed.name().replace("_", " "));
+        colNumberMap.put(FilterExclusionReasonType.Probe_unqualifed.name(), 0);
+        cell2 = header.createCell(1, Cell.CELL_TYPE_STRING);
+        cell2.setCellValue(FilterExclusionReasonType.Unrelated_feature.name().replace("_", " "));
+        colNumberMap.put(FilterExclusionReasonType.Unrelated_feature.name(), 1);
+        cell3 = header.createCell(2, Cell.CELL_TYPE_STRING);
+        cell3.setCellValue(FilterExclusionReasonType.Lack_of_Signals.name().replace("_", " "));
+        colNumberMap.put(FilterExclusionReasonType.Lack_of_Signals.name(), 2);
+        
+        otherReasons = new ArrayList<String>();
+        if (processedData.getFilteredDataList() != null) {
+            for (FilterExclusionInfo info: processedData.getFilteredDataList()) {
+                if (info.getOtherReason() != null) {
+                    if (!otherReasons.contains(info.getOtherReason()))
+                        otherReasons.add(info.getOtherReason());
+                }
+            }
+        }
+        
+        i=3;
+        for (String other: otherReasons) {
+            Cell cell4 = header.createCell(i, Cell.CELL_TYPE_STRING);
+            cell4.setCellValue(other);
+            colNumberMap.put(other, i);
+            i++;
+        }
+        
+        // add rows
+        if (processedData.getFilteredDataList() != null) {
+            Row row = null;
+            for (FilterExclusionInfo info: processedData.getFilteredDataList()) {
+                for (int fIdx=0; fIdx < info.getFeatures().size(); fIdx++) {
+                    if (sheet2.getRow(fIdx+1) == null) {
+                        // create the row
+                        row = sheet2.createRow(fIdx+1);
+                    } else {
+                        row = sheet2.getRow(fIdx + 1);
+                    }
+                    Integer col = null;
+                    if (info.getReason() != null) {
+                        col = colNumberMap.get(info.getReason().name());
+                    } else if (info.getOtherReason() != null) {
+                        col = colNumberMap.get(info.getOtherReason());
+                    }
+                    if (col != null) {
+                        if (row.getCell(col) == null) {
+                            Cell cell = row.createCell (col, Cell.CELL_TYPE_STRING);
+                            cell.setCellValue(info.getFeatures().get(fIdx).getInternalId());
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        FileOutputStream os = new FileOutputStream(outputFile);
+        workbook.write(os);
+        os.close();
+    }
 }

@@ -27,7 +27,7 @@ public enum TechnicalExclusionReasonType {
     public static TechnicalExclusionReasonType forValue(String value) {
         if (value.equals("Signals from misprinted or misshapen spot"))
             return Spot_Issues;
-        else if (value.equals("Signals caused by defect on slide (Artefact on slide)"))
+        else if (value.equals("Signals caused by defect on slide (Artifact on slide)"))
             return Artifact;
         else if (value.equals("Missing spots due to the printer fault"))
             return Missing_Spot;

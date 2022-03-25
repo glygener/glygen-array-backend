@@ -80,7 +80,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	final static String hasRatioPredicate = ontPrefix + "has_ratio";
 	final static String hasRatioContextPredicate = ontPrefix + "has_feature_ratio";
 	final static String hasConcentrationContextPredicate = ontPrefix + "has_feature_concentration";
-	final static String hasSpotMetadataPredicate = ontPrefix + "has_spot_metadata";
+	
 	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
 

@@ -238,7 +238,7 @@ public class UserController {
 	@RequestMapping(value = "/update/{userName}", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
 	@ApiOperation(value="Updates the information for the given user. Only the non-empty fields will be updated. "
-			+ "\"username\" cannot be changed", response=Confirmation.class)
+			+ "\"username\" cannot be changed", response=Confirmation.class, authorizations = { @Authorization(value="Authorization") })
 	@ApiResponses (value ={@ApiResponse(code=200, message="User updated successfully"), 
 			 	@ApiResponse(code=400, message="Illegal arguments, username should match the submitted user info"),
 				@ApiResponse(code=401, message="Unauthorized"),
@@ -420,9 +420,8 @@ public class UserController {
 		return new Confirmation("User is authorized", HttpStatus.OK.value());
 	}
 
-	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="read:glygenarray", description="Access to user profile")})
 	@RequestMapping(value="/get/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the information for the given user", response=User.class)
+    @ApiOperation(value="Retrieve the information for the given user", response=User.class, authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
     		@ApiResponse(code=401, message="Unauthorized"),
     		@ApiResponse(code=403, message="Not enough privileges"),
@@ -500,9 +499,8 @@ public class UserController {
     	return new Confirmation("Email with UserName was sent", HttpStatus.OK.value());
     }
     
-	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
     @RequestMapping(value="/{userName}/password", method = RequestMethod.GET)
-    @ApiOperation(value="Recovers the user's password. Sends an email to the registered email of the user", response=Confirmation.class)
+    @ApiOperation(value="Recovers the user's password. Sends an email to the registered email of the user", response=Confirmation.class, authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="Password recovered successfully"), 
     		@ApiResponse(code=404, message="User with given login name does not exist"),
     		@ApiResponse(code=500, message="Internal Server Error")})
@@ -523,9 +521,9 @@ public class UserController {
     	
     }
     
-	@Authorization (value="Bearer", scopes={@AuthorizationScope (scope="write:glygenarray", description="Access to user profile")})
     @RequestMapping(value="/{userName}/password", method = RequestMethod.PUT)
-    @ApiOperation(value="Changes the password for the given user", response=Confirmation.class, notes="Only authenticated user can change his/her password")
+    @ApiOperation(value="Changes the password for the given user", response=Confirmation.class, 
+        notes="Only authenticated user can change his/her password", authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="Password changed successfully"), 
     		@ApiResponse(code=400, message="Illegal argument - new password should be valid"),
     		@ApiResponse(code=401, message="Unauthorized"),

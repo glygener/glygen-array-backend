@@ -355,6 +355,10 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         queryBuf.append ("UNION {?s gadr:has_scanner_metadata <" + uri +">  } ");
         queryBuf.append ("UNION {?s gadr:printed_by <" + uri +">  } ");
         queryBuf.append ("UNION {?s gadr:has_processing_software_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_assay_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:printed_by_run <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_feature_metadata <" + uri +">  } ");
+        queryBuf.append ("UNION {?s gadr:has_spot_metadata <" + uri +">  } ");
         queryBuf.append ("} LIMIT 1");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
@@ -372,7 +376,6 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         
         return canDelete;
     }
-
 
     void deleteDescription (String descriptionURI, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();

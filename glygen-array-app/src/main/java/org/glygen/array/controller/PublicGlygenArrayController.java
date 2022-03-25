@@ -3,7 +3,6 @@ package org.glygen.array.controller;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,13 +20,8 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
-import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanType;
-import org.glygen.array.persistence.rdf.GlycoLipid;
-import org.glygen.array.persistence.rdf.GlycoPeptide;
-import org.glygen.array.persistence.rdf.GlycoProtein;
-import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -151,13 +145,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public GlycanListResultView listGlycans (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -254,13 +248,13 @@ public class PublicGlygenArrayController {
     public ArrayDatasetListView getDatasetsForGlycan (
             @ApiParam(required=true, value="id of the glycan to retrieve") 
             @PathVariable("glycanId") String glycanId,
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         
@@ -327,13 +321,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public LinkerListResultView listLinkers (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of linkers to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -377,13 +371,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public SlideLayoutResultView listSlideLayouts (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
@@ -428,13 +422,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public BlockLayoutResultView listBlockLayouts (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of layouts to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam (required=false, defaultValue = "true", value="if false, do not load spot details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
@@ -480,13 +474,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public FeatureListResultView listFeature (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of features to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of features to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -533,13 +527,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public ArrayDatasetListView listArrayDataset (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
@@ -587,13 +581,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public ArrayDatasetListView listArrayDatasetByUser (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
@@ -688,13 +682,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public ArrayDatasetListView listArrayDatasetByCoOwner (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
@@ -788,13 +782,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public PrintedSlideListView listPrintedSlide (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -853,13 +847,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listDataProcessingSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -907,13 +901,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listImageAnalysisSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -961,13 +955,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listPrinters (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -1015,13 +1009,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listSamples (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -1069,13 +1063,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listScanners (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -1123,13 +1117,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listSlideMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -1177,13 +1171,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public MetadataListResultView listAssayMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
@@ -1474,13 +1468,13 @@ public class PublicGlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public IntensityDataResultView listIntensityData (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,

@@ -450,7 +450,6 @@ public class ProcessedDataParser {
         cell4.setCellValue("RFU");
         Cell cell5 = header.createCell(4, Cell.CELL_TYPE_STRING);
         cell5.setCellValue("SD");
-        idx++;
         
         for (Intensity intensity: processedData.getIntensity()) {
             for (Spot spot: intensity.getSpots()) {

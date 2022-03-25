@@ -127,7 +127,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
  	    registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
  	    registration.addUrlPatterns("/users/*");
  	    registration.addUrlPatterns("/array/*");
- 	    registration.addUrlPatterns("/public/**");
+ 	    registration.addUrlPatterns("/public/*");
  	    registration.addUrlPatterns("/login");
  	    registration.addUrlPatterns(basePath + "login/*");
  	    registration.setOrder(1);

@@ -39,7 +39,6 @@ import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.ArrayDatasetRepositoryImpl;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.GlygenArrayRepository;
-import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.QueryHelper;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.SequenceUtils;
@@ -272,9 +271,9 @@ public class SearchController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public String listGlycansByMassRange (
-            @ApiParam(required=true, value="minimum mass") 
+            @ApiParam(required=true, value="minimum mass", example="0.0") 
             @RequestParam(value="min", required=true) Double min,
-            @ApiParam(required=true, value="maximum mass") 
+            @ApiParam(required=true, value="maximum mass", example="1000.0") 
             @RequestParam(value="max", required=true) Double max) {
         try {
             List<String> matches = glycanRepository.getGlycanByMass(null, min, max);
@@ -464,13 +463,13 @@ public class SearchController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public GlycanSearchResultView listGlycansForSearch (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
             @RequestParam(value="searchId", required=true) String searchId) {
@@ -971,13 +970,13 @@ public class SearchController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public DatasetSearchResultView listDatasetsForSearch (
-            @ApiParam(required=true, value="offset for pagination, start from 0") 
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved") 
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1") 
+            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
             @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
             @RequestParam(value="searchId", required=true) String searchId) {
