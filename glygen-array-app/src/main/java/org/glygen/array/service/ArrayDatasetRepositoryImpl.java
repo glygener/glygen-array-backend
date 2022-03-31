@@ -4,8 +4,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import javax.persistence.EntityNotFoundException;
@@ -3872,6 +3874,27 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
         }
         return names;
+    }
+    
+    @Override
+    public Set<String> getAllKeywords () throws SparqlException, SQLException {
+        Set<String> keywords = new HashSet<String>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT distinct ?keyword \n");
+        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (
+                "?ps rdf:type <" + datasetTypePredicate + "> . \n" +
+                "?ps gadr:has_keyword ?keyword }"); 
+               
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("keyword");
+            keywords.add(uri);
+        }
+        
+        return keywords;
     }
 
     @Override

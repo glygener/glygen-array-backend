@@ -2,6 +2,7 @@ package org.glygen.array.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.glygen.array.exception.SparqlException;
@@ -125,5 +126,6 @@ public interface ArrayDatasetRepository {
     void addExclusionInfoToProcessedData(ProcessedData processedData, UserEntity user)
             throws SparqlException, SQLException;
     void deleteImage(String imageURI, String datasetId, UserEntity user) throws SQLException, SparqlException;
+    Set<String> getAllKeywords() throws SparqlException, SQLException;
     
 }

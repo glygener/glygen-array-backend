@@ -531,6 +531,27 @@ public class DatasetController {
         }
     }
     
+    @ApiOperation(value="Retrieving all keywords from the repository", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/getallkeywords", method=RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=200, message="list of existing keywords in the repository"),
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve keywords"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Set<String> getKeywords(){
+        try {
+            return datasetRepository.getAllKeywords();
+        } catch (SparqlException | SQLException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Error retrieving keywords from the repository");
+            errorMessage.addError(new ObjectError("keyword", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+            errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            throw errorMessage;
+        }
+    }
+    
     @ApiOperation(value = "Add given keyword to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addKeyword", method = RequestMethod.POST, 
             produces={"application/json", "application/xml"})
