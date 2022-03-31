@@ -671,6 +671,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     		            RepositoryResult<Statement> statements1 = sparqlDAO.getStatements(pub, null, null, graphIRI);
     		            sparqlDAO.removeStatements(Iterations.asList(statements1), graphIRI); 
     		        }
+    		        // delete change log
+    	            deleteChangeLog(uriPre + linkerId, graph);
+    		        
     				deleteByURI (uriPre + linkerId, graph);
     				return;
     			}

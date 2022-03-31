@@ -148,12 +148,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasSample = f.createIRI(ontPrefix + "has_sample");
             IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
             IRI type = f.createIRI(datasetTypePredicate);
-            IRI hasFile = f.createIRI(hasFilePredicate);
-            IRI hasFileName = f.createIRI(hasFileNamePredicate);
-            IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
-            IRI hasFolder = f.createIRI(hasFolderPredicate);
-            IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
-            IRI hasSize = f.createIRI(hasSizePredicate);
+            IRI hasKeyword = f.createIRI(ontPrefix + "has_keyword");
             
             statements.add(f.createStatement(arraydataset, RDF.TYPE, type, graphIRI));
             
@@ -171,6 +166,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 IRI sample = f.createIRI(sampleURI);
                 statements.add(f.createStatement(arraydataset, hasSample, sample, graphIRI));
                 
+            }
+            
+            if (dataset.getKeywords() != null) {
+                for (String keyword: dataset.getKeywords()) {
+                    Literal keyLit = f.createLiteral(keyword);
+                    statements.add(f.createStatement(arraydataset, hasKeyword, keyLit, graphIRI));
+                }
             }
             
             String datasetId = datasetURI.substring(datasetURI.lastIndexOf("/")+1);
@@ -278,6 +280,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         statements.add(f.createStatement(dataset, hasGrantPred, grantIRI, graphIRI));
         sparqlDAO.addStatements(statements, graphIRI);
+        grant.setUri(grantURI);
         return grantURI;
         
     }
@@ -1448,14 +1451,21 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasTechnicalExclusion = f.createIRI(ontPrefix + "has_technical_exclusion");
         IRI hasFilterExclusion = f.createIRI(ontPrefix + "has_filter_exclusion");
         
-        ProcessedData processedObject = new ProcessedData();
-        processedObject.setUri(uriValue);
-        processedObject.setId(uriValue.substring(uriValue.lastIndexOf("/")+ 1));
+        ProcessedData processedObject =  null;
         List<Intensity> intensities = new ArrayList<Intensity>();
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
+        if (statements.hasNext()) {
+            processedObject = new ProcessedData();
+            processedObject.setUri(uriValue);
+            processedObject.setId(uriValue.substring(uriValue.lastIndexOf("/")+ 1));
+            processedObject.setIntensity(intensities);
+        } else {
+            return null;
+        }
+        
         List<TechnicalExclusionInfo> technicalExclusions = new ArrayList<>();
         List<FilterExclusionInfo> filterExclusions = new ArrayList<>();
-        processedObject.setIntensity(intensities);
-        RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
+
         while (statements.hasNext()) {
             Statement st = statements.next();
             if (st.getPredicate().equals(hasIntensity)) {
@@ -2021,28 +2031,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             ValueFactory f = sparqlDAO.getValueFactory();
             IRI dataset = f.createIRI(uri);
             IRI graphIRI = f.createIRI(graph);
-            IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
-            IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
             IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
-            IRI hasImage = f.createIRI(hasImagePredicate);
             IRI hasPub = f.createIRI(hasPublication);
-            
-            // delete rawData
-            RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, hasRawData, null, graphIRI);
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                String rawDataURI = st.getObject().stringValue();
-                deleteRawData(rawDataURI, uri, graph);
-            }
-            // delete processedData
-            statements = sparqlDAO.getStatements(dataset, hasProcessedData, null, graphIRI);
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                String processedDataURI = st.getObject().stringValue();
-                deleteProcessedData(processedDataURI, graph);
-            }
+        
             // delete slides
-            statements = sparqlDAO.getStatements(dataset, hasSlide, null, graphIRI);
+            RepositoryResult<Statement> statements = sparqlDAO.getStatements(dataset, hasSlide, null, graphIRI);
             while (statements.hasNext()) {
                 Statement st = statements.next();
                 String slideURI = st.getObject().stringValue();
@@ -2050,15 +2043,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(slideURI), null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
-            // delete images
-            statements = sparqlDAO.getStatements(dataset, hasImage, null, graphIRI);
-            while (statements.hasNext()) {
-                Statement st = statements.next();
-                String imageURI = st.getObject().stringValue();
-                // delete the image
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(imageURI), null, null, graphIRI);
-                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-            }
+            
             // delete publications
             statements = sparqlDAO.getStatements(dataset, hasPub, null, graphIRI);
             while (statements.hasNext()) {
@@ -2067,9 +2052,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(publicationURI), null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
+            
+            // delete change log
+            deleteChangeLog(uri, graph);
+            deleteFiles(uri, graph);
           
             statements = sparqlDAO.getStatements(dataset, null, null, graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);   
         }
     }
     
@@ -2078,6 +2067,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI processedData = f.createIRI(processedDataURI);
         IRI graphIRI = f.createIRI(graph);
         IRI hasIntensity = f.createIRI(hasIntensityPredicate);
+        IRI hasTechnicalExclusion = f.createIRI(ontPrefix + "has_technical_exclusion");
+        IRI hasFilterExclusion = f.createIRI(ontPrefix + "has_filter_exclusion");
+        
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(processedData, hasIntensity, null, graphIRI);
         while (statements.hasNext()) {
@@ -2088,13 +2080,66 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
         }
         
+        // delete exclusion lists!
+        statements = sparqlDAO.getStatements(processedData, hasTechnicalExclusion, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            String exclusionInfoURI = st.getObject().stringValue();
+            // delete the exclusionInfo
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(exclusionInfoURI), null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+        }
+        
+        statements = sparqlDAO.getStatements(processedData, hasFilterExclusion, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            String exclusionInfoURI = st.getObject().stringValue();
+            // delete the exclusionInfo
+            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(exclusionInfoURI), null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+        }
+        
         // delete files
         deleteFiles (processedDataURI, graph);
         
-        //TODO delete exclusion lists!
-        
         statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);     
+    }
+    
+    
+    public boolean canDeleteRawData(String uri, String parentURI, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        boolean canDelete = true;
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s \n");
+        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("{?s gadr:has_printed_slide <" +  uri + "> } ");
+        queryBuf.append ("} LIMIT 1");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            if (parentURI != null) {
+                // check if the one preventing the delete is the given parentURI
+                String sURI = results.get(0).getValue("s");
+                if (!sURI.equals(parentURI)) {
+                    canDelete = false;
+                }
+            } else {
+                canDelete = false;
+            }
+        }
+        
+        return canDelete;
     }
     
     @Override
@@ -2109,22 +2154,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         if (graph != null) {
-            String uri = uriPre + datasetId;
-            ValueFactory f = sparqlDAO.getValueFactory();
-            IRI hasRawData = f.createIRI(ontPrefix + "has_raw_data");
-            IRI graphIRI = f.createIRI(graph);
-            IRI dataset = f.createIRI(uri);
-            
-            deleteRawData(uriPre + rawDataId, uri, graph);
-            
-            RepositoryResult<Statement>statements = sparqlDAO.getStatements(dataset, hasRawData, f.createIRI(uriPre + rawDataId), graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+            deleteRawData(uriPre + rawDataId, graph);
         }
     }
     
     @Override
     public void deleteProcessedData (String processedDataId, String datasetId, UserEntity user) throws SQLException, SparqlException {
-        
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -2135,22 +2170,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         }
         if (graph != null) {
-            String uri = uriPre + datasetId;
-            ValueFactory f = sparqlDAO.getValueFactory();
-            IRI hasProcessedData = f.createIRI(ontPrefix + "has_processed_data");
-            IRI graphIRI = f.createIRI(graph);
-            IRI dataset = f.createIRI(uri);
             String processedDataURI = uriPre + processedDataId;
-            IRI processedDataIRI = f.createIRI(processedDataURI);
-            
             deleteProcessedData(processedDataURI, graph);
-            
-            RepositoryResult<Statement>statements = sparqlDAO.getStatements(dataset, hasProcessedData, processedDataIRI, graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
         }
     }
 
-    private void deleteRawData(String rawDataURI, String datasetURI, String graph) throws RepositoryException, SparqlException {
+    private void deleteRawData(String rawDataURI, String graph) throws RepositoryException, SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI rawData = f.createIRI(rawDataURI);
         IRI graphIRI = f.createIRI(graph);
@@ -2176,32 +2201,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             String processedDataURI = st.getSubject().stringValue();
             deleteProcessedData(processedDataURI, graph);
         }
-        
-       /* // delete slides
-        statements = sparqlDAO.getStatements(rawData, hasSlide, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            String slideURI = st.getObject().stringValue();
-            // delete the slide
-            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(slideURI), null, null, graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-            // delete it from the dataset as well
-            RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(f.createIRI(datasetURI), hasSlide, f.createIRI(slideURI), graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements3), graphIRI);
-        }
-        // delete images
-        statements = sparqlDAO.getStatements(rawData, hasImage, null, graphIRI);
-        while (statements.hasNext()) {
-            Statement st = statements.next();
-            String imageURI = st.getObject().stringValue();
-            // delete the image
-            RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(imageURI), null, null, graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
-            // delete it from the dataset as well
-            RepositoryResult<Statement> statements3 = sparqlDAO.getStatements(f.createIRI(datasetURI), hasImage2, f.createIRI(imageURI), graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements3), graphIRI);
-            deleteFiles (imageURI, graph);
-        }*/
         
         deleteFiles(rawDataURI, graph);
         
@@ -2667,6 +2666,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             IRI hasCollab = f.createIRI(hasCollaborator);
             IRI datasetIRI = f.createIRI(datasetURI);
             IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
+            IRI hasKeyword = f.createIRI(ontPrefix + "has_keyword");
             
             // check if the dataset is made public by checking the has_public_uri predicate
             IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
@@ -2713,6 +2713,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 statements.add(f.createStatement(datasetIRI, RDFS.COMMENT, comment, graphIRI));
                 if (publicIRI != null)
                     publicStatements.add(f.createStatement(publicIRI, RDFS.COMMENT, comment, publicGraphIRI));
+            }
+            
+            if (dataset.getKeywords() != null) {
+                for (String keyword: dataset.getKeywords()) {
+                    Literal keyLit = f.createLiteral(keyword);
+                    statements.add(f.createStatement(datasetIRI, hasKeyword, keyLit, graphIRI));
+                    if (publicIRI != null)
+                        publicStatements.add(f.createStatement(publicIRI, hasKeyword, keyLit, publicGraphIRI));
+                }
             }
             
             if (dataset.getSample() != null && publicIRI == null) { // do not allow changing the sample if the dataset is public
@@ -3589,7 +3598,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             while (statements.hasNext()) {
                 Statement st = statements.next();
                 String imageURI = st.getSubject().stringValue();
-                deleteImage (imageURI, datasetId, user);
+                deleteImage (imageURI.substring(imageURI.lastIndexOf("/")+1), datasetId, user);
             }
             
             // delete the slide
@@ -3602,7 +3611,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
     }
 
-    private void deleteImage(String imageURI, String datasetId, UserEntity user) throws SQLException, SparqlException {
+    @Override
+    public void deleteImage(String imageId, String datasetId, UserEntity user) throws SQLException, SparqlException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -3615,12 +3625,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (graph != null) {
             ValueFactory f = sparqlDAO.getValueFactory();
             IRI derivedFrom = f.createIRI(derivedFromPredicate);
-            IRI hasImage = f.createIRI(ontPrefix + "has_image");
             IRI graphIRI = f.createIRI(graph);
+            String imageURI = uriPre + imageId;
             deleteFiles (imageURI, graph);
             
             IRI image = f.createIRI(imageURI);
-            IRI dataset = f.createIRI(uriPre + datasetId);
             
             // delete RawData
             RepositoryResult<Statement> statements;
@@ -3634,8 +3643,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             statements = sparqlDAO.getStatements(image, null, null, graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
             
-            statements = sparqlDAO.getStatements(dataset, hasImage, image, graphIRI);
-            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+           
         } 
     }
 

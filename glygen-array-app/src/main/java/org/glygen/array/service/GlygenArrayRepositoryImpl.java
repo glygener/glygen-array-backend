@@ -595,6 +595,16 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
          }
     }
     
+    protected void deleteChangeLog (String uri, String graph) throws SparqlException {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI iri = f.createIRI(uri);
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasChangeLog = f.createIRI(hasChangeLogPredicate);
+        
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(iri, hasChangeLog, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+    }
+    
     protected void deleteFiles(String uri, String graph) throws SparqlException {
         ValueFactory f = sparqlDAO.getValueFactory();
         IRI iri = f.createIRI(uri);

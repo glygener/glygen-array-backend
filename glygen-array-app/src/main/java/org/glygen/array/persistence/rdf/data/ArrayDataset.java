@@ -18,12 +18,12 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     String description;
    
     Sample sample;
-    List<Slide> slides;
-    List<Publication> publications;
-    List<Creator> collaborators;
-    List<Grant> grants;
-    List<String> keywords;
-    List<FileWrapper> files;
+    List<Slide> slides = new ArrayList<Slide>();
+    List<Publication> publications = new ArrayList<Publication>();
+    List<Creator> collaborators = new ArrayList<Creator>();
+    List<Grant> grants = new ArrayList<Grant>();
+    List<String> keywords = new ArrayList<String>();
+    List<FileWrapper> files = new ArrayList<FileWrapper>();
     
     boolean isPublic = false;
     Creator user;

@@ -845,13 +845,19 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 
 	@Override
 	public void deleteFeature(String featureId, UserEntity user) throws SparqlException, SQLException {
-		String graph;
-		
-		graph = getGraphForUser(user);
+	    String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
 		if (graph != null) {
-		    if (canDelete(uriPrefix + featureId, graph)) {
+		    if (canDelete(uriPre + featureId, graph)) {
     			// check to see if the given featureId is in this graph
-    			Feature existing = getFeatureFromURI (uriPrefix + featureId, user);
+    			Feature existing = getFeatureFromURI (uriPre + featureId, user);
     			if (existing != null) {
     				if (existing.getPositionMap() != null && !existing.getPositionMap().isEmpty()) {
     					// need to delete position context
@@ -866,8 +872,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
     						deleteByURI (positionContext.stringValue(), graph);	
     					}
     				}
-    				deleteByURI (uriPrefix + featureId, graph);
-    				featureCache.remove(uriPrefix + featureId);
+    				// delete change log
+                    deleteChangeLog(uriPre + featureId, graph);
+    				
+    				deleteByURI (uriPre + featureId, graph);
+    				featureCache.remove(uriPre + featureId);
     				return;
     			}
 		    } else {

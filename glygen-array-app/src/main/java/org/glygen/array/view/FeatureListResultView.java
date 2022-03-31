@@ -2,8 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.Feature;
 
+@XmlRootElement
 public class FeatureListResultView {
 	int total;
 	List<Feature> rows;

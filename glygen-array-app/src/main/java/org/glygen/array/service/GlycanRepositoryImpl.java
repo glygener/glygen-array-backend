@@ -498,6 +498,9 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             RepositoryResult<Statement> statements1 = sparqlDAO.getStatements(seq, null, null, graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements1), graphIRI); 
 		}
+		// delete change log
+        deleteChangeLog(uri, graph);
+		
 		RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(glycan, null, null, graphIRI);
 		sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
 		

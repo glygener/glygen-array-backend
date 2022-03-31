@@ -1,10 +1,17 @@
 package org.glygen.array.view;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class Confirmation {
 	final static String status = "success";
 	
 	int statusCode;
 	String message;
+	
+	public Confirmation() {
+	    // default
+	}
 	
 	public Confirmation(String message, int statusCode) {
 		this.statusCode = statusCode;

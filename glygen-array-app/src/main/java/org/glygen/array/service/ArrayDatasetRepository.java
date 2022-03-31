@@ -124,5 +124,6 @@ public interface ArrayDatasetRepository {
     void addFile(FileWrapper file, String datasetId, UserEntity user) throws SparqlException, SQLException;
     void addExclusionInfoToProcessedData(ProcessedData processedData, UserEntity user)
             throws SparqlException, SQLException;
+    void deleteImage(String imageURI, String datasetId, UserEntity user) throws SQLException, SparqlException;
     
 }

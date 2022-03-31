@@ -434,11 +434,19 @@ public class UtilityController {
     @ApiOperation(value="Retrieve supported processed data formats")
     @RequestMapping(value="/supportedprocessedfileformats", method=RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public List<String> getProcessedDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
-        fileFormats.add("CFG_V5.2");
         fileFormats.add("Glygen Array Data File");
+        fileFormats.add("CFG_V5.2");
+        fileFormats.add("CFG_V5.1");
+        fileFormats.add("CFG_V5.0");
+        fileFormats.add("CFG_V4.2");
+        fileFormats.add("CFG_V4.1");
+        fileFormats.add("CFG_V4.0");
+        fileFormats.add("CFG_V3.2");
+        fileFormats.add("CFG_V3.1");
+        fileFormats.add("CFG_V3.0");
+        
         return fileFormats;
     }
     
@@ -528,9 +536,7 @@ public class UtilityController {
                 Collections.sort(((DescriptorGroupTemplate) d).getDescriptors());
                 processMandateGroups(((DescriptorGroupTemplate) d).getDescriptors());
             }
-        }
-        
-        
+        } 
     }
     
     @ApiOperation(value = "Retrieve the template by id")

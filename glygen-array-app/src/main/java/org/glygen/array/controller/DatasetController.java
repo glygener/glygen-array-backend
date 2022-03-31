@@ -382,6 +382,86 @@ public class DatasetController {
         }
     }
     
+    @ApiOperation(value = "Add given file to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/addFile", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"}, produces= {"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add files"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation addFile (
+            @ApiParam(required=true, value="File to be added.")
+            @RequestBody FileWrapper file, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the file") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        ArrayDataset dataset = null;
+        String fileFolder = uploadDir;
+        // check if the dataset with the given id exists
+        try {
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
+            if (dataset == null) {
+                // check if the user can access this dataset as a co-owner
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
+                        owner = originalUser;
+                    }
+                }
+            }
+            if (dataset == null)
+                errorMessage.addError(new ObjectError("dataset", "NotFound")); 
+            
+            
+            if (file.getFileFolder() != null)
+                fileFolder = file.getFileFolder();
+            File newFile = new File (fileFolder, file.getIdentifier());
+            if (!newFile.exists()) {
+                errorMessage.addError(new ObjectError("file" + file.getIdentifier(), "NotFound"));
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
+        
+        try {
+            // save the files with the dataset
+            // create a folder for the experiment, if it does not exists, and move the file into that folder
+            File experimentFolder = new File (uploadDir + File.separator + datasetId);
+            if (!experimentFolder.exists()) {
+                experimentFolder.mkdirs();
+            }
+            
+            File f = new File (fileFolder, file.getIdentifier());
+            File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
+            if (!f.renameTo (newFile)) { 
+                throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+            } 
+            file.setFileFolder(experimentFolder.getAbsolutePath());
+            file.setFileSize(newFile.length());
+            dataset.getFiles().add(file);
+                
+            datasetRepository.updateArrayDataset(dataset, owner);
+            return new Confirmation("File added successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset cannot be added for user " + p.getName(), e);
+        }
+    }
+    
     @ApiOperation(value = "Add given grant to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/addGrant", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
@@ -446,6 +526,71 @@ public class DatasetController {
                 return id;
             } 
             return null;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("The grant cannot be added for user " + p.getName(), e);
+        }
+    }
+    
+    @ApiOperation(value = "Add given keyword to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/addKeyword", method = RequestMethod.POST, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add keywords"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation addKeyword (
+            @ApiParam(required=true, value="Keyword to be added.")
+            @RequestParam("keyword") String keyword, 
+            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the keyword") 
+            @RequestParam("arraydatasetId")
+            String datasetId,  
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        // check if the dataset with the given id exists
+        UserEntity owner = user;
+        ArrayDataset dataset = null;
+        try {
+            dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, user);
+            if (dataset == null) {
+                // check if the user can access this dataset as a co-owner
+                String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                if (coOwnedGraph != null) {
+                    UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                    if (originalUser != null) {
+                        dataset = datasetRepository.getArrayDataset(datasetId.trim(), false, originalUser);
+                        owner = originalUser;
+                    }
+                }
+            }
+            if (dataset == null)
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            // check for duplicates
+            if (dataset.getKeywords() != null) {
+                for (String k: dataset.getKeywords()) {
+                    if (k.equalsIgnoreCase(keyword)) {
+                        // duplicate
+                        errorMessage.addError(new ObjectError("keyword", "Duplicate"));
+                    }
+                }
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid publication/dataset information", errorMessage);
+        
+        try {
+            dataset.getKeywords().add(keyword);
+            datasetRepository.updateArrayDataset(dataset, owner);
+            return new Confirmation("Keyword added successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("The grant cannot be added for user " + p.getName(), e);
         }
@@ -2655,7 +2800,10 @@ public class DatasetController {
     public String updateProcessedDataFromExcel (
             @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
-            String datasetId,        
+            String datasetId,      
+            @ApiParam(required=true, value="id of the raw data (must already be in the repository) to add the processed data") 
+            @RequestParam("rawdataId")
+            String rawDataId, 
             @ApiParam(required=true, value="processed data with an existing id/uri. If file is provided, the new file information is used. "
                     + "If not, existing file is used for processing") 
             @RequestBody
@@ -2706,6 +2854,30 @@ public class DatasetController {
         
         FileWrapper file = processedData.getFile();
         
+        Slide mySlide = null;
+        // need to locate the slide from the dataset and image
+        if (dataset != null && dataset.getSlides() != null) {
+            for (Slide slide: dataset.getSlides()) {
+                if (slide.getImages() != null) {
+                    for (Image i: slide.getImages()) {
+                        if (i.getRawDataList() != null) {
+                            for (RawData r: i.getRawDataList()) {
+                                if (r.getId().equals(rawDataId)) {
+                                    mySlide = slide;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+        
+        if (mySlide == null) {
+            errorMessage.addError(new ObjectError("slide", "NotFound"));
+        }
+        
         try {
             ProcessedData existing = datasetRepository.getProcessedDataFromURI(uri, true, owner);
             if (existing == null) {
@@ -2745,7 +2917,7 @@ public class DatasetController {
             UserEntity originalUser = owner;
             CompletableFuture<List<Intensity>> intensities = null;
             try {
-                intensities = parserAsyncService.parseProcessDataFile(datasetId.trim(), file, dataset.getSlides().get(0), owner);
+                intensities = parserAsyncService.parseProcessDataFile(datasetId.trim(), file, mySlide, owner);
                 intensities.whenComplete((intensity, e) -> {
                     try {
                         String processedURI = processedData.getUri();
@@ -4655,17 +4827,55 @@ public class DatasetController {
             ArrayDataset dataset = getArrayDataset(id.trim(), false, principal);
             // check the status of dataset, if PROCESSING cannot delete
             if (dataset != null && dataset.getStatus() == FutureTaskStatus.PROCESSING) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("dataset", "NotDone"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("Cannot delete the dataset when it is still processing", errorMessage);
+                // check the timestamp and see if enough time has passed
+                Long timeDelay = 3600L;
+                SettingEntity entity = settingsRepository.findByName("timeDelay");
+                if (entity != null) {
+                    timeDelay = Long.parseLong(entity.getValue());
+                }
+                Date current = new Date();
+                Date startDate = dataset.getStartDate();
+                if (startDate != null) {
+                    long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                    if (timeDelay > diffInMillies / 1000) {
+                        // not enough time has passed, cannot delete!
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("dataset", "NotDone"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("Cannot delete the dataset when it is still processing", errorMessage);
+                    }
+                }
             }
+            
+            //check if the dataset is public
+            try {
+                String publicID = datasetRepository.getDatasetPublicId(id.trim());
+                if (publicID != null) {
+                    // this is major change, do not allow
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("dataset", "Public"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                }
+            } catch (SparqlException e) {
+                throw new GlycanRepositoryException("Dataset " + id + " cannot be retrieved for user " + principal.getName(), e);
+            }
+            
             if (dataset != null && dataset.getSlides() != null) {
                 for (Slide slide: dataset.getSlides()) {
                     deleteSlide(slide.getId(), id, principal);
                 }
                 datasetRepository.deleteArrayDataset(id, user);
+                if (dataset.getFiles() != null) {
+                    for (FileWrapper f: dataset.getFiles()) {
+                        File dataFile = new File (f.getFileFolder(), f.getIdentifier());
+                        if (dataFile.exists()) {
+                            dataFile.delete();
+                        }
+                    }
+                }
             }
             
             if (dataset == null) {
@@ -4723,24 +4933,62 @@ public class DatasetController {
                 }
             }
             
+            //check if the dataset is public
+            try {
+                String publicID = datasetRepository.getDatasetPublicId(datasetId);
+                if (publicID != null) {
+                    // this is major change, do not allow
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("dataset", "Public"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                }
+            } catch (SparqlException e) {
+                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+            }
+            
+            // check the timestamp and see if enough time has passed
+            Long timeDelay = 3600L;
+            SettingEntity entity = settingsRepository.findByName("timeDelay");
+            if (entity != null) {
+                timeDelay = Long.parseLong(entity.getValue());
+            }
+           
+            Date current = new Date();
+            
             RawData rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
             // check the status first
             if (rawData != null) {
                 if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
-                    ErrorMessage errorMessage = new ErrorMessage();
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("rawData", "NotDone"));
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("Cannot delete the rawdata when it is still processing", errorMessage);
+                    Date startDate = rawData.getStartDate();
+                    if (startDate != null) {
+                        long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                        if (timeDelay > diffInMillies / 1000) {
+                            // not enough time has passed, cannot delete!
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            throw new IllegalArgumentException("Cannot delete the raw data when it is still processing", errorMessage);
+                        }
+                    }
                 }
                 if (rawData.getProcessedDataList() != null) {
                     for (ProcessedData processedData: rawData.getProcessedDataList()) {
                         if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
-                            ErrorMessage errorMessage = new ErrorMessage();
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                            Date startDate = processedData.getStartDate();
+                            if (startDate != null) {
+                                long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                                if (timeDelay > diffInMillies / 1000) {
+                                    // not enough time has passed, cannot delete!
+                                    ErrorMessage errorMessage = new ErrorMessage();
+                                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                    throw new IllegalArgumentException("Cannot delete the processed data when it is still processing", errorMessage);
+                                }
+                            }
                         }
                     }
                 }
@@ -4776,7 +5024,7 @@ public class DatasetController {
         } 
     }
     
-   /* @ApiOperation(value = "Delete the given processed data from the given array dataset")
+    @ApiOperation(value = "Delete the given processed data from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteprocesseddata/{processeddataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(code=200, message="ProcessedData deleted successfully"), 
@@ -4793,13 +5041,93 @@ public class DatasetController {
             Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            UserEntity owner = user;
+            
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    datasetId = datasetId.trim();
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                    
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+                
+                //check if the dataset is public
+                try {
+                    String publicID = datasetRepository.getDatasetPublicId(datasetId);
+                    if (publicID != null) {
+                        // this is major change, do not allow
+                        ErrorMessage errorMessage = new ErrorMessage();
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("dataset", "Public"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                    }
+                } catch (SparqlException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            
+            // check the timestamp and see if enough time has passed
+            Long timeDelay = 3600L;
+            SettingEntity entity = settingsRepository.findByName("timeDelay");
+            if (entity != null) {
+                timeDelay = Long.parseLong(entity.getValue());
+            }
+           
+            Date current = new Date();
+            
+            ProcessedData processedData = datasetRepository.getProcessedDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
+            // check the status first
+            if (processedData != null) {
+                if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                    Date startDate = processedData.getStartDate();
+                    if (startDate != null) {
+                        long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                        if (timeDelay > diffInMillies / 1000) {
+                            // not enough time has passed, cannot delete!
+                            ErrorMessage errorMessage = new ErrorMessage();
+                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            throw new IllegalArgumentException("Cannot delete the processed data when it is still processing", errorMessage);
+                        }
+                    }
+                }
+            } else {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("id", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find ProcessedData with the given id", errorMessage);
+            }
+            
             datasetRepository.deleteProcessedData(id, datasetId, user);
+            if (processedData.getFile() != null) {
+                File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                if (dataFile.exists()) {
+                    dataFile.delete();
+                }
+            }
+            
             return new Confirmation("ProcessedData deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete ProcessedData " + id, e);
         } 
     }
-    */
+    
     
     @ApiOperation(value = "Delete the given slide from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deleteslide/{slideId}", method = RequestMethod.DELETE, 
@@ -4840,41 +5168,62 @@ public class DatasetController {
                 } catch (SparqlException | SQLException e) {
                     throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
                 }
-            }
-            
-            //check if the dataset is public
-            try {
-                String publicID = datasetRepository.getDatasetPublicId(datasetId);
-                if (publicID != null) {
-                    // this is major change, do not allow
-                    errorMessage.addError(new ObjectError("dataset", "Public"));
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                
+                //check if the dataset is public
+                try {
+                    String publicID = datasetRepository.getDatasetPublicId(datasetId);
+                    if (publicID != null) {
+                        // this is major change, do not allow
+                        errorMessage.addError(new ObjectError("dataset", "Public"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                    }
+                } catch (SparqlException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
                 }
-            } catch (SparqlException e) {
-                throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
             }
             
+            // check the timestamp and see if enough time has passed
+            Long timeDelay = 3600L;
+            SettingEntity entity = settingsRepository.findByName("timeDelay");
+            if (entity != null) {
+                timeDelay = Long.parseLong(entity.getValue());
+            }
            
+            Date current = new Date();
+            
             Slide slide = datasetRepository.getSlideFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
             //delete the files associated with the slide (image, raw data and processed data files)
             if (slide != null) {
                 for (Image image: slide.getImages()) {
                     if (image.getRawDataList() != null) {
                         for (RawData rawData: image.getRawDataList()) {
-                            if (rawData != null && rawData.getFile() != null) {
+                            if (rawData != null) {
                                 if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
-                                    
-                                    errorMessage.addError(new ObjectError("rawData", "NotDone"));
-                                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                    throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                    Date startDate = rawData.getStartDate();
+                                    if (startDate != null) {
+                                        long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                                        if (timeDelay > diffInMillies / 1000) {
+                                            // not enough time has passed, cannot restart!
+                                            errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                            throw new IllegalArgumentException("Cannot delete the raw data when it is still processing", errorMessage);
+                                        }
+                                    }
                                 }
                                 if (rawData.getProcessedDataList() != null) {
                                     for (ProcessedData processedData: rawData.getProcessedDataList()) {
                                         if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
-                                            errorMessage.addError(new ObjectError("processedData", "NotDone"));
-                                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                            throw new IllegalArgumentException("Cannot delete the slide when it is still processing", errorMessage);
+                                            Date startDate = processedData.getStartDate();
+                                            if (startDate != null) {
+                                                long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                                                if (timeDelay > diffInMillies / 1000) {
+                                                    // not enough time has passed, cannot restart!
+                                                    errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                                    throw new IllegalArgumentException("Cannot delete the processed data when it is still processing", errorMessage);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4914,6 +5263,145 @@ public class DatasetController {
                 return new Confirmation("Slide deleted successfully", HttpStatus.OK.value());
             } else {
                 errorMessage.addError(new ObjectError("slideId", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find slide with the given id", errorMessage);
+            }
+            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete slide " + id, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given image from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/deleteimage/{imageId}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Image deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete image"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteImage (
+            @ApiParam(required=true, value="id of the image to delete") 
+            @PathVariable("imageId") String id, 
+            @ApiParam(required=true, value="id of the array dataset this image belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            UserEntity owner = user;
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            if (datasetId != null) {
+                // check if the dataset with the given id exists for this user, or if the user is the co-owner
+                try {
+                    datasetId = datasetId.trim();
+                    ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                    if (dataset == null) {
+                        // check if the user can access this dataset as a co-owner
+                        String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                        if (coOwnedGraph != null) {
+                            UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                            if (originalUser != null) {
+                                dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                                owner = originalUser;
+                            }
+                        }
+                    }
+                } catch (SparqlException | SQLException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+                
+                //check if the dataset is public
+                try {
+                    String publicID = datasetRepository.getDatasetPublicId(datasetId);
+                    if (publicID != null) {
+                        // this is major change, do not allow
+                        errorMessage.addError(new ObjectError("dataset", "Public"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                    }
+                } catch (SparqlException e) {
+                    throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + principal.getName(), e);
+                }
+            }
+            
+            // check the timestamp and see if enough time has passed
+            Long timeDelay = 3600L;
+            SettingEntity entity = settingsRepository.findByName("timeDelay");
+            if (entity != null) {
+                timeDelay = Long.parseLong(entity.getValue());
+            }
+           
+            Date current = new Date();
+            
+            Image image = datasetRepository.getImageFromURI(GlygenArrayRepositoryImpl.uriPrefix + id, false, owner);
+            if (image != null) {
+                if (image.getRawDataList() != null) {
+                    for (RawData rawData: image.getRawDataList()) {
+                        if (rawData != null) {
+                            if (rawData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                Date startDate = rawData.getStartDate();
+                                if (startDate != null) {
+                                    long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                                    if (timeDelay > diffInMillies / 1000) {
+                                        // not enough time has passed, cannot restart!
+                                        errorMessage.addError(new ObjectError("rawData", "NotDone"));
+                                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                        throw new IllegalArgumentException("Cannot delete the raw data when it is still processing", errorMessage);
+                                    }
+                                }
+                            }
+                            if (rawData.getProcessedDataList() != null) {
+                                for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                    if (processedData.getStatus() == FutureTaskStatus.PROCESSING) {
+                                        Date startDate = processedData.getStartDate();
+                                        if (startDate != null) {
+                                            long diffInMillies = Math.abs(current.getTime() - startDate.getTime());
+                                            if (timeDelay > diffInMillies / 1000) {
+                                                // not enough time has passed, cannot restart!
+                                                errorMessage.addError(new ObjectError("processedData", "NotDone"));
+                                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                                throw new IllegalArgumentException("Cannot delete the processed data when it is still processing", errorMessage);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                datasetRepository.deleteImage(id, datasetId, owner);   
+                
+                if (image.getFile() != null) {
+                    File file = new File (image.getFile().getFileFolder(), image.getFile().getIdentifier());
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                }
+                if (image.getRawDataList() != null) {
+                    for (RawData rawData: image.getRawDataList()) {
+                        if (rawData != null && rawData.getFile() != null) {
+                            File rawDataFile = new File (rawData.getFile().getFileFolder(), rawData.getFile().getIdentifier());
+                            if (rawDataFile.exists()) {
+                                rawDataFile.delete();
+                            }
+                            if (rawData.getProcessedDataList() != null) {
+                                for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                    if (processedData.getFile() != null) {
+                                        File dataFile = new File (processedData.getFile().getFileFolder(), processedData.getFile().getIdentifier());
+                                        if (dataFile.exists()) {
+                                            dataFile.delete();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return new Confirmation("Image deleted successfully", HttpStatus.OK.value());
+            } else {
+                errorMessage.addError(new ObjectError("imageId", "NotFound"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Cannot find slide with the given id", errorMessage);
             }

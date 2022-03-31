@@ -171,6 +171,46 @@ public class AsyncServiceImpl implements AsyncService {
             config.setSheetNumber(0);
             config.setStDevColumnId(31);
             config.setStartRow(1);
+        } else if (fileFormat.equalsIgnoreCase("CFG_V5.0") || fileFormat.equalsIgnoreCase("CFG_V5.1")) {
+            config.setCvColumnId(10);
+            config.setFeatureColumnId(7);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(8);
+            config.setSheetNumber(0);
+            config.setStDevColumnId(9);
+            config.setStartRow(1);
+        } else if (fileFormat.equalsIgnoreCase("CFG_V4.2")) {
+            config.setCvColumnId(19);
+            config.setFeatureColumnId(16);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(17);
+            config.setSheetNumber(0);
+            config.setStDevColumnId(18);
+            config.setStartRow(3);
+        } else if (fileFormat.equalsIgnoreCase("CFG_V4.1") || fileFormat.equalsIgnoreCase("CFG_V4.0") || fileFormat.equalsIgnoreCase("CFG_V3.1")) {
+            config.setCvColumnId(30);
+            config.setFeatureColumnId(27);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(28);
+            config.setSheetNumber(0);
+            config.setStDevColumnId(29);
+            config.setStartRow(3);
+        } else if (fileFormat.equalsIgnoreCase("CFG_V3.2")) {
+            config.setCvColumnId(30);
+            config.setFeatureColumnId(27);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(28);
+            config.setSheetNumber(1);
+            config.setStDevColumnId(29);
+            config.setStartRow(3);
+        } else if (fileFormat.equalsIgnoreCase("CFG_V3.0")) {
+            config.setCvColumnId(30);
+            config.setFeatureColumnId(26);
+            config.setResultFileType("cfg");
+            config.setRfuColumnId(27);
+            config.setSheetNumber(1);
+            config.setStDevColumnId(28);
+            config.setStartRow(3);
         } else if (fileFormat.startsWith("Glygen")){
             config.setCvColumnId(-1);
             config.setFeatureColumnId(-1);

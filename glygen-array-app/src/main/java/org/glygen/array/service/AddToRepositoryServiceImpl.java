@@ -1609,6 +1609,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         glycan2.setSequence(t_exporter.getHashCode());
         glycan2.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan2.setSubType(GlycanSubsumtionType.ALPHA);
+        glycan2.setName(baseGlycan.getName()+" (Alpha version)");
         // calculate mass
      // calculate mass
         try {
@@ -1627,6 +1628,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         glycan3.setSequence(t_exporter.getHashCode());
         glycan3.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan3.setSubType(GlycanSubsumtionType.BETA);
+        glycan3.setName(baseGlycan.getName()+" (Beta version)");
         // calculate mass
      // calculate mass
         try {
@@ -1645,6 +1647,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         glycan4.setSequence(t_exporter.getHashCode());
         glycan4.setSequenceType(GlycanSequenceFormat.GLYCOCT);
         glycan4.setSubType(GlycanSubsumtionType.ALDITOL);
+        glycan4.setName(baseGlycan.getName()+" (Alditol version)");
         // calculate mass
      // calculate mass
         try {
