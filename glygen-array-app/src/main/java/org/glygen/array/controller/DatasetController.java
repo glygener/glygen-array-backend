@@ -424,6 +424,15 @@ public class DatasetController {
             if (dataset == null)
                 errorMessage.addError(new ObjectError("dataset", "NotFound")); 
             
+            // check for duplicates
+            if (dataset.getFiles() != null) {
+                for (FileWrapper f: dataset.getFiles()) {
+                    if (file.getIdentifier().equalsIgnoreCase(f.getIdentifier())) {
+                        // duplicate
+                        errorMessage.addError(new ObjectError("file", "Duplicate"));
+                    }
+                }
+            }
             
             if (file.getFileFolder() != null)
                 fileFolder = file.getFileFolder();
@@ -3615,7 +3624,7 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
     public List<User> listCoownersForDataset(
-            @ApiParam(required=true, value="id of the array dataset for which to retrive the applicable slides") 
+            @ApiParam(required=true, value="id of the array dataset for which to retrive the applicable coowners") 
             @RequestParam(value="arraydatasetId", required=true)
             String datasetId,
             Principal p) {
@@ -5584,6 +5593,152 @@ public class DatasetController {
         } 
     }
     
+    @ApiOperation(value = "Delete the given keyword from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/deletekeyword/{keyword}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="keyword deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete keywords"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteKeyword (
+            @ApiParam(required=true, value="id of the file to delete") 
+            @PathVariable("keyword") String keyword, 
+            @ApiParam(required=true, value="id of the array dataset this keyword belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            
+            UserEntity owner = user;
+            // check if the dataset with the given id exists
+            ArrayDataset dataset;
+            try {
+                datasetId = datasetId.trim();
+                dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+            }
+            
+            if (dataset != null && dataset.getKeywords() != null) {
+                List<String> newKeywords = new ArrayList<String>();
+                boolean found = false;
+                for (String k: dataset.getKeywords()) {
+                    if (k.equals(keyword)) {
+                        found = true;
+                    } else {
+                        newKeywords.add(k);
+                    }
+                }
+                if (!found) {
+                    errorMessage.addError(new ObjectError("keyword", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Given array dataset does not have the given keyword", errorMessage);
+                }
+                else {
+                    dataset.setKeywords(newKeywords);
+                    datasetRepository.updateArrayDataset(dataset, owner);
+                    return new Confirmation("keyword deleted successfully", HttpStatus.OK.value());
+                }
+            }
+            else {
+                errorMessage.addError(new ObjectError("datasetId", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find array dataset with the given id", errorMessage);
+            }
+            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete keyword " + keyword, e);
+        } 
+    }
+    
+    @ApiOperation(value = "Delete the given file from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/deletefile/{fileidentifier}", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="file deleted successfully"), 
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to delete file"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation deleteFile (
+            @ApiParam(required=true, value="id of the file to delete") 
+            @PathVariable("fileidentifier") String id, 
+            @ApiParam(required=true, value="id of the array dataset this file belongs to") 
+            @RequestParam(name="datasetId", required=true)
+            String datasetId,
+            Principal principal) {
+        try {
+            UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            
+            UserEntity owner = user;
+            // check if the dataset with the given id exists
+            ArrayDataset dataset;
+            try {
+                datasetId = datasetId.trim();
+                dataset = datasetRepository.getArrayDataset(datasetId, false, user);
+                if (dataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + datasetId);
+                    if (coOwnedGraph != null) {
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            dataset = datasetRepository.getArrayDataset(datasetId, false, originalUser);
+                            owner = originalUser;
+                        }
+                    }
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+            }
+            
+            if (dataset != null && dataset.getFiles() != null) {
+                List<FileWrapper> newFiles = new ArrayList<FileWrapper>();
+                boolean found = false;
+                for (FileWrapper f: dataset.getFiles()) {
+                    if (f.getIdentifier().equals(id)) {
+                        found = true;
+                    } else {
+                        newFiles.add(f);
+                    }
+                }
+                if (!found) {
+                    errorMessage.addError(new ObjectError("fileidentifer", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Given array dataset does not have a file with the given id", errorMessage);
+                }
+                else {
+                    dataset.setFiles(newFiles);
+                    datasetRepository.updateArrayDataset(dataset, owner);
+                    return new Confirmation("File deleted successfully", HttpStatus.OK.value());
+                }
+            }
+            else {
+                errorMessage.addError(new ObjectError("datasetId", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Cannot find array dataset with the given id", errorMessage);
+            }
+            
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot delete file " + id, e);
+        } 
+    }
+    
     @ApiOperation(value = "Delete the given collaborator from the given array dataset", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value="/deletecollaborator/{username}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
@@ -6993,7 +7148,9 @@ public class DatasetController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public Confirmation updateDataset(
-            @ApiParam(required=true, value="Array dataset with updated fields. You can change name, description and sample") 
+            @ApiParam(required=true, value="Array dataset with updated fields. You can change name, description, keywords, publications, grants, coowners, collaborators and files"
+                    + ". Whatever is included in these fields would be reflected in the repository. Therefore, if you don't want the existing keywords to be deleted, for example,"
+                    + " you need to have the existing ones listed as part of the object") 
             @RequestBody ArrayDataset dataset, 
             @ApiParam(required=false, value="summary of the changes") 
             @RequestParam(value="changeSummary", required=false)
@@ -7053,10 +7210,10 @@ public class DatasetController {
         }
         
         // check to make sure, the sample is specified
-        if (dataset.getSample() == null || 
+     /*   if (dataset.getSample() == null || 
                 (dataset.getSample().getId() == null && dataset.getSample().getUri() == null && dataset.getSample().getName() == null)) {
             errorMessage.addError(new ObjectError("sample", "NoEmpty"));
-        } 
+        } */
 
         // check for duplicate name
         try {
@@ -7069,7 +7226,7 @@ public class DatasetController {
         }
         
         // check if the sample exists
-        if (dataset.getSample() != null) {
+    /*    if (dataset.getSample() != null) {
             try {
                 String id = dataset.getSample().getId();
                 if (id == null) {
@@ -7099,7 +7256,7 @@ public class DatasetController {
             } catch (SQLException | SparqlException e) {
                 throw new GlycanRepositoryException("Error checking for the existince of the sample", e);
             }
-        }
+        }*/
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             throw new IllegalArgumentException("Invalid Input: Not a valid printed slide information", errorMessage);
@@ -7114,6 +7271,113 @@ public class DatasetController {
             changeLog.setChangedFields(changedFields);
             dataset.addChange(changeLog);
             datasetRepository.updateArrayDataset(dataset, owner);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Array dataset cannot be updated for user " + p.getName(), e);
+        }       
+        return new Confirmation("Array dataset updated successfully", HttpStatus.OK.value());
+    }
+    
+    @ApiOperation(value = "Update given array dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/updatedatasetnamedescription", method = RequestMethod.POST, 
+            consumes={"application/json", "application/xml"},
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Array dataset updated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to update datasets"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation updateDatasetGeneralDetails(
+            @ApiParam(required=true, value="Array dataset with updated fields. You can change name and description. If there is no description provided, it would be removed in the repository as well.") 
+            @RequestBody ArrayDataset dataset, 
+            @ApiParam(required=false, value="summary of the changes") 
+            @RequestParam(value="changeSummary", required=false)
+            String changeSummary,
+            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @RequestParam(value="changedField", required=false)
+            List<String> changedFields,
+            Principal p) throws SQLException {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        // validate first
+        if (validator != null) {
+            if  (dataset.getName() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "name", dataset.getName());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("name", "LengthExceeded"));
+                }       
+            }
+            
+            if  (dataset.getDescription() != null) {
+                Set<ConstraintViolation<ArrayDataset>> violations = validator.validateValue(ArrayDataset.class, "description", dataset.getDescription());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("description", "LengthExceeded"));
+                }       
+            }
+        } else {
+            throw new RuntimeException("Validator cannot be found!");
+        }
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserEntity owner = user;
+        
+        if (dataset.getId() != null) {
+            // check if the dataset with the given id exists for this user, or if the user is the co-owner
+            try {
+                ArrayDataset existingdataset = datasetRepository.getArrayDataset(dataset.getId(), false, user);
+                if (existingdataset == null) {
+                    // check if the user can access this dataset as a co-owner
+                    String coOwnedGraph = datasetRepository.getCoownerGraphForUser(user, GlycanRepositoryImpl.uriPrefix + dataset.getId());
+                    if (coOwnedGraph != null) {
+                        UserEntity originalUser = userRepository.findByUsernameIgnoreCase(coOwnedGraph.substring(coOwnedGraph.lastIndexOf("/")+1));
+                        if (originalUser != null) {
+                            owner = originalUser;
+                        }
+                    }
+                }
+                
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Dataset " + dataset.getId() + " cannot be retrieved for user " + p.getName(), e);
+            }
+        }
+        
+        if (dataset.getName() == null || dataset.getName().isEmpty()) {
+            errorMessage.addError(new ObjectError("name", "NoEmpty"));
+        }
+        
+        ArrayDataset existing = null;
+        // check for duplicate name
+        try {
+            existing = datasetRepository.getArrayDatasetByLabel(dataset.getName(), false, owner);
+            if (existing != null && !existing.getUri().equals(dataset.getUri()) && !existing.getId().equals(dataset.getId())) {
+                errorMessage.addError(new ObjectError("name", "Duplicate"));
+            }
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("dataset", "NotFound"));
+            }
+        } catch (SparqlException | SQLException e2) {
+            throw new GlycanRepositoryException("Error checking for duplicate array dataset", e2);
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Invalid Input: Not a valid dataset information", errorMessage);
+        }
+        
+        try {
+            if (existing != null) {  // should not be ever null at this point
+                ChangeLog changeLog = new ChangeLog();
+                changeLog.setUser(p.getName());
+                changeLog.setChangeType(ChangeType.MINOR);
+                changeLog.setDate(new Date());
+                changeLog.setSummary(changeSummary);
+                changeLog.setChangedFields(changedFields);
+                existing.addChange(changeLog);
+                existing.setName(dataset.getName());
+                existing.setDescription(dataset.getDescription());
+                datasetRepository.updateArrayDataset(existing, owner);
+            }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset cannot be updated for user " + p.getName(), e);
         }       

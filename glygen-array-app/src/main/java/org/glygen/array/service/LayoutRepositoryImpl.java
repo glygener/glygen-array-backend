@@ -1309,6 +1309,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         } catch (NumberFormatException e) {
                             logger.warn ("file size is not valid");
                         }
+                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                        Value val = st2.getObject();
+                        file.setDescription(val.stringValue());
                     }
                 }
                 slideLayoutObject.setFile(file);    
@@ -1420,6 +1423,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
             Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
             Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
+            Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
@@ -1427,6 +1431,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
             
         }
 	    

@@ -341,6 +341,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
         
+        if (file.getIdentifier() == null) 
+            return;  // nothing to add
         
         List<Statement> statements = new ArrayList<Statement>();
         String fileURI = generateUniqueURI(uriPrefix + "FILE", allGraphs);
@@ -348,6 +350,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
         Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
         Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
+        Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
         Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
         IRI fileIRI = f.createIRI(fileURI);
         statements.add(f.createStatement(dataset, hasFile, fileIRI, graphIRI));
@@ -356,6 +359,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
         if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
         if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+        if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
         
         sparqlDAO.addStatements(statements, graphIRI);
     }
@@ -796,6 +800,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
                 Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
                 Literal size = processedData.getFile().getFileSize() == null ? null : f.createLiteral(processedData.getFile().getFileSize());
+                Literal description = processedData.getFile().getDescription() == null ? null : f.createLiteral(processedData.getFile().getDescription());
                 IRI fileIRI = f.createIRI(fileURI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(processed, hasFile, null, graphIRI)), graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(fileIRI, null, null, graphIRI)), graphIRI);
@@ -805,6 +810,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
                 if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
                 if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+                if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
             }
             
             sparqlDAO.addStatements(statements, graphIRI);
@@ -907,6 +913,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
             Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
             Literal size = processedData.getFile().getFileSize() == null ? null : f.createLiteral(processedData.getFile().getFileSize());
+            Literal description = processedData.getFile().getDescription() == null ? null : f.createLiteral(processedData.getFile().getDescription());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(processed, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
@@ -914,7 +921,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
-            
+            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
         }
         
         IRI raw = f.createIRI(uriPre + rawDataId);
@@ -1188,9 +1195,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         } catch (NumberFormatException e) {
                             logger.warn ("file size is not valid");
                         }
+                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                        Value val = st2.getObject();
+                        file.setDescription(val.stringValue());
                     }
                 }
-                datasetObject.getFiles().add(file);    
+                if (file.getIdentifier() != null)
+                    datasetObject.getFiles().add(file); 
+                else {
+                    logger.info("dangling file " + value.stringValue() + " in the repository");
+                }
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
                 // that means the arrray dataset is already public
@@ -1264,6 +1278,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 } catch (NumberFormatException e) {
                                     logger.warn ("file size is not valid");
                                 }
+                            } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                                Value val = st2.getObject();
+                                file.setDescription(val.stringValue());
                             }
                         }
                         datasetObject.getFiles().add(file);    
@@ -1382,6 +1399,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Literal fileFormat = image.getFile().getFileFormat() == null ? null : f.createLiteral(image.getFile().getFileFormat());
             Literal originalName = image.getFile().getOriginalName() == null ? null : f.createLiteral(image.getFile().getOriginalName());
             Literal size = image.getFile().getFileSize() == null ? null : f.createLiteral(image.getFile().getFileSize());
+            Literal description = image.getFile().getDescription() == null ? null : f.createLiteral(image.getFile().getDescription());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(imageIRI, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
@@ -1389,6 +1407,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
         }
         
         IRI slideIRI = f.createIRI(uriPre + slideId);
@@ -1571,6 +1590,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         } catch (NumberFormatException e) {
                             logger.warn ("file size is not valid");
                         }
+                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                        Value val = st2.getObject();
+                        file.setDescription(val.stringValue());
                     }
                 }
                 processedObject.setFile(file);    
@@ -1773,6 +1795,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         } catch (NumberFormatException e) {
                             logger.warn ("file size is not valid");
                         }
+                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                        Value val = st2.getObject();
+                        file.setDescription(val.stringValue());
                     }
                 }
                 imageObject.setFile(file);    
@@ -1877,6 +1902,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         } catch (NumberFormatException e) {
                             logger.warn ("file size is not valid");
                         }
+                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                        Value val = st2.getObject();
+                        file.setDescription(val.stringValue());
                     }
                 }
                 rawDataObject.setFile(file);    
@@ -2661,7 +2689,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (datasetURI != null) {
             String publicURI = null;
             
-            IRI hasSample = f.createIRI(ontPrefix + "has_sample");
+            //IRI hasSample = f.createIRI(ontPrefix + "has_sample");
             IRI hasModifiedDate = f.createIRI(hasModifiedDatePredicate);
             IRI hasPub = f.createIRI(hasPublication);
             IRI hasGrantPredicate = f.createIRI(hasGrant);
@@ -2687,6 +2715,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.LABEL, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, RDFS.COMMENT, null, graphIRI)), graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasModifiedDate, null, graphIRI)), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasKeyword, null, graphIRI)), graphIRI);
             if (change != null) {
                 saveChangeLog(change, datasetURI, graph);
             }
@@ -2695,6 +2724,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.LABEL, null, publicGraphIRI)), publicGraphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, RDFS.COMMENT, null, publicGraphIRI)), publicGraphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(publicIRI, hasModifiedDate, null, publicGraphIRI)), publicGraphIRI);
+                sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(datasetIRI, hasKeyword, null, graphIRI)), publicGraphIRI);
                 if (change != null) {
                     saveChangeLog(change, datasetURI, DEFAULT_GRAPH);
                 }
@@ -2717,7 +2747,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     publicStatements.add(f.createStatement(publicIRI, RDFS.COMMENT, comment, publicGraphIRI));
             }
             
-            if (dataset.getKeywords() != null) {
+            if (dataset.getKeywords() != null && !dataset.getKeywords().isEmpty()) {
                 for (String keyword: dataset.getKeywords()) {
                     Literal keyLit = f.createLiteral(keyword);
                     statements.add(f.createStatement(datasetIRI, hasKeyword, keyLit, graphIRI));
@@ -2726,7 +2756,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getSample() != null && publicIRI == null) { // do not allow changing the sample if the dataset is public
+           /* if (dataset.getSample() != null && publicIRI == null) { // do not allow changing the sample if the dataset is public
                 String sampleURI = dataset.getSample().getUri();
                 if (sampleURI == null && dataset.getSample().getId() != null) {
                     sampleURI = uriPre + dataset.getSample().getId();
@@ -2736,8 +2766,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     IRI sample = f.createIRI(sampleURI);
                     statements.add(f.createStatement(datasetIRI, hasSample, sample, graphIRI));
                 }
-            }
-            if (dataset.getPublications() != null) {
+            }*/
+            if (dataset.getPublications() != null && !dataset.getPublications().isEmpty()) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing publications
                 if (publicIRI == null) {
@@ -2765,7 +2795,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getGrants() != null) {
+            if (dataset.getGrants() != null && !dataset.getGrants().isEmpty()) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing grants
                 if (publicIRI == null) {
@@ -2793,7 +2823,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getCollaborators() != null) {
+            if (dataset.getCollaborators() != null && !dataset.getCollaborators().isEmpty()) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing collaborators
                 if (publicIRI == null) {
@@ -2821,7 +2851,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getFiles() != null) {
+            if (dataset.getFiles() != null && !dataset.getFiles().isEmpty()) {
                 if (publicIRI == null) {
                     deleteFiles(dataset.getUri(), graph);
                 } else {

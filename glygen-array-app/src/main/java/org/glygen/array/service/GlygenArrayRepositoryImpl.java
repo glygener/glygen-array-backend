@@ -617,10 +617,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             if (st.getObject().stringValue().startsWith("http")) {
                 // file url
                 IRI file = f.createIRI(st.getObject().stringValue());
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, hasFile, null, graphIRI);
+                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(file, null, null, graphIRI);
                 sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
         }
+        statements = sparqlDAO.getStatements(iri, hasFile, null, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
     }
     
     
