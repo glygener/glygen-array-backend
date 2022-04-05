@@ -28,6 +28,7 @@ import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -86,10 +87,14 @@ import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
+import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
+import org.glygen.array.view.UserStatisticsView;
+import org.glygen.array.view.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
@@ -108,6 +113,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.ApiOperation;
@@ -149,7 +155,10 @@ public class DatasetController {
     
     @Autowired
     GraphPermissionRepository permissionRepository;
-
+    
+    @Autowired
+    @Qualifier("glygenArrayRepositoryImpl")
+    GlygenArrayRepository repository;
     
     @Autowired
     UserRepository userRepository;
@@ -8014,5 +8023,45 @@ public class DatasetController {
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }
+    }
+    
+    @RequestMapping(value="/getstatistics", method=RequestMethod.GET, produces={"application/xml", "application/json"})
+    @ApiOperation(value="Retrieve the stats of the repository for the user", response=UserStatisticsView.class, authorizations = { @Authorization(value="Authorization") })
+    @ApiResponses (value ={@ApiResponse(code=200, message="Stats retrieved successfully"), 
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody UserStatisticsView getStatistics (Principal p) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        UserStatisticsView stats = new UserStatisticsView();
+        try {
+            stats.setDatasetCount((long) datasetRepository.getArrayDatasetCountByUser(user, null));
+            stats.setSlideCount((long) layoutRepository.getSlideLayoutCountByUser(user, null));
+            stats.setSampleCount((long) metadataRepository.getSampleCountByUser(user, null));
+            stats.setGlycanCount((long)glycanRepository.getGlycanCountByUser(user, null));
+            int linker = linkerRepository.getLinkerCountByUserByType(user, LinkerType.SMALLMOLECULE, null);
+            linker += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_SMALLMOLECULE, null);
+            stats.setLinkerCount((long)linker);
+            
+            int protein = linkerRepository.getLinkerCountByUserByType(user, LinkerType.PROTEIN, null);
+            protein += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PROTEIN, null);
+            stats.setProteinCount((long)protein);
+            
+            int lipid = linkerRepository.getLinkerCountByUserByType(user, LinkerType.LIPID, null);
+            lipid += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_LIPID, null);
+            stats.setLipidCount((long)lipid);
+            
+            int peptide = linkerRepository.getLinkerCountByUserByType(user, LinkerType.PEPTIDE, null);
+            peptide += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PEPTIDE, null);
+            stats.setPeptideCount((long)peptide);
+            
+            // count the public ones
+            int publicDataset = datasetRepository.getPublicArrayDatasetCountByUser(user); 
+            stats.setPublicDatasetCount((long)publicDataset);
+            int publicSlide = datasetRepository.getPublicSlideCountByUser(user); 
+            stats.setPublicSlideCount((long)publicSlide);
+        } catch (SQLException | SparqlException e) {
+            throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
+        }
+        return stats;
     }
 }

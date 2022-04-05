@@ -214,7 +214,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             if (dataset.getFiles() != null) {
                 for (FileWrapper file: dataset.getFiles()) {
-                    addFile(file, datasetId, user); 
+                    saveFile(file, datasetURI, graph);
+                    //addFile(file, datasetId, user); 
                 }
             }
             
@@ -330,9 +331,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } else {
             graph = getGraphForUser(user);
         }
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI dataset = f.createIRI(uriPre + datasetId);
+        
+        saveFile(file, uriPre + datasetId, graph);
+        /*IRI dataset = f.createIRI(uriPre + datasetId);
         IRI graphIRI = f.createIRI(graph);
         IRI hasFile = f.createIRI(hasFilePredicate);
         IRI hasFileName = f.createIRI(hasFileNamePredicate);
@@ -361,7 +362,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
         if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
         
-        sparqlDAO.addStatements(statements, graphIRI);
+        sparqlDAO.addStatements(statements, graphIRI);*/
     }
 
 
@@ -846,12 +847,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI integrates = f.createIRI(integratesPredicate);
         IRI integratedBy = f.createIRI(integratedByPredicate);   
         IRI hasProcessingSWMetadata = f.createIRI(processingSoftwareMetadataPredicate);
-        IRI hasFileName = f.createIRI(hasFileNamePredicate);
-        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
-        IRI hasFolder = f.createIRI(hasFolderPredicate);
-        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
-        IRI hasFile = f.createIRI(hasFilePredicate);
-        IRI hasSize = f.createIRI(hasSizePredicate);
         IRI processedFrom = f.createIRI(processedFromPredicate);
         
         if (processedData.getIntensity() != null) {
@@ -907,21 +902,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         if (processedData.getFile() != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
-            Literal fileName = f.createLiteral(processedData.getFile().getIdentifier());
-            Literal fileFolder = processedData.getFile().getFileFolder() == null ? null : f.createLiteral(processedData.getFile().getFileFolder());
-            Literal fileFormat = processedData.getFile().getFileFormat() == null ? null : f.createLiteral(processedData.getFile().getFileFormat());
-            Literal originalName = processedData.getFile().getOriginalName() == null ? null : f.createLiteral(processedData.getFile().getOriginalName());
-            Literal size = processedData.getFile().getFileSize() == null ? null : f.createLiteral(processedData.getFile().getFileSize());
-            Literal description = processedData.getFile().getDescription() == null ? null : f.createLiteral(processedData.getFile().getDescription());
-            IRI fileIRI = f.createIRI(fileURI);
-            statements.add(f.createStatement(processed, hasFile, fileIRI, graphIRI));
-            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
-            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
-            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
-            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
-            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
-            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
+            saveFile (processedData.getFile(), processedURI, graph);
         }
         
         IRI raw = f.createIRI(uriPre + rawDataId);
@@ -1172,34 +1153,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (!value.stringValue().startsWith("http"))
                     continue;
                 // retrieve file details
-                FileWrapper file = new FileWrapper();
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
-                while (statements2.hasNext()) {
-                    Statement st2 = statements2.next();
-                    if (st2.getPredicate().equals(hasFileName)) {
-                        Value val = st2.getObject();
-                        file.setIdentifier(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFileFormat)) {
-                        Value val = st2.getObject();
-                        file.setFileFormat(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFolder)) {
-                        Value val = st2.getObject();
-                        file.setFileFolder(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
-                        Value val = st2.getObject();
-                        file.setOriginalName(val.stringValue());
-                    }  else if (st2.getPredicate().equals(hasSize)) {
-                        Value val = st2.getObject();
-                        try {
-                            file.setFileSize(Long.parseLong(val.stringValue()));
-                        } catch (NumberFormatException e) {
-                            logger.warn ("file size is not valid");
-                        }
-                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
-                        Value val = st2.getObject();
-                        file.setDescription(val.stringValue());
-                    }
-                }
+                FileWrapper file = getFileFromURI(value.stringValue(), graph);
                 if (file.getIdentifier() != null)
                     datasetObject.getFiles().add(file); 
                 else {
@@ -1393,7 +1347,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         List<Statement> statements = new ArrayList<Statement>();
         
         if (image.getFile() != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
+            saveFile (image.getFile(), imageURI, graph);
+            
+           /* String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
             Literal fileName = f.createLiteral(image.getFile().getIdentifier());
             Literal fileFolder = image.getFile().getFileFolder() == null ? null : f.createLiteral(image.getFile().getFileFolder());
             Literal fileFormat = image.getFile().getFileFormat() == null ? null : f.createLiteral(image.getFile().getFileFormat());
@@ -1407,7 +1363,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
-            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
+            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));*/
         }
         
         IRI slideIRI = f.createIRI(uriPre + slideId);
@@ -1567,34 +1523,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (!value.stringValue().startsWith("http"))
                     continue;
                 // retrieve file details
-                FileWrapper file = new FileWrapper();
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
-                while (statements2.hasNext()) {
-                    Statement st2 = statements2.next();
-                    if (st2.getPredicate().equals(hasFileName)) {
-                        Value val = st2.getObject();
-                        file.setIdentifier(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFileFormat)) {
-                        Value val = st2.getObject();
-                        file.setFileFormat(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFolder)) {
-                        Value val = st2.getObject();
-                        file.setFileFolder(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
-                        Value val = st2.getObject();
-                        file.setOriginalName(val.stringValue());
-                    }  else if (st2.getPredicate().equals(hasSize)) {
-                        Value val = st2.getObject();
-                        try {
-                            file.setFileSize(Long.parseLong(val.stringValue()));
-                        } catch (NumberFormatException e) {
-                            logger.warn ("file size is not valid");
-                        }
-                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
-                        Value val = st2.getObject();
-                        file.setDescription(val.stringValue());
-                    }
-                }
+                FileWrapper file = getFileFromURI(value.stringValue(), graph);
                 processedObject.setFile(file);    
             }
         }
@@ -1772,35 +1701,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     continue;
                 }
                 // retrieve file details
-                FileWrapper file = new FileWrapper();
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
-                while (statements2.hasNext()) {
-                    Statement st2 = statements2.next();
-                    if (st2.getPredicate().equals(hasFileName)) {
-                        Value val = st2.getObject();
-                        file.setIdentifier(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFileFormat)) {
-                        Value val = st2.getObject();
-                        file.setFileFormat(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFolder)) {
-                        Value val = st2.getObject();
-                        file.setFileFolder(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
-                        Value val = st2.getObject();
-                        file.setOriginalName(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasSize)) {
-                        Value val = st2.getObject();
-                        try {
-                            file.setFileSize(Long.parseLong(val.stringValue()));
-                        } catch (NumberFormatException e) {
-                            logger.warn ("file size is not valid");
-                        }
-                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
-                        Value val = st2.getObject();
-                        file.setDescription(val.stringValue());
-                    }
-                }
-                imageObject.setFile(file);    
+                FileWrapper file = getFileFromURI(value.stringValue(), graph);
+                if (file.getIdentifier() != null)
+                    imageObject.setFile(file);    
             } else if (st.getPredicate().equals(hasScanner)) {
                 Value uriValue = st.getObject();
                 imageObject.setScanner(metadataRepository.getScannerMetadataFromURI(uriValue.stringValue(), loadAll, user));   
@@ -1879,34 +1782,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (!value.stringValue().startsWith("http"))
                     continue;
                 // retrieve file details
-                FileWrapper file = new FileWrapper();
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
-                while (statements2.hasNext()) {
-                    Statement st2 = statements2.next();
-                    if (st2.getPredicate().equals(hasFileName)) {
-                        Value val = st2.getObject();
-                        file.setIdentifier(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFileFormat)) {
-                        Value val = st2.getObject();
-                        file.setFileFormat(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFolder)) {
-                        Value val = st2.getObject();
-                        file.setFileFolder(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
-                        Value val = st2.getObject();
-                        file.setOriginalName(val.stringValue());
-                    }  else if (st2.getPredicate().equals(hasSize)) {
-                        Value val = st2.getObject();
-                        try {
-                            file.setFileSize(Long.parseLong(val.stringValue()));
-                        } catch (NumberFormatException e) {
-                            logger.warn ("file size is not valid");
-                        }
-                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
-                        Value val = st2.getObject();
-                        file.setDescription(val.stringValue());
-                    }
-                }
+                FileWrapper file = getFileFromURI(value.stringValue(), graph);
                 rawDataObject.setFile(file);    
             } else if (st.getPredicate().equals(hasChannel)) {
                 Value value = st.getObject();
@@ -2860,9 +2736,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 
                 for (FileWrapper file: dataset.getFiles()) {
                     if (publicIRI == null) {
-                        addFile(file, dataset.getId(), user);
+                        saveFile(file, datasetURI, graph);
+                        //addFile(file, dataset.getId(), user);
                     } else {
-                        addFile(file, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
+                        saveFile (file, publicURI, DEFAULT_GRAPH);
+                        //addFile(file, publicURI.substring(publicURI.lastIndexOf("/")+1), null);
                     }
                 }
             }
@@ -3944,5 +3822,25 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
         }
         return names;
+    }
+
+    @Override
+    public int getPublicArrayDatasetCountByUser(UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        return getPublicCountByUserByType(graph, datasetTypePredicate);
+    }
+    
+    @Override
+    public int getPublicSlideCountByUser(UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        return getPublicCountByUserByType(graph, printedSlideTypePredicate);
     }
 }

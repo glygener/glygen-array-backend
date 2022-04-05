@@ -438,7 +438,7 @@ public class GlygenArrayController {
 	        @RequestBody
 	        FileWrapper fileWrapper, Principal p, 
 	        @RequestParam Boolean noGlytoucanRegistration,
-	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated Glycan file, Library XML, GlycoWorkbench(.gws), WURCS, CFG IUPAC, Exported From Repository") 
+	        @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Tab separated Glycan file, Library XML, GlycoWorkbench(.gws), WURCS, CFG IUPAC, Repository Export (.json)") 
 	        @RequestParam(required=true, value="filetype") String fileType) {
 	    BatchGlycanFileType type = BatchGlycanFileType.forValue(fileType);
 	    
@@ -569,9 +569,19 @@ public class GlygenArrayController {
             @ApiParam(required=true, name="file", value="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
-            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Exported From Repository") 
-            @RequestParam(required=true, value="filetype") String fileType) {
+            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Repository Export (.json)") 
+            @RequestParam(required=true, value="filetype") String fileType,
+            @ApiParam(required=true, value="type of the molecule", allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER") 
+            @RequestParam("type") String moleculeType) {
         
+        LinkerType linkerType = LinkerType.valueOf(moleculeType);
+        if (linkerType == null) {
+            ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("moleculeType", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
+        }
         String fileFolder = uploadDir;
         if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
             fileFolder = fileWrapper.getFileFolder();
@@ -581,13 +591,12 @@ public class GlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("file", "NotFound"));
             throw new IllegalArgumentException("File is not acceptable", errorMessage);
-        }
-        else {
+        } else {
             byte[] fileContent;
             try {
                 fileContent = Files.readAllBytes(file.toPath());
-                if (fileType.equalsIgnoreCase("exported from repository")) {
-                    return addLinkersFromExportFile(fileContent, p);
+                if (fileType.toLowerCase().contains("export")) {
+                    return addLinkersFromExportFile(fileContent, linkerType, p);
                 } else {
                     ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -604,7 +613,7 @@ public class GlygenArrayController {
         }
     }
    
-    private BatchLinkerUploadResult addLinkersFromExportFile(byte[] contents,
+    private BatchLinkerUploadResult addLinkersFromExportFile(byte[] contents, LinkerType type, 
             Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         BatchLinkerUploadResult result = new BatchLinkerUploadResult();
@@ -627,6 +636,14 @@ public class GlygenArrayController {
                 JSONObject jo = inputArray.getJSONObject(i);
                 ObjectMapper objectMapper = new ObjectMapper();
                 Linker linker = objectMapper.readValue(jo.toString(), Linker.class);
+                if (linker.getType() != type && !linker.getType().name().equals("UNKNOWN_"+type.name())) {
+                    // incorrect type
+                    ErrorMessage errorMessage = new ErrorMessage("The type selected does not match the file contents");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("type", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Type is not acceptable", errorMessage);
+                }
                 try {  
                     String id = addLinker(linker, linker.getType().name().contains("UNKNOWN"), p);
                     linker.setId(id);
@@ -743,7 +760,7 @@ public class GlygenArrayController {
             @ApiParam(required=true, name="file", value="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
-            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Exported From Repository") 
+            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Repository Export (.json)") 
             @RequestParam(required=true, value="filetype") String fileType) {
         
         String fileFolder = uploadDir;
@@ -760,7 +777,7 @@ public class GlygenArrayController {
             byte[] fileContent;
             try {
                 fileContent = Files.readAllBytes(file.toPath());
-                if (fileType.equalsIgnoreCase("exported from repository")) {
+                if (fileType.toLowerCase().contains("export")) {
                     return addFeaturesFromExportFile(fileContent, p);
                 } else {
                     ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");

@@ -27,6 +27,7 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.util.SparqlUtils;
@@ -220,6 +221,37 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		} while (!unique);
 		
 		return newURI;
+	}
+	
+    protected int getPublicCountByUserByType (String graph, String type) throws SparqlException {
+	    int total = 0;
+	    StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (" ?s rdf:type  <" + type +">. ");
+        queryBuf.append (" ?s gadr:has_public_uri ?public .\n");
+        queryBuf.append ("} ");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        
+        for (SparqlEntity sparqlEntity : results) {
+            String count = sparqlEntity.getValue("count");
+            if (count == null) {
+                logger.error("Cannot get the count from repository");
+            } 
+            else {
+                try {
+                    total = Integer.parseInt(count);
+                    break;
+                } catch (NumberFormatException e) {
+                    throw new SparqlException("Count query returned invalid result", e);
+                }
+            }
+            
+        }
+        return total;
 	}
 	
 	/**
@@ -625,6 +657,50 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
     }
     
+    protected void saveFile (FileWrapper file, String dataURI, String graph) throws SparqlException, SQLException {
+        String uriPre = uriPrefix;
+        if (graph.equals (DEFAULT_GRAPH)) {
+            uriPre = uriPrefixPublic;
+        }
+        
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasFile = f.createIRI(hasFilePredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
+        IRI data = f.createIRI(dataURI);
+        
+        if (file.getIdentifier() == null) 
+            return;  // nothing to add
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        if (file != null) {
+            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
+            Literal fileName = f.createLiteral(file.getIdentifier());
+            Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
+            Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
+            Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
+            Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
+            Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
+            IRI fileIRI = f.createIRI(fileURI);
+            statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
+            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
+            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
+            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
+            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
+            
+        }
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+    }
+    
     
     @Override
     public void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException {
@@ -696,5 +772,46 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             ErrorMessage error = ErrorMessage.fromString(errorMessage);
             task.setError(error);  
         }
+    }
+    
+    protected FileWrapper getFileFromURI (String fileURI, String graph) {
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI hasFileName = f.createIRI(hasFileNamePredicate);
+        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
+        IRI hasFolder = f.createIRI(hasFolderPredicate);
+        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
+        IRI hasSize = f.createIRI(hasSizePredicate);
+        IRI graphIRI = f.createIRI(graph);
+        // retrieve file details
+        FileWrapper file = new FileWrapper();
+        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(fileURI), null, null, graphIRI);
+        while (statements2.hasNext()) {
+            Statement st2 = statements2.next();
+            if (st2.getPredicate().equals(hasFileName)) {
+                Value val = st2.getObject();
+                file.setIdentifier(val.stringValue());
+            } else if (st2.getPredicate().equals(hasFileFormat)) {
+                Value val = st2.getObject();
+                file.setFileFormat(val.stringValue());
+            } else if (st2.getPredicate().equals(hasFolder)) {
+                Value val = st2.getObject();
+                file.setFileFolder(val.stringValue());
+            } else if (st2.getPredicate().equals(hasOriginalFileName)) {
+                Value val = st2.getObject();
+                file.setOriginalName(val.stringValue());
+            }  else if (st2.getPredicate().equals(hasSize)) {
+                Value val = st2.getObject();
+                try {
+                    file.setFileSize(Long.parseLong(val.stringValue()));
+                } catch (NumberFormatException e) {
+                    logger.warn ("file size is not valid");
+                }
+            } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
+                Value val = st2.getObject();
+                file.setDescription(val.stringValue());
+            }
+        }
+        
+        return file;
     }
 }

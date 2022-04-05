@@ -127,5 +127,7 @@ public interface ArrayDatasetRepository {
             throws SparqlException, SQLException;
     void deleteImage(String imageURI, String datasetId, UserEntity user) throws SQLException, SparqlException;
     Set<String> getAllKeywords() throws SparqlException, SQLException;
+    int getPublicArrayDatasetCountByUser(UserEntity user) throws SparqlException, SQLException;
+    int getPublicSlideCountByUser(UserEntity user) throws SparqlException, SQLException;
     
 }

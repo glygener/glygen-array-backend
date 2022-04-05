@@ -368,7 +368,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		sparqlDAO.addStatements(statements, graphIRI);
 		
 		if (s.getFile() != null)
-            saveFile (s.getFile(), slideLayout, graph);
+            saveFile (s.getFile(), slideLayoutURI, graph);
 		
 		if (!layoutOnly) {
     		// add it to the slidelayoutrepository as well
@@ -1276,7 +1276,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     Date date = calendar.toGregorianCalendar().getTime();
                     slideLayoutObject.setDateAddedToLibrary(date);
                 }
-            } else if (/*(loadAll == null || loadAll) &&*/ st.getPredicate().equals(hasBlock)) {
+            } else if (st.getPredicate().equals(hasBlock)) {
                 Value v = st.getObject();
                 String blockURI = v.stringValue();
                 Block block = getBlock (blockURI, loadAll, user);
@@ -1286,34 +1286,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 if (!value.stringValue().startsWith("http"))
                     continue;
                 // retrieve file details
-                FileWrapper file = new FileWrapper();
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
-                while (statements2.hasNext()) {
-                    Statement st2 = statements2.next();
-                    if (st2.getPredicate().equals(hasFileName)) {
-                        Value val = st2.getObject();
-                        file.setIdentifier(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFileFormat)) {
-                        Value val = st2.getObject();
-                        file.setFileFormat(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasFolder)) {
-                        Value val = st2.getObject();
-                        file.setFileFolder(val.stringValue());
-                    } else if (st2.getPredicate().equals(hasOriginalFileName)) {
-                        Value val = st2.getObject();
-                        file.setOriginalName(val.stringValue());
-                    }  else if (st2.getPredicate().equals(hasSize)) {
-                        Value val = st2.getObject();
-                        try {
-                            file.setFileSize(Long.parseLong(val.stringValue()));
-                        } catch (NumberFormatException e) {
-                            logger.warn ("file size is not valid");
-                        }
-                    } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
-                        Value val = st2.getObject();
-                        file.setDescription(val.stringValue());
-                    }
-                }
+                FileWrapper file = getFileFromURI(value.stringValue(), graph);
                 slideLayoutObject.setFile(file);    
             } else if (st.getPredicate().equals(hasPublicURI)) {
                 // need to retrieve additional information from DEFAULT graph
@@ -1381,7 +1354,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		if (layout.getFile() != null) {
 		    deleteFiles(layoutURI, graph);
-		    saveFile (layout.getFile(), slideLayout, graph);
+		    saveFile (layout.getFile(), layoutURI, graph);
 		}
 		
 		// update in SlideLayoutRepository as well
@@ -1396,46 +1369,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 logger.error("Could not update slide layout serialization", e);
             }
 		}
-	}
-	
-	void saveFile (FileWrapper file, IRI data, String graph) throws SparqlException, SQLException {
-	    String uriPre = uriPrefix;
-        if (graph.equals (DEFAULT_GRAPH)) {
-            uriPre = uriPrefixPublic;
-        }
-	    
-        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasFileName = f.createIRI(hasFileNamePredicate);
-        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
-        IRI hasFolder = f.createIRI(hasFolderPredicate);
-        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
-        IRI hasFile = f.createIRI(hasFilePredicate);
-        IRI hasSize = f.createIRI(hasSizePredicate);
-        
-        List<Statement> statements = new ArrayList<Statement>();
-	    
-	    if (file != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
-            Literal fileName = f.createLiteral(file.getIdentifier());
-            Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
-            Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
-            Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
-            Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
-            Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
-            IRI fileIRI = f.createIRI(fileURI);
-            statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
-            statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
-            if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
-            if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
-            if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
-            if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
-            if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
-            
-        }
-	    
-	    sparqlDAO.addStatements(statements, graphIRI);
 	}
 	
 	private String getSortPredicateForLayout (String field) {
@@ -2176,7 +2109,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			sparqlDAO.addStatements(statements, graphIRI);
 			
 			if (s.getFile() != null)
-	            saveFile (s.getFile(), slideLayout, graph);
+	            saveFile (s.getFile(), publicURI, graph);
 		} 
 		
 		// link local one to public uri
