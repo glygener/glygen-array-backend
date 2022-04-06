@@ -494,13 +494,13 @@ public class GlygenArrayController {
             String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
             
             boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-            if (!isTextFile) {
+           /* if (!isTextFile) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }
+            }*/
             
             JSONArray inputArray = new JSONArray(fileAsString);
             int countSuccess = 0;
@@ -621,14 +621,14 @@ public class GlygenArrayController {
             ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
             String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
             
-            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-            if (!isTextFile) {
-                ErrorMessage errorMessage = new ErrorMessage();
+            boolean isTextFile = Charset.forName("ISO-8859-1").newEncoder().canEncode(fileAsString);
+           /* if (!isTextFile) {
+                ErrorMessage errorMessage = new ErrorMessage("The file is not a text file");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }
+            }*/
             
             JSONArray inputArray = new JSONArray(fileAsString);
             int countSuccess = 0;
@@ -638,7 +638,7 @@ public class GlygenArrayController {
                 Linker linker = objectMapper.readValue(jo.toString(), Linker.class);
                 if (linker.getType() != type && !linker.getType().name().equals("UNKNOWN_"+type.name())) {
                     // incorrect type
-                    ErrorMessage errorMessage = new ErrorMessage("The type selected does not match the file contents");
+                    ErrorMessage errorMessage = new ErrorMessage("The selected type does not match the file contents");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                     errorMessage.addError(new ObjectError("type", "NotValid"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -650,7 +650,6 @@ public class GlygenArrayController {
                     result.getAddedLinkers().add(linker);
                     countSuccess ++;
                 } catch (Exception e) {
-                    logger.error ("Exception adding the linker: " + linker.getName(), e);
                     if (e.getCause() instanceof ErrorMessage) {
                         if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
                             ErrorMessage error = (ErrorMessage)e.getCause();
@@ -668,9 +667,11 @@ public class GlygenArrayController {
                                 }
                             } 
                         } else {
+                            logger.error ("Exception adding the linker: " + linker.getName(), e);
                             result.getErrors().add((ErrorMessage)e.getCause());
                         }
                     } else { 
+                        logger.error ("Exception adding the linker: " + linker.getName(), e);
                         ErrorMessage error = new ErrorMessage(e.getMessage());
                         result.getErrors().add(error);
                     }
@@ -680,7 +681,11 @@ public class GlygenArrayController {
             result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " linkers are added");
             return result;
         } catch (IOException | JSONException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("File is not acceptable", errorMessage);
         }
     }
     
@@ -693,13 +698,13 @@ public class GlygenArrayController {
             String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
             
             boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-            if (!isTextFile) {
+           /* if (!isTextFile) {
                 ErrorMessage errorMessage = new ErrorMessage();
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }
+            }*/
             
             JSONArray inputArray = new JSONArray(fileAsString);
             int countSuccess = 0;
