@@ -2,8 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
 
+@XmlRootElement
 public class PrintedSlideListView {
     int total;
     List<PrintedSlide> rows;

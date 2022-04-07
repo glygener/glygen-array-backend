@@ -3,8 +3,11 @@ package org.glygen.array.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.Linker;
 
+@XmlRootElement
 public class BatchLinkerUploadResult {
     
     List<Linker> addedLinkers = new ArrayList<Linker>();

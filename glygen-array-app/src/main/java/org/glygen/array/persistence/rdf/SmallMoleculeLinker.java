@@ -17,7 +17,7 @@ public class SmallMoleculeLinker extends Linker {
 	LinkerClassification classification;
 	
 	public SmallMoleculeLinker() {
-		this.type = LinkerType.SMALLMOLECULE;
+		//this.type = LinkerType.SMALLMOLECULE;
 	}
 	
 	/**

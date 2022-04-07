@@ -3,11 +3,14 @@ package org.glygen.array.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 
+@XmlRootElement
 public class BatchGlycanUploadResult {
 	
 	List<GlycanUploadError> wrongSequences = new ArrayList<>();

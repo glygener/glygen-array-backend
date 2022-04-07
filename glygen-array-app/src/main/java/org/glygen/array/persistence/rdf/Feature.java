@@ -22,7 +22,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME, 
         include = JsonTypeInfo.As.PROPERTY, 
-        property = "type")
+        property = "type",
+        visible = true)
     @JsonSubTypes({ 
         @Type(value = LinkedGlycan.class, name = "LINKEDGLYCAN"), 
         @Type(value = GlycoLipid.class, name = "GLYCOLIPID"),

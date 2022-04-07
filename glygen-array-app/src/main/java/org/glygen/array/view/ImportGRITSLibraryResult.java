@@ -3,8 +3,11 @@ package org.glygen.array.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.SlideLayout;
 
+@XmlRootElement
 public class ImportGRITSLibraryResult {
 	
 	List<SlideLayout> addedLayouts = new ArrayList<SlideLayout>();

@@ -17,7 +17,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 @JsonTypeInfo(
 		use = JsonTypeInfo.Id.NAME, 
 		include = JsonTypeInfo.As.PROPERTY, 
-		property = "type")
+		property = "type",
+		visible = true)
 	@JsonSubTypes({ 
 		@Type(value = SmallMoleculeLinker.class, name = "SMALLMOLECULE"), 
 		@Type(value = PeptideLinker.class, name = "PEPTIDE"),

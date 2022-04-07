@@ -5,10 +5,11 @@ import java.util.List;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.config.ValidationConstants;
 
-
+@XmlRootElement
 public class BlockLayout {
 	String id;
 	String uri;

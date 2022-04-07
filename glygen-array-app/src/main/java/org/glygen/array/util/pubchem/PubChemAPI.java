@@ -3,6 +3,7 @@ package org.glygen.array.util.pubchem;
 
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerClassification;
+import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.SmallMoleculeLinker;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -114,6 +115,7 @@ public class PubChemAPI {
 			if (prop.getInChI() == null && prop.getInChIKey() == null && prop.getIUPACName() == null && prop.getMass() == null && prop.getMolecularFormula() == null)
 				return null;   // invalid pubChem
 			SmallMoleculeLinker linker = new SmallMoleculeLinker();
+			linker.setType (LinkerType.SMALLMOLECULE);
 			linker.setInChiKey(prop.getInChIKey());
 			linker.setInChiSequence(prop.getInChI());
 			linker.setMass(prop.getMass());

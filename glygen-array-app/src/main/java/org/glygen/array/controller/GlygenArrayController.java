@@ -164,6 +164,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.ApiOperation;
@@ -651,41 +652,42 @@ public class GlygenArrayController {
                     // incorrect type
                     ErrorMessage errorMessage = new ErrorMessage("The selected type does not match the file contents");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    String[] codes = new String[] {"selected type=" + type.name(), "type in file=" + linker.getType().name()};
+                    String[] codes = new String[] {"selected type=" + type.name(), "type in file=" + linker.getType().name(), "linker=" + linker.getName()};
                     errorMessage.addError(new ObjectError("type", codes, null, "NotValid"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("Type is not acceptable", errorMessage);
-                }
-                try {  
-                    String id = addLinker(linker, linker.getType().name().contains("UNKNOWN"), p);
-                    linker.setId(id);
-                    result.getAddedLinkers().add(linker);
-                    countSuccess ++;
-                } catch (Exception e) {
-                    if (e.getCause() instanceof ErrorMessage) {
-                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                            ErrorMessage error = (ErrorMessage)e.getCause();
-                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes() != null && err.getCodes().length != 0) {
-                                    try {
-                                        Linker duplicate = linkerRepository.getLinkerById(err.getCodes()[0], user);
-                                        result.getDuplicateLinkers().add(duplicate);
-                                    } catch (SparqlException | SQLException e1) {
-                                        logger.error("Error retrieving duplicate linker", e1);
+                    result.getErrors().add(errorMessage);
+                } else {
+                    try {  
+                        String id = addLinker(linker, linker.getType().name().contains("UNKNOWN"), p);
+                        linker.setId(id);
+                        result.getAddedLinkers().add(linker);
+                        countSuccess ++;
+                    } catch (Exception e) {
+                        if (e.getCause() instanceof ErrorMessage) {
+                            if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                                ErrorMessage error = (ErrorMessage)e.getCause();
+                                if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                    ObjectError err = error.getErrors().get(0);
+                                    if (err.getCodes() != null && err.getCodes().length != 0) {
+                                        try {
+                                            Linker duplicate = linkerRepository.getLinkerById(err.getCodes()[0], user);
+                                            result.getDuplicateLinkers().add(duplicate);
+                                        } catch (SparqlException | SQLException e1) {
+                                            logger.error("Error retrieving duplicate linker", e1);
+                                        }
+                                    } else {
+                                        result.getDuplicateLinkers().add(linker);
                                     }
-                                } else {
-                                    result.getDuplicateLinkers().add(linker);
-                                }
-                            } 
-                        } else {
+                                } 
+                            } else {
+                                logger.error ("Exception adding the linker: " + linker.getName(), e);
+                                result.getErrors().add((ErrorMessage)e.getCause());
+                            }
+                        } else { 
                             logger.error ("Exception adding the linker: " + linker.getName(), e);
-                            result.getErrors().add((ErrorMessage)e.getCause());
+                            ErrorMessage error = new ErrorMessage(e.getMessage());
+                            result.getErrors().add(error);
                         }
-                    } else { 
-                        logger.error ("Exception adding the linker: " + linker.getName(), e);
-                        ErrorMessage error = new ErrorMessage(e.getMessage());
-                        result.getErrors().add(error);
                     }
                 }
             }
@@ -2413,6 +2415,7 @@ public class GlygenArrayController {
 		        				Linker myLinker = new SmallMoleculeLinker();
 		        				if (linker.getPubChemId() != null) {
 		        					((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
+		        					myLinker.setType(LinkerType.SMALLMOLECULE);
 		        				} else {
 		        					// create unknown linker
 		        					myLinker.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
@@ -3685,22 +3688,27 @@ public class GlygenArrayController {
             case LIPID:
             case UNKNOWN_LIPID:
                 linker= new Lipid();
+                linker.setType(LinkerType.LIPID);
                 break;
             case OTHER:
             case UNKNOWN_OTHER:
                 linker= new OtherLinker();
+                linker.setType(LinkerType.OTHER);
                 break;
             case PEPTIDE:
             case UNKNOWN_PEPTIDE:
                 linker = new PeptideLinker();
+                linker.setType(LinkerType.PEPTIDE);
                 break;
             case PROTEIN:
             case UNKNOWN_PROTEIN:
                 linker = new ProteinLinker();
+                linker.setType(LinkerType.PROTEIN);
                 break;
             case SMALLMOLECULE:
             case UNKNOWN_SMALLMOLECULE:
                 linker= new SmallMoleculeLinker();
+                linker.setType(LinkerType.SMALLMOLECULE);
                 break;
 			}
 			

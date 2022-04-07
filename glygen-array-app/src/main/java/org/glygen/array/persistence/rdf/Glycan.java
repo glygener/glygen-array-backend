@@ -18,7 +18,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(
 		use = JsonTypeInfo.Id.NAME, 
 		include = JsonTypeInfo.As.PROPERTY, 
-		property = "type")
+		property = "type",
+		visible = true)
 	@JsonSubTypes({ 
 		@Type(value = SequenceDefinedGlycan.class, name = "SEQUENCE_DEFINED"), 
 		@Type(value = MassOnlyGlycan.class, name = "MASS_ONLY"),

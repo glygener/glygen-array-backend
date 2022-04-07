@@ -1017,20 +1017,25 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			switch (type) {
 			case PEPTIDE:
 				linkerObject = new PeptideLinker();
+				linkerObject.setType(LinkerType.PEPTIDE);
 				break;			
 			case PROTEIN:
 				linkerObject = new ProteinLinker();
+				linkerObject.setType(LinkerType.PROTEIN);
 				((ProteinLinker) linkerObject).setPdbIds(new ArrayList<String>());
 				break;
 			case SMALLMOLECULE:
 				linkerObject = new SmallMoleculeLinker();
+				linkerObject.setType(LinkerType.SMALLMOLECULE);
 				break;
             case LIPID:
                 linkerObject = new Lipid();
+                linkerObject.setType(LinkerType.LIPID);
                 break;
             case OTHER:
             case UNKNOWN_OTHER:
                 linkerObject = new OtherLinker();
+                linkerObject.setType(LinkerType.OTHER);
                 break;
             case UNKNOWN_LIPID:
                 linkerObject = new Lipid();

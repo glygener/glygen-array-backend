@@ -2,10 +2,13 @@ package org.glygen.array.view;
 
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 
+@XmlRootElement
 public class GlycanSearchResult {
     Glycan glycan;
     Integer datasetCount;
