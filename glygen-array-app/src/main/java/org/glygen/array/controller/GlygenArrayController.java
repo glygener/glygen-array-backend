@@ -574,11 +574,22 @@ public class GlygenArrayController {
             @ApiParam(required=true, value="type of the molecule", allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER") 
             @RequestParam("type") String moleculeType) {
         
-        LinkerType linkerType = LinkerType.valueOf(moleculeType);
-        if (linkerType == null) {
+        LinkerType linkerType = null;
+        try {
+            linkerType = LinkerType.valueOf(moleculeType);
+            if (linkerType == null) {
+                ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                String[] codes = new String[] {moleculeType};
+                errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
+            }
+        } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("moleculeType", "NotValid"));
+            String[] codes = new String[] {moleculeType};
+            errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
         }
@@ -640,7 +651,8 @@ public class GlygenArrayController {
                     // incorrect type
                     ErrorMessage errorMessage = new ErrorMessage("The selected type does not match the file contents");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("type", "NotValid"));
+                    String[] codes = new String[] {"selected type=" + type.name(), "type in file=" + linker.getType().name()};
+                    errorMessage.addError(new ObjectError("type", codes, null, "NotValid"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                     throw new IllegalArgumentException("Type is not acceptable", errorMessage);
                 }
