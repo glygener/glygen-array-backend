@@ -21,7 +21,7 @@ public class PrivateGraphEntity {
 	
 	@Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="token_seq")
-    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ")
+    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ", allocationSize=1)
     private Long id;
 	
 	@OneToOne(targetEntity = UserEntity.class, fetch = FetchType.EAGER)

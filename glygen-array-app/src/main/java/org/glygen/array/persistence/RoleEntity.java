@@ -46,7 +46,7 @@ public class RoleEntity {
 	@Id
 	@Column(name="roleid")
 	@GeneratedValue (strategy=GenerationType.SEQUENCE, generator="role_seq")
-	@SequenceGenerator(name="role_seq", sequenceName="ROLE_SEQ", initialValue=4)
+	@SequenceGenerator(name="role_seq", sequenceName="ROLE_SEQ", initialValue=4, allocationSize=50)
 	public Integer getRoleId() {
 		return roleId;
 	}

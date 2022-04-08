@@ -17,7 +17,7 @@ public class ReviewerTokenEntity {
 	
 	@Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="token_seq")
-    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ")
+    @SequenceGenerator(name="token_seq", sequenceName="TOKEN_SEQ", allocationSize=1)
     private Long id;
 	
 	@Column(name="token", unique = false, nullable = false)

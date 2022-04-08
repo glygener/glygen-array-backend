@@ -748,6 +748,13 @@ public class DatasetController {
             if (coOwner == null) {
                 errorMessage.addError(new ObjectError("coowner", "NotFound"));
             }
+            // check for duplicates
+            List<GraphPermissionEntity> entities = permissionRepository.findByResourceIRI(GlygenArrayRepositoryImpl.uriPrefix + datasetId.trim());
+            for (GraphPermissionEntity e: entities) {
+                if (e.getUser() != null && e.getUser().getUsername().equals (coowner.getUserName())) {
+                    errorMessage.addError(new ObjectError("coowner", "Duplicate"));
+                }
+            }
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                 throw new IllegalArgumentException("Invalid Input", errorMessage);
