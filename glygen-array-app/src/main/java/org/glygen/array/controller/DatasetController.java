@@ -116,6 +116,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.api.client.googleapis.media.MediaHttpUploader.UploadState;
+
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -2482,6 +2484,8 @@ public class DatasetController {
             @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
             @RequestParam("methodName")
             String methodName,
+            @ApiParam(required=false, value="uploaded file with the exclusion information")
+            @RequestParam(value="exclusionFile", required=false) String exclusionFile,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -2609,7 +2613,7 @@ public class DatasetController {
                             file.setFileFolder(uploadDir + File.separator + datasetId);
                             processedData.setFile(file);
                             datasetRepository.addIntensitiesToProcessedData(processedData, originalUser);
-                            processedData.setStatus(FutureTaskStatus.DONE);
+                            processedData.setStatus(FutureTaskStatus.DONE);                            
                         }
                     
                         datasetRepository.updateStatus (uri, processedData, originalUser);
@@ -2652,6 +2656,20 @@ public class DatasetController {
                     else 
                         processedData.setStatus(FutureTaskStatus.ERROR);
                     datasetRepository.updateStatus (uri, processedData, owner);
+                    if (exclusionFile != null) {
+                        File f = new File (uploadDir, exclusionFile);
+                        if (f.exists()) {
+                            ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                            ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
+                            processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                            processedData.setFilteredDataList(emptyData.getFilteredDataList());
+                            //TODO do we need to check if the listed features belong to the slide of this processed data?
+                            datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
+                        } else {
+                            errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                            throw new IllegalArgumentException("File cannot be found", errorMessage);
+                        }
+                    }
                     return id;
                 }
             } 
@@ -2668,18 +2686,46 @@ public class DatasetController {
                 else 
                     processedData.setStatus(FutureTaskStatus.ERROR);
                 datasetRepository.updateStatus (uri, processedData, owner);
+                if (exclusionFile != null) {
+                    File f = new File (uploadDir, exclusionFile);
+                    if (f.exists()) {
+                        ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                        ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
+                        processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                        processedData.setFilteredDataList(emptyData.getFilteredDataList());
+                        //TODO do we need to check if the listed features belong to the slide of this processed data?
+                        datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
+                    } else {
+                        errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                        throw new IllegalArgumentException("File cannot be found", errorMessage);
+                    }
+                }
                 return id;
             } else {
                 String uri = datasetRepository.addProcessedData(processedData, rawDataId, owner);  
                 processedData.setUri(uri);
                 String id = uri.substring(uri.lastIndexOf("/")+1);
                 datasetRepository.updateStatus (uri, processedData, owner);
+                if (exclusionFile != null) {
+                    File f = new File (uploadDir, exclusionFile);
+                    if (f.exists()) {
+                        ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                        ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
+                        processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                        processedData.setFilteredDataList(emptyData.getFilteredDataList());
+                        //TODO do we need to check if the listed features belong to the slide of this processed data?
+                        datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
+                    } else {
+                        errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                        throw new IllegalArgumentException("File cannot be found", errorMessage);
+                    }
+                }
                 return id;
             }
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            throw new GlycanRepositoryException("Cannot add the intensities to the repository", e);
+            throw new GlycanRepositoryException("Cannot add the processed data to the repository", e);
         }
     }
     
