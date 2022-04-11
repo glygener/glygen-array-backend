@@ -3280,8 +3280,7 @@ public class GlygenArrayController {
     }
 	
 	@ApiOperation(value = "Export glycans into a file", authorizations = { @Authorization(value="Authorization") })
-    @RequestMapping(value = "/exportglycans", method=RequestMethod.GET, 
-        produces={"application/json", "application/xml"})
+    @RequestMapping(value = "/exportglycans", method=RequestMethod.GET)
 	@ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
             @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -3308,8 +3307,7 @@ public class GlygenArrayController {
 	}
 	
 	@ApiOperation(value = "Export linkers into a file", authorizations = { @Authorization(value="Authorization") })
-    @RequestMapping(value = "/exportlinkers", method=RequestMethod.GET, 
-        produces={"application/json", "application/xml"})
+    @RequestMapping(value = "/exportlinkers", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
             @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -3349,8 +3347,7 @@ public class GlygenArrayController {
     }
 	
 	@ApiOperation(value = "Export features into a file", authorizations = { @Authorization(value="Authorization") })
-    @RequestMapping(value = "/exportfeatures", method=RequestMethod.GET, 
-        produces={"application/json", "application/xml"})
+    @RequestMapping(value = "/exportfeatures", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
             @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
             @ApiResponse(code=401, message="Unauthorized"),
@@ -3358,25 +3355,39 @@ public class GlygenArrayController {
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
     public @ResponseBody String exportFeatures (
-            @ApiParam(required=true, value="type of the feature", 
+            @ApiParam(required=false, value="type of the feature", 
             allowableValues="LINKEDGLYCAN, GLYCOLIPID, GLYCOPEPTIDE, "
                     + "GLYCOPROTEIN, GPLINKEDGLYCOPEPTIDE, CONTROL, NEGATIVE_CONTROL, COMPOUND, LANDING_LIGHT") 
-            @RequestParam("type") String type,
+            @RequestParam(value="type", required=false) String type,
             Principal p) {
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
-            
-            FeatureType featureType = FeatureType.valueOf(type);
-            if (featureType == null) {
-                ErrorMessage errorMessage = new ErrorMessage("Incorrect feature type");
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("type", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("Incorrect feature type", errorMessage);
+            FeatureType featureType = null;
+            if (type != null) {
+                try {
+                    featureType = FeatureType.valueOf(type);
+                    if (featureType == null) {
+                        ErrorMessage errorMessage = new ErrorMessage("Incorrect feature type");
+                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                        errorMessage.addError(new ObjectError("type", "NotValid"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("Incorrect feature type", errorMessage);
+                    }
+                } catch (Exception e) {
+                    ErrorMessage errorMessage = new ErrorMessage("Incorrect feature type");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("type", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("Incorrect feature type", errorMessage);
+                }
             }
-            
-            List<org.glygen.array.persistence.rdf.Feature> myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null, featureType, false);
+            List<org.glygen.array.persistence.rdf.Feature> myFeatures = null;
+            if (featureType != null) {
+                myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null, featureType, false);
+            } else {
+                myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null);
+            }
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myFeatures);
             return json;
