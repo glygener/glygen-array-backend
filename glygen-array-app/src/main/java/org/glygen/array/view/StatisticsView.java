@@ -3,6 +3,9 @@ package org.glygen.array.view;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class StatisticsView {
     
     List<Version> version;

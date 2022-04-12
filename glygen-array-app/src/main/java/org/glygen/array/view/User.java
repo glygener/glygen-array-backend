@@ -2,12 +2,13 @@ package org.glygen.array.view;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.view.validation.EmailWithTld;
 import org.glygen.array.view.validation.Password;
 import org.glygen.array.view.validation.Username;
 
-
+@XmlRootElement
 public class User {
 	private String userName;
 	private String password;

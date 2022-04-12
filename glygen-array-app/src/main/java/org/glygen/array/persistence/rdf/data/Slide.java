@@ -2,8 +2,11 @@ package org.glygen.array.persistence.rdf.data;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 
+@XmlRootElement
 public class Slide {
     
     String id;

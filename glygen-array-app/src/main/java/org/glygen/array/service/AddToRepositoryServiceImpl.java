@@ -3,7 +3,6 @@ package org.glygen.array.service;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -435,12 +434,12 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
     }
 
     @Override
-    public String addGlycan(Glycan glycan, UserEntity user, Boolean noGlytoucanRegistration) {
+    public String addGlycan(Glycan glycan, UserEntity user, Boolean noGlytoucanRegistration, Boolean bypassGlytoucanCheck) {
         if (noGlytoucanRegistration == null)
             noGlytoucanRegistration = false;
         switch (glycan.getType()) {
         case SEQUENCE_DEFINED: 
-            return addSequenceDefinedGlycan((SequenceDefinedGlycan)glycan, user, noGlytoucanRegistration);
+            return addSequenceDefinedGlycan((SequenceDefinedGlycan)glycan, user, noGlytoucanRegistration, bypassGlytoucanCheck);
         case MASS_ONLY:
             return addMassOnlyGlycan ((MassOnlyGlycan) glycan, user);
         case OTHER:
@@ -976,7 +975,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 Glycan g = gf.getGlycan();
                 if (g.getUri() == null && g.getId() == null) {
                     try {
-                        g.setId(addGlycan(g, user, true));
+                        g.setId(addGlycan(g, user, true, false));
                     } catch (Exception e) {
                         // need to ignore duplicate check errors
                         if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
@@ -1235,7 +1234,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         return null;
     }
     
-    private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, UserEntity user, Boolean noGlytoucanRegistration) {
+    private String addSequenceDefinedGlycan (SequenceDefinedGlycan glycan, UserEntity user, Boolean noGlytoucanRegistration, Boolean byPassGlytoucanCheck) {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -1500,7 +1499,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
                     return addGlycan(g, null, user, noGlytoucanRegistration);        
                 } else {
-                    if (checkGlytoucan) {
+                    if (checkGlytoucan && !byPassGlytoucanCheck) {
                         try {
                             // need to check if the sequence and the given glytoucan match
                             WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();

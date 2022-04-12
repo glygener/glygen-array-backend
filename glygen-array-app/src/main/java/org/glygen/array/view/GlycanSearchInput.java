@@ -2,6 +2,9 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class GlycanSearchInput {
     
     List<String> glytoucanIds;

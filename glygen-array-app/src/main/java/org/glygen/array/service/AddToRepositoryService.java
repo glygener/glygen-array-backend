@@ -11,6 +11,6 @@ public interface AddToRepositoryService {
     String addFeature(Feature feature, UserEntity user);
     String addBlockLayout (BlockLayout layout, Boolean noFeatureCheck, UserEntity user);
     String getSequenceFromGlytoucan(String glytoucanId);
-    String addGlycan(Glycan glycan, UserEntity user, Boolean noGlytoucanRegistration);
+    String addGlycan(Glycan glycan, UserEntity user, Boolean noGlytoucanRegistration, Boolean bypassGlytoucanCheck);
 
 }

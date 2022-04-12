@@ -2,6 +2,9 @@ package org.glygen.array.persistence.rdf.data;
 
 import java.util.Date;
 import java.util.Map;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
 import java.util.List;
 
 import org.glygen.array.persistence.rdf.Spot;
@@ -10,6 +13,7 @@ import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+@XmlRootElement
 public class RawData extends FutureTask {
     
     String id;

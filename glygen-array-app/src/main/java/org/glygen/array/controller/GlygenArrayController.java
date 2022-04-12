@@ -415,14 +415,17 @@ public class GlygenArrayController {
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
 	public String addGlycan (@RequestBody Glycan glycan, Principal p, 
-	        @RequestParam("noGlytoucanRegistration") Boolean noGlytoucanRegistration) {
+	        @ApiParam(required=true, name="noGlytoucanRegistration", value="if true, no registration attempt will be made for glytoucan accession number")
+	        @RequestParam("noGlytoucanRegistration") Boolean noGlytoucanRegistration,
+	        @ApiParam(required=false, name="bypassGlytoucanCheck", value="if you already received the sequence from glytoucan, you can set this flag to false") 
+            @RequestParam(required=false, value="bypassGlytoucanCheck") Boolean bypassGlytoucanCheck) {
 		if (glycan.getType() == null) {
 			// assume sequenceDefinedGlycan
 			glycan.setType(GlycanType.SEQUENCE_DEFINED);
 		}
 		
 		UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-		return addService.addGlycan(glycan, user, noGlytoucanRegistration);
+		return addService.addGlycan(glycan, user, noGlytoucanRegistration, bypassGlytoucanCheck);
 	}
 	
     @ApiOperation(value = "Register all glycans listed in a file", authorizations = { @Authorization(value="Authorization") })
@@ -510,14 +513,24 @@ public class GlygenArrayController {
                 ObjectMapper objectMapper = new ObjectMapper();
                 Glycan glycan = objectMapper.readValue(jo.toString(), Glycan.class);
                 try {  
-                    String id = addGlycan(glycan, p, noGlytoucanRegistration);
-                    Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                    if (addedGlycan instanceof SequenceDefinedGlycan) {
-                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
-                        addedGlycan.setCartoon(image);
+                    String id = addGlycan(glycan, p, noGlytoucanRegistration, true);
+                    if (id != null) {
+                        glycan.setId(id);
+                        glycan.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
+                        if (glycan instanceof SequenceDefinedGlycan) {
+                            byte[] image = getCartoonForGlycan(glycan.getId());
+                            glycan.setCartoon(image);
+                        }
+                        result.getAddedGlycans().add(glycan);
+                        countSuccess ++;
+                    } else {
+                        // error
+                        String sequence = null;
+                        if (glycan instanceof SequenceDefinedGlycan) {
+                            sequence = ((SequenceDefinedGlycan) glycan).getSequence();
+                        }
+                        result.addWrongSequence(glycan.getName(), i, sequence, "not added, id is null");
                     }
-                    result.getAddedGlycans().add(addedGlycan);
-                    countSuccess ++;
                 } catch (Exception e) {
                     logger.error ("Exception adding the glycan: " + glycan.getName(), e);
                     if (e.getCause() instanceof ErrorMessage) {
@@ -864,7 +877,7 @@ public class GlygenArrayController {
                     view.setInternalId(glycan.getId()+ "");
                     view.setName(glycan.getName());
                     view.setDescription(glycan.getComment());   
-                    String id = addGlycan(view, p, noGlytoucanRegistration);
+                    String id = addGlycan(view, p, noGlytoucanRegistration, false);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
                     if (addedGlycan instanceof SequenceDefinedGlycan) {
                         byte[] image = getCartoonForGlycan(addedGlycan.getId());
@@ -987,7 +1000,7 @@ public class GlygenArrayController {
                 if (glycanName != null) glycan.setName(glycanName.trim());
                 if (comments != null) glycan.setDescription(comments.trim());
                 try {  
-                    String id = addGlycan(glycan, p, noGlytoucanRegistration);
+                    String id = addGlycan(glycan, p, noGlytoucanRegistration, false);
                     Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
                     if (addedGlycan instanceof SequenceDefinedGlycan) {
                         byte[] image = getCartoonForGlycan(addedGlycan.getId());
@@ -1107,7 +1120,7 @@ public class GlygenArrayController {
                                 logger.warn ("the duplicate glycan cannot be retrieved back: " + id);
                             }
                         } else {
-                            String id = addGlycan(g, p, noGlytoucanRegistration);
+                            String id = addGlycan(g, p, noGlytoucanRegistration, false);
                             if (id == null) {
                                 // cannot be added
                                 result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
@@ -3287,11 +3300,23 @@ public class GlygenArrayController {
             @ApiResponse(code=403, message="Not enough privileges to export glycans"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-	public @ResponseBody String exportGlycans (Principal p) {
+	public @ResponseBody String exportGlycans (
+	        @ApiParam(required=false, value="offset for pagination, start from 0", example="0") 
+            @RequestParam("offset") Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+            Principal p) {
+	    
+	    if (offset == null)
+	        offset = 1;
+	    if (limit == null) 
+	        limit = -1;
 	    
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
 	    try {
-            List<Glycan> myGlycans = glycanRepository.getGlycanByUser(user, 0, -1, null, 0, null);
+            List<Glycan> myGlycans = glycanRepository.getGlycanByUser(user, offset, limit, null, 0, searchValue);
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myGlycans);
             return json;

@@ -3,8 +3,11 @@ package org.glygen.array.persistence.rdf.data;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 
+@XmlRootElement
 public class Image {
     
     String id;

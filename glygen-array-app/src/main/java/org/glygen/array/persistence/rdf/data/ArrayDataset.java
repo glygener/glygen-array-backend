@@ -5,12 +5,14 @@ import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 
+@XmlRootElement
 public class ArrayDataset extends FutureTask implements ChangeTrackable {
     String id;
     String uri;

@@ -5772,9 +5772,11 @@ public class DatasetController {
             if (dataset != null && dataset.getFiles() != null) {
                 List<FileWrapper> newFiles = new ArrayList<FileWrapper>();
                 boolean found = false;
+                FileWrapper toDelete = null;
                 for (FileWrapper f: dataset.getFiles()) {
                     if (f.getIdentifier().equals(id)) {
                         found = true;
+                        toDelete = f;
                     } else {
                         newFiles.add(f);
                     }
@@ -5787,6 +5789,13 @@ public class DatasetController {
                 else {
                     dataset.setFiles(newFiles);
                     datasetRepository.updateArrayDataset(dataset, owner);
+                    // delete the file from the experiment folder
+                    if (toDelete != null) {
+                        File file = new File (toDelete.getFileFolder(), toDelete.getIdentifier());
+                        if (file.exists()) {
+                            file.delete();
+                        }
+                    }
                     return new Confirmation("File deleted successfully", HttpStatus.OK.value());
                 }
             }

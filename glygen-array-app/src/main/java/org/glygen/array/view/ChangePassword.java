@@ -1,9 +1,11 @@
 package org.glygen.array.view;
 
 import javax.validation.constraints.NotEmpty;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.view.validation.Password;
 
+@XmlRootElement
 public class ChangePassword {
 	
 	private String currentPassword;

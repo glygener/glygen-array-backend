@@ -255,7 +255,7 @@ public class AsyncServiceImpl implements AsyncService {
                                     for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
                                         Glycan g = gf.getGlycan();
                                         try {   
-                                            String glycanId = addService.addGlycan(g, user, true);
+                                            String glycanId = addService.addGlycan(g, user, true, false);
                                             if (glycanId != null) {
                                                 g.setId(glycanId);
                                                 g.setUri(GlygenArrayRepositoryImpl.uriPrefix + glycanId);

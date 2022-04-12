@@ -2643,7 +2643,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     statements.add(f.createStatement(datasetIRI, hasSample, sample, graphIRI));
                 }
             }*/
-            if (dataset.getPublications() != null && !dataset.getPublications().isEmpty()) {
+            if (dataset.getPublications() != null) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing publications
                 if (publicIRI == null) {
@@ -2671,7 +2671,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getGrants() != null && !dataset.getGrants().isEmpty()) {
+            if (dataset.getGrants() != null) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing grants
                 if (publicIRI == null) {
@@ -2699,7 +2699,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getCollaborators() != null && !dataset.getCollaborators().isEmpty()) {
+            if (dataset.getCollaborators() != null) {
                 RepositoryResult<Statement> results2 = null;
                 // get existing collaborators
                 if (publicIRI == null) {
@@ -2727,7 +2727,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
             }
             
-            if (dataset.getFiles() != null && !dataset.getFiles().isEmpty()) {
+            if (dataset.getFiles() != null) {
                 if (publicIRI == null) {
                     deleteFiles(dataset.getUri(), graph);
                 } else {

@@ -2,8 +2,11 @@ package org.glygen.array.view;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 
+@XmlRootElement
 public class ArrayDatasetListView {
     int total;
     List<ArrayDataset> rows;
