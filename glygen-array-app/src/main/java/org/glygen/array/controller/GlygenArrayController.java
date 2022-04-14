@@ -566,7 +566,11 @@ public class GlygenArrayController {
             result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " glycans are added");
             return result;
         } catch (IOException | JSONException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            throw new IllegalArgumentException("File is not acceptable", errorMessage);
         }
     }
     
@@ -3302,7 +3306,7 @@ public class GlygenArrayController {
             @ApiResponse(code=500, message="Internal Server Error")})
 	public @ResponseBody String exportGlycans (
 	        @ApiParam(required=false, value="offset for pagination, start from 0", example="0") 
-            @RequestParam("offset") Integer offset,
+            @RequestParam(value="offset", required=false) Integer offset,
             @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="a filter value to match") 
@@ -3310,7 +3314,7 @@ public class GlygenArrayController {
             Principal p) {
 	    
 	    if (offset == null)
-	        offset = 1;
+	        offset = 0;
 	    if (limit == null) 
 	        limit = -1;
 	    
