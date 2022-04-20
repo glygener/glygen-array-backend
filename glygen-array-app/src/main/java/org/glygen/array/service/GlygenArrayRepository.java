@@ -8,6 +8,7 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.data.FutureTask;
+import org.glygen.array.view.AsyncBatchUploadResult;
 
 public interface GlygenArrayRepository {
 	
@@ -44,4 +45,13 @@ public interface GlygenArrayRepository {
     void retrieveChangeLog(ChangeTrackable entity, String entityUri, String graph) throws SparqlException, SQLException;
 
     void updateStatus(String uri, FutureTask task, UserEntity user) throws SparqlException, SQLException;
+    String addBatchUpload(AsyncBatchUploadResult result, String type, UserEntity user)
+            throws SparqlException, SQLException;
+
+    String updateBatchUpload(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException;
+    
+    AsyncBatchUploadResult getBatchUpload (String uri, UserEntity user) throws SparqlException, SQLException;
+
+    List<AsyncBatchUploadResult> getActiveBatchUploadByType(String type, UserEntity user)
+            throws SparqlException, SQLException;
 }

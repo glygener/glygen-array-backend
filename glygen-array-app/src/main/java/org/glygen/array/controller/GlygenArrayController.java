@@ -101,6 +101,7 @@ import org.glygen.array.service.AddToRepositoryService;
 import org.glygen.array.service.AsyncService;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.GlycanRepositoryImpl;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
@@ -113,6 +114,7 @@ import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.ParserConfiguration;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.util.SpotMetadataConfig;
+import org.glygen.array.view.AsyncBatchUploadResult;
 import org.glygen.array.view.BatchFeatureUploadResult;
 import org.glygen.array.view.BatchGlycanFileType;
 import org.glygen.array.view.BatchGlycanUploadResult;
@@ -437,7 +439,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to register glycans"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public BatchGlycanUploadResult addGlycanFromFile (
+	public AsyncBatchUploadResult addGlycanFromFile (
 	        @ApiParam(required=true, name="file", value="details of the uploded file") 
 	        @RequestBody
 	        FileWrapper fileWrapper, Principal p, 
@@ -460,25 +462,7 @@ public class GlygenArrayController {
             byte[] fileContent;
             try {
                 fileContent = Files.readAllBytes(file.toPath());
-                switch (type) {
-                case GWS:
-                    return addGlycanFromGWSFile(fileContent, noGlytoucanRegistration, p);
-                case XML:
-                    return addGlycanFromLibraryFile(fileContent, noGlytoucanRegistration, p);
-                case TABSEPARATED:
-                    return addGlycanFromCSVFile(fileContent, noGlytoucanRegistration, p);
-                case CFG:
-                    return addGlycanFromCFGFile(fileContent, noGlytoucanRegistration, p);
-                case WURCS:
-                    return addGlycanFromWURCSFile(fileContent, noGlytoucanRegistration, p);
-                case REPOSITORYEXPORT:
-                    return addGlycansFromExportFile (fileContent, noGlytoucanRegistration, p);
-                }
-                ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("filetype", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+                return handleAsyncGlycanUpload(p, fileContent, type, noGlytoucanRegistration);  
             } catch (IOException e) {
                 ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -488,89 +472,186 @@ public class GlygenArrayController {
     	    
         }
 	}
-
-    private BatchGlycanUploadResult addGlycansFromExportFile(byte[] contents, Boolean noGlytoucanRegistration,
-            Principal p) {
+    
+    private AsyncBatchUploadResult handleAsyncGlycanUpload (Principal p, byte[] contents, BatchGlycanFileType type, Boolean noGlytoucanRegistration) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        BatchGlycanUploadResult result = new BatchGlycanUploadResult();
-        try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
-            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+        
+        try {    
+            AsyncBatchUploadResult result = new AsyncBatchUploadResult();
+            result.setStartDate(new Date());
+            result.setStatus(FutureTaskStatus.PROCESSING);
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            result.setError(errorMessage);
             
-            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-           /* if (!isTextFile) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }*/
+            String uri = repository.addBatchUpload (result, GlygenArrayRepositoryImpl.batchGlycanTypePredicate, user);
+            result.setUri(uri);
+            repository.updateStatus (uri, result, user);
             
-            JSONArray inputArray = new JSONArray(fileAsString);
-            int countSuccess = 0;
-            for (int i=0; i < inputArray.length(); i++) {
-                JSONObject jo = inputArray.getJSONObject(i);
-                ObjectMapper objectMapper = new ObjectMapper();
-                Glycan glycan = objectMapper.readValue(jo.toString(), Glycan.class);
-                try {  
-                    String id = addGlycan(glycan, p, noGlytoucanRegistration, true);
-                    if (id != null) {
-                        glycan.setId(id);
-                        glycan.setUri(GlygenArrayRepositoryImpl.uriPrefix + id);
-                        if (glycan instanceof SequenceDefinedGlycan) {
-                            byte[] image = getCartoonForGlycan(glycan.getId());
-                            glycan.setCartoon(image);
-                        }
-                        result.getAddedGlycans().add(glycan);
-                        countSuccess ++;
-                    } else {
-                        // error
-                        String sequence = null;
-                        if (glycan instanceof SequenceDefinedGlycan) {
-                            sequence = ((SequenceDefinedGlycan) glycan).getSequence();
-                        }
-                        result.addWrongSequence(glycan.getName(), i, sequence, "not added, id is null");
-                    }
-                } catch (Exception e) {
-                    logger.error ("Exception adding the glycan: " + glycan.getName(), e);
-                    if (e.getCause() instanceof ErrorMessage) {
-                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                            ErrorMessage error = (ErrorMessage)e.getCause();
-                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes() != null && err.getCodes().length != 0) {
-                                    Glycan duplicateGlycan = new Glycan();
-                                    try {
-                                        duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
-                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
-                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
-                                            duplicateGlycan.setCartoon(image);
-                                        }
-                                        result.addDuplicateSequence(duplicateGlycan);
-                                    } catch (SparqlException | SQLException e1) {
-                                        logger.error("Error retrieving duplicate glycan", e1);
-                                    }
-                                } else {
-                                    result.addDuplicateSequence(glycan);
-                                }
-                            } 
+            CompletableFuture<Confirmation> confirmation = null;
+                
+            try {
+                // process the file and add the glycans 
+                switch (type) {
+                case REPOSITORYEXPORT: 
+                    confirmation = parserAsyncService.addGlycansFromExportFile(contents, noGlytoucanRegistration, user, errorMessage);
+                    break;
+                case CFG:
+                    confirmation = parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.IUPAC.getLabel(), "\\n");
+                    break;
+                case TABSEPARATED:
+                    ParserConfiguration config = new ParserConfiguration();
+                    config.setNameColumn(0);
+                    config.setIdColumn(1);
+                    config.setGlytoucanIdColumn(2);
+                    config.setSequenceColumn(3);
+                    config.setSequenceTypeColumn(4);
+                    config.setMassColumn(5);
+                    config.setCommentColumn(6);
+                    confirmation = parserAsyncService.addGlycanFromCSVFile(contents, noGlytoucanRegistration, user, errorMessage, config);
+                    break;
+                case GWS:
+                    parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.GWS.getLabel(), ";");
+                    break;
+                case WURCS:
+                    parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.WURCS.getLabel(), "\\n");
+                    break;
+                case XML:
+                    confirmation = parserAsyncService.addGlycanFromLibraryFile(contents, noGlytoucanRegistration, user, errorMessage);
+                    break;
+                default:
+                    errorMessage.addError(new ObjectError("filetype", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("File is not acceptable", errorMessage);
+                }
+                
+                confirmation.whenComplete((conf, e) -> {
+                    try {
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            result.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                result.setError((ErrorMessage) e.getCause().getCause());
                         } else {
-                            result.addWrongSequence(glycan.getName(), i, null, ((ErrorMessage)e.getCause()).toString());
+                            result.setStatus(FutureTaskStatus.DONE);    
                         }
-                    } else { 
-                        result.addWrongSequence(glycan.getName(), i, null, e.getMessage());
-                    }
+                        repository.updateStatus (uri, result, user);
+                    } catch (SparqlException | SQLException ex) {
+                        throw new GlycanRepositoryException("Glycans cannot be added for user " + p.getName(), e);
+                    } 
+                });
+                confirmation.get(1000, TimeUnit.MILLISECONDS);
+            } catch (IllegalArgumentException e) {
+                result.setStatus(FutureTaskStatus.ERROR);
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
+                    result.setError((ErrorMessage) e.getCause());
+                repository.updateStatus (uri, result, user);
+                throw e;
+            } catch (TimeoutException e) {
+                synchronized (this) {
+                    if (result.getError() == null || (result.getError() != null && (result.getError().getErrors() == null || result.getError().getErrors().isEmpty())))
+                        result.setStatus(FutureTaskStatus.PROCESSING);
+                    else 
+                        result.setStatus(FutureTaskStatus.ERROR);
+                    repository.updateStatus (uri, result, user);
+                    return result;
                 }
             }
-         
-            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " glycans are added");
             return result;
-        } catch (IOException | JSONException e) {
-            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Glycans cannot be added for user " + p.getName(), e);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error uploading glycans from the given file", e);
+            ErrorMessage errorMessage = new ErrorMessage();
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                    errorMessage.addError(err);
+                }
+            } else {
+                errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+            }
+            throw new IllegalArgumentException("Error uploading glycans from the given file", errorMessage);
+        }
+    }
+    
+    private AsyncBatchUploadResult handleAsyncUpload (Principal p, byte[] contents, LinkerType linkerType) {
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        boolean linker = linkerType != null;
+        try {    
+            AsyncBatchUploadResult result = new AsyncBatchUploadResult();
+            result.setStartDate(new Date());
+            result.setStatus(FutureTaskStatus.PROCESSING);
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            result.setError(errorMessage);
+            
+            String uploadType = linker ? GlygenArrayRepositoryImpl.batchLinkerTypePredicate : GlygenArrayRepositoryImpl.batchFeatureTypePredicate;
+            String uri = repository.addBatchUpload (result, uploadType, user);
+            result.setUri(uri);
+            repository.updateStatus (uri, result, user);
+            
+            CompletableFuture<Confirmation> confirmation = null;
+                
+            try {
+                if (linkerType != null) {
+                    confirmation = parserAsyncService.addLinkersFromExportFile (contents, linkerType, user, errorMessage);
+                    
+                } else {
+                    confirmation = parserAsyncService.addFeaturesFromExportFile(contents, user, errorMessage);
+                }
+                
+                confirmation.whenComplete((conf, e) -> {
+                    try {
+                        if (e != null) {
+                            logger.error(e.getMessage(), e);
+                            result.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
+                                result.setError((ErrorMessage) e.getCause().getCause());
+                        } else {
+                            result.setStatus(FutureTaskStatus.DONE);    
+                        }
+                        repository.updateStatus (uri, result, user);
+                    } catch (SparqlException | SQLException ex) {
+                        throw new GlycanRepositoryException((linker ? "Linkers": "Features") + " cannot be added for user " + p.getName(), e);
+                    } 
+                });
+                confirmation.get(1000, TimeUnit.MILLISECONDS);
+            } catch (IllegalArgumentException e) {
+                result.setStatus(FutureTaskStatus.ERROR);
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
+                    result.setError((ErrorMessage) e.getCause());
+                repository.updateStatus (uri, result, user);
+                throw e;
+            } catch (TimeoutException e) {
+                synchronized (this) {
+                    if (result.getError() == null || (result.getError() != null && (result.getError().getErrors() == null || result.getError().getErrors().isEmpty())))
+                        result.setStatus(FutureTaskStatus.PROCESSING);
+                    else 
+                        result.setStatus(FutureTaskStatus.ERROR);
+                    repository.updateStatus (uri, result, user);
+                    return result;
+                }
+            }
+            return result;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException((linker ? "Linkers": "Features") + " cannot be added for user " + p.getName(), e);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error uploading glycans from the given file", e);
+            ErrorMessage errorMessage = new ErrorMessage();
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                    errorMessage.addError(err);
+                }
+            } else {
+                errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+            }
+            throw new IllegalArgumentException("Error uploading " + (linker ? "Linkers": "Features") +  " from the given file", errorMessage);
         }
     }
     
@@ -583,7 +664,7 @@ public class GlygenArrayController {
             @ApiResponse(code=403, message="Not enough privileges to register linkers"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public BatchLinkerUploadResult addLinkerFromFile (
+    public AsyncBatchUploadResult addLinkerFromFile (
             @ApiParam(required=true, name="file", value="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
@@ -625,7 +706,7 @@ public class GlygenArrayController {
             try {
                 fileContent = Files.readAllBytes(file.toPath());
                 if (fileType.toLowerCase().contains("export")) {
-                    return addLinkersFromExportFile(fileContent, linkerType, p);
+                    return handleAsyncUpload(p, fileContent, linkerType);
                 } else {
                     ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -641,147 +722,6 @@ public class GlygenArrayController {
             }
         }
     }
-   
-    private BatchLinkerUploadResult addLinkersFromExportFile(byte[] contents, LinkerType type, 
-            Principal p) {
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        BatchLinkerUploadResult result = new BatchLinkerUploadResult();
-        try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
-            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            
-            boolean isTextFile = Charset.forName("ISO-8859-1").newEncoder().canEncode(fileAsString);
-           /* if (!isTextFile) {
-                ErrorMessage errorMessage = new ErrorMessage("The file is not a text file");
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }*/
-            
-            JSONArray inputArray = new JSONArray(fileAsString);
-            int countSuccess = 0;
-            for (int i=0; i < inputArray.length(); i++) {
-                JSONObject jo = inputArray.getJSONObject(i);
-                ObjectMapper objectMapper = new ObjectMapper();
-                Linker linker = objectMapper.readValue(jo.toString(), Linker.class);
-                if (linker.getType() != type && !linker.getType().name().equals("UNKNOWN_"+type.name())) {
-                    // incorrect type
-                    ErrorMessage errorMessage = new ErrorMessage("The selected type does not match the file contents");
-                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    String[] codes = new String[] {"selected type=" + type.name(), "type in file=" + linker.getType().name(), "linker=" + linker.getName()};
-                    errorMessage.addError(new ObjectError("type", codes, null, "NotValid"));
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    result.getErrors().add(errorMessage);
-                } else {
-                    try {  
-                        String id = addLinker(linker, linker.getType().name().contains("UNKNOWN"), p);
-                        linker.setId(id);
-                        result.getAddedLinkers().add(linker);
-                        countSuccess ++;
-                    } catch (Exception e) {
-                        if (e.getCause() instanceof ErrorMessage) {
-                            if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                                ErrorMessage error = (ErrorMessage)e.getCause();
-                                if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                    ObjectError err = error.getErrors().get(0);
-                                    if (err.getCodes() != null && err.getCodes().length != 0) {
-                                        try {
-                                            Linker duplicate = linkerRepository.getLinkerById(err.getCodes()[0], user);
-                                            result.getDuplicateLinkers().add(duplicate);
-                                        } catch (SparqlException | SQLException e1) {
-                                            logger.error("Error retrieving duplicate linker", e1);
-                                        }
-                                    } else {
-                                        result.getDuplicateLinkers().add(linker);
-                                    }
-                                } 
-                            } else {
-                                logger.error ("Exception adding the linker: " + linker.getName(), e);
-                                result.getErrors().add((ErrorMessage)e.getCause());
-                            }
-                        } else { 
-                            logger.error ("Exception adding the linker: " + linker.getName(), e);
-                            ErrorMessage error = new ErrorMessage(e.getMessage());
-                            result.getErrors().add(error);
-                        }
-                    }
-                }
-            }
-         
-            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " linkers are added");
-            return result;
-        } catch (IOException | JSONException e) {
-            ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not acceptable", errorMessage);
-        }
-    }
-    
-    private BatchFeatureUploadResult addFeaturesFromExportFile(byte[] contents,
-            Principal p) {
-        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        BatchFeatureUploadResult result = new BatchFeatureUploadResult();
-        try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
-            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            
-            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-           /* if (!isTextFile) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }*/
-            
-            JSONArray inputArray = new JSONArray(fileAsString);
-            int countSuccess = 0;
-            for (int i=0; i < inputArray.length(); i++) {
-                JSONObject jo = inputArray.getJSONObject(i);
-                ObjectMapper objectMapper = new ObjectMapper();
-                org.glygen.array.persistence.rdf.Feature feature = objectMapper.readValue(jo.toString(), org.glygen.array.persistence.rdf.Feature.class);
-                try {  
-                    String id = addFeature(feature, p);
-                    feature.setId(id);
-                    result.getAddedFeatures().add(feature);
-                    countSuccess ++;
-                } catch (Exception e) {
-                    logger.error ("Exception adding the feature: " + feature.getName(), e);
-                    if (e.getCause() instanceof ErrorMessage) {
-                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                            ErrorMessage error = (ErrorMessage)e.getCause();
-                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes() != null && err.getCodes().length != 0) {
-                                    try {
-                                        org.glygen.array.persistence.rdf.Feature duplicate = featureRepository.getFeatureById(err.getCodes()[0], user);
-                                        result.getDuplicateFeatures().add(duplicate);
-                                    } catch (SparqlException | SQLException e1) {
-                                        logger.error("Error retrieving duplicate feature", e1);
-                                    }
-                                } else {
-                                    result.getDuplicateFeatures().add(feature);
-                                }
-                            } 
-                        } else {
-                            result.getErrors().add((ErrorMessage)e.getCause());
-                        }
-                    } else { 
-                        ErrorMessage error = new ErrorMessage(e.getMessage());
-                        result.getErrors().add(error);
-                    }
-                }
-            }
-         
-            result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " features are added");
-            return result;
-        } catch (IOException | JSONException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
-        }
-    }
     
     @ApiOperation(value = "Register all features listed in a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/addBatchFeature", method=RequestMethod.POST, 
@@ -789,10 +729,10 @@ public class GlygenArrayController {
     @ApiResponses (value ={@ApiResponse(code=200, message="Features processed successfully"), 
             @ApiResponse(code=400, message="Invalid request if file is not a valid file"),
             @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register linkers"),
+            @ApiResponse(code=403, message="Not enough privileges to register features"),
             @ApiResponse(code=415, message="Media type is not supported"),
             @ApiResponse(code=500, message="Internal Server Error")})
-    public BatchFeatureUploadResult addFeatureFromFile (
+    public AsyncBatchUploadResult addFeatureFromFile (
             @ApiParam(required=true, name="file", value="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
@@ -814,7 +754,7 @@ public class GlygenArrayController {
             try {
                 fileContent = Files.readAllBytes(file.toPath());
                 if (fileType.toLowerCase().contains("export")) {
-                    return addFeaturesFromExportFile(fileContent, p);
+                    return handleAsyncUpload(p, fileContent, null); 
                 } else {
                     ErrorMessage errorMessage = new ErrorMessage("filetype is not accepted");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -831,337 +771,6 @@ public class GlygenArrayController {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private BatchGlycanUploadResult addGlycanFromLibraryFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
-	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
-	    try {
-	        ByteArrayInputStream stream = new ByteArrayInputStream(contents);
-            InputStreamReader reader2 = new InputStreamReader(stream, "UTF-8");
-            List<Class> contextList = new ArrayList<Class>(Arrays.asList(FilterUtils.filterClassContext));
-            contextList.add(ArrayDesignLibrary.class);
-            JAXBContext context2 = JAXBContext.newInstance(contextList.toArray(new Class[contextList.size()]));
-            Unmarshaller unmarshaller2 = context2.createUnmarshaller();
-            ArrayDesignLibrary library = (ArrayDesignLibrary) unmarshaller2.unmarshal(reader2);
-            List<org.grits.toolbox.glycanarray.library.om.feature.Glycan> glycanList = library.getFeatureLibrary().getGlycan();
-            int count = 0;
-            int countSuccess = 0;
-            for (org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan : glycanList) {
-                count++;
-                Glycan view = null;
-                if (glycan.getSequence() == null) {
-                    if (glycan.getOrigSequence() == null && (glycan.getClassification() == null || glycan.getClassification().isEmpty())) {
-                        // this is not a glycan, it is either control or a flag
-                        // do not create a glycan
-                        // give an error message
-                        result.addWrongSequence ((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, null, "Not a glycan");
-                  
-                        continue;
-                    } else if (glycan.getOrigSequence() == null || (glycan.getOrigSequence() != null && glycan.getOriginalSequenceType().equalsIgnoreCase("other"))) {  
-                        // unknown glycan
-                        view = new UnknownGlycan();
-                    } 
-                    if (glycan.getFilterSetting() != null) {
-                        // there is a glycan with composition, TODO we don't handle that right now
-                        result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, glycan.getSequence(), "Glycan Type not supported");
-                 
-                        continue;
-                    }
-                } else {
-                    view = new SequenceDefinedGlycan();
-                    ((SequenceDefinedGlycan) view).setGlytoucanId(glycan.getGlyTouCanId());
-                    ((SequenceDefinedGlycan) view).setSequence(glycan.getSequence().trim());
-                    ((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
-                }
-                if (view == null) {
-                    result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), "Not a glycan");
-                    continue;
-                }
-                try {
-                    view.setInternalId(glycan.getId()+ "");
-                    view.setName(glycan.getName());
-                    view.setDescription(glycan.getComment());   
-                    String id = addGlycan(view, p, noGlytoucanRegistration, false);
-                    Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                    if (addedGlycan instanceof SequenceDefinedGlycan) {
-                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
-                        addedGlycan.setCartoon(image);
-                    }
-                    result.getAddedGlycans().add(addedGlycan);
-                    countSuccess ++;
-                } catch (Exception e) {
-                    if (e.getCause() instanceof ErrorMessage) {
-                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                            ErrorMessage error = (ErrorMessage)e.getCause();
-                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes() != null && err.getCodes().length != 0) {
-                                    Glycan duplicateGlycan = new Glycan();
-                                    try {
-                                        duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
-                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
-                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
-                                            duplicateGlycan.setCartoon(image);
-                                        }
-                                        result.addDuplicateSequence(duplicateGlycan);
-                                    } catch (SparqlException | SQLException e1) {
-                                        logger.error("Error retrieving duplicate glycan", e1);
-                                    }
-                                }
-                            } 
-                        } else {
-                            result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
-                        }
-                    } else { 
-                        logger.error ("Exception adding the glycan: " + glycan.getName(), e);
-                        result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
-                    }
-                } 
-            }
-            stream.close();
-            result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
-            logger.info("Processed the file. " + countSuccess + " out of " + count + " glycans are added" );
-            return result;
-	    } catch (Exception e) {
-	        ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-	        throw new IllegalArgumentException("File is not valid.", errorMessage);
-	    } 
-	}
-	
-	private BatchGlycanUploadResult addGlycanFromCSVFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
-	    ParserConfiguration config = new ParserConfiguration();
-	    config.setNameColumn(0);
-	    config.setIdColumn(1);
-	    config.setGlytoucanIdColumn(2);
-	    config.setSequenceColumn(3);
-	    config.setSequenceTypeColumn(4);
-	    config.setMassColumn(5);
-	    config.setCommentColumn(6);
-	    
-	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-        BatchGlycanUploadResult result = new BatchGlycanUploadResult();
-        try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
-            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            Scanner scan = new Scanner(fileAsString);
-            int count = 0;
-            int countSuccess = 0;
-            while(scan.hasNext()){
-                String curLine = scan.nextLine();
-                String[] splitted = curLine.split("\t");
-                if (splitted.length == 0)
-                    continue;
-                String firstColumn = splitted[0].trim();
-                if (firstColumn.equalsIgnoreCase("name")) {
-                    continue; // skip the header line
-                }
-                count++;
-                String glycanName = splitted[config.getNameColumn()];
-                String glytoucanId = splitted[config.getGlytoucanIdColumn()];
-                String sequence = splitted[config.getSequenceColumn()];
-                String sequenceType = splitted[config.getSequenceTypeColumn()];
-                String mass = splitted[config.getMassColumn()];
-                String internalId = splitted[config.getIdColumn()];
-                String comments = splitted[config.getCommentColumn()];
-                
-                Glycan glycan = null;
-                if ((glytoucanId == null || glytoucanId.isEmpty()) && (sequence == null || sequence.isEmpty())) {
-                    // mass only glycan
-                    if (mass != null && !mass.trim().isEmpty()) {
-                        glycan = new MassOnlyGlycan(); 
-                        try {
-                            ((MassOnlyGlycan) glycan).setMass(Double.parseDouble(mass.trim()));
-                        } catch (NumberFormatException e) {
-                            // add to error list
-                            result.addWrongSequence(glycanName, count, null, e.getMessage());
-                        }
-                    } else {
-                        // ERROR
-                        result.addWrongSequence(glycanName, count, sequence, "No sequence and mass information found");
-                    }
-                } else {
-                    // sequence defined glycan
-                    glycan = new SequenceDefinedGlycan();
-                    if (glytoucanId != null && !glytoucanId.trim().isEmpty()) {
-                        // use glytoucanid to retrieve the sequence
-                        String glycoCT = addService.getSequenceFromGlytoucan(glytoucanId.trim());
-                        if (glycoCT != null && glycoCT.startsWith("RES")) {
-                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT.trim());
-                            ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
-                        } else if (glycoCT != null && glycoCT.startsWith("WURCS")){
-                            ((SequenceDefinedGlycan) glycan).setSequence(glycoCT.trim());
-                            ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.WURCS);
-                        }
-                    } else if (sequence != null && !sequence.trim().isEmpty()) {
-                        ((SequenceDefinedGlycan) glycan).setSequence(sequence.trim());
-                        ((SequenceDefinedGlycan) glycan).setSequenceType(GlycanSequenceFormat.forValue(sequenceType));
-                    }
-                }
-                if (internalId != null) glycan.setInternalId(internalId.trim());
-                if (glycanName != null) glycan.setName(glycanName.trim());
-                if (comments != null) glycan.setDescription(comments.trim());
-                try {  
-                    String id = addGlycan(glycan, p, noGlytoucanRegistration, false);
-                    Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                    if (addedGlycan instanceof SequenceDefinedGlycan) {
-                        byte[] image = getCartoonForGlycan(addedGlycan.getId());
-                        addedGlycan.setCartoon(image);
-                    }
-                    result.getAddedGlycans().add(addedGlycan);
-                    countSuccess ++;
-                } catch (Exception e) {
-                    logger.error ("Exception adding the glycan: " + glycan.getName(), e);
-                    if (e.getCause() instanceof ErrorMessage) {
-                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                            ErrorMessage error = (ErrorMessage)e.getCause();
-                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                ObjectError err = error.getErrors().get(0);
-                                if (err.getCodes().length != 0) {
-                                    Glycan duplicateGlycan = new Glycan();
-                                    try {
-                                        duplicateGlycan = glycanRepository.getGlycanById(err.getCodes()[0], user);
-                                        if (duplicateGlycan instanceof SequenceDefinedGlycan) {
-                                            byte[] image = getCartoonForGlycan(duplicateGlycan.getId());
-                                            duplicateGlycan.setCartoon(image);
-                                        }
-                                        result.addDuplicateSequence(duplicateGlycan);
-                                    } catch (SparqlException | SQLException e1) {
-                                        logger.error("Error retrieving duplicate glycan", e1);
-                                    }
-                                }
-                            } 
-                        } else {
-                            result.addWrongSequence(glycan.getName(), count, sequence, ((ErrorMessage)e.getCause()).toString());
-                        }
-                    } else { 
-                        result.addWrongSequence(glycan.getName(), count, sequence, e.getMessage());
-                    }
-                } 
-            }
-            scan.close();
-            stream.close();
-            result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
-            return result;
-        } catch (IOException e) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("file", "NotValid"));
-            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not valid.", errorMessage);
-        }
-    }
-	
-	private BatchGlycanUploadResult addGlycanFromGWSFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p) {
-	    return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.GWS.getLabel(), ";");
-	}
-	
-	private BatchGlycanUploadResult addGlycanFromWURCSFile(byte[] contents, Boolean noGlytoucanRegistration,
-            Principal p) {
-	    return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.WURCS.getLabel(), "\\n");
-    }
-
-    private BatchGlycanUploadResult addGlycanFromCFGFile(byte[] contents, Boolean noGlytoucanRegistration,
-            Principal p) {
-        return addGlycanFromTextFile(contents, noGlytoucanRegistration, p, GlycanSequenceFormat.IUPAC.getLabel(), "\\n");
-    }
-	
-	private BatchGlycanUploadResult addGlycanFromTextFile (byte[] contents, Boolean noGlytoucanRegistration, Principal p, String format, String delimeter) {
-	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
-	    BatchGlycanUploadResult result = new BatchGlycanUploadResult();
-        try {
-            ByteArrayInputStream stream = new   ByteArrayInputStream(contents);
-            String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
-            
-            boolean isTextFile = Charset.forName("US-ASCII").newEncoder().canEncode(fileAsString);
-            if (!isTextFile) {
-                ErrorMessage errorMessage = new ErrorMessage();
-                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                errorMessage.addError(new ObjectError("file", "NotValid"));
-                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File is not acceptable", errorMessage);
-            }
-            
-            String[] structures = fileAsString.split(delimeter);
-            int count = 0;
-            int countSuccess = 0;
-            for (String sequence: structures) {
-                if (sequence == null || sequence.trim().isEmpty())
-                    continue;
-                count++;
-                try {
-                    ErrorMessage e = new ErrorMessage();
-                    String glycoCT = SequenceUtils.parseSequence(e, sequence, format);
-                    if (glycoCT == null || glycoCT.isEmpty()) {
-                        if (e.getErrors() != null && !e.getErrors().isEmpty()) {
-                            result.addWrongSequence(null, count, sequence, e.getErrors().get(0).getDefaultMessage());
-                        } else {
-                            result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
-                        }
-                    } else {
-                        SequenceDefinedGlycan g = new SequenceDefinedGlycan();
-                        g.setSequence(glycoCT);
-                        if (glycoCT.startsWith("RES"))
-                            g.setSequenceType(GlycanSequenceFormat.GLYCOCT);
-                        else 
-                            g.setSequenceType(GlycanSequenceFormat.WURCS);
-                        
-                        String existing = glycanRepository.getGlycanBySequence(glycoCT, user);
-                        if (existing != null && !existing.contains("public")) {
-                            // duplicate, ignore
-                            logger.info("found a duplicate sequence " +  existing);
-                            String id = existing.substring(existing.lastIndexOf("/")+1);
-                            Glycan glycan = glycanRepository.getGlycanById(id, user);
-                            if (glycan instanceof SequenceDefinedGlycan) {
-                                byte[] image = getCartoonForGlycan(glycan.getId());
-                                glycan.setCartoon(image);
-                            }
-                            if (glycan != null)
-                                result.addDuplicateSequence(glycan);
-                            else {
-                                logger.warn ("the duplicate glycan cannot be retrieved back: " + id);
-                            }
-                        } else {
-                            String id = addGlycan(g, p, noGlytoucanRegistration, false);
-                            if (id == null) {
-                                // cannot be added
-                                result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
-                            } else {
-                                Glycan addedGlycan = glycanRepository.getGlycanById(id, user);
-                                if (addedGlycan instanceof SequenceDefinedGlycan) {
-                                    byte[] image = getCartoonForGlycan(addedGlycan.getId());
-                                    addedGlycan.setCartoon(image);
-                                }
-                                if (addedGlycan != null) {
-                                    result.getAddedGlycans().add(addedGlycan);
-                                    countSuccess ++;
-                                } else {
-                                    logger.warn ("the added glycan cannot be retrieved back: " + id);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (SparqlException e) {
-                    // cannot add glycan
-                    stream.close();
-                    throw new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage());
-                } catch (Exception e) {
-                    logger.error ("Exception adding the sequence: " + sequence, e);
-                    // sequence is not valid
-                    result.addWrongSequence(null, count, sequence, e.getMessage());
-                }
-            }
-            stream.close();
-            result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
-            return result;
-        } catch (IOException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
-        }
-	}
-	
 	@ApiOperation(value = "Add given linker for the user", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/addlinker", method = RequestMethod.POST, 
 			consumes={"application/json", "application/xml"})
@@ -1295,6 +904,73 @@ public class GlygenArrayController {
 
 		return true;
 	}
+	
+	@ApiOperation(value = "Retrieve active batch upload processes by type", 
+            response = AsyncBatchUploadResult.class, authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/checkbatchupload", method = RequestMethod.GET,
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Check performed successfully"),
+            @ApiResponse(code = 415, message = "Media type is not supported"),
+            @ApiResponse(code = 500, message = "Internal Server Error") })
+    public AsyncBatchUploadResult checkActiveBatchUpload(
+            @ApiParam(required=true, value="type of the batch upload to check", 
+            allowableValues="batch_glycan_job, batch_linker_job, batch_feature_job")
+            @RequestParam("uploadtype") final String type, 
+            Principal principal) throws SparqlException, SQLException {
+
+        UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+        if (type == null || 
+                (!(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchGlycanTypePredicate) && 
+                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
+                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchFeatureTypePredicate))) {
+            ErrorMessage errorMessage = new ErrorMessage("upload type is not in the list of accepted values");
+            errorMessage.addError(new ObjectError("uploadType", "NotValid"));
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            throw new IllegalArgumentException("Type is invalid", errorMessage);
+        }
+        
+        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type), user);
+
+        if (!results.isEmpty()) {
+            //repository.updateBatchUpload(results.get(0), user);
+            return results.get(0);
+        }
+
+        return null;
+    }
+	
+	@ApiOperation(value = "Update (hide) active batch upload processes by type", 
+            response = AsyncBatchUploadResult.class, authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/updatebatchupload", method = RequestMethod.POST,
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Update performed successfully"),
+            @ApiResponse(code = 415, message = "Media type is not supported"),
+            @ApiResponse(code = 500, message = "Internal Server Error") })
+    public Confirmation updateActiveBatchUpload(
+            @ApiParam(required=true, value="type of the batch upload to check", 
+            allowableValues="batch_glycan_job, batch_linker_job, batch_feature_job")
+            @RequestParam("uploadtype") final String type, 
+            Principal principal) throws SparqlException, SQLException {
+
+        UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+        if (type == null || 
+                (!(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchGlycanTypePredicate) && 
+                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
+                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchFeatureTypePredicate))) {
+            ErrorMessage errorMessage = new ErrorMessage("upload type is not in the list of accepted values");
+            errorMessage.addError(new ObjectError("uploadType", "NotValid"));
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            throw new IllegalArgumentException("Type is invalid", errorMessage);
+        }
+        
+        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type), user);
+
+        if (!results.isEmpty()) {
+            repository.updateBatchUpload(results.get(0), user);
+        }
+
+        return new Confirmation ("Last active batch upload is updated, will not be shown again", HttpStatus.OK.value());
+    }
 	
 	@ApiOperation(value = "Delete given block layout", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value="/deleteblocklayout/{layoutId}", method = RequestMethod.DELETE, 

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -562,10 +563,38 @@ public class DatasetController {
             @ApiResponse(code=500, message="Internal Server Error")})
     public Set<String> getKeywords(){
         try {
-            return datasetRepository.getAllKeywords();
+            Set<String> keywords = new HashSet<String>();
+            keywords.addAll(datasetRepository.getAllKeywords());
+            return keywords;
         } catch (SparqlException | SQLException e) {
             ErrorMessage errorMessage = new ErrorMessage("Error retrieving keywords from the repository");
             errorMessage.addError(new ObjectError("keyword", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+            errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            throw errorMessage;
+        }
+    }
+    
+    @ApiOperation(value="Retrieving all funding organizations from the repository", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value="/getallfundingorganizations", method=RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value= {@ApiResponse(code=200, message="list of existing funding organizations in the repository"),
+            @ApiResponse(code=400, message="Invalid request, validation error"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to retrieve funding organizations"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Set<String> getFundingOrganizations(){
+        try {
+            Set<String> orgs = new HashSet<String>();
+            orgs.add("NIH");
+            orgs.add("FDA");
+            orgs.add("DOI");
+            orgs.addAll(datasetRepository.getAllFundingOrganizations());
+            return orgs;
+        } catch (SparqlException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Error retrieving funding organizations from the repository");
+            errorMessage.addError(new ObjectError("fundingorganization", e.getMessage()));
             errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
             errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             throw errorMessage;
@@ -8101,19 +8130,19 @@ public class DatasetController {
             stats.setSampleCount((long) metadataRepository.getSampleCountByUser(user, null));
             stats.setGlycanCount((long)glycanRepository.getGlycanCountByUser(user, null));
             int linker = linkerRepository.getLinkerCountByUserByType(user, LinkerType.SMALLMOLECULE, null);
-            linker += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_SMALLMOLECULE, null);
+            //linker += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_SMALLMOLECULE, null);
             stats.setLinkerCount((long)linker);
             
             int protein = linkerRepository.getLinkerCountByUserByType(user, LinkerType.PROTEIN, null);
-            protein += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PROTEIN, null);
+            //protein += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PROTEIN, null);
             stats.setProteinCount((long)protein);
             
             int lipid = linkerRepository.getLinkerCountByUserByType(user, LinkerType.LIPID, null);
-            lipid += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_LIPID, null);
+            //lipid += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_LIPID, null);
             stats.setLipidCount((long)lipid);
             
             int peptide = linkerRepository.getLinkerCountByUserByType(user, LinkerType.PEPTIDE, null);
-            peptide += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PEPTIDE, null);
+            //peptide += linkerRepository.getLinkerCountByUserByType(user, LinkerType.UNKNOWN_PEPTIDE, null);
             stats.setPeptideCount((long)peptide);
             
             // count the public ones

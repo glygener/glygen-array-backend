@@ -129,5 +129,6 @@ public interface ArrayDatasetRepository {
     Set<String> getAllKeywords() throws SparqlException, SQLException;
     int getPublicArrayDatasetCountByUser(UserEntity user) throws SparqlException, SQLException;
     int getPublicSlideCountByUser(UserEntity user) throws SparqlException, SQLException;
+    Set<String> getAllFundingOrganizations() throws SparqlException;
     
 }

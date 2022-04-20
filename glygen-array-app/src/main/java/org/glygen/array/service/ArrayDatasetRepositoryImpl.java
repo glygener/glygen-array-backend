@@ -3790,7 +3790,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT distinct ?keyword \n");
-        //queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append (
                 "?ps rdf:type <" + datasetTypePredicate + "> . \n" +
@@ -3842,5 +3841,23 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         } else
             graph = getGraphForUser(user);
         return getPublicCountByUserByType(graph, printedSlideTypePredicate);
+    }
+
+    @Override
+    public Set<String> getAllFundingOrganizations() throws SparqlException {
+        Set<String> fundingOrganizations = new HashSet<String>();
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT distinct ?org \n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ("?ps gadr:has_organization ?org .}"); 
+               
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String uri = result.getValue("org");
+            fundingOrganizations.add(uri);
+        }
+        
+        return fundingOrganizations;
     }
 }

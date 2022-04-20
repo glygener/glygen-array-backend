@@ -48,7 +48,6 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     @org.springframework.beans.factory.annotation.Value("${glygen.glytoucanregistration}")
     String glytoucanregistration;
     
-
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
 		if (alias == null || alias.trim().isEmpty())

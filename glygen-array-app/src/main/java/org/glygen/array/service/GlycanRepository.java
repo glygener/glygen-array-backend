@@ -9,6 +9,8 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.view.AsyncBatchUploadResult;
+import org.glygen.array.view.BatchGlycanUploadResult;
 
 public interface GlycanRepository {
 	
@@ -91,5 +93,4 @@ public interface GlycanRepository {
     Glycan retrieveOtherSubType (Glycan baseType, GlycanSubsumtionType subType, UserEntity user) throws SparqlException, SQLException;
     int getGlycanCountByUser(UserEntity user, String searchValue, boolean includePublic)
             throws SQLException, SparqlException;
-    
 }

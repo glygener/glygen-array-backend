@@ -14,6 +14,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.glygen.array.exception.SparqlException;
@@ -31,6 +32,7 @@ import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.util.SparqlUtils;
+import org.glygen.array.view.AsyncBatchUploadResult;
 import org.glygen.array.view.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,7 +165,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String hasFolderPredicate = ontPrefix + "has_folder";
     public final static String hasFileFormatPredicate = ontPrefix + "has_file_format";
     public final static String hasSizePredicate = ontPrefix + "has_size";
-	
+    
+    // batch upload
+    public final static String batchGlycanTypePredicate = ontPrefix + "batch_glycan_job";    
+    public final static String batchLinkerTypePredicate = ontPrefix + "batch_linker_job";
+    public final static String batchFeatureTypePredicate = ontPrefix + "batch_feature_job";
+    
 	
 	/**
 	 * {@inheritDoc}
@@ -813,5 +820,124 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         }
         
         return file;
+    }
+    
+    @Override
+    public String addBatchUpload(AsyncBatchUploadResult result, String type, UserEntity user) throws SparqlException, SQLException {
+        String graph = getGraphForUser(user);
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        ValueFactory f = sparqlDAO.getValueFactory();
+        String batchURI = generateUniqueURI(uriPrefix + "BU", allGraphs);
+        IRI batch = f.createIRI(batchURI);
+        Literal date = f.createLiteral(new Date());
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI graphIRI = f.createIRI(graph);
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        
+        statements.add(f.createStatement(batch, RDF.TYPE, f.createIRI(type), graphIRI));
+        statements.add(f.createStatement(batch, hasCreatedDate, date, graphIRI));
+        
+        sparqlDAO.addStatements(statements, graphIRI);
+        return batchURI;
+    }
+    
+    @Override
+    public String updateBatchUpload(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI batch = f.createIRI(result.getUri());
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        
+        // delete existing predicates
+        sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(batch, hasModifiedDate, null, graphIRI)), graphIRI);
+        
+        Literal date = f.createLiteral(new Date());
+        List<Statement> statements = new ArrayList<Statement>();
+ 
+        statements.add(f.createStatement(batch, hasModifiedDate, date, graphIRI));
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+        return result.getUri();
+    }
+
+    @Override
+    public AsyncBatchUploadResult getBatchUpload(String uri, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI batch = f.createIRI(uri);
+        IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
+        IRI graphIRI = f.createIRI(graph);
+        
+        AsyncBatchUploadResult result = new AsyncBatchUploadResult();
+        result.setUri(uri);
+        RepositoryResult<Statement> statements = sparqlDAO.getStatements(batch, null, null, graphIRI);
+        while (statements.hasNext()) {
+            Statement st = statements.next();
+            if (st.getPredicate().equals(hasModifiedDate)) {
+                Value value = st.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    result.setAccessedDate(date);
+                }
+            } else if (st.getPredicate().equals(RDF.TYPE)) {
+                Value value = st.getObject();
+                result.setType(value.stringValue());
+            }
+        }
+        
+        getStatusFromURI (uri, result, graph);
+        
+        return result;
+    }
+    
+    @Override
+    public List<AsyncBatchUploadResult> getActiveBatchUploadByType (String type, UserEntity user) throws SparqlException, SQLException {
+        List<AsyncBatchUploadResult> uploadResults = new ArrayList<AsyncBatchUploadResult>();
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + "> \n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type <" + type + "> . \n");
+        queryBuf.append ( " ?s gadr:has_status_date ?start . ");
+        queryBuf.append("} ORDER BY DESC (?start) \n");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                AsyncBatchUploadResult r = getBatchUpload(uri, user);
+                if (r.getStatus() != FutureTaskStatus.DONE && r.getAccessedDate() == null) {
+                    uploadResults.add(r);
+                }
+            }
+        }
+        
+        return uploadResults;
     }
 }

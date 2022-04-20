@@ -655,8 +655,6 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
             errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
         }
         
-        
-        
         if (feature.getName() != null && !feature.getName().trim().isEmpty()) {
             try {
                 org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);

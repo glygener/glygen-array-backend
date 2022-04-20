@@ -1,6 +1,8 @@
 package org.glygen.array.persistence.rdf.metadata;
 
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("descriptorgroup")
@@ -22,6 +24,7 @@ public class DescriptorGroup extends Description {
     }
     
     @Override
+    @JsonIgnore
     public boolean isGroup() {
         return true;
     }
