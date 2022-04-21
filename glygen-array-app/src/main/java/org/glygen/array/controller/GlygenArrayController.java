@@ -3022,8 +3022,17 @@ public class GlygenArrayController {
     public @ResponseBody String exportLinkers (
             @ApiParam(required=true, value="type of the molecule", allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER") 
             @RequestParam("type") String moleculeType,
+            @ApiParam(required=false, value="offset for pagination, start from 0", example="0") 
+            @RequestParam(value="offset", required=false) Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
             Principal p) {
-        
+	    if (offset == null)
+            offset = 0;
+        if (limit == null) 
+            limit = -1;
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
             
@@ -3036,7 +3045,7 @@ public class GlygenArrayController {
                 throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
             }
             
-            List<Linker> myLinkers = linkerRepository.getLinkerByUser(user, 0, -1, null, 0, null, linkerType);
+            List<Linker> myLinkers = linkerRepository.getLinkerByUser(user, offset, limit, null, 0, searchValue, linkerType);
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myLinkers);
             return json;
@@ -3064,8 +3073,18 @@ public class GlygenArrayController {
             allowableValues="LINKEDGLYCAN, GLYCOLIPID, GLYCOPEPTIDE, "
                     + "GLYCOPROTEIN, GPLINKEDGLYCOPEPTIDE, CONTROL, NEGATIVE_CONTROL, COMPOUND, LANDING_LIGHT") 
             @RequestParam(value="type", required=false) String type,
+            @ApiParam(required=false, value="offset for pagination, start from 0", example="0") 
+            @RequestParam(value="offset", required=false) Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
             Principal p) {
         
+	    if (offset == null)
+            offset = 0;
+        if (limit == null) 
+            limit = -1;
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
             FeatureType featureType = null;
@@ -3089,9 +3108,9 @@ public class GlygenArrayController {
             }
             List<org.glygen.array.persistence.rdf.Feature> myFeatures = null;
             if (featureType != null) {
-                myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null, featureType, false);
+                myFeatures = featureRepository.getFeatureByUser(user, offset, limit, null, 0, searchValue, featureType, false);
             } else {
-                myFeatures = featureRepository.getFeatureByUser(user, 0, -1, null, 0, null);
+                myFeatures = featureRepository.getFeatureByUser(user, offset, limit, null, 0, searchValue);
             }
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myFeatures);
@@ -3756,7 +3775,7 @@ public class GlygenArrayController {
                 glycanObject = t_wurcsparser.readGlycan(glycan.getSequence().trim(), new MassOptions());
             }
             if (glycanObject != null) {
-                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+                t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 1.0D);
             } 
 
         } catch (Exception e) {
@@ -3769,7 +3788,7 @@ public class GlygenArrayController {
                     try {
                         glycanObject = t_wurcsparser.readGlycan(seq, new MassOptions());
                         if (glycanObject != null) {
-                            t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 3.0D);
+                            t_image = glycanWorkspace.getGlycanRenderer().getImage(glycanObject, true, false, true, 1.0D);
                         }
                     } catch (Exception e1) {
                         logger.error ("Glycan image cannot be generated from WURCS", e);
