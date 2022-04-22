@@ -564,6 +564,10 @@ public class DatasetController {
     public Set<String> getKeywords(){
         try {
             Set<String> keywords = new HashSet<String>();
+            keywords.add("Service work");
+            keywords.add("Published");
+            keywords.add("Unpublished");
+            keywords.add("Historical data");
             keywords.addAll(datasetRepository.getAllKeywords());
             return keywords;
         } catch (SparqlException | SQLException e) {
