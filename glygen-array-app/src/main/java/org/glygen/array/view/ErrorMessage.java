@@ -128,6 +128,8 @@ public class ErrorMessage extends Error {
     	        String argumentString = err.substring(err.indexOf("]; arguments [")+14, err.indexOf("]; default message ["));
     	        String[] arguments = argumentString.isEmpty() ? null : argumentString.split(",");
     	        String defaultMessage = err.substring(err.indexOf("]; default message [")+20);
+    	        if (defaultMessage != null) 
+    	            defaultMessage = defaultMessage.substring(0, defaultMessage.length()-1);  // to get rid of last ]
     	        errorMessage.addError(new ObjectError (fieldName, codes, arguments, defaultMessage));
     	    }
 	    }

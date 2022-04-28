@@ -237,10 +237,10 @@ public class Feature implements ChangeTrackable {
         this.description = description;
     }
     
-    @Override
+    /*@Override
     public int hashCode() {
         if (uri != null)
             return uri.hashCode();
         return super.hashCode();
-    }
+    }*/
 }

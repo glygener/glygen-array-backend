@@ -587,6 +587,570 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
             throw new GlycanRepositoryException("Glycan cannot be added for user " + user.getUsername(), e);
         }
     }
+    
+    /**
+     * this adds the feature exported from the repository
+     * 
+     * @param feature
+     * @param positions
+     * @param user
+     * @return
+     */
+    @Override
+    public String importFeature (Feature feature, Map<Object, String> positions, UserEntity user) {
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        if (feature.getType() == null || 
+                feature.getType() == FeatureType.LINKEDGLYCAN || 
+                feature.getType() == FeatureType.GLYCOLIPID ||
+                feature.getType() == FeatureType.GLYCOPEPTIDE || feature.getType() == FeatureType.GLYCOPROTEIN ||
+                feature.getType() == FeatureType.GPLINKEDGLYCOPEPTIDE) {
+            if (feature.getType() == FeatureType.LINKEDGLYCAN && feature.getLinker() == null)
+                errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+            if (feature.getType() == FeatureType.LINKEDGLYCAN && ((LinkedGlycan) feature).getGlycans() == null) {
+                errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOLIPID && ((GlycoLipid) feature).getGlycans() == null) {
+                errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOLIPID && ((GlycoLipid) feature).getLipid() == null) {
+                errorMessage.addError(new ObjectError("lipid", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOPEPTIDE && ((GlycoPeptide) feature).getGlycans() == null) {
+                errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOPEPTIDE && ((GlycoPeptide) feature).getPeptide() == null) {
+                errorMessage.addError(new ObjectError("peptide", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOPROTEIN && ((GlycoProtein) feature).getGlycans() == null) {
+                errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GLYCOPROTEIN && ((GlycoProtein) feature).getProtein() == null) {
+                errorMessage.addError(new ObjectError("protein", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GPLINKEDGLYCOPEPTIDE && ((GPLinkedGlycoPeptide) feature).getPeptides() == null) {
+                errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
+            } else if (feature.getType() == FeatureType.GPLINKEDGLYCOPEPTIDE && ((GPLinkedGlycoPeptide) feature).getProtein() == null) {
+                errorMessage.addError(new ObjectError("protein", "NoEmpty"));
+            }
+        } else {
+            // other types, i.e. controls
+            if (feature.getLinker() == null && !feature.getType().equals(FeatureType.NEGATIVE_CONTROL)) {
+                errorMessage.addError(new ObjectError("linker", "NoEmpty"));
+            }
+        }
+        
+        // if it was allowed to be saved in the repository without metadata, we can keep the same behavior while importing
+       /* if (feature.getMetadata() == null) {
+            errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
+        }*/
+        
+        if (feature.getName() != null && !feature.getName().trim().isEmpty()) {
+            try {
+                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getName(), user);
+                if (existing != null) {
+                    feature.setId(existing.getId());
+                    String[] codes = {existing.getId()};
+                    errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing features", e);
+            }
+        }
+        
+        if (feature.getInternalId() != null && !feature.getInternalId().trim().isEmpty()) {
+            try {
+                org.glygen.array.persistence.rdf.Feature existing = featureRepository.getFeatureByLabel(feature.getInternalId(), 
+                        "gadr:has_internal_id", user);
+                if (existing != null) {
+                    feature.setId(existing.getId());
+                    String[] codes = {existing.getId()};
+                    errorMessage.addError(new ObjectError("internalId", codes, null, "Duplicate"));
+                }
+            } catch (SparqlException | SQLException e) {
+                throw new GlycanRepositoryException("Could not query existing features", e);
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+        
+        try {
+            switch (feature.getType()) {
+            case LINKEDGLYCAN:
+                return importLinkedGlycan((LinkedGlycan)feature, errorMessage, user);
+            case GLYCOLIPID:
+                return importGlycoLipid((GlycoLipid)feature, errorMessage, user);
+            case GLYCOPEPTIDE:
+                return importGlycoPeptide((GlycoPeptide)feature, errorMessage, positions, user);
+            case GLYCOPROTEIN:
+                return importGlycoProtein((GlycoProtein)feature, errorMessage, positions, user);
+            case GPLINKEDGLYCOPEPTIDE:
+                return importGPLinkedGlycoPeptide((GPLinkedGlycoPeptide)feature, errorMessage, positions, user);
+            case LANDING_LIGHT:
+            case NEGATIVE_CONTROL:
+            case COMPOUND:
+            case CONTROL:
+            default:
+                String featureURI = featureRepository.addFeature(feature, user);
+                String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+                return id;
+            
+            }  
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Feature cannot be added for user " + user.getUsername(), e);
+        } 
+    }
+    
+    private String importLinkedGlycan(LinkedGlycan feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        if (feature.getLinker() != null) {
+            if (feature.getLinker() instanceof Linker) {
+                try {
+                    String id = addLinker((Linker)feature.getLinker(), 
+                        ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                    ((Linker)feature.getLinker()).setId(id);
+                } catch (Exception e) {
+                    // we can ignore if it is duplicate
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate linker
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    ((Linker)feature.getLinker()).setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("linker", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                    }
+                    logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                }
+            } 
+        }
+        
+        // check its glycans
+        if (feature.getGlycans() != null) {
+            for (GlycanInFeature gf: feature.getGlycans()) {
+                Glycan g = gf.getGlycan();
+                Glycan baseGlycan = gf.getBaseGlycan();
+                try {
+                    if (baseGlycan != null && baseGlycan instanceof SequenceDefinedGlycan) {
+                        baseGlycan.setId (addGlycan(baseGlycan, user, true, false));
+                        baseGlycan.setUri (GlygenArrayRepositoryImpl.uriPrefix + baseGlycan.getId());
+                        // based on the reducing end configuration 
+                        if (gf.getReducingEndConfiguration() != null) {
+                            switch (gf.getReducingEndConfiguration().getType()) {
+                            case ALPHA:
+                                // get alpha version of the glycan
+                                Glycan alpha = glycanRepository.retrieveOtherSubType(baseGlycan, GlycanSubsumtionType.ALPHA, user);
+                                if (alpha != null) {
+                                    gf.setGlycan(alpha);
+                                }
+                                break;
+                            case BETA:
+                                // get beta version of the glycan
+                                Glycan beta = glycanRepository.retrieveOtherSubType(baseGlycan, GlycanSubsumtionType.BETA, user);
+                                if (beta != null) {
+                                    gf.setGlycan(beta);
+                                }
+                                break;
+                            case OPENSRING:
+                                // get alditol version of the glycan
+                                Glycan open = glycanRepository.retrieveOtherSubType(baseGlycan, GlycanSubsumtionType.ALDITOL, user);
+                                if (open != null) {
+                                    gf.setGlycan(open);
+                                }
+                                break;
+                            case EQUILIBRIUM:
+                            case UNKNOWN:
+                            default:
+                                if (((SequenceDefinedGlycan) baseGlycan).getSubType() != GlycanSubsumtionType.BASE) {
+                                    // error
+                                    errorMessage = new ErrorMessage();
+                                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                                    errorMessage.addError(new ObjectError("glycan", "NotBaseType"));
+                                    throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                                }
+                                gf.setGlycan(baseGlycan);
+                                break;
+                            }
+                        }
+                        
+                    } else {
+                        g.setId(addGlycan(g, user, true, false));
+                    }
+                } catch (Exception e) {
+                    // need to ignore duplicate check errors
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate glycan
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    g.setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("glycan", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("glycan", e.getMessage()));
+                    }
+                }
+            } 
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+        
+        String featureURI = featureRepository.addFeature(feature, user);
+        String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+        return id;   
+    }
+    
+    private String importGlycoLipid(GlycoLipid feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        if (feature.getLinker() != null) {
+            if (feature.getLinker() instanceof Linker) {
+                try {
+                    String id = addLinker((Linker)feature.getLinker(), 
+                        ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                    ((Linker)feature.getLinker()).setId(id);
+                } catch (Exception e) {
+                    // we can ignore if it is duplicate
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate linker
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    ((Linker)feature.getLinker()).setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("linker", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                    }
+                    logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                }
+            } 
+        }
+        // check its glycans
+        if (feature.getGlycans() != null) {
+            for (LinkedGlycan g: feature.getGlycans()) {
+                g.setId(importLinkedGlycan(g, errorMessage, user));
+                g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
+            }   
+        }
+        
+        if (feature.getLipid() != null) {
+            try {
+                String id = addSmallMoleculeLinker(feature.getLipid(), feature.getLinker().getType().name().startsWith("UNKNOWN"), user);
+                feature.getLipid().setId(id);
+            } catch (Exception e) {
+                // we can ignore if it is duplicate
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    ErrorMessage error = (ErrorMessage) e.getCause();
+                    for (ObjectError err: error.getErrors()) {
+                        if (!err.getDefaultMessage().contains("Duplicate")) {
+                            errorMessage.addError(err);
+                        } else {
+                            // need to get the duplicate linker
+                            if (err.getCodes() != null && err.getCodes().length > 0)
+                                feature.getLipid().setId(err.getCodes()[0]);
+                            else {
+                                errorMessage.addError(new ObjectError("lipid", err.getCodes(), null, "NotFound"));
+                            }
+                        }
+                    }
+                } else {
+                    errorMessage.addError(new ObjectError("lipid", e.getMessage()));
+                }
+                logger.debug("peptide not added " + feature.getLipid().getId() == null ? feature.getLipid().getUri() : feature.getLipid().getId());
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+        
+        
+        String featureURI = featureRepository.addFeature(feature, user);
+        String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+        return id;
+    }
+
+    private String importGPLinkedGlycoPeptide(GPLinkedGlycoPeptide feature, ErrorMessage errorMessage,
+            Map<Object, String> positions, UserEntity user) throws SparqlException, SQLException {
+        if (feature.getLinker() != null) {
+            if (feature.getLinker() instanceof Linker) {
+                try {
+                    String id = addLinker((Linker)feature.getLinker(), 
+                        ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                    ((Linker)feature.getLinker()).setId(id);
+                } catch (Exception e) {
+                    // we can ignore if it is duplicate
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate linker
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    ((Linker)feature.getLinker()).setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("linker", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                    }
+                    logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                }
+            } 
+        }
+        // check its glycans
+        if (feature.getPeptides() != null) {
+            for (GlycoPeptide g: feature.getPeptides()) {
+                Map<Object, String> newPositions = AddToRepositoryServiceImpl.cleanFeature (g);
+                g.setId(importGlycoPeptide(g, errorMessage, newPositions, user));
+                g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());   
+            }
+            
+            // update the position map to include references to the newly created linked glycan
+            if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                for (Object o: positions.keySet()) {
+                    String uri = null;
+                    if (o instanceof Feature) {
+                        uri = ((Feature) o).getUri();
+                    } else if (o instanceof Glycan) {
+                        uri = ((Glycan) o).getUri();
+                    }
+                    feature.getPositionMap().put(positions.get(o), uri);
+                }
+            }
+        }
+        
+        if (feature.getProtein() != null) {
+            try {
+                String id = addProteinLinker(feature.getProtein(), 
+                        feature.getProtein().getType().name().startsWith("UNKNOWN"), user);
+                feature.getProtein().setId(id);
+            } catch (Exception e) {
+                // we can ignore if it is duplicate
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    ErrorMessage error = (ErrorMessage) e.getCause();
+                    for (ObjectError err: error.getErrors()) {
+                        if (!err.getDefaultMessage().contains("Duplicate")) {
+                            errorMessage.addError(err);
+                        } else {
+                            // need to get the duplicate linker
+                            if (err.getCodes() != null && err.getCodes().length > 0)
+                                feature.getProtein().setId(err.getCodes()[0]);
+                            else {
+                                errorMessage.addError(new ObjectError("protein", err.getCodes(), null, "NotFound"));
+                            }
+                        }
+                    }
+                } else {
+                    errorMessage.addError(new ObjectError("protein", e.getMessage()));
+                }
+                logger.debug("peptide not added " + feature.getProtein().getId() == null ? feature.getProtein().getUri() : feature.getProtein().getId());
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+        
+        
+        String featureURI = featureRepository.addFeature(feature, user);
+        String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+        return id;
+    }
+
+    private String importGlycoProtein(GlycoProtein feature, ErrorMessage errorMessage, Map<Object, String> positions,
+            UserEntity user) throws SparqlException, SQLException {
+        if (feature.getLinker() != null) {
+            if (feature.getLinker() instanceof Linker) {
+                try {
+                    String id = addLinker((Linker)feature.getLinker(), 
+                        ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                    ((Linker)feature.getLinker()).setId(id);
+                } catch (Exception e) {
+                    // we can ignore if it is duplicate
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate linker
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    ((Linker)feature.getLinker()).setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("linker", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                    }
+                    logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                }
+            } 
+        }
+        // check its glycans
+        if (feature.getGlycans() != null) {
+            for (LinkedGlycan g: feature.getGlycans()) { 
+                g.setId(importLinkedGlycan(g, errorMessage, user));
+                g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
+            }
+            
+            // update the position map to include references to the newly created linked glycan
+         // update the position map to include references to the newly created linked glycan
+            if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                for (Object o: positions.keySet()) {
+                    String uri = null;
+                    if (o instanceof Feature) {
+                        uri = ((Feature) o).getUri();
+                    } else if (o instanceof Glycan) {
+                        uri = ((Glycan) o).getUri();
+                    }
+                    feature.getPositionMap().put(positions.get(o), uri);
+                }
+            }
+        }
+        
+        if (feature.getProtein() != null) {
+            try {
+                String id = addProteinLinker(feature.getProtein(), 
+                        feature.getProtein().getType().name().startsWith("UNKNOWN"), user);
+                feature.getProtein().setId(id);
+            } catch (Exception e) {
+                // we can ignore if it is duplicate
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    ErrorMessage error = (ErrorMessage) e.getCause();
+                    for (ObjectError err: error.getErrors()) {
+                        if (!err.getDefaultMessage().contains("Duplicate")) {
+                            errorMessage.addError(err);
+                        } else {
+                            // need to get the duplicate linker
+                            if (err.getCodes() != null && err.getCodes().length > 0)
+                                feature.getProtein().setId(err.getCodes()[0]);
+                            else {
+                                errorMessage.addError(new ObjectError("protein", err.getCodes(), null, "NotFound"));
+                            }
+                        }
+                    }
+                } else {
+                    errorMessage.addError(new ObjectError("protein", e.getMessage()));
+                }
+                logger.debug("peptide not added " + feature.getProtein().getId() == null ? feature.getProtein().getUri() : feature.getProtein().getId());
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+
+        String featureURI = featureRepository.addFeature(feature, user);
+        String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+        return id;
+    }
+
+    private String importGlycoPeptide(GlycoPeptide feature, ErrorMessage errorMessage, Map<Object, String> positions,
+            UserEntity user) throws SparqlException, SQLException {
+        if (feature.getLinker() != null) {
+            if (feature.getLinker() instanceof Linker) {
+                try {
+                    String id = addLinker((Linker)feature.getLinker(), 
+                        ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                    ((Linker)feature.getLinker()).setId(id);
+                } catch (Exception e) {
+                    // we can ignore if it is duplicate
+                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                        ErrorMessage error = (ErrorMessage) e.getCause();
+                        for (ObjectError err: error.getErrors()) {
+                            if (!err.getDefaultMessage().contains("Duplicate")) {
+                                errorMessage.addError(err);
+                            } else {
+                                // need to get the duplicate linker
+                                if (err.getCodes() != null && err.getCodes().length > 0)
+                                    ((Linker)feature.getLinker()).setId(err.getCodes()[0]);
+                                else {
+                                    errorMessage.addError(new ObjectError("linker", err.getCodes(), null, "NotFound"));
+                                }
+                            }
+                        }
+                    } else {
+                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                    }
+                    logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                }
+            } 
+        }
+        // check its glycans
+        if (feature.getGlycans() != null) {    
+            for (LinkedGlycan g: feature.getGlycans()) {
+                g.setId(importLinkedGlycan(g, errorMessage, user));
+                g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
+            }
+            
+            // update the position map to include references to the newly created linked glycan
+            if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+                for (Object o: positions.keySet()) {
+                    String uri = null;
+                    if (o instanceof Feature) {
+                        uri = ((Feature) o).getUri();
+                    } else if (o instanceof Glycan) {
+                        uri = ((Glycan) o).getUri();
+                    }
+                    feature.getPositionMap().put(positions.get(o), uri);
+                }
+            }
+        }
+        
+        if (feature.getPeptide() != null) {
+            try {
+                String id = addPeptideLinker(feature.getPeptide(), 
+                        feature.getPeptide().getType().name().startsWith("UNKNOWN"), user);
+                feature.getPeptide().setId(id);
+            } catch (Exception e) {
+                // we can ignore if it is duplicate
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    ErrorMessage error = (ErrorMessage) e.getCause();
+                    for (ObjectError err: error.getErrors()) {
+                        if (!err.getDefaultMessage().contains("Duplicate")) {
+                            errorMessage.addError(err);
+                        } else {
+                            // need to get the duplicate linker
+                            if (err.getCodes() != null && err.getCodes().length > 0)
+                                feature.getPeptide().setId(err.getCodes()[0]);
+                            else {
+                                errorMessage.addError(new ObjectError("peptide", err.getCodes(), null, "NotFound"));
+                            }
+                        }
+                    }
+                } else {
+                    errorMessage.addError(new ObjectError("peptide", e.getMessage()));
+                }
+                logger.debug("peptide not added " + feature.getPeptide().getId() == null ? feature.getPeptide().getUri() : feature.getPeptide().getId());
+            }
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+        
+        String featureURI = featureRepository.addFeature(feature, user);
+        String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
+        return id;
+    }
 
     @Override
     public String addFeature(Feature feature, UserEntity user) {
@@ -686,54 +1250,6 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
             throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         try {
-            try {
-                if (feature.getLinker() != null) {
-                    if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
-                        if (feature.getLinker() instanceof Linker) {
-                            try {
-                                String id = addLinker((Linker)feature.getLinker(), 
-                                    ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
-                                ((Linker)feature.getLinker()).setId(id);
-                            } catch (Exception e) {
-                                // we can ignore if it is duplicate
-                                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-                                    ErrorMessage error = (ErrorMessage) e.getCause();
-                                    for (ObjectError err: error.getErrors()) {
-                                        if (!err.getDefaultMessage().contains("Duplicate")) {
-                                            errorMessage.addError(err);
-                                        }
-                                    }
-                                } else {
-                                    errorMessage.addError(new ObjectError("linker", e.getMessage()));
-                                }
-                                logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
-                            }
-                        } 
-                    } else {
-                        // check to make sure it is an existing linker
-                        String linkerId = feature.getLinker().getId();
-                        if (linkerId == null) {
-                            // get it from uri
-                            linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
-                        }
-                        Linker existing = linkerRepository.getLinkerById(linkerId, user);
-                        if (existing == null) {
-                            // check public linkers
-                            existing = linkerRepository.getLinkerById(linkerId, null);
-                            if (existing == null) {
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                                errorMessage.addError(new ObjectError("linker", "NotFound"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                logger.debug("Ignoring error: " + e.getMessage());
-            }
-            
             switch (feature.getType()) {
             case LINKEDGLYCAN:
                 return addLinkedGlycan((LinkedGlycan)feature, errorMessage, user);
@@ -754,14 +1270,57 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
                 return id;
             
-            }
-            
+            } 
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Feature cannot be added for user " + user.getUsername(), e);
         }       
     }
     
     private String addGPLinkedGlycoPeptide(GPLinkedGlycoPeptide feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        try {
+            if (feature.getLinker() != null) {
+                if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                    if (feature.getLinker() instanceof Linker) {
+                        try {
+                            String id = addLinker((Linker)feature.getLinker(), 
+                                ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                            ((Linker)feature.getLinker()).setId(id);
+                        } catch (Exception e) {
+                            // we can ignore if it is duplicate
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                ErrorMessage error = (ErrorMessage) e.getCause();
+                                for (ObjectError err: error.getErrors()) {
+                                    if (!err.getDefaultMessage().contains("Duplicate")) {
+                                        errorMessage.addError(err);
+                                    }
+                                }
+                            } else {
+                                errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                            }
+                            logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                        }
+                    } 
+                } else {
+                    // check to make sure it is an existing linker
+                    String linkerId = feature.getLinker().getId();
+                    if (linkerId == null) {
+                        // get it from uri
+                        linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                    }
+                    Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                    if (existing == null) {
+                        // check public linkers
+                        existing = linkerRepository.getLinkerById(linkerId, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("linker", "NotFound"));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+            logger.error("Linker cannot be added/found", e);
+        }
         // check its glycans
         if (feature.getPeptides() != null) {
             
@@ -792,23 +1351,20 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         if (existing == null) { // check if it is a public one
                             existing = featureRepository.getFeatureById(featureId, null);
                             if (existing == null || existing.getType() != FeatureType.GLYCOPEPTIDE) {
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                 errorMessage.addError(new ObjectError("glycoPeptide", "NotFound"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                                //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                             }
                         } else {
-                            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("glycoPeptide", "NotValid"));
-                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                         }
                     }
                 }
             } 
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
@@ -816,11 +1372,58 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
     }
 
     private String addGlycoProtein(GlycoProtein feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        try {
+            if (feature.getLinker() != null) {
+                if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                    if (feature.getLinker() instanceof Linker) {
+                        try {
+                            String id = addLinker((Linker)feature.getLinker(), 
+                                ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                            ((Linker)feature.getLinker()).setId(id);
+                        } catch (Exception e) {
+                            // we can ignore if it is duplicate
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                ErrorMessage error = (ErrorMessage) e.getCause();
+                                for (ObjectError err: error.getErrors()) {
+                                    if (!err.getDefaultMessage().contains("Duplicate")) {
+                                        errorMessage.addError(err);
+                                    }
+                                }
+                            } else {
+                                errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                            }
+                            logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                        }
+                    } 
+                } else {
+                    // check to make sure it is an existing linker
+                    String linkerId = feature.getLinker().getId();
+                    if (linkerId == null) {
+                        // get it from uri
+                        linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                    }
+                    Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                    if (existing == null) {
+                        // check public linkers
+                        existing = linkerRepository.getLinkerById(linkerId, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("linker", "NotFound"));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+            logger.error("Linker cannot be added/found", e);
+        }
         // check its glycans
         if (feature.getGlycans() != null) {
-            
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
+                    Map <LinkedGlycan, Glycan> baseGlycanMap = new HashMap<>();
+                    for (GlycanInFeature gf: g.getGlycans()) {
+                        baseGlycanMap.put(g, gf.getGlycan());
+                    }
                     g.setId(addLinkedGlycan(g, errorMessage, user));
                     g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
                     // update the position map to include references to the newly created linked glycan
@@ -830,7 +1433,9 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             if (!g.getGlycans().isEmpty()) {
                                 if (glycanUri.equals(g.getGlycans().get(0).getGlycan().getUri())) {
                                     feature.getPositionMap().put(position, g.getUri());
-                                }
+                                } else if (baseGlycanMap.get(g) != null && glycanUri.equals (baseGlycanMap.get(g).getUri())) {
+                                    feature.getPositionMap().put(position, g.getUri());
+                                } 
                             }
                         }
                     }
@@ -846,23 +1451,20 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         if (existing == null) { // check if it is a public one
                             existing = featureRepository.getFeatureById(featureId, null);
                             if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                 errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                                //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                             }
                         } else {
-                            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
-                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                         }
                     }
                 }
             } 
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
@@ -870,10 +1472,58 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
     }
 
     private String addGlycoPeptide(GlycoPeptide feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        try {
+            if (feature.getLinker() != null) {
+                if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                    if (feature.getLinker() instanceof Linker) {
+                        try {
+                            String id = addLinker((Linker)feature.getLinker(), 
+                                ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                            ((Linker)feature.getLinker()).setId(id);
+                        } catch (Exception e) {
+                            // we can ignore if it is duplicate
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                ErrorMessage error = (ErrorMessage) e.getCause();
+                                for (ObjectError err: error.getErrors()) {
+                                    if (!err.getDefaultMessage().contains("Duplicate")) {
+                                        errorMessage.addError(err);
+                                    }
+                                }
+                            } else {
+                                errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                            }
+                            logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                        }
+                    } 
+                } else {
+                    // check to make sure it is an existing linker
+                    String linkerId = feature.getLinker().getId();
+                    if (linkerId == null) {
+                        // get it from uri
+                        linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                    }
+                    Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                    if (existing == null) {
+                        // check public linkers
+                        existing = linkerRepository.getLinkerById(linkerId, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("linker", "NotFound"));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+            logger.error("Linker cannot be added/found", e);
+        }
         // check its glycans
         if (feature.getGlycans() != null) {    
             for (LinkedGlycan g: feature.getGlycans()) {
                 if (g.getUri() == null && g.getId() == null) {
+                    List<String> baseGlycanUris = new ArrayList<>();
+                    for (GlycanInFeature gf: g.getGlycans()) {
+                        baseGlycanUris.add(gf.getGlycan().getUri());
+                    }
                     g.setId(addLinkedGlycan(g, errorMessage, user));
                     g.setUri(GlygenArrayRepositoryImpl.uriPrefix + g.getId());
                     // update the position map to include references to the newly created linked glycan
@@ -882,6 +1532,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             String glycanUri = feature.getPositionMap().get(position);
                             if (!g.getGlycans().isEmpty()) {
                                 if (glycanUri.equals(g.getGlycans().get(0).getGlycan().getUri())) {
+                                    feature.getPositionMap().put(position, g.getUri());
+                                } else if (baseGlycanUris != null && baseGlycanUris.contains(glycanUri)) {
                                     feature.getPositionMap().put(position, g.getUri());
                                 }
                             }
@@ -899,23 +1551,20 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         if (existing == null) { // check if it is a public one
                             existing = featureRepository.getFeatureById(featureId, null);
                             if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                 errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                               // throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                             }
                         } else {
-                            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
-                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                         }
                     }
                 }
             } 
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
@@ -923,6 +1572,50 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
     }
 
     private String addGlycoLipid(GlycoLipid feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        try {
+            if (feature.getLinker() != null) {
+                if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                    if (feature.getLinker() instanceof Linker) {
+                        try {
+                            String id = addLinker((Linker)feature.getLinker(), 
+                                ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                            ((Linker)feature.getLinker()).setId(id);
+                        } catch (Exception e) {
+                            // we can ignore if it is duplicate
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                ErrorMessage error = (ErrorMessage) e.getCause();
+                                for (ObjectError err: error.getErrors()) {
+                                    if (!err.getDefaultMessage().contains("Duplicate")) {
+                                        errorMessage.addError(err);
+                                    }
+                                }
+                            } else {
+                                errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                            }
+                            logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                        }
+                    } 
+                } else {
+                    // check to make sure it is an existing linker
+                    String linkerId = feature.getLinker().getId();
+                    if (linkerId == null) {
+                        // get it from uri
+                        linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                    }
+                    Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                    if (existing == null) {
+                        // check public linkers
+                        existing = linkerRepository.getLinkerById(linkerId, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("linker", "NotFound"));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+            logger.error("Linker cannot be added/found", e);
+        }
         // check its glycans
         if (feature.getGlycans() != null) {
             
@@ -942,23 +1635,20 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         if (existing == null) { // check if it is a public one
                             existing = featureRepository.getFeatureById(featureId, null);
                             if (existing == null || existing.getType() != FeatureType.LINKEDGLYCAN) {
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                 errorMessage.addError(new ObjectError("linkedGlycan", "NotFound"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                                //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                             }
                         } else {
-                            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                             errorMessage.addError(new ObjectError("linkedGlycan", "NotValid"));
-                            throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
+                            //throw new IllegalArgumentException("Invalid Input: Not a valid linked glycan information", errorMessage);
                         }
                     }
                 }
             } 
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);
@@ -966,6 +1656,50 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
     }
     
     private String addLinkedGlycan(LinkedGlycan feature, ErrorMessage errorMessage, UserEntity user) throws SparqlException, SQLException {
+        try {
+            if (feature.getLinker() != null) {
+                if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
+                    if (feature.getLinker() instanceof Linker) {
+                        try {
+                            String id = addLinker((Linker)feature.getLinker(), 
+                                ((Linker)feature.getLinker()).getType().name().startsWith("UNKNOWN"), user);
+                            ((Linker)feature.getLinker()).setId(id);
+                        } catch (Exception e) {
+                            // we can ignore if it is duplicate
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                ErrorMessage error = (ErrorMessage) e.getCause();
+                                for (ObjectError err: error.getErrors()) {
+                                    if (!err.getDefaultMessage().contains("Duplicate")) {
+                                        errorMessage.addError(err);
+                                    }
+                                }
+                            } else {
+                                errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                            }
+                            logger.debug("linker not added " + feature.getLinker().getId() == null ? feature.getLinker().getUri() : feature.getLinker().getId());
+                        }
+                    } 
+                } else {
+                    // check to make sure it is an existing linker
+                    String linkerId = feature.getLinker().getId();
+                    if (linkerId == null) {
+                        // get it from uri
+                        linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
+                    }
+                    Linker existing = linkerRepository.getLinkerById(linkerId, user);
+                    if (existing == null) {
+                        // check public linkers
+                        existing = linkerRepository.getLinkerById(linkerId, null);
+                        if (existing == null) {
+                            errorMessage.addError(new ObjectError("linker", "NotFound"));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+            logger.error("Linker cannot be added/found", e);
+        }
         // check its glycans
         if (feature.getGlycans() != null) {
             
@@ -998,11 +1732,9 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                     if (existing == null) {
                         existing = glycanRepository.getGlycanById(glycanId, null);
                         if (existing == null) {
-                            errorMessage = new ErrorMessage();
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                            
                             errorMessage.addError(new ObjectError("glycan", "NotValid"));
-                            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                            //throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
                         }
                     }
                 }
@@ -1014,31 +1746,31 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         case ALPHA:
                             // get alpha version of the glycan
                             Glycan alpha = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.ALPHA, user);
-                            if (alpha != null)
+                            if (alpha != null) {
                                 gf.setGlycan(alpha);
+                            }
                             break;
                         case BETA:
                             // get beta version of the glycan
                             Glycan beta = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.BETA, user);
-                            if (beta != null)
+                            if (beta != null) {
                                 gf.setGlycan(beta);
+                            }
                             break;
                         case OPENSRING:
                             // get alditol version of the glycan
                             Glycan open = glycanRepository.retrieveOtherSubType(g, GlycanSubsumtionType.ALDITOL, user);
-                            if (open != null)
+                            if (open != null) {
                                 gf.setGlycan(open);
+                            }
                             break;
                         case EQUILIBRIUM:
                         case UNKNOWN:
                         default:
                             if (((SequenceDefinedGlycan) g).getSubType() != GlycanSubsumtionType.BASE) {
                                 // error
-                                errorMessage = new ErrorMessage();
-                                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                                 errorMessage.addError(new ObjectError("glycan", "NotBaseType"));
-                                throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
+                                //throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
                             }
                             break;
                             
@@ -1047,32 +1779,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 }
             } 
         }
-        
-        // no need to check it again here, checked in "addFeature" web service
-        /*if (feature.getLinker() != null) {
-            if (feature.getLinker().getUri() == null && feature.getLinker().getId() == null) {
-                feature.getLinker().setId(addLinker(feature.getLinker(), feature.getLinker().getType().name().startsWith("UNKNOWN"), p));
-            } else {
-                // check to make sure it is an existing linker
-                String linkerId = feature.getLinker().getId();
-                if (linkerId == null) {
-                    // get it from uri
-                    linkerId = feature.getLinker().getUri().substring(feature.getLinker().getUri().lastIndexOf("/")+1);
-                }
-                Linker existing = linkerRepository.getLinkerById(linkerId, user);
-                if (existing == null) {
-                    existing = linkerRepository.getLinkerById(linkerId, null);
-                    if (existing == null) {
-                        errorMessage = new ErrorMessage();
-                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                        errorMessage.addError(new ObjectError("linker", "NotValid"));
-                        throw new IllegalArgumentException("Invalid Input: Not a valid linker information", errorMessage);
-                    }
-                }
-            }
-        }*/
-        
+      
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
             throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
         
@@ -1236,6 +1943,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        if (byPassGlytoucanCheck == null)
+            byPassGlytoucanCheck = false;
         
         Boolean checkGlytoucan = false;
         if (glycan.getSequence() == null || glycan.getSequence().trim().isEmpty()) {
@@ -1916,6 +2625,188 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Block layout cannot be added for user " + user.getUsername(), e);
         }
+    }
+    
+    public static Map<Object, String> cleanFeature (Feature feature) {
+        // need to fix positionMap if it exists
+        Map<Object, String> newPositions = new HashMap<Object, String>();
+        if (feature.getPositionMap() != null && !feature.getPositionMap().isEmpty()) {
+            for (String position: feature.getPositionMap().keySet()) { 
+                String uri = feature.getPositionMap().get(position);
+                switch (feature.getType()) {
+                case GLYCOPEPTIDE:
+                    if (((GlycoPeptide)feature).getGlycans() != null) {
+                        boolean located = false;
+                        for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                            if (g.getUri() != null && g.getUri().equals(uri)) {
+                                newPositions.put(g, position);
+                                located = true;
+                            }
+                        }
+                        if (!located) {
+                            // check the individual glycans
+                            for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                                for (GlycanInFeature gf: g.getGlycans()) {
+                                    if (gf.getGlycan().getUri().equals(uri)) {
+                                        newPositions.put(gf.getGlycan(), position);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                break;
+                case GLYCOPROTEIN:
+                    if (((GlycoProtein)feature).getGlycans() != null) {
+                        boolean located = false;
+                        for (LinkedGlycan g: ((GlycoProtein)feature).getGlycans()) {
+                            if (g.getUri() != null && g.getUri().equals(uri)) {
+                                newPositions.put(g, position);
+                                located = true;
+                            }
+                        }
+                        
+                        if (!located) {
+                            // check the individual glycans
+                            for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                                for (GlycanInFeature gf: g.getGlycans()) {
+                                    if (gf.getGlycan().getUri().equals(uri)) {
+                                        newPositions.put(gf.getGlycan(), position);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case GPLINKEDGLYCOPEPTIDE:
+                    if (((GPLinkedGlycoPeptide)feature).getPeptides() != null) {
+                        for (GlycoPeptide g: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
+                            if (g.getUri() != null && g.getUri().equals(uri)) {
+                                newPositions.put(g, position);
+                            }  
+                        }
+                    }
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        
+        if (feature.getLinker() != null) {
+            feature.getLinker().setUri(null);
+            feature.getLinker().setId(null);
+        }
+        
+        if (feature.getMetadata() != null) {
+            feature.getMetadata().setUri(null);
+            feature.getMetadata().setId(null);
+        }
+        
+        switch (feature.getType()) {
+        case LINKEDGLYCAN:
+            if (((LinkedGlycan) feature).getGlycans() != null) {
+                for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+                    Glycan g = gf.getGlycan();
+                    g.setUri(null);
+                    g.setId(null);
+                }
+            }
+            break;
+        case GLYCOLIPID:
+            if (((GlycoLipid)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoLipid)feature).getGlycans()) {
+                    g.setUri(null);
+                    g.setId(null);
+                    if (g.getLinker() != null) {
+                        g.getLinker().setUri(null);
+                        g.getLinker().setId(null);
+                    }
+                    for (GlycanInFeature gf: g.getGlycans()) {
+                        Glycan glycan = gf.getGlycan();
+                        glycan.setUri(null);
+                        glycan.setId(null);
+                    }
+                }
+            }
+            Lipid lipid = ((GlycoLipid)feature).getLipid();
+            lipid.setUri(null);
+            lipid.setId(null);
+                
+            break;
+        case GLYCOPEPTIDE:
+            if (((GlycoPeptide)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
+                    g.setUri(null);
+                    g.setId(null);
+                    if (g.getLinker() != null) {
+                        g.getLinker().setUri(null);
+                        g.getLinker().setId(null);
+                    }
+                    for (GlycanInFeature gf: g.getGlycans()) {
+                        Glycan glycan = gf.getGlycan();
+                        glycan.setUri(null);
+                        glycan.setId(null);
+                    }
+                }
+            }
+            PeptideLinker pl = ((GlycoPeptide)feature).getPeptide();
+            pl.setUri(null);
+            pl.setId(null); 
+            break;
+        case GLYCOPROTEIN:
+            if (((GlycoProtein)feature).getGlycans() != null) {
+                for (LinkedGlycan g: ((GlycoProtein)feature).getGlycans()) {
+                    g.setUri(null);
+                    g.setId(null);
+                    if (g.getLinker() != null) {
+                        g.getLinker().setUri(null);
+                        g.getLinker().setId(null);
+                    }
+                    for (GlycanInFeature gf: g.getGlycans()) {
+                        Glycan glycan = gf.getGlycan();
+                        glycan.setUri(null);
+                        glycan.setId(null);
+                    }
+                }
+            }
+            ProteinLinker protein = ((GlycoProtein)feature).getProtein();
+            protein.setUri(null);
+            protein.setId(null);     
+            break;
+        case GPLINKEDGLYCOPEPTIDE:
+            if (((GPLinkedGlycoPeptide)feature).getPeptides() != null) {
+                for (GlycoPeptide g: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
+                    g.setUri(null);
+                    g.setId(null);
+                    for (LinkedGlycan lg: ((GlycoPeptide)g).getGlycans()) {
+                        lg.setUri(null);
+                        lg.setId(null);
+                        if (lg.getLinker() != null) {
+                            lg.getLinker().setUri(null);
+                            lg.getLinker().setId(null);
+                        }
+                        for (GlycanInFeature gf: lg.getGlycans()) {
+                            Glycan glycan = gf.getGlycan();
+                            glycan.setUri(null);
+                            glycan.setId(null);
+                        }
+                    }
+                    PeptideLinker pep = ((GlycoPeptide)g).getPeptide();
+                    pep.setUri(null);
+                    pep.setId(null);
+                }
+            }
+            
+            ProteinLinker prot = ((GPLinkedGlycoPeptide)feature).getProtein();
+            prot.setUri(null);
+            prot.setId(null);
+            break;
+        
+        default:
+            break;
+        }
+        
+        return newPositions;
     }
 
 }

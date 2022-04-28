@@ -8,6 +8,21 @@ public class GlycanInFeature  {
     ReducingEndConfiguration reducingEndConfiguration;
     List<Publication> publications;
     List<String> urls;
+    Glycan baseGlycan;
+    
+    /**
+     * @return the baseGlycan
+     */
+    public Glycan getBaseGlycan() {
+        return baseGlycan;
+    }
+
+    /**
+     * @param baseGlycan the baseGlycan to set
+     */
+    public void setBaseGlycan(Glycan baseGlycan) {
+        this.baseGlycan = baseGlycan;
+    }
     
     /**
      * @return the source

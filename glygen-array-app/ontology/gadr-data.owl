@@ -179,6 +179,15 @@
     
 
 
+    <!-- http://purl.org/gadr/data/has_feature_metadata -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature_metadata">
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/data/feature_metadata"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/data/has_feature_ratio -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/data/has_feature_ratio">
@@ -1385,6 +1394,15 @@ Linker can be of one of these types: &quot;Small Molecule Linker&quot;, &quot;Pe
 
     <owl:Class rdf:about="http://purl.org/gadr/data/feature_context">
         <rdfs:label>Feature Context</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://purl.org/gadr/data/feature_metadata -->
+
+    <owl:Class rdf:about="http://purl.org/gadr/data/feature_metadata">
+        <rdfs:subClassOf rdf:resource="http://purl.org/gadr/data/metadata_category"/>
+        <rdfs:label>Feature Metadata</rdfs:label>
     </owl:Class>
     
 

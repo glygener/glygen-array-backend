@@ -311,8 +311,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		
 		}
 		
-		String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
-        IRI positionContext = f.createIRI(positionContextURI);
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {
 			    // need to check if the position is valid
@@ -322,6 +320,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                     logger.info("got invalid position for the feature's glycans", e);
                     continue;
                 }
+                String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+                IRI positionContext = f.createIRI(positionContextURI);
 				String glycanURI = feature.getPositionMap().get(position);
 				if (glycanURI != null && (glycanURI.startsWith(uriPrefix) || glycanURI.startsWith(uriPrefixPublic))) {
     				IRI glycanIRI = f.createIRI(glycanURI);
@@ -343,6 +343,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             range = ((GlycoPeptide) feature).getRange();
         }
 		if (range != null) {
+		    String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+            IRI positionContext = f.createIRI(positionContextURI);
+            statements.add(f.createStatement(feat, hasPositionContext, positionContext, graphIRI));
 		    Literal max = range.getMax() != null ? f.createLiteral(range.getMax()) : null;
 		    Literal min = range.getMin() != null ? f.createLiteral(range.getMin()+"") : null;
 		    if (max != null) statements.add(f.createStatement(positionContext, hasMax, max, graphIRI));
@@ -353,7 +356,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		    if (feature.getMetadata().getUri() != null) {
 		        statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(feature.getMetadata().getUri()), graphIRI));
 		    } else {
-		        String metadataURI = metadataRepository.addMetadataCategory(feature.getMetadata(), MetadataTemplateType.FEATURE, featureMetadataPredicate, featureMetadataTypePredicate, "FM", user);
+		        String metadataURI = metadataRepository.addMetadataCategory(feature.getMetadata(), MetadataTemplateType.FEATURE, hasFeatureMetadataTemplatePredicate, featureMetadataTypePredicate, "FM", user);
 		        statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(metadataURI), graphIRI));
 		    }
 		}
@@ -856,24 +859,84 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         }
 		if (graph != null) {
 		    if (canDelete(uriPre + featureId, graph)) {
+		        ValueFactory f = sparqlDAO.getValueFactory();
     			// check to see if the given featureId is in this graph
     			Feature existing = getFeatureFromURI (uriPre + featureId, user);
+    			IRI object = f.createIRI(existing.getUri());
+                IRI graphIRI = f.createIRI(graph);
     			if (existing != null) {
     				if (existing.getPositionMap() != null && !existing.getPositionMap().isEmpty()) {
     					// need to delete position context
-    					ValueFactory f = sparqlDAO.getValueFactory();
-    					IRI object = f.createIRI(existing.getUri());
-    					IRI graphIRI = f.createIRI(graph);
     					IRI hasPositionContext = f.createIRI(hasPositionPredicate);
     					RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(object, hasPositionContext, null, graphIRI);
     					while (statements2.hasNext()) {
     						Statement st = statements2.next();
-    						Value positionContext = st.getSubject();
+    						Value positionContext = st.getObject();
     						deleteByURI (positionContext.stringValue(), graph);	
     					}
     				}
+    				// delete glycan context
+    				IRI hasGlycanContext = f.createIRI(hasGlycanContextPredicate);
+    				RepositoryResult<Statement> statements = sparqlDAO.getStatements(object, hasGlycanContext, null, graphIRI);
+    				while (statements.hasNext()) {
+                        Statement st = statements.next();
+                        Value glycanContext = st.getObject();
+                        IRI context = f.createIRI(glycanContext.stringValue());
+                        // glycan context has source, reducing end configuration, and publications
+                        // need to delete them
+                        IRI hasSource = f.createIRI(hasSourcePredicate);
+                        IRI hasReducingEnd = f.createIRI(hasReducingEndConfigPredicate);
+                        IRI hasPub = f.createIRI(hasPublication);
+                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(context, hasSource, null, graphIRI);
+                        while (statements2.hasNext()) {
+                            Statement st2 = statements2.next();
+                            Value source = st2.getObject();
+                            deleteByURI (source.stringValue(), graph);
+                        }
+                        statements2 = sparqlDAO.getStatements(context, hasReducingEnd, null, graphIRI);
+                        while (statements2.hasNext()) {
+                            Statement st2 = statements2.next();
+                            Value source = st2.getObject();
+                            deleteByURI (source.stringValue(), graph);
+                        }
+                        statements2 = sparqlDAO.getStatements(context, hasPub, null, graphIRI);
+                        while (statements2.hasNext()) {
+                            Statement st2 = statements2.next();
+                            Value source = st2.getObject();
+                            deleteByURI (source.stringValue(), graph);
+                        }
+                        
+                        deleteByURI (glycanContext.stringValue(), graph); 
+                    }
+    				
+    				// for certain types, we need to delete the linkedGlycans created on the fly
+    				switch (existing.getType()) {
+    				case GLYCOLIPID: 
+    				    for (LinkedGlycan lg: ((GlycoLipid) existing).getGlycans()) {
+                            deleteFeature(lg.getId(), user);
+                        }
+                        break;
+                    case GLYCOPEPTIDE:
+                        for (LinkedGlycan lg: ((GlycoPeptide) existing).getGlycans()) {
+                            deleteFeature(lg.getId(), user);
+                        }
+                        break;
+                    case GLYCOPROTEIN:
+                        for (LinkedGlycan lg: ((GlycoProtein) existing).getGlycans()) {
+                            deleteFeature(lg.getId(), user);
+                        }
+                        break;
+                    default:
+                        break;
+    				}
+    				  
     				// delete change log
                     deleteChangeLog(uriPre + featureId, graph);
+                    
+                    if (existing.getMetadata() != null) {
+                        // delete feature metadata
+                        metadataRepository.deleteMetadataById(existing.getMetadata().getId(), graph);
+                    }
     				
     				deleteByURI (uriPre + featureId, graph);
     				featureCache.remove(uriPre + featureId);
@@ -1103,6 +1166,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                         Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
                         GlycanInFeature glycanFeature = new GlycanInFeature();
                         glycanFeature.setGlycan(glycan);
+                        // get the base glycan
+                        glycanFeature.setBaseGlycan(glycanRepository.retrieveBaseType(glycan, user));
                         ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
                     }
                 }
@@ -1123,6 +1188,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         					if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
         					    Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
         					    glycanFeature.setGlycan(glycan);
+        					    // get the base glycan
+                                glycanFeature.setBaseGlycan(glycanRepository.retrieveBaseType(glycan, user));
         					    ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
         					}
 	                    } else if (st2.getPredicate().equals(hasSource)) {
@@ -1436,6 +1503,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                                     if (featureObject.getType() == FeatureType.LINKEDGLYCAN) {
                                         Glycan glycan = glycanRepository.getGlycanFromURI(glycanURI, user);
                                         glycanFeature.setGlycan(glycan);
+                                        // get the base glycan
+                                        glycanFeature.setBaseGlycan(glycanRepository.retrieveBaseType(glycan, user));
                                         ((LinkedGlycan) featureObject).getGlycans().add(glycanFeature);
                                     }
                                 } else if (st2.getPredicate().equals(hasSource)) {

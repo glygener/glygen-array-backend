@@ -2819,7 +2819,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                                         spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
                                                     // fix its features
                                                     for (Feature f: spot.getFeatures()) {
-                                                        if (!modifiedFeatures.contains(f)) {
+                                                        boolean found = false;
+                                                        for (Feature mf: modifiedFeatures) {
+                                                            if (f.getUri() != null && f.getUri().equals(mf.getUri())) {
+                                                                found = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!found) {
                                                             f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
                                                             modifiedFeatures.add(f);
                                                         }

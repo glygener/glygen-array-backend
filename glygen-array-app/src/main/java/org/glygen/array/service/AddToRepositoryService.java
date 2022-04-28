@@ -1,5 +1,7 @@
 package org.glygen.array.service;
 
+import java.util.Map;
+
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -12,5 +14,6 @@ public interface AddToRepositoryService {
     String addBlockLayout (BlockLayout layout, Boolean noFeatureCheck, UserEntity user);
     String getSequenceFromGlytoucan(String glytoucanId);
     String addGlycan(Glycan glycan, UserEntity user, Boolean noGlytoucanRegistration, Boolean bypassGlytoucanCheck);
+    String importFeature(Feature feature, Map<Object, String> positions, UserEntity user);
 
 }

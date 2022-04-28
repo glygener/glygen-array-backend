@@ -3,6 +3,8 @@ package org.glygen.array.persistence.rdf.template;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("descriptortemplate")
@@ -13,6 +15,7 @@ public class DescriptorTemplate extends DescriptionTemplate {
     List<String> units;
         
     @Override
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public boolean isGroup() {
         return false;
     }

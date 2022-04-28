@@ -1115,6 +1115,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         String existingURI = null;
         switch (glycan.getType()) {
         case SEQUENCE_DEFINED:
+            //TODO handle related glycans!!!
             existingURI = getGlycanBySequence(((SequenceDefinedGlycan) glycan).getSequence());
             if (existingURI == null) {
                 // check by label if any
@@ -1487,6 +1488,35 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         return uriList;
         
+    }
+    
+    @Override
+    public Glycan retrieveBaseType (Glycan glycan, UserEntity user) throws SparqlException, SQLException {
+        Glycan baseGlycan = null;
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        if (!graph.equals(DEFAULT_GRAPH)) {
+            queryBuf.append ("FROM <" + DEFAULT_GRAPH + "> \n");
+        }
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:is_related <" + glycan.getUri() + "> . \n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            String uri = results.get(0).getValue("s");
+            baseGlycan = getGlycanFromURI(uri, user);
+        }
+        
+        return baseGlycan;
     }
  
     @Override

@@ -3,6 +3,7 @@ package org.glygen.array.persistence.rdf.metadata;
 import org.glygen.array.persistence.rdf.template.DescriptionTemplate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -19,7 +20,7 @@ public abstract class Description implements Comparable<Description>{
     Boolean notRecorded = false;
     Boolean notApplicable = false;
     
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public abstract boolean isGroup();
     
     /**

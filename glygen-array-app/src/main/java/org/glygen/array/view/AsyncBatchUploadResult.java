@@ -2,8 +2,11 @@ package org.glygen.array.view;
 
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.glygen.array.persistence.rdf.data.FutureTask;
 
+@XmlRootElement
 public class AsyncBatchUploadResult extends FutureTask {
     
     String id;
@@ -11,6 +14,7 @@ public class AsyncBatchUploadResult extends FutureTask {
     
     Date accessedDate = null;
     String type;
+    String successMessage = null;
     
     /**
      * @return the id
@@ -59,6 +63,18 @@ public class AsyncBatchUploadResult extends FutureTask {
      */
     public void setType(String type) {
         this.type = type;
+    }
+    /**
+     * @return the successMessage
+     */
+    public String getSuccessMessage() {
+        return successMessage;
+    }
+    /**
+     * @param successMessage the successMessage to set
+     */
+    public void setSuccessMessage(String successMessage) {
+        this.successMessage = successMessage;
     }
     
 

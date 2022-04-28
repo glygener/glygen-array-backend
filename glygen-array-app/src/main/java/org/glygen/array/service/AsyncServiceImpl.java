@@ -10,7 +10,9 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
@@ -20,20 +22,29 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.eclipse.rdf4j.model.IRI;
 import org.glygen.array.controller.GlygenArrayController;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanSequenceFormat;
+import org.glygen.array.persistence.rdf.GlycoLipid;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.LinkerType;
+import org.glygen.array.persistence.rdf.Lipid;
 import org.glygen.array.persistence.rdf.MassOnlyGlycan;
+import org.glygen.array.persistence.rdf.PeptideLinker;
+import org.glygen.array.persistence.rdf.ProteinLinker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
@@ -887,7 +898,9 @@ public class AsyncServiceImpl implements AsyncService {
                 ObjectMapper objectMapper = new ObjectMapper();
                 org.glygen.array.persistence.rdf.Feature feature = objectMapper.readValue(jo.toString(), org.glygen.array.persistence.rdf.Feature.class);
                 try {  
-                    String id = addService.addFeature(feature, user);
+                    // clean up existing URIs for glycans/linkers/metadata
+                    Map<Object, String> newPositions = AddToRepositoryServiceImpl.cleanFeature (feature);
+                    String id = addService.importFeature(feature, newPositions, user);
                     feature.setId(id);
                     //result.getAddedFeatures().add(feature);
                     countSuccess ++;
@@ -941,7 +954,7 @@ public class AsyncServiceImpl implements AsyncService {
             throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
         }
     }
-    
+
     @Override
     @Async("GlygenArrayAsyncExecutor")
     public CompletableFuture<Confirmation> addLinkersFromExportFile(byte[] contents, LinkerType type, 

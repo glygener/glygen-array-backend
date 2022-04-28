@@ -460,7 +460,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasChebiId = f.createIRI(hasChebiIdPredicate);
 			IRI hasClassificationValue = f.createIRI(hasClassificationValuePredicate);
 			//IRI opensRing = f.createIRI(opensRingPredicate);
-			IRI hasDescription = f.createIRI(hasDescriptionPredicate);
+			//IRI hasDescription = f.createIRI(hasDescriptionPredicate);
 			IRI hasUrl = f.createIRI(hasURLPredicate);
 			
 			IRI linkerType = f.createIRI(linkerTypePredicate);
@@ -671,6 +671,15 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     		            RepositoryResult<Statement> statements1 = sparqlDAO.getStatements(pub, null, null, graphIRI);
     		            sparqlDAO.removeStatements(Iterations.asList(statements1), graphIRI); 
     		        }
+    		        // delete source
+    		        IRI hasSource = f.createIRI(hasSourcePredicate);
+    		        statements = sparqlDAO.getStatements(linker, hasSource, null, graphIRI);
+                    while (statements.hasNext()) {
+                        Statement st = statements.next();
+                        Value v = st.getObject();
+                        deleteByURI (v.stringValue(), graph);
+                    }
+                    
     		        // delete change log
     	            deleteChangeLog(uriPre + linkerId, graph);
     		        

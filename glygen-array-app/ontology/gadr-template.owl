@@ -185,6 +185,16 @@ It imports gard-data.owl ontology.</rdfs:comment>
     
 
 
+    <!-- http://purl.org/gadr/template#has_feature_template -->
+
+    <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_feature_template">
+        <rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
+        <rdfs:domain rdf:resource="http://purl.org/gadr/data/feature_metadata"/>
+        <rdfs:range rdf:resource="http://purl.org/gadr/template#feature_template"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://purl.org/gadr/template#has_image_analysis_software_template -->
 
     <owl:ObjectProperty rdf:about="http://purl.org/gadr/template#has_image_analysis_software_template">

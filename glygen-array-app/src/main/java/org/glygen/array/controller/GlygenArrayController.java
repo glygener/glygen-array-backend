@@ -534,6 +534,8 @@ public class GlygenArrayController {
                                 result.setError((ErrorMessage) e.getCause().getCause());
                         } else {
                             result.setStatus(FutureTaskStatus.DONE);    
+                            result.setSuccessMessage(conf.getMessage());
+                            repository.updateBatchUpload(result, user);
                         }
                         repository.updateStatus (uri, result, user);
                     } catch (SparqlException | SQLException ex) {
@@ -588,7 +590,7 @@ public class GlygenArrayController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             result.setError(errorMessage);
             
-            String uploadType = linker ? GlygenArrayRepositoryImpl.batchLinkerTypePredicate : GlygenArrayRepositoryImpl.batchFeatureTypePredicate;
+            String uploadType = linker ? GlygenArrayRepositoryImpl.batchLinkerTypePredicate + linkerType.name() : GlygenArrayRepositoryImpl.batchFeatureTypePredicate;
             String uri = repository.addBatchUpload (result, uploadType, user);
             result.setUri(uri);
             repository.updateStatus (uri, result, user);
@@ -611,7 +613,9 @@ public class GlygenArrayController {
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 result.setError((ErrorMessage) e.getCause().getCause());
                         } else {
-                            result.setStatus(FutureTaskStatus.DONE);    
+                            result.setStatus(FutureTaskStatus.DONE);   
+                            result.setSuccessMessage(conf.getMessage());
+                            repository.updateBatchUpload(result, user);
                         }
                         repository.updateStatus (uri, result, user);
                     } catch (SparqlException | SQLException ex) {
@@ -916,12 +920,15 @@ public class GlygenArrayController {
             @ApiParam(required=true, value="type of the batch upload to check", 
             allowableValues="batch_glycan_job, batch_linker_job, batch_feature_job")
             @RequestParam("uploadtype") final String type, 
+            @ApiParam(required=false, value="type of the molecule", 
+            allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER")
+            @RequestParam(required=false, value="moleculetype") final String moleculeType,
             Principal principal) throws SparqlException, SQLException {
 
         UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
         if (type == null || 
                 (!(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchGlycanTypePredicate) && 
-                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
+                        !(GlygenArrayRepository.ontPrefix + type).contains(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
                         !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchFeatureTypePredicate))) {
             ErrorMessage errorMessage = new ErrorMessage("upload type is not in the list of accepted values");
             errorMessage.addError(new ObjectError("uploadType", "NotValid"));
@@ -929,7 +936,7 @@ public class GlygenArrayController {
             throw new IllegalArgumentException("Type is invalid", errorMessage);
         }
         
-        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type), user);
+        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type + (moleculeType == null ? "" : moleculeType)), user);
 
         if (!results.isEmpty()) {
             //repository.updateBatchUpload(results.get(0), user);
@@ -950,12 +957,15 @@ public class GlygenArrayController {
             @ApiParam(required=true, value="type of the batch upload to check", 
             allowableValues="batch_glycan_job, batch_linker_job, batch_feature_job")
             @RequestParam("uploadtype") final String type, 
+            @ApiParam(required=false, value="type of the molecule", 
+            allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER")
+            @RequestParam(required=false, value="moleculetype") final String moleculeType,
             Principal principal) throws SparqlException, SQLException {
 
         UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
         if (type == null || 
                 (!(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchGlycanTypePredicate) && 
-                        !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
+                        !(GlygenArrayRepository.ontPrefix + type).contains(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
                         !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchFeatureTypePredicate))) {
             ErrorMessage errorMessage = new ErrorMessage("upload type is not in the list of accepted values");
             errorMessage.addError(new ObjectError("uploadType", "NotValid"));
@@ -963,10 +973,10 @@ public class GlygenArrayController {
             throw new IllegalArgumentException("Type is invalid", errorMessage);
         }
         
-        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type), user);
+        List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type + (moleculeType == null ? "" : moleculeType)), user);
 
         if (!results.isEmpty()) {
-            repository.updateBatchUpload(results.get(0), user);
+            repository.updateBatchUploadAccess(results.get(0), user);
         }
 
         return new Confirmation ("Last active batch upload is updated, will not be shown again", HttpStatus.OK.value());

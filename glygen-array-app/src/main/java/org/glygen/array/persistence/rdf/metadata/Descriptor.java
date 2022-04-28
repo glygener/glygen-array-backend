@@ -1,6 +1,7 @@
 package org.glygen.array.persistence.rdf.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("descriptor")
@@ -36,7 +37,7 @@ public class Descriptor extends Description{
     }
     
     @Override
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public boolean isGroup() {
         return false;
     }

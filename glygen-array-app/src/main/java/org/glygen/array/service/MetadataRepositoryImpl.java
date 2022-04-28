@@ -289,7 +289,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     
     @Override
     public String addPrintRun(PrintRun metadata, UserEntity user) throws SparqlException, SQLException {
-        return addMetadataCategory (metadata, MetadataTemplateType.PRINTRUN, hasPrinterTemplatePredicate, printRunTypePredicate, "Prr", user);
+        return addMetadataCategory (metadata, MetadataTemplateType.PRINTRUN, hasPrintRunTemplatePredicate, printRunTypePredicate, "Prr", user);
     }
     
     @Override
@@ -851,7 +851,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
                 templatePredicate = hasSpotMetadataTemplatePredicate;
             } else if (typePredicate.equals(featureMetadataTypePredicate)) {
                 metadataObject = new FeatureMetadata();
-                templatePredicate = null;
+                templatePredicate = hasFeatureMetadataTemplatePredicate;
             } else if (typePredicate.equals(printRunTypePredicate)) {
                 metadataObject = new PrintRun();
                 templatePredicate = hasPrintRunTemplatePredicate;

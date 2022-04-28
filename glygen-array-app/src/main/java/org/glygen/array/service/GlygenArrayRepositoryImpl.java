@@ -156,6 +156,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     public final static String hasDataprocessingTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_data_processing_software_template";
     public final static String hasAssayTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_assay_template";
     public final static String hasSpotMetadataTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_spot_template";
+    public final static String hasFeatureMetadataTemplatePredicate = MetadataTemplateRepository.templatePrefix + "has_feature_template";
     
     
     // file wrapper stuff
@@ -833,10 +834,14 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI graphIRI = f.createIRI(graph);
         
+        
         List<Statement> statements = new ArrayList<Statement>();
         
         statements.add(f.createStatement(batch, RDF.TYPE, f.createIRI(type), graphIRI));
         statements.add(f.createStatement(batch, hasCreatedDate, date, graphIRI));
+        if (result.getSuccessMessage() != null && !result.getSuccessMessage().isEmpty()) {
+            statements.add(f.createStatement(batch, RDFS.COMMENT, f.createLiteral(result.getSuccessMessage()), graphIRI));
+        }
         
         sparqlDAO.addStatements(statements, graphIRI);
         return batchURI;
@@ -844,6 +849,28 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     
     @Override
     public String updateBatchUpload(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI graphIRI = f.createIRI(graph);
+        IRI batch = f.createIRI(result.getUri());
+        
+        List<Statement> statements = new ArrayList<Statement>();
+        if (result.getSuccessMessage() != null && !result.getSuccessMessage().isEmpty()) {
+            statements.add(f.createStatement(batch, RDFS.COMMENT, f.createLiteral(result.getSuccessMessage()), graphIRI));
+        }
+        sparqlDAO.addStatements(statements, graphIRI);
+        
+        return result.getUri();
+    }
+    
+    @Override
+    public String updateBatchUploadAccess(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -897,6 +924,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             } else if (st.getPredicate().equals(RDF.TYPE)) {
                 Value value = st.getObject();
                 result.setType(value.stringValue());
+            } else if (st.getPredicate().equals(RDFS.COMMENT)) {
+                Value value = st.getObject();
+                result.setSuccessMessage(value.stringValue());
             }
         }
         

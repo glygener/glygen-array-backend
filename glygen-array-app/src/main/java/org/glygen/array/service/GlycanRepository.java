@@ -93,4 +93,5 @@ public interface GlycanRepository {
     Glycan retrieveOtherSubType (Glycan baseType, GlycanSubsumtionType subType, UserEntity user) throws SparqlException, SQLException;
     int getGlycanCountByUser(UserEntity user, String searchValue, boolean includePublic)
             throws SQLException, SparqlException;
+    Glycan retrieveBaseType(Glycan glycan, UserEntity user) throws SparqlException, SQLException;
 }

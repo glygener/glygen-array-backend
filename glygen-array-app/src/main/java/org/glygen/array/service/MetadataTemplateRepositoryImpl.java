@@ -87,7 +87,7 @@ public class MetadataTemplateRepositoryImpl implements MetadataTemplateRepositor
     @Override
     public String getTemplateByName (String label, MetadataTemplateType type) throws SparqlException, SQLException {
         if (label == null || type == null) {
-            throw new SparqlException ("Label must be provided");
+            throw new SparqlException (type.getLabel() + " template name must be provided");
         }
         List<SparqlEntity> results = queryHelper.retrieveByLabel(label, templatePrefix + type.getLabel(), null);
         if (results.isEmpty()) {
