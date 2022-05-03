@@ -2843,8 +2843,7 @@ public class GlygenArrayController {
 	}
 	
 	@ApiOperation(value = "Make given glycan public", authorizations = { @Authorization(value="Authorization") })
-    @RequestMapping(value="/makeglycanpublic/{glycanId}", method = RequestMethod.POST, 
-            consumes={"application/json", "application/xml"})
+    @RequestMapping(value="/makeglycanpublic/{glycanId}", method = RequestMethod.POST)
     @ApiResponses (value ={@ApiResponse(code=200, message="id of the public glycan"), 
             @ApiResponse(code=400, message="Invalid request, validation error"),
             @ApiResponse(code=401, message="Unauthorized"),
