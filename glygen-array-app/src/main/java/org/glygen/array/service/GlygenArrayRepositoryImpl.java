@@ -896,7 +896,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
 
     @Override
-    public AsyncBatchUploadResult getBatchUpload(String uri, UserEntity user) throws SparqlException, SQLException {
+    public AsyncBatchUploadResult getBatchUploadFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null)
             graph = DEFAULT_GRAPH;
@@ -961,8 +961,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         if (!results.isEmpty()) {
             for (SparqlEntity result: results) {
                 String uri = result.getValue("s");
-                AsyncBatchUploadResult r = getBatchUpload(uri, user);
-                if (r.getStatus() != FutureTaskStatus.DONE && r.getAccessedDate() == null) {
+                AsyncBatchUploadResult r = getBatchUploadFromURI(uri, user);
+                if (r.getAccessedDate() == null) {
                     uploadResults.add(r);
                 }
             }

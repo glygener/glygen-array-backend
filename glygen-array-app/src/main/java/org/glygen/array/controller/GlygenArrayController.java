@@ -198,9 +198,6 @@ public class GlygenArrayController {
 	}
 	
 	@Autowired
-	SesameSparqlDAO sparqlDAO;
-	
-	@Autowired
 	@Qualifier("glygenArrayRepositoryImpl")
 	GlygenArrayRepository repository;
 	
@@ -573,7 +570,7 @@ public class GlygenArrayController {
                     errorMessage.addError(err);
                 }
             } else {
-                errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+                errorMessage.addError(new ObjectError("file", e.getMessage()));
             }
             throw new IllegalArgumentException("Error uploading glycans from the given file", errorMessage);
         }
@@ -653,7 +650,7 @@ public class GlygenArrayController {
                     errorMessage.addError(err);
                 }
             } else {
-                errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+                errorMessage.addError(new ObjectError("file", e.getMessage()));
             }
             throw new IllegalArgumentException("Error uploading " + (linker ? "Linkers": "Features") +  " from the given file", errorMessage);
         }
@@ -943,7 +940,7 @@ public class GlygenArrayController {
             return results.get(0);
         }
 
-        return null;
+        throw new EntityNotFoundException("There is no active upload");
     }
 	
 	@ApiOperation(value = "Update (hide) active batch upload processes by type", 
@@ -1380,7 +1377,7 @@ public class GlygenArrayController {
 	                                errorMessage.addError(err);
 	                            }
 	                        } else {
-	                            errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+	                            errorMessage.addError(new ObjectError("file", e.getMessage()));
 	                        }
 	        			}
 	        		}
@@ -1650,7 +1647,7 @@ public class GlygenArrayController {
                             
 						}
 					} catch (Exception e) {
-						errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+						errorMessage.addError(new ObjectError("slideLayout", e.getMessage()));
 						throw new IllegalArgumentException("Slide layout search failed", errorMessage);
 					}
 				}
@@ -1726,7 +1723,7 @@ public class GlygenArrayController {
                             errorMessage.addError(err);
                         }
                     } else {
-                        errorMessage.addError(new ObjectError("internalError", e.getMessage()));
+                        errorMessage.addError(new ObjectError("file", e.getMessage()));
                     }
                     throw new IllegalArgumentException("Error getting slide layout from the library file", errorMessage);
                 }
