@@ -3,7 +3,9 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -59,6 +61,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	UserRepository userRepository;
 	
 	Random random = new Random();
+	
+	Map<String, String> graphCache = new HashMap<String, String>();   // userid -> private graph map
 	
 	public static String prefix="PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"
 			+ "\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
@@ -183,6 +187,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		graph.setUser(uEntity);
 		graph.setGraphIRI(URI);
 		graphRepository.save (graph);
+		graphCache.put(uEntity.getUsername(), URI);
 		return URI;
 	}
 	
@@ -381,6 +386,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
      */
 	@Override
 	public String getGraphForUser (UserEntity user) throws SQLException {
+	    if (graphCache.containsKey(user.getUsername())) {
+	        return graphCache.get(user.getUsername());
+	    }
 		PrivateGraphEntity graph = graphRepository.findByUser(user);
 		if (graph != null) 
 			return graph.getGraphIRI();

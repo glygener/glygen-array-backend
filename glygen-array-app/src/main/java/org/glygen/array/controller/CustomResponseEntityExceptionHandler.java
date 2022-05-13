@@ -134,7 +134,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errorMessage.setErrorCode(ErrorCodes.INVALID_URL);
         }
         errorMessage.setStatus(status.value());  
-        logger.error("Message not readable: {}", errorMessage.toString());
+        logger.error("Message not readable:", ex);
         return new ResponseEntity<Object>(errorMessage, headers, status);
     }
     
