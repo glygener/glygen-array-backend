@@ -1,7 +1,10 @@
 package org.glygen.array.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
+import org.apache.commons.io.IOUtils;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
@@ -29,8 +33,10 @@ import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Publication;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
@@ -53,6 +59,7 @@ import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
+import org.glygen.array.persistence.rdf.metadata.FeatureMetadata;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 import org.glygen.array.persistence.rdf.metadata.PrintRun;
@@ -83,6 +90,8 @@ import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.PubmedUtil;
 import org.glygen.array.view.ArrayDatasetListView;
+import org.glygen.array.view.AsyncBatchUploadResult;
+import org.glygen.array.view.BatchGlycanFileType;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
@@ -97,6 +106,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -117,6 +129,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.media.MediaHttpUploader.UploadState;
 
 import io.swagger.annotations.ApiOperation;
@@ -6400,6 +6414,208 @@ public class DatasetController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             errorMessage.addError(new ObjectError("metadata", "InUse"));
             throw new IllegalArgumentException(e.getMessage(), errorMessage);
+        }
+    }
+    
+    @ApiOperation(value = "Export metadata into a file", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/exportmetadata", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
+            @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to export metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public @ResponseBody String exportMetadata (
+            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @RequestParam(value="offset", required=false) Integer offset,
+            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @ApiParam(required=false, value="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue,
+            @ApiParam(required=true, value="type of metadata to export") 
+            @RequestParam("type")
+            MetadataTemplateType type,
+            Principal p) {
+        
+        if (offset == null)
+            offset = 0;
+        if (limit == null) 
+            limit = -1;
+        
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        try {
+            String typePredicate;
+            switch (type) {
+            case SAMPLE: 
+                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
+                break;
+            case ASSAY:
+                typePredicate = GlygenArrayRepositoryImpl.assayTypePredicate;
+                break;
+            case DATAPROCESSINGSOFTWARE:
+                typePredicate = GlygenArrayRepositoryImpl.dataProcessingTypePredicate;
+                break;
+            case FEATURE:
+                typePredicate = GlygenArrayRepositoryImpl.featureMetadataTypePredicate;
+                break;
+            case IMAGEANALYSISSOFTWARE:
+                typePredicate = GlygenArrayRepositoryImpl.imageAnalysisTypePredicate;
+                break;
+            case PRINTER:
+                typePredicate = GlygenArrayRepositoryImpl.printerTypePredicate;
+                break;
+            case PRINTRUN:
+                typePredicate = GlygenArrayRepositoryImpl.printRunTypePredicate;
+                break;
+            case SCANNER:
+                typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
+                break;
+            case SLIDE:
+                typePredicate = GlygenArrayRepositoryImpl.slideTypePredicate;
+                break;
+            case SPOT:
+                typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
+                break;
+            default:
+                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
+            }
+            
+            List<MetadataCategory> myMetadata = metadataRepository.getMetadataCategoryByUser(user, offset, limit, null, 0, searchValue, typePredicate, true);
+            ObjectMapper mapper = new ObjectMapper();         
+            String json = mapper.writeValueAsString(myMetadata);
+            return json;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Metadata cannot be retrieved for user " + p.getName(), e);
+        } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Cannot generate the metadata list");
+            errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorMessage.addError(new ObjectError("reason", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+            throw new IllegalArgumentException("Cannot generate the metadata list", errorMessage);
+        }
+    }
+    
+    @ApiOperation(value = "Add all metadata listed in a file", authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/importmetadata", method=RequestMethod.POST, 
+            consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 
+            @ApiResponse(code=400, message="Invalid request if file is not a valid file"),
+            @ApiResponse(code=401, message="Unauthorized"),
+            @ApiResponse(code=403, message="Not enough privileges to add metadata"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Confirmation addMetadataFromFile (
+            @ApiParam(required=true, name="file", value="details of the uploded file") 
+            @RequestBody
+            FileWrapper fileWrapper, Principal p, 
+            @RequestParam Boolean noGlytoucanRegistration,
+            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Repository Export (.json)") 
+            @RequestParam(required=true, value="filetype") String fileType) {
+        
+        if (fileType.contains("json")) {
+            String fileFolder = uploadDir;
+            if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
+                fileFolder = fileWrapper.getFileFolder();
+            File file = new File (fileFolder, fileWrapper.getIdentifier());
+            if (!file.exists()) {
+                ErrorMessage errorMessage = new ErrorMessage("file is not in the uploads folder");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotFound"));
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            }
+            else {
+                byte[] fileContent;
+                try {
+                    fileContent = Files.readAllBytes(file.toPath());
+                    ErrorMessage errorMessage = new ErrorMessage();
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    try {
+                        ByteArrayInputStream stream = new   ByteArrayInputStream(fileContent);
+                        String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+                        JSONArray inputArray = new JSONArray(fileAsString);
+                        int countSuccess = 0;
+                        for (int i=0; i < inputArray.length(); i++) {
+                            JSONObject jo = inputArray.getJSONObject(i);
+                            ObjectMapper objectMapper = new ObjectMapper();
+                            MetadataCategory metadata = objectMapper.readValue(jo.toString(), MetadataCategory.class);
+                            try {
+                                String id=null;
+                                if (metadata instanceof Sample) {
+                                    id = addSample((Sample)metadata, p);
+                                } else if (metadata instanceof AssayMetadata) {
+                                    id = addAssayMetadata((AssayMetadata)metadata, p);
+                                } else if (metadata instanceof Printer) {
+                                    id = addPrinter((Printer)metadata, p);
+                                } else if (metadata instanceof PrintRun) {
+                                    id = addPrintrun((PrintRun)metadata, p);
+                                } else if (metadata instanceof ImageAnalysisSoftware) {
+                                    id = addImageAnalysisSoftware((ImageAnalysisSoftware)metadata, p);
+                                } else if (metadata instanceof DataProcessingSoftware) {
+                                    id = addDataProcessingSoftware((DataProcessingSoftware)metadata, p);
+                                } else if (metadata instanceof ScannerMetadata) {
+                                    id = addScanner((ScannerMetadata)metadata, p);
+                                } else if (metadata instanceof SpotMetadata) {
+                                    id = addSpotMetadata((SpotMetadata)metadata, p);
+                                } else if (metadata instanceof SlideMetadata) {
+                                    id = addSlideMetadata((SlideMetadata)metadata, p);
+                                }
+                              
+                                if (id != null) {
+                                    countSuccess ++;
+                                } else {
+                                    // error
+                                    String[] codes = new String[] {i+""};
+                                    errorMessage.addError(new ObjectError("sequence", codes, null, metadata.getName() + " not added"));
+                                }
+                            } catch (Exception e) {
+                                logger.error ("Exception adding the metadata: " + metadata.getName(), e);
+                                if (e.getCause() instanceof ErrorMessage) {
+                                    if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                                        ErrorMessage error = (ErrorMessage)e.getCause();
+                                        if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                            ObjectError err = error.getErrors().get(0);
+                                            if (err.getCodes() != null && err.getCodes().length != 0) {
+                                                String[] codes = new String[] {i+"", err.getCodes()[0]};
+                                                errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
+                                            } else {
+                                                String[] codes = new String[] {i+""};
+                                                errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
+                                            }
+                                        } 
+                                    } else {
+                                        String[] codes = new String[] {i+""};
+                                        errorMessage.addError(new ObjectError("sequence", codes, null, ((ErrorMessage)e.getCause()).toString()));
+                                    }
+                                } else { 
+                                    String[] codes = new String[] {i+""};
+                                    errorMessage.addError(new ObjectError("sequence", codes, null, e.getMessage()));
+                                }
+                            }
+                        }
+                        
+                        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                            throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                        }
+                        Confirmation confirmation = new Confirmation (countSuccess + " out of " + inputArray.length() + " glycans are added", HttpStatus.OK.value());
+                        return confirmation;
+                    } catch (IOException | JSONException e) {
+                        errorMessage.addError(new ObjectError("file", "NotValid"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        throw new IllegalArgumentException("File is not acceptable", errorMessage);
+                    }
+                } catch (IOException e) {
+                    ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("file", "NotValid"));
+                    throw new IllegalArgumentException("File cannot be read", errorMessage);
+                }
+            }
+        } else {
+            // not supported
+            ErrorMessage errorMessage = new ErrorMessage("File type " + fileType + " is not supported");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("type", "NotValid"));
+            throw new IllegalArgumentException("File type " + fileType + " is not supported", errorMessage);
         }
     }
     

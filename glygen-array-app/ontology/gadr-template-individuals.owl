@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0714973A77245C3137E3A4FA879D3498"/>
+	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-C6A9C7E9357ACBBDB65F47E893B5DB4E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0714973A77245C3137E3A4FA879D3498">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-C6A9C7E9357ACBBDB65F47E893B5DB4E">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-B0913E657AC1CE0D2AD781754F8D0F1D"/>
+	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-EBB142D7D229E018154487107F14DF80"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-B0913E657AC1CE0D2AD781754F8D0F1D">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-EBB142D7D229E018154487107F14DF80">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-F8B8D58AFC4FAAB8E0A73D7478475900"/>
+	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-E53416A3B4517FA0800B18B8EB37C436"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-F8B8D58AFC4FAAB8E0A73D7478475900">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-E53416A3B4517FA0800B18B8EB37C436">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-2BF16F3C99FC8A836AC40581F0B1E21E"/>
+	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-F0C81D0B218A6B57A1BD6FAFC52E2353"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-2BF16F3C99FC8A836AC40581F0B1E21E">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-F0C81D0B218A6B57A1BD6FAFC52E2353">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-56A21B5E70204695404D90A665160D13"/>
+	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-30B65CBF1C6CE927798F21916F810220"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-56A21B5E70204695404D90A665160D13">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-30B65CBF1C6CE927798F21916F810220">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-123D52169FEDCE2F9B75609251915322"/>
+	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-057C7624E430F89C9CA7D3AFA60E91A6"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-123D52169FEDCE2F9B75609251915322">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-057C7624E430F89C9CA7D3AFA60E91A6">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -139,6 +139,13 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<rdfs:domain rdf:resource="http://purl.org/gadr/template#simple_description_context"/>
 	<rdfs:range rdf:resource="http://purl.org/gadr/data/descriptor"/>
 	<rdfs:comment>An Object property to link a simple description context to its descriptor.</rdfs:comment>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://purl.org/gadr/template#has_feature_template">
+	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
+	<rdfs:domain rdf:resource="http://purl.org/gadr/data/feature_metadata"/>
+	<rdfs:range rdf:resource="http://purl.org/gadr/template#feature_template"/>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_image_analysis_software_template">
@@ -216,20 +223,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0B7BDA71B4FFF7E06DE998BB1EBB9DF3"/>
+	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-6DBB698C5EDA751B0DD823990288E03F"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0B7BDA71B4FFF7E06DE998BB1EBB9DF3">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-6DBB698C5EDA751B0DD823990288E03F">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-943AEAB8320343FB0B0A416F0C6CD5DC"/>
+	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-A15AD7B5D48AC27302233EB3E7A924B3"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-943AEAB8320343FB0B0A416F0C6CD5DC">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-A15AD7B5D48AC27302233EB3E7A924B3">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-FE7DC27E13A58D996234DB41F19CCCBC"/>
+	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-32C3CB1DFE8D8F598D2C43EFBAD8166B"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-FE7DC27E13A58D996234DB41F19CCCBC">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-32C3CB1DFE8D8F598D2C43EFBAD8166B">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -273,20 +280,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_display_name">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-	<rdfs:domain rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-C0680FC3E33BA22C5E02B5AFBC315F05"/>
+	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-CF353A2F71301C71FC5D0F6983D524E9"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-C0680FC3E33BA22C5E02B5AFBC315F05">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-CF353A2F71301C71FC5D0F6983D524E9">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-5F6473BE45F00F24EACBEF66563B6091"/>
+	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-62735234D554B8BE60AE2F2B16FBF872"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-5F6473BE45F00F24EACBEF66563B6091">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-62735234D554B8BE60AE2F2B16FBF872">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdf:rest rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0228CF0E5355FC0FF691C401AC7619EA"/>
+	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-665EA35866ACB9F3C642682DDE2973AA"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-66170667a8ee4d65848dbbbb9a82cfa3-0228CF0E5355FC0FF691C401AC7619EA">
+<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-665EA35866ACB9F3C642682DDE2973AA">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#description_context"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -7202,8 +7209,8 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext192">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdfs:label>Natural souce</rdfs:label>
-	<rdfs:comment>Provide information if the protein is from natural souces.</rdfs:comment>
+	<rdfs:label>Natural source</rdfs:label>
+	<rdfs:comment>Provide information if the protein is from natural sources.</rdfs:comment>
 	<template:has_display_label></template:has_display_label>
 </rdf:Description>
 
@@ -7232,7 +7239,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example></template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -7285,7 +7292,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example>PMID</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -7320,7 +7327,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example>3.1616925E7</template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -7333,7 +7340,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example></template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">2</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -7368,7 +7375,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example></template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">3</template:has_order>
 	<template:allows_review rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_review>
@@ -7381,7 +7388,7 @@ Provide information if the protein is recombinantly expressed or synthesized.</r
 	<template:has_example></template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_souce</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Protein#Natural_source</template:has_url>
 	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup6-XOR2"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">10</template:has_order>
@@ -14383,7 +14390,7 @@ reagent1 and detection reagent 2 in a ratio of 4:2:1
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Metadata13">
 	<rdf:type rdf:resource="http://purl.org/gadr/template#feature_template"/>
-	<rdfs:label>Feature Feature</rdfs:label>
+	<rdfs:label>Default Feature</rdfs:label>
 </rdf:Description>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#DescriptionContext2801">

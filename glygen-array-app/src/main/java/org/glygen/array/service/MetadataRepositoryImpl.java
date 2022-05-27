@@ -768,6 +768,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     }
 
 
+    @Override
     public List<MetadataCategory> getMetadataCategoryByUser (UserEntity user, int offset, int limit, String field, int order,
             String searchValue, String typePredicate, Boolean loadAll) throws SparqlException, SQLException {
         List<MetadataCategory> list = new ArrayList<>();

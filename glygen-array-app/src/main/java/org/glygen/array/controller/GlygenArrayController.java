@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -1301,15 +1302,20 @@ public class GlygenArrayController {
 	                FeatureMetadata featureMetadata = new FeatureMetadata();
 	                featureMetadata.setName(slideLayout.getName() + "-featureMetadata");
 	                try {
-	        	        String uri = templateRepository.getTemplateByName("Feature Feature", MetadataTemplateType.FEATURE);
+	        	        String uri = templateRepository.getTemplateByName("Default Feature", MetadataTemplateType.FEATURE);
 	        	        if (uri != null) {
 	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
 	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Commercial source", template);
 	        	        	DescriptorGroup group = new DescriptorGroup();
 	        	            group.setKey(descT);
 	        	            group.setNotRecorded(true);
+	        	            DescriptionTemplate descT2 = ExtendedGalFileParser.getKeyFromTemplate("Non-commercial", template);
+                            DescriptorGroup group2 = new DescriptorGroup();
+                            group2.setKey(descT2);
+                            group2.setNotRecorded(true);
 	        	            featureMetadata.setDescriptorGroups(new ArrayList<>());
 	        	            featureMetadata.getDescriptorGroups().add(group);
+	        	            featureMetadata.getDescriptorGroups().add(group2);
 	        	            featureMetadata.setTemplate(template.getName());
 	        	        } else {
 	        	        	errorMessage.addError(new ObjectError("feature template", "NotFound"));
@@ -1590,6 +1596,31 @@ public class GlygenArrayController {
         
         return uploadedFileName;
     }
+	
+	@ApiOperation(value = "Check if there is an active slide upload process", 
+            response = AsyncBatchUploadResult.class, authorizations = { @Authorization(value="Authorization") })
+    @RequestMapping(value = "/checkslideupload", method = RequestMethod.GET,
+            produces={"application/json", "application/xml"})
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "There is an ongoing upload process"),
+            @ApiResponse(code = 404, message = "No active upload found"),
+            @ApiResponse(code = 500, message = "Internal Server Error") })
+    public Confirmation checkActiveSlideLayoutUpload(Principal p) throws SparqlException, SQLException {
+	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        try {
+            List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, 0, -1, null, false, 0, null);
+            for (SlideLayout layout: layouts) {
+                if (layout.getStatus() == FutureTaskStatus.PROCESSING) {
+                    return new Confirmation("There is another active slide layout upload", HttpStatus.OK.value());
+                    
+                }
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("cannot retrieve slide layouts " + p.getName(), e);
+        }
+        
+        throw new EntityNotFoundException("There is no active slide layout upload");
+	}
 
     @ApiOperation(value = "Import selected slide layouts from uploaded GRITS array library file", authorizations = { @Authorization(value="Authorization") })
 	@RequestMapping(value = "/addSlideLayoutFromLibrary", method=RequestMethod.POST, 
@@ -1606,6 +1637,22 @@ public class GlygenArrayController {
 			Principal p) {
 		
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        //do not allow if there is another ongoing process
+        try {
+            List<SlideLayout> layouts = layoutRepository.getSlideLayoutByUser(user, 0, -1, null, false, 0, null);
+            for (SlideLayout layout: layouts) {
+                if (layout.getStatus() == FutureTaskStatus.PROCESSING) {
+                    ErrorMessage errorMessage = new ErrorMessage("There is another active slide layout upload. Please try again later");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("slideLayout", "Already processing"));
+                    throw new IllegalArgumentException("There is another active slide layout upload. Please try again later", errorMessage);
+                }
+            }
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("cannot retrieve slide layouts " + p.getName(), e);
+        }
+        
         FileWrapper fileWrapper = input.getFile();
 		if (fileWrapper != null && fileWrapper.getIdentifier() != null) {
 		    String uploadedFileName = fileWrapper.getIdentifier();
@@ -1693,6 +1740,11 @@ public class GlygenArrayController {
                                 repository.updateStatus (uri, slideLayout, user);
                                 return id;
                             }
+                        } catch (CompletionException e) {
+                            slideLayout.setStatus(FutureTaskStatus.ERROR);
+                            if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
+                                slideLayout.setError((ErrorMessage) e.getCause());
+                            repository.updateStatus (uri, slideLayout, user);
                         }
                         return id;
                     } else {
@@ -1700,7 +1752,7 @@ public class GlygenArrayController {
                         throw new IllegalArgumentException("Given slide layout cannot be found in the file", errorMessage);
                     }
                 } catch (SparqlException | SQLException e) {
-                    throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
+                    throw new GlycanRepositoryException("Slide Layout cannot be added for user " + p.getName(), e);
                 } catch (IllegalArgumentException e) {
                     throw e;
                 } catch (Exception e) {
@@ -1979,7 +2031,7 @@ public class GlygenArrayController {
 			@ApiResponse(code=403, message="Not enough privileges to retrieve slide layouts"),
     		@ApiResponse(code=415, message="Media type is not supported"),
     		@ApiResponse(code=500, message="Internal Server Error")})
-	public List<SlideLayout> getSlideLayoutsFromLibrary(
+	public @ResponseBody List<SlideLayout> getSlideLayoutsFromLibrary(
 			@ApiParam(required=true, value="uploaded file with slide layouts")
 			@RequestParam("file") String uploadedFileName) {
 		List<SlideLayout> layouts = new ArrayList<SlideLayout>();

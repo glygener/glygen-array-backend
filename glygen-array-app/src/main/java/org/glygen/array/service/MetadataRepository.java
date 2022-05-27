@@ -159,6 +159,9 @@ public interface MetadataRepository {
             throws SparqlException, SQLException;
 
     String addSpotMetadataValue(SpotMetadata metadata, UserEntity user) throws SparqlException, SQLException;
+
+    List<MetadataCategory> getMetadataCategoryByUser(UserEntity user, int offset, int limit, String field, int order,
+            String searchValue, String typePredicate, Boolean loadAll) throws SparqlException, SQLException;
     
 
 }
