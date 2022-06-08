@@ -32,12 +32,14 @@ import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanInFeature;
+import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.GlycoLipid;
 import org.glygen.array.persistence.rdf.GlycoPeptide;
 import org.glygen.array.persistence.rdf.GlycoProtein;
 import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.RatioConcentration;
+import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
@@ -101,21 +103,15 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (blockLayout == null)
             return null;
         if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
-            layoutFromRepository = blockLayoutCache.get(blockLayout.getId().trim());
+            layoutFromRepository = blockLayoutCache.get(blockLayout.getUri());
         }
-        else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) 
-            layoutFromRepository = blockLayoutCache.get(blockLayout.getName().trim());
             
         if (layoutFromRepository == null) {  // first time loading
             if (blockLayout.getId() != null && !blockLayout.getId().isEmpty()) {
                 layoutFromRepository = getBlockLayoutById(blockLayout.getId().trim(), user, false);
-                // since we are not getting the spots etc. do not put in the cache
-                //blockLayoutCache.put(blockLayout.getId().trim(), layoutFromRepository);
             }
             else if (blockLayout.getName() != null && !blockLayout.getName().isEmpty()) {
                 layoutFromRepository = getBlockLayoutByName(blockLayout.getName().trim(), user, false);
-                // since we are not getting the spots etc. do not put in the cache
-                //blockLayoutCache.put(blockLayout.getName().trim(), layoutFromRepository);
             }
         }
         
@@ -185,6 +181,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			statements.add(f.createStatement(blockLayout, hasSpot, spot, graphIRI));
 		}
 		sparqlDAO.addStatements(statements, graphIRI);
+		
+		// add it to blockLayoutCache
+		blockLayoutCache.put(blockLayoutURI, b);
 		
 		return blockLayoutURI;
 	}
@@ -427,6 +426,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     b.setUri(blockURI);
                     IRI block = f.createIRI(blockURI);
                     statements.add(f.createStatement(slideLayout, hasBlock, block, graphIRI));
+                    // also update the slide layout object with the blocklayout info with spots if they are already in the cache
+                    if (b.getBlockLayout() != null) {
+                        BlockLayout fromCache = blockLayoutCache.get(b.getBlockLayout().getId());
+                        if (fromCache != null && fromCache.getSpots() != null && !fromCache.getSpots().isEmpty())
+                            b.setBlockLayout(fromCache);
+                    }
                 }
             }
             sparqlDAO.addStatements(statements, graphIRI);
@@ -473,6 +478,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     			BlockLayout existing = getBlockLayoutFromURI (uriPre + blockLayoutId, user);
     			if (existing != null) {
     				deleteBlockLayoutByURI (uriPre + blockLayoutId, graph);
+    				// remove from the cache
+    				blockLayoutCache.remove(uriPre + blockLayoutId);
     				return;
     			}
 		    } else {
@@ -613,8 +620,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		
 		// delete from SlideLayoutRepository too
 		SlideLayoutEntity entity = slideLayoutRepository.findByUri(uri);
-		if (entity != null)
+		if (entity != null) {
 		    slideLayoutRepository.delete(entity);
+		    slideLayoutCache.remove(uri);
+		}
 	}
 	
 	private Block getBlock (String blockURI, boolean loadAll, UserEntity user) throws SparqlException, SQLException {
@@ -675,6 +684,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public BlockLayout getBlockLayoutById(String blockLayoutId, UserEntity user, boolean loadAll)
 			throws SparqlException, SQLException {
+	    
 		// make sure the blocklayout belongs to this user
 	    String graph = null;
 	    String uriPre = uriPrefix;
@@ -685,6 +695,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         else {
             graph = getGraphForUser(user);
         }
+        
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
 		queryBuf.append ("SELECT DISTINCT ?o \n");
@@ -697,6 +708,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		if (results.isEmpty())
 			return null;
 		else {
+		    // first check the cache if it is already loaded
+	        if (blockLayoutCache.containsKey(uriPre + blockLayoutId)) {
+	            BlockLayout b = blockLayoutCache.get(uriPre + blockLayoutId);
+	            if (loadAll) {  // check if the spots are there
+	                if (b.getSpots() != null && !b.getSpots().isEmpty()) {
+	                    return b;
+	                }
+	            } else {
+	                return b;
+	            }
+	        }
 			return getBlockLayoutFromURI(uriPre + blockLayoutId, loadAll, user);
 		}
 	}
@@ -960,6 +982,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			blockLayoutObject.setSpots(spots);
 		}
 		
+		if (loadAll) {
+		    // add it to the cache
+		    blockLayoutCache.put(blockLayoutURI, blockLayoutObject);
+		}
+		
 		return blockLayoutObject;
 	}
 
@@ -1151,14 +1178,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             if (entity != null) {
                 try {
                     SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
-                    return s;
+                    // check if the blocks/spots are there to make sure we have the full layout
+                    if (s.getBlocks() != null && !s.getBlocks().isEmpty() && s.getBlocks().get(0).getBlockLayout() != null &&
+                            s.getBlocks().get(0).getBlockLayout().getSpots() != null && !s.getBlocks().get(0).getBlockLayout().getSpots().isEmpty())
+                        return s;
                 } catch (Exception e) {
                     logger.error("Could not read slide layout from serialized value", e);
                 }
             }
         }
         
-        if (loadAll) blockLayoutCache.clear();
+       // if (loadAll) blockLayoutCache.clear();
         
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(slideLayoutURI);
@@ -1191,13 +1221,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             if (entity == null) {
     		    entity = new SlideLayoutEntity();
     		    entity.setUri(slideLayoutURI);
-    	        try {
-    	            entity.setJsonValue(new ObjectMapper().writeValueAsString(slideLayoutObject));
-    	            slideLayoutRepository.save(entity);
-    	        } catch (JsonProcessingException e) {
-    	            logger.error("Could not serialize Slide layout into JSON for caching", e);
-    	        }
             }
+            // update it anyway
+	        try {
+	            entity.setJsonValue(new ObjectMapper().writeValueAsString(slideLayoutObject));
+	            slideLayoutRepository.save(entity);
+	        } catch (JsonProcessingException e) {
+	            logger.error("Could not serialize Slide layout into JSON for caching", e);
+	        }
 		}
 		if (slideLayoutObject != null)
 		    getStatusFromURI (slideLayoutObject.getUri(), slideLayoutObject, graph);
@@ -1300,13 +1331,17 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     if (entity != null) {
                         try {
                             SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
-                            slideLayoutObject.getBlocks().addAll(s.getBlocks());
-                            slideLayoutObject.setName(s.getName());
-                            slideLayoutObject.setDescription(s.getDescription());
-                            slideLayoutObject.setWidth(s.getWidth());
-                            slideLayoutObject.setHeight(s.getHeight());
-                            slideLayoutObject.setUser(s.getUser());
-                            return;
+                            // check if the blocks/spots are there to make sure we have the full layout
+                            if (s.getBlocks() != null && !s.getBlocks().isEmpty() && s.getBlocks().get(0).getBlockLayout() != null &&
+                                    s.getBlocks().get(0).getBlockLayout().getSpots() != null && !s.getBlocks().get(0).getBlockLayout().getSpots().isEmpty()) {
+                                slideLayoutObject.getBlocks().addAll(s.getBlocks());
+                                slideLayoutObject.setName(s.getName());
+                                slideLayoutObject.setDescription(s.getDescription());
+                                slideLayoutObject.setWidth(s.getWidth());
+                                slideLayoutObject.setHeight(s.getHeight());
+                                slideLayoutObject.setUser(s.getUser());
+                                return;
+                            }
                         } catch (IOException e) {
                             logger.error("Could not read slide layout from serialized value", e);
                         }
@@ -1416,6 +1451,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		BlockLayout existing = getBlockLayoutFromURI(layout.getUri(), false, user);
 		if (graph != null && existing !=null) {
 			updateBlockLayoutInGraph(layout, graph);
+			// remove from cache
+			blockLayoutCache.remove(layout.getUri());
 		}
 	}
 
@@ -1456,8 +1493,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         Map<String, Glycan > processedGlycans = new HashMap<>();
         Map<String, Linker > processedLinkers = new HashMap<>();
         Map<String, Feature > processedFeatures = new HashMap<>();
-        blockLayoutCache.clear();
-        slideLayoutCache.clear();
+        //blockLayoutCache.clear();
+        //slideLayoutCache.clear();
         
        // if (existingURI == null) {  // allow duplicate names in the public repository - Feb 23rd 2021
         	// first make other components public
@@ -1673,34 +1710,74 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        List<GlycanInFeature> publicGlycans = new ArrayList<>();
 	        for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
 	            Glycan g = gf.getGlycan();
-	            if (g.getIsPublic()) {
-	                // already public
-	                if (!processedGlycans.containsKey(g.getUri())) {
-	                    publicGlycans.add(gf); 
-	                    processedGlycans.put(g.getUri(), g);
+	            if (g instanceof SequenceDefinedGlycan) {
+	                Glycan baseGlycan = gf.getBaseGlycan();
+	                if (baseGlycan == null) {
+	                    if (((SequenceDefinedGlycan) g).getSubType() == GlycanSubsumtionType.BASE) {
+	                        baseGlycan = g;
+	                    } else {
+	                        baseGlycan = glycanRepository.retrieveBaseType(g, user);
+	                    }
+	                }
+	                if (g.getIsPublic()) {
+	                    // already public
+                        if (!processedGlycans.containsKey(g.getUri())) {
+                            publicGlycans.add(gf); 
+                            processedGlycans.put(g.getUri(), g);
+                        }
+	                } else {
+	                    String previousG = g.getUri();
+                        if (!processedGlycans.containsKey(previousG)) {
+                            // always make the baseGlycan public, the other sub types will become public as well
+                            String baseGlycanURI = glycanRepository.makePublic(baseGlycan, user);    baseGlycan.setUri(baseGlycanURI);
+                            Glycan newGlycan = glycanRepository.retrieveOtherSubType(baseGlycan, ((SequenceDefinedGlycan) g).getSubType(), null);
+                            if (newGlycan != null) {
+                                gf.setGlycan(newGlycan);
+                                publicGlycans.add(gf); // get the public one
+                                processedGlycans.put(previousG, newGlycan);
+                            } else {
+                                Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
+                                if (existing != null) {
+                                    gf.setGlycan(existing);
+                                    publicGlycans.add(gf);
+                                    processedGlycans.put(previousG, existing);
+                                }
+                            }
+                        } else {
+                            gf.setGlycan(processedGlycans.get(previousG));
+                            publicGlycans.add(gf); // get the public one
+                        }
 	                }
 	            } else {
-	                String previousG = g.getUri();
-	                if (!processedGlycans.containsKey(previousG)) {
-	                    String glycanURI = glycanRepository.makePublic(g, user);
-	                    if (glycanURI != null) {
-	                        Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
-	                        gf.setGlycan(g);
-	                        publicGlycans.add(gf); // get the public one
-	                        processedGlycans.put(previousG, newGlycan);
-	                    } else {
-	                        Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
-	                        if (existing != null) {
-	                            gf.setGlycan(existing);
-	                            publicGlycans.add(gf);
-	                            processedGlycans.put(previousG, existing);
-	                        }
-	                    } 
-	                }
-	                else {
-	                    gf.setGlycan(processedGlycans.get(previousG));
-	                    publicGlycans.add(gf); // get the public one
-	                }
+    	            if (g.getIsPublic()) {
+    	                // already public
+    	                if (!processedGlycans.containsKey(g.getUri())) {
+    	                    publicGlycans.add(gf); 
+    	                    processedGlycans.put(g.getUri(), g);
+    	                }
+    	            } else {
+    	                String previousG = g.getUri();
+    	                if (!processedGlycans.containsKey(previousG)) {
+    	                    String glycanURI = glycanRepository.makePublic(g, user);
+    	                    if (glycanURI != null) {
+    	                        Glycan newGlycan = glycanRepository.getGlycanFromURI(glycanURI, null);
+    	                        gf.setGlycan(g);
+    	                        publicGlycans.add(gf); // get the public one
+    	                        processedGlycans.put(previousG, newGlycan);
+    	                    } else {
+    	                        Glycan existing = glycanRepository.getGlycanByLabel(g.getName(), null);
+    	                        if (existing != null) {
+    	                            gf.setGlycan(existing);
+    	                            publicGlycans.add(gf);
+    	                            processedGlycans.put(previousG, existing);
+    	                        }
+    	                    } 
+    	                }
+    	                else {
+    	                    gf.setGlycan(processedGlycans.get(previousG));
+    	                    publicGlycans.add(gf); // get the public one
+    	                }
+    	            }
 	            }
 	        }
 	        ((LinkedGlycan)feature).setGlycans(publicGlycans);
@@ -1822,9 +1899,14 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        
 	    }
     }
+	
+	@Override
+    public Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException {
+	    return getSpotFromURI(spotURI, true, user);
+	}
 
     @Override
-	public Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException {
+	public Spot getSpotFromURI(String spotURI, Boolean loadAll, UserEntity user) throws SQLException, SparqlException {
 		String graph = null;
 		if (spotURI.contains("public"))
             graph = DEFAULT_GRAPH;
@@ -1943,7 +2025,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 }
             } else if (st2.getPredicate().equals(hasSpotMetadata)) {
                 Value uriValue = st2.getObject();
-                s.setMetadata(metadataRepository.getSpotMetadataValueFromURI(uriValue.stringValue(), true, user));
+                s.setMetadata(metadataRepository.getSpotMetadataValueFromURI(uriValue.stringValue(), loadAll, user));
             }
 		}
 		
@@ -2308,12 +2390,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
     @Override
-    public Spot getSpotByPosition (String slideLayoutURI, String blockLayoutURI, int row, int column, UserEntity user) throws SparqlException, SQLException {
+    public String getSpotByPosition (String slideLayoutURI, String blockLayoutURI, int row, int column, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
-        String uriPre = uriPrefix;
         if (user == null) {
             graph = DEFAULT_GRAPH;
-            uriPre = uriPrefixPublic;
         }
         else {
             graph = getGraphForUser(user);
@@ -2325,7 +2405,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             if (entity != null) {
                 Spot spot = findSpotInEntity (entity, row, column, blockLayoutURI);
                 if (spot != null)
-                    return spot;
+                    return spot.getUri();
             }
         } /*else {
             // check all slide layouts
@@ -2372,10 +2452,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             return null;
         else {
             String spotURI = results.get(0).getValue("s");
-            if (spotURI.contains("public")) {
+            return spotURI;
+           /* if (spotURI.contains("public")) {
                 return getSpotFromURI(spotURI, null);
             }
-            return getSpotFromURI(spotURI, user);
+            return getSpotFromURI(spotURI, user);*/
         }
     }
 

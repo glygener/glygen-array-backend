@@ -1719,6 +1719,10 @@ public class DatasetController {
                             rawData.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 rawData.setError((ErrorMessage) e.getCause().getCause());
+                            else {
+                                errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                rawData.setError(errorMessage);
+                            }
                         } else {
                             rawData.setStatus(FutureTaskStatus.DONE);    
                         }
@@ -1745,15 +1749,20 @@ public class DatasetController {
                     if (file != null) file.delete();
                     return id;
                 }
+            } catch (Exception e) {
+                errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                rawData.setError(errorMessage);
+                rawData.setStatus(FutureTaskStatus.ERROR);
+                datasetRepository.updateStatus (rawData.getUri(), rawData, owner);
+                logger.error("Cannot add the raw data measurements to the repository", e);
+                throw new IllegalArgumentException("Cannot add the raw data measurements to the repository", e);
             }
             return id;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Rawdata cannot be added for user " + p.getName(), e);
         } catch (IllegalArgumentException e) {
             throw e;
-        } catch (Exception e) {
-            throw new GlycanRepositoryException("Cannot add the raw data measurements to the repository", e);
-        }
+        } 
     }
     
     @ApiOperation(value = "Add given printed slide set for the user", authorizations = { @Authorization(value="Authorization") })
@@ -8143,7 +8152,10 @@ public class DatasetController {
                             data.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 data.setError((ErrorMessage) e.getCause().getCause());
-                            
+                            else {
+                                errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                data.setError(errorMessage);
+                            }
                         } else {
                             task.setStatus(FutureTaskStatus.DONE);
                             data.setStatus(FutureTaskStatus.DONE);
@@ -8152,10 +8164,11 @@ public class DatasetController {
                         datasetRepository.updateStatus (existingURI, data, o);
                         
                     } catch (SparqlException | SQLException e1) {
-                        logger.error("Could not save the processedData", e1);
+                        logger.error("Could not make the dataset public", e1);
+                        throw new GlycanRepositoryException("Could not make the dataset public", e1);
                     } 
                 });
-                datasetURI.get(2000, TimeUnit.MILLISECONDS);
+                datasetURI.get(200, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 return null; // not ready yet
             }

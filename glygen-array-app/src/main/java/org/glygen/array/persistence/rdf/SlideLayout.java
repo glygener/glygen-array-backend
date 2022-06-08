@@ -5,11 +5,13 @@ import java.util.List;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 
+@XmlRootElement
 public class SlideLayout extends FutureTask {
 	String id;
 	String uri;

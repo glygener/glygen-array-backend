@@ -517,6 +517,10 @@ public class GlygenArrayController {
                             result.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 result.setError((ErrorMessage) e.getCause().getCause());
+                            else {
+                                errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                result.setError(errorMessage);
+                            }
                         } else {
                             result.setStatus(FutureTaskStatus.DONE);    
                             result.setSuccessMessage(conf.getMessage());
@@ -597,6 +601,10 @@ public class GlygenArrayController {
                             result.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                 result.setError((ErrorMessage) e.getCause().getCause());
+                            else {
+                                errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                result.setError(errorMessage);
+                            }
                         } else {
                             result.setStatus(FutureTaskStatus.DONE);   
                             result.setSuccessMessage(conf.getMessage());
@@ -1716,6 +1724,10 @@ public class GlygenArrayController {
                                         slideLayout.setStatus(FutureTaskStatus.ERROR);
                                         if (e.getCause() != null && e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() instanceof ErrorMessage) 
                                             slideLayout.setError((ErrorMessage) e.getCause().getCause());
+                                        else {
+                                            errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                            slideLayout.setError(errorMessage);
+                                        }
                                     } else {
                                         slideLayout.setStatus(FutureTaskStatus.DONE);    
                                     }

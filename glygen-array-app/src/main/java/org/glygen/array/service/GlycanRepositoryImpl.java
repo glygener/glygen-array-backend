@@ -334,7 +334,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     					}
                     }
 				} catch (Exception e) {
-					logger.warn("Cannot register glytoucanId with the given sequence", g.getSequence());
+					logger.warn("Cannot register glytoucanId with the given sequence:" + g.getSequence(), e);
 				}
 			} else if (g.getGlytoucanId() == null) {
 				// check if it is already in GlyToucan
@@ -689,7 +689,6 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 publicSortLine = "OPTIONAL {?public " + sortPredicate + " ?sortBy } .\n";  
             }
             
-            
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
             queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
@@ -701,10 +700,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             queryBuf.append ("WHERE {\n {\n");
             queryBuf.append (" ?s gadr:has_date_addedtolibrary ?d . \n");
             queryBuf.append (" ?s rdf:type  <" + type +">. ");
-            if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
+            //if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
                 queryBuf.append("OPTIONAL {?s gadr:has_subtype ?subtype } .  \n");
                 queryBuf.append("FILTER (!bound(?subtype) || str(?subtype) = \"BASE\") ");
-            }
+            //}
             queryBuf.append(
                     " OPTIONAL {?s gadr:has_public_uri ?public  } .\n");
             queryBuf.append (sortLine + searchPredicate + "} ");
@@ -1267,7 +1266,6 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
         
-        
         List<Statement> statements2 = new ArrayList<Statement>();
         if (createPublicLink)
             statements2.add(f.createStatement(localGlycan, hasPublicURI, publicGlycan, graphIRI));
@@ -1313,7 +1311,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     	                    }
 	                    }
 	                } catch (Exception e) {
-	                    logger.warn("Cannot register glytoucanId with the given sequence", ((SequenceDefinedGlycan) glycan).getSequence());
+	                    logger.warn("Cannot register glytoucanId with the given sequence:" + ((SequenceDefinedGlycan) glycan).getSequence(), e);
 	                }
 	            } 
 	            // add sequence and glytoucanid if any
@@ -1346,7 +1344,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
 	            statements.add(f.createStatement(publicGlycan, hasSubType, subType, publicGraphIRI));
 	            // keep subtype in the local repository as well
-	            statements.add(f.createStatement(localGlycan, hasSubType, subType, graphIRI));
+	            statements2.add(f.createStatement(localGlycan, hasSubType, subType, graphIRI));
 	            break;
 	        case MASS_ONLY:
 	            // add mass

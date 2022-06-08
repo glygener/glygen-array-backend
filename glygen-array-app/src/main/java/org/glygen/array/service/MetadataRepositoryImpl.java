@@ -3,7 +3,9 @@ package org.glygen.array.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityNotFoundException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -48,6 +50,8 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     
     @Autowired
     MetadataTemplateRepository templateRepository;
+    
+    Map<String, MetadataCategory> metadataCache = new HashMap<String, MetadataCategory>();
     
     @Override
     public String addAssayMetadata(AssayMetadata metadata, UserEntity user) throws SparqlException, SQLException {
@@ -258,7 +262,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         
         IRI hasTemplate = f.createIRI(templatePredicate);
         IRI type = f.createIRI(typePredicate);
-        // TODO check if the sample already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
+        // TODO check if the metadata already exists in "default-graph", then we need to add a triple sample->has_public_uri->existingURI to the private repo
         String existing = null;
         if (metadata.getName() != null)
         	existing = getEntityByLabel(metadata.getName().trim(), graph, typePredicate);
@@ -267,12 +271,17 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             List<Statement> statements = new ArrayList<Statement>();
             Date addedToLibrary = metadata.getDateAddedToLibrary() == null ? new Date() : metadata.getDateAddedToLibrary();
             String metadataURI = addGenericInfo(metadata.getName(), metadata.getDescription(), addedToLibrary, statements, prefix, graph);
+            IRI sampleIRI = f.createIRI(metadataURI);
             // add template
             // find the template with given name and add the object property from sample to the metadatatemplate
-            String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), metadataType);
-            IRI sampleIRI = f.createIRI(metadataURI);
-            if (templateURI != null) 
-                statements.add(f.createStatement(sampleIRI, hasTemplate, f.createIRI(templateURI), graphIRI));
+            if (metadata.getTemplate() != null) {
+                String templateURI = templateRepository.getTemplateByName(metadata.getTemplate(), metadataType);
+                if (templateURI != null) 
+                    statements.add(f.createStatement(sampleIRI, hasTemplate, f.createIRI(templateURI), graphIRI));
+            } else {
+                // ERROR!
+                logger.warn("metadata template is missing for " + metadata.getName());
+            }
             statements.add(f.createStatement(sampleIRI, RDF.TYPE, type, graphIRI));
             addMetadata (metadataURI, metadata, statements, graph);
             sparqlDAO.addStatements(statements, graphIRI);
@@ -437,6 +446,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         
         statements = sparqlDAO.getStatements(metadata, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
+        
+        // remove from the cache
+        metadataCache.remove(uri);
     }
 
 
@@ -798,6 +810,10 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
 
     @Override
     public MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        if (metadataCache.containsKey(uri)) {
+            return metadataCache.get(uri);
+        }
+        
         MetadataCategory metadataObject = null;
         
         String graph = null;
@@ -989,6 +1005,8 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             }
         }
         
+        if (metadataObject != null && metadataObject.getUri() != null)
+            metadataCache.put(metadataObject.getUri(), metadataObject);
         return metadataObject;
     }
 
@@ -1447,6 +1465,9 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         // add descriptors back
         addMetadata (uri, metadata, statements, graph);
         sparqlDAO.addStatements(statements, graphIRI);
+        
+        // remove from the cache
+        metadataCache.remove(uri);
     }
 
 

@@ -65,7 +65,7 @@ public interface LayoutRepository {
             throws SparqlException, SQLException;
     Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException;
     //List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutUri, String blockLayoutUri, UserEntity user) throws SparqlException, SQLException;
-    Spot getSpotByPosition(String slideLayoutId, String blockId, int row, int column, UserEntity user)
+    String getSpotByPosition(String slideLayoutId, String blockId, int row, int column, UserEntity user)
             throws SparqlException, SQLException;
     String makePublic(SlideLayout layout, UserEntity user, Map<String, String> spotIdMap)
             throws SparqlException, SQLException;
@@ -76,4 +76,5 @@ public interface LayoutRepository {
     String addBlocksToSlideLayout(SlideLayout s, UserEntity user) throws SparqlException, SQLException;
     List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String blockLayoutURI, String groupId,
             UserEntity user) throws SparqlException, SQLException;
+    Spot getSpotFromURI(String spotURI, Boolean loadAll, UserEntity user) throws SQLException, SparqlException;
 }
