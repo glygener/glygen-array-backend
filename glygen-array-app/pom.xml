@@ -11,8 +11,8 @@
 	<artifactId>glygen-array-app</artifactId>
 	<description>Glygen Array backend application</description>
 	<properties>
-		<maven.compiler.source>1.11</maven.compiler.source>
-		<maven.compiler.target>1.11</maven.compiler.target>
+		<maven.compiler.source>1.10</maven.compiler.source>
+		<maven.compiler.target>1.10</maven.compiler.target>
 	</properties>
 	
 	<repositories>
