@@ -1946,8 +1946,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 Statement st = statements.next();
                 String slideURI = st.getObject().stringValue();
                 // delete the slide
-                RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(slideURI), null, null, graphIRI);
-                sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
+                deleteSlide(slideURI.substring(slideURI.lastIndexOf("/")+1), datasetId, user);
+                //RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(slideURI), null, null, graphIRI);
+                //sparqlDAO.removeStatements(Iterations.asList(statements2), graphIRI);
             }
             
             // delete publications
