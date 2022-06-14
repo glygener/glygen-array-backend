@@ -1741,6 +1741,10 @@ public class GlygenArrayController {
                             slideLayout.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
                                 slideLayout.setError((ErrorMessage) e.getCause());
+                            else {
+                                errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                                slideLayout.setError(errorMessage);
+                            }
                             repository.updateStatus (uri, slideLayout, user);
                             throw e;
                         } catch (TimeoutException e) {
@@ -1756,6 +1760,10 @@ public class GlygenArrayController {
                             slideLayout.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
                                 slideLayout.setError((ErrorMessage) e.getCause());
+                            else {
+                                errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                                slideLayout.setError(errorMessage);
+                            }
                             repository.updateStatus (uri, slideLayout, user);
                         }
                         return id;

@@ -1781,7 +1781,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         }
       
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
-            throw new IllegalArgumentException("Invalid Input: Not a valid feature information", errorMessage);
+            throw new IllegalArgumentException("Invalid Input: Not a valid feature information. Reason: " + errorMessage.toString(), errorMessage);
         
         String featureURI = featureRepository.addFeature(feature, user);
         String id = featureURI.substring(featureURI.lastIndexOf("/")+1);

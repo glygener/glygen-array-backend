@@ -659,6 +659,11 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				BlockLayout blockLayout = null;
 				if (blockLayoutCache.containsKey(blockLayoutURI)) {
 				    blockLayout = blockLayoutCache.get(blockLayoutURI);
+				    if (loadAll && (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty())) {
+				        // need to reload
+				        blockLayout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);    // need the spots
+	                    blockLayoutCache.put(blockLayoutURI, blockLayout);
+				    }
 				} else {
 				    blockLayout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);    // need the spots
 				    blockLayoutCache.put(blockLayoutURI, blockLayout);
@@ -1178,6 +1183,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             if (entity != null) {
                 try {
                     SlideLayout s = new ObjectMapper().readValue(entity.getJsonValue(), SlideLayout.class);
+                    if (slideLayoutURI.contains("public")) 
+                        s.setIsPublic(true);
                     // check if the blocks/spots are there to make sure we have the full layout
                     if (s.getBlocks() != null && !s.getBlocks().isEmpty() && s.getBlocks().get(0).getBlockLayout() != null &&
                             s.getBlocks().get(0).getBlockLayout().getSpots() != null && !s.getBlocks().get(0).getBlockLayout().getSpots().isEmpty())

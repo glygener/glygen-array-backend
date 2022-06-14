@@ -75,23 +75,27 @@ public class RawdataParser {
             blocks.add(block);
         }
         
-        // Check fileFormat to decide which parser to use
-        if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("genepix")) {
-            // process GenePix file
-            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
-            GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
-        } else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
-            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
-            GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
-        } else if (file.getIdentifier().endsWith(".gpr") || file.getIdentifier().endsWith(".txt")) {
-            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
-            GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
-        } else if (file.getIdentifier().endsWith(".xls") || file.getIdentifier().endsWith(".xlsx")) {
-            FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
-            GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
-        } else {
-            // format unknown
-            throw new IOException ("file format is not supported: " + file.getFileFormat());
+        try {
+            // Check fileFormat to decide which parser to use
+            if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("genepix")) {
+                // process GenePix file
+                FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
+                GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
+            } else if (file != null && file.getFileFormat() != null && file.getFileFormat().toLowerCase().contains("proscan")) {
+                FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
+                GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
+            } else if (file.getIdentifier().endsWith(".gpr") || file.getIdentifier().endsWith(".txt")) {
+                FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "GenePix");
+                GlycanArrayParserUtils.processGenePixFile (fileWrapper, experiment, slide);
+            } else if (file.getIdentifier().endsWith(".xls") || file.getIdentifier().endsWith(".xlsx")) {
+                FileWrapper fileWrapper = new FileWrapper (file.getFileFolder() + File.separator + file.getIdentifier(), "Proscan");
+                GlycanArrayParserUtils.processProscanFile (fileWrapper, experiment, slide);
+            } else {
+                // format unknown
+                throw new IOException ("file format is not supported: " + file.getFileFormat());
+            }
+        } catch (Exception e) {
+            throw new IOException ("Exception while parsing. Reason: " + e.getMessage(), e);
         }
         
         for (Block block: slide.getBlocks()) {

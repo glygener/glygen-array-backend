@@ -397,7 +397,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-            throw new IllegalArgumentException("error adding block layouts!", errorMessage);
+            throw new IllegalArgumentException("error adding block layouts! Reason: " + errorMessage.toString(), errorMessage);
         }
         
         try {

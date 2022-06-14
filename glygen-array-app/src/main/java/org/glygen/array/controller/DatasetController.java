@@ -32,7 +32,9 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.GraphPermissionRepository;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.LinkerType;
 import org.glygen.array.persistence.rdf.Publication;
@@ -182,6 +184,9 @@ public class DatasetController {
     
     @Value("${spring.file.uploaddirectory}")
     String uploadDir;
+    
+    @Value("${spring.file.imagedirectory}")
+    String imageLocation;
     
     @Autowired
     ResourceLoader resourceLoader;
@@ -1674,11 +1679,26 @@ public class DatasetController {
                 // need to load the full layout before parsing
                 SlideLayout fullLayout = null;
                 String uriPre = ArrayDatasetRepositoryImpl.uriPrefix;
-                if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic()) {
-                    fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), null);
-                    uriPre = ArrayDatasetRepositoryImpl.uriPrefixPublic;
+                if (rawData.getSlide().getPrintedSlide().getLayout().getBlocks() !=null && !rawData.getSlide().getPrintedSlide().getLayout().getBlocks().isEmpty() &&
+                        rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout() != null && 
+                        rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout().getSpots() != null &&
+                        !rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout().getSpots().isEmpty()) {
+                    fullLayout = rawData.getSlide().getPrintedSlide().getLayout();
                 } else {
-                    fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), owner);
+                    if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic() || rawData.getSlide().getPrintedSlide().getLayout().getUri().contains("public") ) {
+                        // check if it is already loaded fully
+                        fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), null);
+                        uriPre = ArrayDatasetRepositoryImpl.uriPrefixPublic;
+                    } else {
+                        fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), owner);
+                    }
+                }
+                if (fullLayout == null) {
+                    errorMessage.addError(new ObjectError("exception", "slide layout cannot be located: " + rawData.getSlide().getPrintedSlide().getLayout().getId()));
+                    rawData.setError(errorMessage);
+                    rawData.setStatus(FutureTaskStatus.ERROR);
+                    datasetRepository.updateStatus (uri, rawData, owner);
+                    throw new IllegalArgumentException("Cannot locate the slide layout!", errorMessage);
                 }
                 try {
                     Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
@@ -1700,6 +1720,9 @@ public class DatasetController {
                         if (foundBlocks.size() != rawData.getSlide().getBlocksUsed().size()) {
                             // we could not find the data for the selected blocks from the raw data file
                             errorMessage.addError(new ObjectError("blocksUsed", "NotValid"));
+                            rawData.setError(errorMessage);
+                            rawData.setStatus(FutureTaskStatus.ERROR);
+                            datasetRepository.updateStatus (uri, rawData, owner);
                             throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                         }
                         rawData.setDataMap(filteredMap); 
@@ -1708,6 +1731,9 @@ public class DatasetController {
                     }
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", e.getMessage()));
+                    rawData.setError(errorMessage);
+                    rawData.setStatus(FutureTaskStatus.ERROR);
+                    datasetRepository.updateStatus (uri, rawData, owner);
                     throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                 }
                 UserEntity originalUser = owner;
@@ -8162,6 +8188,23 @@ public class DatasetController {
                             data.setUri(uri);
                         }
                         datasetRepository.updateStatus (existingURI, data, o);
+                        // generate public glycan images if necessary
+                        for (Slide s: data.getSlides()) {
+                            if (s.getPrintedSlide() != null && s.getPrintedSlide().getLayout() != null) {
+                                SlideLayout l = s.getPrintedSlide().getLayout();
+                                for (Block b: l.getBlocks()) {
+                                    if (b.getBlockLayout() != null) {
+                                        for (Spot spot: b.getBlockLayout().getSpots()) {
+                                            if (spot.getFeatures() != null) {
+                                                for (Feature f: spot.getFeatures()) {
+                                                    GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         
                     } catch (SparqlException | SQLException e1) {
                         logger.error("Could not make the dataset public", e1);

@@ -48,6 +48,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     @org.springframework.beans.factory.annotation.Value("${glygen.glytoucanregistration}")
     String glytoucanregistration;
     
+    static int glycanCount = 0;
+    
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
 		if (alias == null || alias.trim().isEmpty())
@@ -1108,6 +1110,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	}
 
     public String makePublic(Glycan glycan, UserEntity user) throws SparqlException, SQLException {
+        glycanCount ++;
         String graph = getGraphForUser(user);
         String existingURI = null;
         switch (glycan.getType()) {
@@ -1140,7 +1143,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     } else {
                         // same name glycan exist in public graph
                         // throw exception
-                        logger.debug("Glycan " + glycan.getName() +" is already public");
+                        logger.info("Glycan " + glycan.getName() +" is already public");
                         return null;
                         //throw new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
                     }
@@ -1154,6 +1157,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     for (Glycan relatedGlycan: relatedGlycans) {
                         updateGlycanInGraph(relatedGlycan, graph);  // only keep user specific info in the local repository
                         String relatedPublic = addPublicGlycan(relatedGlycan, null, graph, user.getUsername(), false);
+                        // need to keep the link to related glycans in the local repo
+                        linkRelatedGlycans (uriPrefix + glycan.getId(), relatedGlycan.getUri(), relatedPublic, graph);
                         linkPublicRelatedGlycans (publicURI, relatedPublic);
                     }
                     return publicURI;
@@ -1167,6 +1172,8 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                 for (Glycan relatedGlycan: relatedGlycans) {
                     updateGlycanInGraph(relatedGlycan, graph);  // only keep user specific info in the local repository
                     String relatedPublic = addPublicGlycan(relatedGlycan, existingURI, graph, user.getUsername(), false);
+                    // need to keep the link to related glycans in the local repo
+                    linkRelatedGlycans (uriPrefix + glycan.getId(), relatedGlycan.getUri(), relatedPublic, graph);
                     linkPublicRelatedGlycans (publicURI, relatedPublic);
                 }
                 return publicURI;
@@ -1274,6 +1281,15 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         statements2.add(f.createStatement(localGlycan, hasGlycanType, type, graphIRI));
         statements2.add(f.createStatement(localGlycan, RDF.TYPE, glycanType, graphIRI));
         
+        if (glycan.getType() == GlycanType.SEQUENCE_DEFINED) {
+            // need to add the subtype as well
+            Literal subType = f.createLiteral(((SequenceDefinedGlycan) glycan).getSubType().name());
+            IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
+            // keep subtype in the local repository as well
+            //logger.info("adding subtype for " + localGlycan + " number: " + glycanCount);
+            statements2.add(f.createStatement(localGlycan, hasSubType, subType, graphIRI));
+        }
+        
         if (!existing) {
 	        // add additionalInfo based on the type of Glycan
 	        switch (glycan.getType()) {
@@ -1330,10 +1346,10 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            IRI hasSequenceValue = f.createIRI(ontPrefix + "has_sequence_value");
 	            IRI hasSequenceFormat = f.createIRI(ontPrefix + "has_sequence_format");
 	            IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
-	            IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
 	            Literal mass = ((MassOnlyGlycan) glycan).getMass() == null ? null : f.createLiteral(((MassOnlyGlycan) glycan).getMass());
 	            IRI hasMass = f.createIRI(ontPrefix + "has_mass");
 	            Literal subType = f.createLiteral(((SequenceDefinedGlycan) glycan).getSubType().name());
+	            IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
 	            
 	            statements.add(f.createStatement(sequence, RDF.TYPE, sequenceType, publicGraphIRI));
 	            statements.add(f.createStatement(publicGlycan, hasSequence, sequence, publicGraphIRI));
@@ -1343,8 +1359,6 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            statements.add(f.createStatement(sequence, hasSequenceFormat, format, publicGraphIRI));
 	            if (mass != null) statements.add(f.createStatement(publicGlycan, hasMass, mass, publicGraphIRI));
 	            statements.add(f.createStatement(publicGlycan, hasSubType, subType, publicGraphIRI));
-	            // keep subtype in the local repository as well
-	            statements2.add(f.createStatement(localGlycan, hasSubType, subType, graphIRI));
 	            break;
 	        case MASS_ONLY:
 	            // add mass
@@ -1394,6 +1408,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	        
 	        sparqlDAO.addStatements(statements, publicGraphIRI);
         }
+        //logger.info("updating the local graph");
         sparqlDAO.addStatements(statements2, graphIRI);
         
         return publicURI;
