@@ -1243,8 +1243,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         
-        getStatusFromURI (datasetObject.getUri(), datasetObject, graph);
-        retrieveChangeLog (datasetObject, datasetObject.getUri(), graph);
+        if (datasetObject != null) {
+            getStatusFromURI (datasetObject.getUri(), datasetObject, graph);
+            retrieveChangeLog (datasetObject, datasetObject.getUri(), graph);
+        }
         return datasetObject;
     }
     
@@ -1720,7 +1722,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 imageObject.setUri(uri);
                 imageObject.setId(uri.substring(uri.lastIndexOf("/")+1));
             }
-            imageObject.addRawData(getRawDataFromURI(rawDataURI, loadAll, user));
+            RawData r = getRawDataFromURI(rawDataURI, loadAll, user);
+            if (r != null) {
+                imageObject.addRawData(r);
+            } else {
+                logger.warn("rawdata with uri " + rawDataURI + " cannot be loaded for user " + (user == null ? "public" : user.getUsername()));
+            }
         }
             
         return imageObject;
@@ -1840,7 +1847,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         while (statements.hasNext()) {
             Statement st = statements.next();
             String processedDataURI = st.getSubject().stringValue();
-            rawDataObject.getProcessedDataList().add(getProcessedDataFromURI(processedDataURI, loadAll, user));
+            ProcessedData p = getProcessedDataFromURI(processedDataURI, loadAll, user);
+            if (p != null) {
+                rawDataObject.getProcessedDataList().add(p);
+            } else {
+                logger.warn("processed data with uri " + processedDataURI + " cannot be loaded for user " + (user == null ? "public" : user.getUsername()));
+            }
         }
         getStatusFromURI (rawDataObject.getUri(), rawDataObject, graph);
         return rawDataObject;
@@ -2010,43 +2022,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         deleteFiles (processedDataURI, graph);
         
         statements = sparqlDAO.getStatements(processedData, null, null, graphIRI);
-        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);     
-    }
-    
-    
-    public boolean canDeleteRawData(String uri, String parentURI, UserEntity user) throws SparqlException, SQLException {
-        String graph = null;
-        if (user == null)
-            graph = DEFAULT_GRAPH;
-        else {
-            graph = getGraphForUser(user);
-        }
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);  
         
-        boolean canDelete = true;
-        
-        StringBuffer queryBuf = new StringBuffer();
-        queryBuf.append (prefix + "\n");
-        queryBuf.append ("SELECT DISTINCT ?s \n");
-        //queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
-        queryBuf.append ("FROM <" + graph + ">\n");
-        queryBuf.append ("WHERE {\n");
-        queryBuf.append ("{?s gadr:has_printed_slide <" +  uri + "> } ");
-        queryBuf.append ("} LIMIT 1");
-        
-        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
-        if (!results.isEmpty()) {
-            if (parentURI != null) {
-                // check if the one preventing the delete is the given parentURI
-                String sURI = results.get(0).getValue("s");
-                if (!sURI.equals(parentURI)) {
-                    canDelete = false;
-                }
-            } else {
-                canDelete = false;
-            }
-        }
-        
-        return canDelete;
+        statements = sparqlDAO.getStatements(null, null, processedData, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI); 
     }
     
     @Override
@@ -2110,6 +2089,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         deleteFiles(rawDataURI, graph);
+        
+        statements = sparqlDAO.getStatements(null, null, rawData, graphIRI);
+        sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);    
         
         statements = sparqlDAO.getStatements(rawData, null, null, graphIRI);
         sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);    
@@ -2904,7 +2886,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 publicMetadata.setUri(metadataPublicURI);
                                 rawData.setMetadata(publicMetadata);
                             }
-                            
+                            rawData.setUri(null);
+                            rawData.setId(null);
                             // make processed data public
                             for (ProcessedData processedData: rawData.getProcessedDataList()) {
                                 DataProcessingSoftware dataPRocessingMetadata = processedData.getMetadata();
@@ -2916,6 +2899,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                     processedData.setMetadata(dataPRocessingMetadata);
                                     
                                 }
+                                processedData.setUri(null);
+                                processedData.setId(null);
                             }
                         }
                     }
@@ -3563,10 +3548,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 deleteRawData(rawDataURI.substring(rawDataURI.lastIndexOf("/")+1), datasetId, user);
             }
             
-            statements = sparqlDAO.getStatements(image, null, null, graphIRI);
+            statements = sparqlDAO.getStatements(null, null, image, graphIRI);
             sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
             
-           
+            statements = sparqlDAO.getStatements(image, null, null, graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(statements), graphIRI);
         } 
     }
 

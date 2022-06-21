@@ -1133,6 +1133,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         String publicURI = addPublicGlycan(glycan, null, graph, user.getUsername(), true);
                         // handle related glycans
                         for (Glycan relatedGlycan: relatedGlycans) {
+                            deleteGlycanByURI(uriPrefix + relatedGlycan.getId(), graph);  // delete existing info
                             updateGlycanInGraph(relatedGlycan, graph);  // only keep user specific info in the local repository
                             String relatedPublic = addPublicGlycan(relatedGlycan, null, graph, user.getUsername(), false);
                             // need to keep the link to related glycans in the local repo
@@ -1144,7 +1145,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         // same name glycan exist in public graph
                         // throw exception
                         logger.info("Glycan " + glycan.getName() +" is already public");
-                        return null;
+                        return results.get(0).getValue("s");
                         //throw new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
                     }
                 } else {
@@ -1155,6 +1156,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     String publicURI = addPublicGlycan(glycan, null, graph, user.getUsername(), true);
                     // handle related glycans
                     for (Glycan relatedGlycan: relatedGlycans) {
+                        deleteGlycanByURI(uriPrefix + relatedGlycan.getId(), graph);  // delete existing info
                         updateGlycanInGraph(relatedGlycan, graph);  // only keep user specific info in the local repository
                         String relatedPublic = addPublicGlycan(relatedGlycan, null, graph, user.getUsername(), false);
                         // need to keep the link to related glycans in the local repo
@@ -1164,19 +1166,28 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     return publicURI;
                 }
             } else {
+                if (glycan.getName() != null && !glycan.getName().isEmpty()) {
+                    List <SparqlEntity> results = queryHelper.retrieveByLabel(glycan.getName(), ontPrefix + "Glycan", null);
+                    if (!results.isEmpty()) {
+                        // same name glycan exist in public graph
+                        logger.info("Glycan " + glycan.getName() +" is already public");
+                        return results.get(0).getValue("s");
+                    } 
+                }
                 deleteGlycanByURI(uriPrefix + glycan.getId(), graph); // delete existing info
                 updateGlycanInGraph(glycan, graph);  // only keep user specific info in the local repository
                 // need to link the user's version to the existing URI
                 String publicURI = addPublicGlycan(glycan, existingURI, graph, user.getUsername(), true);
                 // handle related glycans
                 for (Glycan relatedGlycan: relatedGlycans) {
+                    deleteGlycanByURI(uriPrefix + relatedGlycan.getId(), graph);  // delete existing info
                     updateGlycanInGraph(relatedGlycan, graph);  // only keep user specific info in the local repository
                     String relatedPublic = addPublicGlycan(relatedGlycan, existingURI, graph, user.getUsername(), false);
                     // need to keep the link to related glycans in the local repo
                     linkRelatedGlycans (uriPrefix + glycan.getId(), relatedGlycan.getUri(), relatedPublic, graph);
-                    linkPublicRelatedGlycans (publicURI, relatedPublic);
+                    //linkPublicRelatedGlycans (publicURI, relatedPublic); // already public and must have the related glycans already
                 }
-                return publicURI;
+                return publicURI;     
             }
             
         default:
@@ -1193,7 +1204,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                     // same name glycan exist in public graph
                     // throw exception
                     logger.debug("Glycan " + glycan.getName() +" is already public");
-                    return null;
+                    return results.get(0).getValue("s");
                     //throw new GlycanExistsException("Glycan with name " + glycan.getName() + " already exists in public graph");
                 }
             } else {

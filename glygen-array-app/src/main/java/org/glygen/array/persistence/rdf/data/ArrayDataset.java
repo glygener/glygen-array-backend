@@ -38,6 +38,8 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     String publicId;
     
     List<ChangeLog> changes = new ArrayList<>();
+    
+    FutureTaskStatus uploadStatus = FutureTaskStatus.NOTSTARTED;
 
     /**
      * @return the id
@@ -314,6 +316,20 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
      */
     public void setFiles(List<FileWrapper> files) {
         this.files = files;
+    }
+
+    /**
+     * @return the uploadStatus
+     */
+    public FutureTaskStatus getUploadStatus() {
+        return uploadStatus;
+    }
+
+    /**
+     * @param uploadStatus the uploadStatus to set
+     */
+    public void setUploadStatus(FutureTaskStatus uploadStatus) {
+        this.uploadStatus = uploadStatus;
     }
 
 }

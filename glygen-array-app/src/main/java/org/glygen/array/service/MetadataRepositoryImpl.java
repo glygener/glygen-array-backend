@@ -87,13 +87,15 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
         Literal notRec = descriptor.getNotRecorded() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotRecorded());
         Literal notApp = descriptor.getNotApplicable() == null ? f.createLiteral(false) : f.createLiteral(descriptor.getNotApplicable());
         
-        if (descriptor.getKey().getUri() == null) {
+        if (descriptor.getKey() != null && descriptor.getKey().getUri() == null) {
             // try to get the uri from id
             if (descriptor.getKey().getId() != null) {
                 descriptor.getKey().setUri(MetadataTemplateRepository.templatePrefix + descriptor.getKey().getId()) ;
             } else {
-                throw new SparqlException ("Descriptor template info is missing");
+                throw new SparqlException ("Descriptor template info is missing for descriptor " + descriptor.getName());
             }
+        } else if (descriptor.getKey() == null) {
+            throw new SparqlException ("Descriptor template info is missing for descriptor " + descriptor.getName());
         }
         // check if template actually exists!
         DescriptionTemplate descTemplate = templateRepository.getDescriptionFromURI(descriptor.getKey().getUri());

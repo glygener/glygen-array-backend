@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -2701,23 +2702,10 @@ public class DatasetController {
                         datasetRepository.updateStatus (uri, processedData, originalUser);
                     } catch (SparqlException | SQLException e1) {
                         logger.error("Could not save the processedData", e1);
+                        errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e1.getMessage()));
+                        throw new GlycanRepositoryException ("Could not save the processedData", errorMessage);
                     } 
-                })/*.exceptionally(ex -> { 
-                    logger.error("Exception in processed data parsing", ex);
-                    if (ex.getCause() != null && ex.getCause() instanceof IllegalArgumentException) {
-                        if (ex.getCause().getCause() != null && ex.getCause().getCause() instanceof ErrorMessage) {
-                            processedData.setError((ErrorMessage) ex.getCause().getCause());
-                        } else {
-                            errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + ex.getMessage()));
-                            processedData.setError(errorMessage);
-                        }
-                    } else {
-                        errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + ex.getMessage()));
-                        processedData.setError(errorMessage);
-                    }
-                    processedData.setStatus(FutureTaskStatus.ERROR);
-                    return null;
-                })*/;
+                });
                 processedData.setIntensity(intensities.get(5000, TimeUnit.MILLISECONDS));
             } catch (IllegalArgumentException e) {
                 if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
@@ -2727,6 +2715,7 @@ public class DatasetController {
                     processedData.setError(errorMessage);
                 }
                 processedData.setStatus(FutureTaskStatus.ERROR);
+                datasetRepository.updateStatus (processedData.getUri(), processedData, originalUser);
             } catch (TimeoutException e) {
                 synchronized (this) {
                     // save whatever we have for now for processed data and update its status to "processing"
@@ -2754,7 +2743,14 @@ public class DatasetController {
                     }
                     return id;
                 }
-            } 
+            } catch (Exception e) {
+                errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                processedData.setError(errorMessage);
+                processedData.setStatus(FutureTaskStatus.ERROR);
+                datasetRepository.updateStatus (processedData.getUri(), processedData, owner);
+                logger.error("Cannot add the intensities to the repository", e);
+                throw new IllegalArgumentException("Cannot add the intensitites to the repository", e);
+            }
             
             //TODO do we ever come to this ??
             if (intensities != null && intensities.isDone()) {
@@ -2804,10 +2800,13 @@ public class DatasetController {
                 }
                 return id;
             }
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (Exception e) {
-            throw new GlycanRepositoryException("Cannot add the processed data to the repository", e);
+            if (e instanceof IllegalArgumentException)
+                throw (IllegalArgumentException)e;
+            else if (e.getCause() instanceof IllegalArgumentException) {
+                throw (IllegalArgumentException)e.getCause();
+            }
+            else throw new GlycanRepositoryException("Cannot add the processed data to the repository", e);
         }
     }
     
@@ -3693,6 +3692,22 @@ public class DatasetController {
             int total = datasetRepository.getArrayDatasetCountByUser(user, searchValue);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(user, offset, limit, field, order, searchValue, loadAll);
+            // check uploadStatus and set the field accordingly
+            for (ArrayDataset d: resultList) {
+                d.setUploadStatus(getDatasetStatus(d));
+                if (!loadAll) {
+                    // clear block layout info if exists
+                    for (Slide slide: d.getSlides()) {
+                        if (slide.getPrintedSlide() != null && slide.getPrintedSlide().getLayout() != null && slide.getPrintedSlide().getLayout().getBlocks() != null) {
+                            for (Block b: slide.getPrintedSlide().getLayout().getBlocks()) {
+                               if (b.getBlockLayout() != null) {
+                                   b.getBlockLayout().setSpots(new ArrayList<Spot>());
+                               }
+                            }
+                        }
+                    }
+                }
+            }
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
@@ -3748,6 +3763,22 @@ public class DatasetController {
             int total = datasetRepository.getArrayDatasetCountByCoOwner(user);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByCoOwner(user, offset, limit, field, order, searchValue, loadAll);
+            // check uploadStatus and set the field accordingly
+            for (ArrayDataset d: resultList) {
+                d.setUploadStatus(getDatasetStatus(d));
+                if (!loadAll) {
+                    // clear block layout info if exists
+                    for (Slide slide: d.getSlides()) {
+                        if (slide.getPrintedSlide() != null && slide.getPrintedSlide().getLayout() != null && slide.getPrintedSlide().getLayout().getBlocks() != null) {
+                            for (Block b: slide.getPrintedSlide().getLayout().getBlocks()) {
+                               if (b.getBlockLayout() != null) {
+                                   b.getBlockLayout().setSpots(new ArrayList<Spot>());
+                               }
+                            }
+                        }
+                    }
+                }
+            }
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
@@ -5577,7 +5608,7 @@ public class DatasetController {
             } else {
                 errorMessage.addError(new ObjectError("imageId", "NotFound"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("Cannot find slide with the given id", errorMessage);
+                throw new IllegalArgumentException("Cannot find image with the given id", errorMessage);
             }
             
         } catch (SparqlException | SQLException e) {
@@ -6755,6 +6786,7 @@ public class DatasetController {
                 throw new EntityNotFoundException("Array dataset with id : " + id + " does not exist in the repository");
             }
             
+            dataset.setUploadStatus(getDatasetStatus(dataset));
             return dataset;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Array dataset with id " + id + " cannot be retrieved for user " + p.getName(), e);
@@ -8142,7 +8174,7 @@ public class DatasetController {
                     }
                 }
                 
-            }
+            } 
             if (dataset.getSlides() == null || dataset.getSlides().isEmpty()) {
                 errorMessage.addError(new ObjectError("slide", "NotFound"));
             }
@@ -8152,6 +8184,8 @@ public class DatasetController {
                 errorMessage.addError(new ObjectError("dataset", "NotDone"));
             } else if (status == FutureTaskStatus.ERROR) {
                 errorMessage.addError(new ObjectError("dataset", "HasError"));
+            } else if (status == FutureTaskStatus.NOTSTARTED) {
+                errorMessage.addError(new ObjectError("dataset", "Has no processed data"));
             }
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
@@ -8231,6 +8265,7 @@ public class DatasetController {
     }
     
     private FutureTaskStatus getDatasetStatus(ArrayDataset dataset) {
+        FutureTaskStatus status = FutureTaskStatus.NOTSTARTED;
         if (dataset != null && dataset.getSlides() != null) {
             for (Slide slide: dataset.getSlides()) {
                 if (slide.getImages() != null) {
@@ -8248,6 +8283,8 @@ public class DatasetController {
                                                 return FutureTaskStatus.PROCESSING;
                                             else if (p.getStatus() == FutureTaskStatus.ERROR)
                                                 return FutureTaskStatus.ERROR;
+                                            else 
+                                                status = FutureTaskStatus.DONE;
                                         }
                                     }
                                 }
@@ -8257,7 +8294,7 @@ public class DatasetController {
                 }
             }
         }
-        return FutureTaskStatus.DONE;
+        return status;
     }
 
     @ApiOperation(value = "Download the given file", authorizations = { @Authorization(value="Authorization") })

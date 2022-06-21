@@ -1177,7 +1177,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 graph = getGraphForUser(user);
         }
         
-        // check the slideLayoutRepository first, if loadAll = true
+        // check the slideLayoutRepository first, if loadAll = true, if not loading all, this takes longer than getting from repo
         if (loadAll) {
             SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity != null) {
@@ -1187,8 +1187,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         s.setIsPublic(true);
                     // check if the blocks/spots are there to make sure we have the full layout
                     if (s.getBlocks() != null && !s.getBlocks().isEmpty() && s.getBlocks().get(0).getBlockLayout() != null &&
-                            s.getBlocks().get(0).getBlockLayout().getSpots() != null && !s.getBlocks().get(0).getBlockLayout().getSpots().isEmpty())
+                            s.getBlocks().get(0).getBlockLayout().getSpots() != null && !s.getBlocks().get(0).getBlockLayout().getSpots().isEmpty()) {
+                        slideLayoutCache.put(s.getUri(), s);
                         return s;
+                    }
                 } catch (Exception e) {
                     logger.error("Could not read slide layout from serialized value", e);
                 }
