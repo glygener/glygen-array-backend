@@ -1007,7 +1007,7 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
             }
         }
         
-        if (metadataObject != null && metadataObject.getUri() != null)
+        if (metadataObject != null && metadataObject.getUri() != null && loadAll)
             metadataCache.put(metadataObject.getUri(), metadataObject);
         return metadataObject;
     }
