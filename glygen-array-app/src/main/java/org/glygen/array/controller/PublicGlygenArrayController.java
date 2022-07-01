@@ -50,6 +50,7 @@ import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.QueryHelper;
 import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
@@ -67,14 +68,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -1554,7 +1550,7 @@ public class PublicGlygenArrayController {
             }
             
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("intentisity data cannot be retrieved", e);
+            throw new GlycanRepositoryException("intensity data cannot be retrieved", e);
         }  
         
         return null;
@@ -1602,8 +1598,10 @@ public class PublicGlygenArrayController {
             return ResponseEntity.notFound().build();
             //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
+        
+        return DatasetController.download(file, originalName);
   
-        FileSystemResource r = new FileSystemResource(file);
+        /*FileSystemResource r = new FileSystemResource(file);
         MediaType mediaType = MediaTypeFactory
                 .getMediaType(r)
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
@@ -1621,12 +1619,12 @@ public class PublicGlygenArrayController {
         
         return new ResponseEntity<Resource>(
                 r, respHeaders, HttpStatus.OK
-        );
+        );*/
     }
     
     
     @ApiOperation(value = "Export slide layout in extended GAL format")
-    @RequestMapping(value = "/exportSlideLayout", method=RequestMethod.GET)
+    @RequestMapping(value = "/downloadSlideLayout", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
             @ApiResponse(code=400, message="Invalid request, file cannot be found"),
             @ApiResponse(code=415, message="Media type is not supported"),
@@ -1641,7 +1639,6 @@ public class PublicGlygenArrayController {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-        
         
         String uri = GlygenArrayRepositoryImpl.uriPrefix + slidelayoutid;
         File newFile = new File (uploadDir, "tmp" + fileName);
@@ -1664,27 +1661,60 @@ public class PublicGlygenArrayController {
                 return ResponseEntity.notFound().build();
             }
             
-            FileSystemResource r = new FileSystemResource(newFile);
-            MediaType mediaType = MediaTypeFactory
-                    .getMediaType(r)
-                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
-            
-            HttpHeaders respHeaders = new HttpHeaders();
-            respHeaders.setContentType(mediaType);
-            respHeaders.setContentLength(newFile.length());
-
-            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                    .filename(fileName)
-                    .build();
-
-            respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-            respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
-            
-            return new ResponseEntity<Resource>(
-                    r, respHeaders, HttpStatus.OK
-            );
+            return DatasetController.download (newFile, fileName);
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+            throw new GlycanRepositoryException("Cannot retrieve slide layout from the repository", e);
+        }
+    }
+    
+    @ApiOperation(value = "Export processed data in glygen array data file format")
+    @RequestMapping(value = "/downloadProcessedData", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
+            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public ResponseEntity<Resource> exportProcessedData (
+            @ApiParam(required=true, value="id of the processed data") 
+            @RequestParam("processeddataid")
+            String processedDataId,
+            @ApiParam(required=false, value="the name for downloaded file") 
+            @RequestParam("filename")
+            String fileName) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        String uri = GlygenArrayRepositoryImpl.uriPrefix + processedDataId;
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = processedDataId + ".xlsx";
+        }
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            ProcessedData data = datasetRepository.getProcessedDataFromURI(uri, true, null);
+            if (data == null) {
+                // check if it is public
+                data = datasetRepository.getProcessedDataFromURI(uri, true, null);
+                if (data == null) {
+                    errorMessage.addError(new ObjectError("processeddataid", "NotFound"));
+                }
+            }
+          
+            if (data != null) {
+                try {
+                    ProcessedDataParser.exportToFile(data, newFile.getAbsolutePath());  
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                }
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return DatasetController.download (newFile, fileName);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
         }
     }
 }
