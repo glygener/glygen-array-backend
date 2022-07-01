@@ -309,7 +309,7 @@ public class ProcessedDataParser {
                             Feature feature = featureRepository.getFeatureByLabel(fId, "gadr:has_internal_id", user);
                             if (feature == null) {
                                 // error
-                                ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + fId + " cannot be found in the repository");
+                                ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the repo id " + fId + " cannot be found in the repository");
                                 error.setErrorCode(ErrorCodes.INVALID_INPUT);
                                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                                 String[] codes = {row.getRowNum()+""};
@@ -332,7 +332,7 @@ public class ProcessedDataParser {
                         Feature feature = featureRepository.getFeatureByLabel(featureString, "gadr:has_internal_id", user);
                         if (feature == null) {
                             // error
-                            ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
+                            ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the repo id " + featureString + " cannot be found in the repository");
                             error.setErrorCode(ErrorCodes.INVALID_INPUT);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
                             String[] codes = {row.getRowNum()+""};

@@ -560,9 +560,14 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         if (results.isEmpty())
             return null;
         else {
-            String uri = results.get(0).getValue("s");
-            return getFeatureFromURI(uri, user);
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                if (user == null || !uri.contains("public")) {
+                    return getFeatureFromURI(uri, user);
+                }   
+            }
         }
+        return null;
     }
 
 	@Override

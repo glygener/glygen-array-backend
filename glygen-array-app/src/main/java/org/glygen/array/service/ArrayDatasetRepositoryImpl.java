@@ -2759,73 +2759,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             slide.setId(null);
             if (slide.getPrintedSlide() != null) {
                 String publicPSURI = null;
+                Map<String, String> blockLayoutUriMap = new HashMap<String, String>();
                 if (!slide.getPrintedSlide().isPublic()) {
                     // make its slide layout public
-                    Map<String, String> blockLayoutUriMap = new HashMap<String, String>();
                     if (!slide.getPrintedSlide().getLayout().getIsPublic()) {
                         String slideLayoutPublicURI = layoutRepository.makePublic(slide.getPrintedSlide().getLayout(), user, blockLayoutUriMap);
                         SlideLayout publicLayout = new SlideLayout();
                         publicLayout.setUri(slideLayoutPublicURI);
                         slide.getPrintedSlide().setLayout(publicLayout);
-                    }
-                    
-                    // need to reset rawData spots so they will be loaded again from the public repository during "add"
-                    for (Image image: slide.getImages()) {
-                        if (image.getRawDataList() != null) {
-                            for (RawData rawData: image.getRawDataList()) {
-                                if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
-                                    for (Measurement measurement: rawData.getDataMap().keySet()) {
-                                        Spot spot = rawData.getDataMap().get(measurement);
-                                        spot.setUri(null);
-                                        if (spot.getBlockLayoutUri() != null) {
-                                            //fix its blocklayoutid
-                                            String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
-                                            String blockLayoutId = null;
-                                            if (blockLayoutUri != null) {
-                                                blockLayoutId = blockLayoutUri.substring(blockLayoutUri.lastIndexOf("/")+1);
-                                            }
-                                            if (blockLayoutId == null)
-                                                blockLayoutId = layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user);
-                                            if (blockLayoutId != null)
-                                                spot.setBlockLayoutUri(blockLayoutId);
-                                            else {
-                                                throw new SparqlException ("public block layout for the spot cannot be set");
-                                            }
-                                        }
-                                    }
-                                }
-                                if (rawData.getProcessedDataList() != null) {
-                                    for (ProcessedData processedData: rawData.getProcessedDataList()) {
-                                        List<Feature> modifiedFeatures = new ArrayList<>();
-                                        if (processedData.getIntensity() != null) {
-                                            for (Intensity intensity: processedData.getIntensity()) {
-                                                for (Spot spot: intensity.getSpots()) {
-                                                    spot.setUri(null);
-                                                    //fix its blocklayoutid
-                                                    if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
-                                                        spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
-                                                    // fix its features
-                                                    for (Feature f: spot.getFeatures()) {
-                                                        boolean found = false;
-                                                        for (Feature mf: modifiedFeatures) {
-                                                            if (f.getUri() != null && f.getUri().equals(mf.getUri())) {
-                                                                found = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if (!found) {
-                                                            f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
-                                                            f.setUri(uriPrefixPublic + f.getId());
-                                                            modifiedFeatures.add(f);
-                                                        }
-                                                    }
-                                                } 
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                     
                     // make printed slide metadata public
@@ -2862,6 +2803,65 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     publicPSURI = slide.getPrintedSlide().getUri();
                 }
                 slide.getPrintedSlide().setUri(publicPSURI);
+                
+                // need to reset rawData spots so they will be loaded again from the public repository during "add"
+                for (Image image: slide.getImages()) {
+                    if (image.getRawDataList() != null) {
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
+                                for (Measurement measurement: rawData.getDataMap().keySet()) {
+                                    Spot spot = rawData.getDataMap().get(measurement);
+                                    spot.setUri(null);
+                                    if (spot.getBlockLayoutUri() != null) {
+                                        //fix its blocklayoutid
+                                        String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
+                                        String blockLayoutId = null;
+                                        if (blockLayoutUri != null) {
+                                            blockLayoutId = blockLayoutUri.substring(blockLayoutUri.lastIndexOf("/")+1);
+                                        }
+                                        if (blockLayoutId == null)
+                                            blockLayoutId = layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user);
+                                        if (blockLayoutId != null)
+                                            spot.setBlockLayoutUri(blockLayoutId);
+                                        else {
+                                            throw new SparqlException ("public block layout for the spot cannot be set");
+                                        }
+                                    }
+                                }
+                            }
+                            if (rawData.getProcessedDataList() != null) {
+                                for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                    List<Feature> modifiedFeatures = new ArrayList<>();
+                                    if (processedData.getIntensity() != null) {
+                                        for (Intensity intensity: processedData.getIntensity()) {
+                                            for (Spot spot: intensity.getSpots()) {
+                                                spot.setUri(null);
+                                                //fix its blocklayoutid
+                                                if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
+                                                    spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
+                                                // fix its features
+                                                for (Feature f: spot.getFeatures()) {
+                                                    boolean found = false;
+                                                    for (Feature mf: modifiedFeatures) {
+                                                        if (f.getUri() != null && f.getUri().equals(mf.getUri())) {
+                                                            found = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!found) {
+                                                        f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
+                                                        f.setUri(uriPrefixPublic + f.getId());
+                                                        modifiedFeatures.add(f);
+                                                    }
+                                                }
+                                            } 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 
                 for (Image image: slide.getImages()) {
                     ScannerMetadata scanner = image.getScanner();

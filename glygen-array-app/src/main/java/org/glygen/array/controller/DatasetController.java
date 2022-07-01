@@ -3480,6 +3480,7 @@ public class DatasetController {
     @GetMapping("/isMirageCompliant/{id}")
     @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class, authorizations = { @Authorization(value="Authorization") })
     @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
+            @ApiResponse(code=400, message="Not mirage compliant, error message contains the missing (required) fields"),
             @ApiResponse(code=401, message="Unauthorized"),
             @ApiResponse(code=403, message="Not enough privileges"),
             @ApiResponse(code=415, message="Media type is not supported"),
@@ -8222,20 +8223,26 @@ public class DatasetController {
                             data.setUri(uri);
                         }
                         datasetRepository.updateStatus (existingURI, data, o);
+                        
                         // generate public glycan images if necessary
                         for (Slide s: data.getSlides()) {
                             if (s.getPrintedSlide() != null && s.getPrintedSlide().getLayout() != null) {
-                                SlideLayout l = s.getPrintedSlide().getLayout();
-                                for (Block b: l.getBlocks()) {
-                                    if (b.getBlockLayout() != null) {
-                                        for (Spot spot: b.getBlockLayout().getSpots()) {
-                                            if (spot.getFeatures() != null) {
-                                                for (Feature f: spot.getFeatures()) {
-                                                    GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                                // reload slide layout with loadAll=true to make sure we have the features
+                                SlideLayout l = layoutRepository.getSlideLayoutById(s.getPrintedSlide().getLayout().getId(), null, true);
+                                if (l != null) {
+                                    for (Block b: l.getBlocks()) {
+                                        if (b.getBlockLayout() != null) {
+                                            for (Spot spot: b.getBlockLayout().getSpots()) {
+                                                if (spot.getFeatures() != null) {
+                                                    for (Feature f: spot.getFeatures()) {
+                                                        GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                                                    }
                                                 }
                                             }
                                         }
                                     }
+                                } else {
+                                    logger.error("cannot locate the public slide layout correctly!");
                                 }
                             }
                         }
