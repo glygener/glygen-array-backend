@@ -2812,7 +2812,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 for (Measurement measurement: rawData.getDataMap().keySet()) {
                                     Spot spot = rawData.getDataMap().get(measurement);
                                     spot.setUri(null);
-                                    if (spot.getBlockLayoutUri() != null) {
+                                    if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
+                                        spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
+                                    /*if (spot.getBlockLayoutUri() != null) {
                                         //fix its blocklayoutid
                                         String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
                                         String blockLayoutId = null;
@@ -2824,9 +2826,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                         if (blockLayoutId != null)
                                             spot.setBlockLayoutUri(blockLayoutId);
                                         else {
-                                            throw new SparqlException ("public block layout for the spot cannot be set");
+                                            throw new SparqlException ("public block layout for the spot cannot be set. Current block layout id: " + spot.getBlockLayoutUri());
                                         }
-                                    }
+                                    }*/
                                 }
                             }
                             if (rawData.getProcessedDataList() != null) {
