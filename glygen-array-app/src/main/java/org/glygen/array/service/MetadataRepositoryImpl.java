@@ -813,7 +813,13 @@ public class MetadataRepositoryImpl extends GlygenArrayRepositoryImpl implements
     @Override
     public MetadataCategory getMetadataCategoryFromURI(String uri, String typePredicate, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
         if (metadataCache.containsKey(uri)) {
-            return metadataCache.get(uri);
+            MetadataCategory metadata = metadataCache.get(uri);
+            if (!loadAll)
+                return metadata;
+            else if ((metadata.getDescriptors() != null && !metadata.getDescriptors().isEmpty()) ||
+                    (metadata.getDescriptorGroups() != null && !metadata.getDescriptorGroups().isEmpty())) {
+                return metadata;
+            }     
         }
         
         MetadataCategory metadataObject = null;

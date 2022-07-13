@@ -2811,6 +2811,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                             if (rawData.getDataMap() != null && !rawData.getDataMap().isEmpty()) {
                                 for (Measurement measurement: rawData.getDataMap().keySet()) {
                                     Spot spot = rawData.getDataMap().get(measurement);
+                                    if (spot.getUri() != null && spot.getUri().contains("public"))
+                                        // no need to make changes
+                                        continue;
                                     spot.setUri(null);
                                     if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
                                         spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
@@ -2837,6 +2840,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                     if (processedData.getIntensity() != null) {
                                         for (Intensity intensity: processedData.getIntensity()) {
                                             for (Spot spot: intensity.getSpots()) {
+                                                if (spot.getUri() != null && spot.getUri().contains("public"))
+                                                    // no need to make changes
+                                                    continue;
                                                 spot.setUri(null);
                                                 //fix its blocklayoutid
                                                 if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
