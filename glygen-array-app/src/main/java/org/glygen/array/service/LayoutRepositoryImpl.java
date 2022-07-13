@@ -1224,7 +1224,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 		
 		// put it in the cache, if loadAll is true
-		if (loadAll) {
+		if (loadAll && slideLayoutObject != null && slideLayoutObject.getUri() != null) {
 		    slideLayoutCache.put(slideLayoutObject.getUri(), slideLayoutObject);
 		    SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity == null) {

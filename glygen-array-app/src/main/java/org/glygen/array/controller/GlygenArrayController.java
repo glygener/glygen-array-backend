@@ -3204,7 +3204,7 @@ public class GlygenArrayController {
             @RequestParam("slidelayoutid")
             String slidelayoutid,
             @ApiParam(required=false, value="the name for downloaded file") 
-            @RequestParam("filename")
+            @RequestParam(value="filename", required=false)
             String fileName,        
             Principal p) {
         
@@ -3222,6 +3222,7 @@ public class GlygenArrayController {
             SlideLayout layout = layoutRepository.getSlideLayoutFromURI(uri, true, user);
             if (layout == null) {
                 // check if it is public
+                uri = GlygenArrayRepositoryImpl.uriPrefixPublic + slidelayoutid;
                 layout = layoutRepository.getSlideLayoutFromURI(uri, true, null);
                 if (layout == null) {
                     errorMessage.addError(new ObjectError("slidelayoutid", "NotFound"));
