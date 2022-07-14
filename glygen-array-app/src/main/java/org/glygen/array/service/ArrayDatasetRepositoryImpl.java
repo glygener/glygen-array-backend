@@ -2281,6 +2281,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         Value value = stPublic.getObject();
                         Printer metadata = metadataRepository.getPrinterFromURI(value.stringValue(), loadAll, user);
                         slideObject.setPrinter(metadata);
+                    } else if (stPublic.getPredicate().equals(printedByRun)) {
+                        Value value = stPublic.getObject();
+                        PrintRun metadata = metadataRepository.getPrintRunFromURI(value.stringValue(), loadAll, user);
+                        slideObject.setPrintRun(metadata);
                     }
                 }
             }
@@ -2801,6 +2805,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 }
                 else {
                     publicPSURI = slide.getPrintedSlide().getUri();
+                    if (!publicPSURI.contains("public")) {
+                        // need to get the public uri
+                        publicPSURI =getPublicUri(publicPSURI, user);
+                    }
                 }
                 slide.getPrintedSlide().setUri(publicPSURI);
                 
@@ -2816,7 +2824,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                         continue;
                                     spot.setUri(null);
                                     if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
-                                        spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
+                                        spot.setBlockLayoutUri(getPublicUri(spot.getBlockLayoutUri(), user));
                                     /*if (spot.getBlockLayoutUri() != null) {
                                         //fix its blocklayoutid
                                         String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
@@ -2846,7 +2854,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                                 spot.setUri(null);
                                                 //fix its blocklayoutid
                                                 if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
-                                                    spot.setBlockLayoutUri(layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user));
+                                                    spot.setBlockLayoutUri(getPublicUri(spot.getBlockLayoutUri(), user));
                                                 // fix its features
                                                 for (Feature f: spot.getFeatures()) {
                                                     boolean found = false;

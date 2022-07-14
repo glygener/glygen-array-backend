@@ -978,4 +978,23 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         
         return uploadResults;
     }
+    
+    @Override
+    public String getPublicUri(String uri, UserEntity user) throws SQLException, SparqlException {
+        String publicId = null;
+        String graph = getGraphForUser(user);
+        
+        ValueFactory f = sparqlDAO.getValueFactory();
+        IRI userGraphIRI = f.createIRI(graph);
+        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
+        IRI iri = f.createIRI(uri);
+        
+        RepositoryResult<Statement> results = sparqlDAO.getStatements(iri, hasPublicURI, null, userGraphIRI);
+        while (results.hasNext()) {
+            Statement st = results.next();
+            return st.getObject().stringValue();
+        }
+        
+        return publicId;
+    }
 }

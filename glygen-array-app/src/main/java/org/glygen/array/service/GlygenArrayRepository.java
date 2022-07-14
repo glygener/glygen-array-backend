@@ -56,4 +56,6 @@ public interface GlygenArrayRepository {
             throws SparqlException, SQLException;
 
     String updateBatchUploadAccess(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException;
+
+    String getPublicUri(String uri, UserEntity user) throws SQLException, SparqlException;
 }

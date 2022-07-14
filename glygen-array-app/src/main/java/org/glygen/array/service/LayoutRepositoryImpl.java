@@ -2501,23 +2501,4 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
         return null;
     }
-
-    @Override
-    public String getPublicBlockLayoutUri(String blockLayoutUri, UserEntity user) throws SQLException, SparqlException {
-        String publicId = null;
-        String graph = getGraphForUser(user);
-        
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI userGraphIRI = f.createIRI(graph);
-        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
-        IRI blockLayout = f.createIRI(blockLayoutUri);
-        
-        RepositoryResult<Statement> results = sparqlDAO.getStatements(blockLayout, hasPublicURI, null, userGraphIRI);
-        while (results.hasNext()) {
-            Statement st = results.next();
-            return st.getObject().stringValue();
-        }
-        
-        return publicId;
-    }
 }
