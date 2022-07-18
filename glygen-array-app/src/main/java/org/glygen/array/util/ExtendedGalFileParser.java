@@ -132,7 +132,7 @@ public class ExtendedGalFileParser {
                 try {
                     if (firstColumn.contains("\"BlockCount=")) {
                         String blockCount = firstColumn.substring(firstColumn.indexOf("BlockCount=")+11);
-                        Integer h = Integer.parseInt(blockCount.substring(0, blockCount.length()-1));
+                        Integer h = (int) Double.parseDouble(blockCount.substring(0, blockCount.length()-1));
                         if (useBlockCount)
                             slideLayout.setHeight(h);
                         if (width != null && height != null) {
@@ -144,7 +144,7 @@ public class ExtendedGalFileParser {
                         }
                     } else { // no quotes at the beginning and end
                         String blockCount = firstColumn.substring(firstColumn.indexOf("BlockCount=")+11);
-                        Integer h = Integer.parseInt(blockCount);
+                        Integer h = (int) Double.parseDouble(blockCount);
                         if (useBlockCount)
                             slideLayout.setHeight(h);
                         if (width != null && height != null) {
@@ -196,7 +196,7 @@ public class ExtendedGalFileParser {
                 try {
                     if (blockColumn != null) {
                         // firstColumn is the location of the block
-                        int blockLocation = Integer.parseInt(blockColumn.trim());
+                        int blockLocation = (int) Double.parseDouble(blockColumn.trim());
                         if (prevBlockLocation != -1 && blockLocation != prevBlockLocation) { // go to next block
                             // set the row/column/levels/groupnum for the previous block layout
                             blockLayout.setWidth(maxColumn);
@@ -244,8 +244,8 @@ public class ExtendedGalFileParser {
                     }
                     
                     // second and third column are spot indices
-                    int x = Integer.parseInt(splitted[config.getCoordinateColumnX()].trim()); // column
-                    int y = Integer.parseInt(splitted[config.getCoordinateColumnY()].trim()); // row
+                    int x = (int) Double.parseDouble(splitted[config.getCoordinateColumnX()].trim()); // column
+                    int y = (int) Double.parseDouble(splitted[config.getCoordinateColumnY()].trim()); // row
                     String glycanName = splitted[config.getNameColumn()].trim(); // name of the probe
                     String concentration = (config.getConcentrationColumn() != -1 && splitted.length > config.getConcentrationColumn()) ? 
                             splitted[config.getConcentrationColumn()].trim() : "";
