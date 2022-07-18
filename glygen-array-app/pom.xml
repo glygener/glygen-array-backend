@@ -132,7 +132,7 @@
 		<dependency>
 		  <groupId>grits</groupId>
 		  <artifactId>glycanarray</artifactId>
-		  <version>1.40</version>
+		  <version>1.41</version>
 		</dependency>
 		<dependency>
 		    <groupId>grits</groupId>
