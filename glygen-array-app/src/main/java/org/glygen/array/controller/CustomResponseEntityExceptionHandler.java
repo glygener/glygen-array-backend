@@ -374,7 +374,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         }
 
         errorMessage.setStatus(status.value());
-        logger.error("Error: {}", errorMessage.toString());
+        logger.error("Error: {}", errorMessage);
         return handleExceptionInternal(ex, errorMessage, headers, status, request);
     }
     
