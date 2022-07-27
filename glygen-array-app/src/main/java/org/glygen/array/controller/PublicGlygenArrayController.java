@@ -36,6 +36,7 @@ import org.glygen.array.persistence.rdf.metadata.AssayMetadata;
 import org.glygen.array.persistence.rdf.metadata.DataProcessingSoftware;
 import org.glygen.array.persistence.rdf.metadata.ImageAnalysisSoftware;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.PrintRun;
 import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
@@ -1345,6 +1346,27 @@ public class PublicGlygenArrayController {
             return metadata;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Printer cannot be retrieved", e);
+        }   
+    }
+
+    @ApiOperation(value = "Retrieve printrun with the given id")
+    @RequestMapping(value="/getPrintrun/{printrunId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun retrieved successfully"), 
+            @ApiResponse(code=404, message="Printer with given id does not exist"),
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public PrintRun getPrintrun (
+            @ApiParam(required=true, value="id of the printrun to retrieve") 
+            @PathVariable("printrunId") String id) {
+        try {
+            PrintRun metadata = metadataRepository.getPrintRunFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Printrun with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printrun cannot be retrieved", e);
         }   
     }
     
