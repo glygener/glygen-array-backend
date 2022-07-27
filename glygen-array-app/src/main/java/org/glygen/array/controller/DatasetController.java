@@ -6946,7 +6946,11 @@ public class DatasetController {
             }
             Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("Printer with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -6998,7 +7002,12 @@ public class DatasetController {
             }
             PrintRun metadata = metadataRepository.getPrintRunFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("Printrun with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getPrintRunFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("Printrun with id : " + id + " does not exist in the repository");
+                }
+                
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -7099,7 +7108,11 @@ public class DatasetController {
             }
             SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("Slide metadata with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
