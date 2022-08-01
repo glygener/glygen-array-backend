@@ -379,7 +379,7 @@ public class UtilityController {
     
     @ApiOperation(value="Retrieving Unit of Levels")
     @RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
+            produces={"application/json"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public List<EnumerationView> getUnitLevels(){
 
@@ -402,7 +402,7 @@ public class UtilityController {
     
     @ApiOperation(value="Retrieving statistical methods")
     @RequestMapping(value="/statisticalmethods", method=RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
+            produces={"application/json"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public List<StatisticalMethod> getStatisticalMethods(){
         try {
@@ -418,7 +418,7 @@ public class UtilityController {
     
     @ApiOperation(value="Retrieve supported raw data formats")
     @RequestMapping(value="/supportedrawfileformats", method=RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
+            produces={"application/json"})
     @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
     public List<String> getRawDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
@@ -433,7 +433,7 @@ public class UtilityController {
     
     @ApiOperation(value="Retrieve supported processed data formats")
     @RequestMapping(value="/supportedprocessedfileformats", method=RequestMethod.GET, 
-            produces={"application/json", "application/xml"})
+            produces={"application/json"})
     public List<String> getProcessedDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
         fileFormats.add("Glygen Array Data File");

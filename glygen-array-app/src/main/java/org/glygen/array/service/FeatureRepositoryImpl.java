@@ -1861,13 +1861,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             if (((LinkedGlycan) feature).getGlycans() != null) {
                 for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
                     Glycan g = gf.getGlycan();
-                    if (g.getUri() == null) {
-                        if (g.getId() != null) {
-                            g.setUri(uriPrefix + g.getId());
-                        } else {
-                            throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
-
-                        }
+                    if (g.getUri() == null || !g.getUri().contains("public")) {
+                        throw new SparqlException ("glycan " + g.getName() + " should already be made public!");
                     }
                     
                     IRI glycanIRI = f.createIRI(g.getUri());
@@ -1880,13 +1875,9 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         case GLYCOLIPID:
             if (((GlycoLipid)feature).getGlycans() != null) {
                 for (LinkedGlycan g: ((GlycoLipid)feature).getGlycans()) {
-                    if (g.getId() != null) {
-                        g.setUri(uriPrefix + g.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
-
+                    if (g.getUri() == null || !g.getUri().contains("public")) {
+                        throw new SparqlException ("linked glycan " + g.getName() + " should already be made public!");
                     }
-                    
                     IRI glycanIRI = f.createIRI(g.getUri());
                     statements.add(f.createStatement(feat, hasLinkedGlycan, glycanIRI, graphIRI));
                 }
@@ -1895,27 +1886,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 throw new SparqlException ("No enough information is provided to add the feature, lipid should be provided");
             } else {
                 Lipid lipid = ((GlycoLipid)feature).getLipid();
-                if (lipid.getUri() == null) {
-                    if (lipid.getId() != null) {
-                        lipid.setUri(uriPrefix + lipid.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, lipid " + lipid.getName() + " cannot be found!");
-
-                    }
-                    
-                    IRI lipidIRI = f.createIRI(lipid.getUri());
-                    statements.add(f.createStatement(feat, hasLipid, lipidIRI, graphIRI));
+                if (lipid.getUri() == null || !lipid.getUri().contains("public")) {
+                    throw new SparqlException ("lipid " + lipid.getName() + " should already be made public!");
                 }
+                IRI lipidIRI = f.createIRI(lipid.getUri());
+                statements.add(f.createStatement(feat, hasLipid, lipidIRI, graphIRI));
             }
             break;
         case GLYCOPEPTIDE:
             if (((GlycoPeptide)feature).getGlycans() != null) {
                 for (LinkedGlycan g: ((GlycoPeptide)feature).getGlycans()) {
-                    if (g.getId() != null) {
-                        g.setUri(uriPrefix + g.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
-
+                    if (g.getUri() == null || !g.getUri().contains("public")) {
+                        throw new SparqlException ("linked glycan " + g.getName() + " should already be made public!");
                     }
                     
                     IRI glycanIRI = f.createIRI(g.getUri());
@@ -1926,27 +1908,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 throw new SparqlException ("No enough information is provided to add the feature, peptide should be provided");
             } else {
                 PeptideLinker pl = ((GlycoPeptide)feature).getPeptide();
-                if (pl.getUri() == null) {
-                    if (pl.getId() != null) {
-                        pl.setUri(uriPrefix + pl.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, peptide " + pl.getName() + " cannot be found!");
-
-                    }
-                    
-                    IRI peptideIRI = f.createIRI(pl.getUri());
-                    statements.add(f.createStatement(feat, hasPeptide, peptideIRI, graphIRI));
+                if (pl.getUri() == null || !pl.getUri().contains("public")) {
+                    throw new SparqlException ("peptide linker " + pl.getName() + " should already be made public!");
                 }
+                IRI peptideIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasPeptide, peptideIRI, graphIRI));
             }
             break;
         case GLYCOPROTEIN:
             if (((GlycoProtein)feature).getGlycans() != null) {
                 for (LinkedGlycan g: ((GlycoProtein)feature).getGlycans()) {
-                    if (g.getId() != null) {
-                        g.setUri(uriPrefix + g.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, glycan " + g.getName() + " cannot be found!");
-
+                    if (g.getUri() == null || !g.getUri().contains("public")) {
+                        throw new SparqlException ("linked glycan " + g.getName() + " should already be made public!");
                     }
                     
                     IRI glycanIRI = f.createIRI(g.getUri());
@@ -1957,27 +1930,18 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
             } else {
                 ProteinLinker pl = ((GlycoProtein)feature).getProtein();
-                if (pl.getUri() == null) {
-                    if (pl.getId() != null) {
-                        pl.setUri(uriPrefix + pl.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
-
-                    }
-                    
-                    IRI proteinIRI = f.createIRI(pl.getUri());
-                    statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+                if (pl.getUri() == null || !pl.getUri().contains("public")) {
+                    throw new SparqlException ("protein linker " + pl.getName() + " should already be made public!");
                 }
+                IRI proteinIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
             }
             break;
         case GPLINKEDGLYCOPEPTIDE:
             if (((GPLinkedGlycoPeptide)feature).getPeptides() != null) {
                 for (GlycoPeptide g: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
-                    if (g.getId() != null) {
-                        g.setUri(uriPrefix + g.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, glycopeptide " + g.getName() + " cannot be found!");
-
+                    if (g.getUri() == null || !g.getUri().contains("public")) {
+                        throw new SparqlException ("glyco peptide " + g.getName() + " should already be made public!");
                     }
                     
                     IRI glycoPeptideIRI = f.createIRI(g.getUri());
@@ -1988,17 +1952,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
                 throw new SparqlException ("No enough information is provided to add the feature, protein should be provided");
             } else {
                 ProteinLinker pl = ((GPLinkedGlycoPeptide)feature).getProtein();
-                if (pl.getUri() == null) {
-                    if (pl.getId() != null) {
-                        pl.setUri(uriPrefix + pl.getId());
-                    } else {
-                        throw new SparqlException ("No enough information is provided to add the feature, protein " + pl.getName() + " cannot be found!");
-
-                    }
-                    
-                    IRI proteinIRI = f.createIRI(pl.getUri());
-                    statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
+                if (pl.getUri() == null || !pl.getUri().contains("public")) {
+                    throw new SparqlException ("protein linker " + pl.getName() + " should already be made public!");
                 }
+                IRI proteinIRI = f.createIRI(pl.getUri());
+                statements.add(f.createStatement(feat, hasProtein, proteinIRI, graphIRI));
             }
             break;
         
@@ -2042,8 +2000,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         }
 		
 		if (feature.getMetadata() != null) {
-		    if (feature.getMetadata().getUri() != null) {
-                statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(feature.getMetadata().getUri()), graphIRI));
+		    if (feature.getMetadata().getUri() != null && feature.getMetadata().getUri().contains("public")) {
+		        statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(feature.getMetadata().getUri()), graphIRI));
             } else {
                 String metadataURI = metadataRepository.addMetadataCategory(feature.getMetadata(), MetadataTemplateType.FEATURE, featureMetadataPredicate, featureMetadataTypePredicate, "FM", null);
                 statements.add(f.createStatement(feat, hasFeatureMetadata, f.createIRI(metadataURI), graphIRI));    
@@ -2195,28 +2153,6 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
             }
             return getFeatureFromURI(featureURI, user);
         }
-    }
-    
-    @Override
-    public String getPublicFeatureId(String featureId, UserEntity user) throws SQLException, SparqlException {
-        String publicId = null;
-        String graph = getGraphForUser(user);
-        
-        String featureURI = uriPrefix + featureId;
-        
-        ValueFactory f = sparqlDAO.getValueFactory();
-        IRI userGraphIRI = f.createIRI(graph);
-        IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
-        IRI feature = f.createIRI(featureURI);
-        
-        RepositoryResult<Statement> results = sparqlDAO.getStatements(feature, hasPublicURI, null, userGraphIRI);
-        while (results.hasNext()) {
-            Statement st = results.next();
-            String publicURI = st.getObject().stringValue();
-            publicId = publicURI.substring(publicURI.lastIndexOf("/")+1);
-        }
-        
-        return publicId;
     }
 
     @Override

@@ -28,7 +28,6 @@ public interface FeatureRepository {
             FeatureType featureType, boolean includePublic) throws SparqlException, SQLException;
     Feature getFeatureById(String featureId, UserEntity user) throws SparqlException, SQLException;
     String addPublicFeature(Feature feature, UserEntity user) throws SparqlException, SQLException;
-    String getPublicFeatureId(String featureId, UserEntity user) throws SQLException, SparqlException;
     Feature getFeatureByGlycanLinker(Glycan glycan, Linker linker, String slideLayoutURI, String blockLayoutURI,
             UserEntity user) throws SparqlException, SQLException;
     Feature getFeatureByLabel(String label, String predicate, UserEntity user) throws SparqlException, SQLException;

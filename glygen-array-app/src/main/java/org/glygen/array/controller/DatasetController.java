@@ -5063,7 +5063,7 @@ public class DatasetController {
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                     errorMessage.addError(new ObjectError("dataset", "Public"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("Cannot delete the slide when it is public", errorMessage);
+                    throw new IllegalArgumentException("Cannot delete the dataset when it is public", errorMessage);
                 }
             } catch (SparqlException e) {
                 throw new GlycanRepositoryException("Dataset " + id + " cannot be retrieved for user " + principal.getName(), e);
@@ -8237,25 +8237,39 @@ public class DatasetController {
                         }
                         datasetRepository.updateStatus (existingURI, data, o);
                         
-                        // generate public glycan images if necessary
-                        for (Slide s: data.getSlides()) {
-                            if (s.getPrintedSlide() != null && s.getPrintedSlide().getLayout() != null) {
-                                // reload slide layout with loadAll=true to make sure we have the features
-                                SlideLayout l = layoutRepository.getSlideLayoutById(s.getPrintedSlide().getLayout().getId(), null, true);
-                                if (l != null) {
-                                    for (Block b: l.getBlocks()) {
-                                        if (b.getBlockLayout() != null) {
-                                            for (Spot spot: b.getBlockLayout().getSpots()) {
-                                                if (spot.getFeatures() != null) {
-                                                    for (Feature f: spot.getFeatures()) {
-                                                        GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                        if (task.getStatus() == FutureTaskStatus.DONE) {
+                            // generate public glycan images if necessary
+                            for (Slide s: data.getSlides()) {
+                                if (s.getPrintedSlide() != null && s.getPrintedSlide().getLayout() != null) {
+                                    // reload slide layout with loadAll=true to make sure we have the features
+                                    SlideLayout l = layoutRepository.getSlideLayoutById(s.getPrintedSlide().getLayout().getId(), null, true);
+                                    if (l == null) {
+                                        // if the id is not the public one, find the public layout id
+                                        if (s.getPrintedSlide() != null && s.getPrintedSlide().getLayout() != null && s.getPrintedSlide().getLayout().getUri() != null
+                                                && !s.getPrintedSlide().getLayout().getUri().contains("public")) {
+                                            String publicURI = repository.getPublicUri(s.getPrintedSlide().getLayout().getUri(), user);
+                                            if (publicURI != null) {
+                                                l = layoutRepository.getSlideLayoutById(s.getPrintedSlide().getLayout().getId(), null, true);
+                                            }
+                                            
+                                        }
+                                    }
+                                    if (l != null) {
+                                        for (Block b: l.getBlocks()) {
+                                            if (b.getBlockLayout() != null) {
+                                                for (Spot spot: b.getBlockLayout().getSpots()) {
+                                                    if (spot.getFeatures() != null) {
+                                                        for (Feature f: spot.getFeatures()) {
+                                                            GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                    } else {
+                                        logger.error("Generating public glycan cartoons: "
+                                                + "cannot locate the public slide layout correctly!" + s.getPrintedSlide().getLayout().getUri());
                                     }
-                                } else {
-                                    logger.error("cannot locate the public slide layout correctly!");
                                 }
                             }
                         }

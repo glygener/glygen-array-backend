@@ -71,7 +71,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(value="sesameTransactionManager") 
+@Transactional(value="sesameTransactionManager", rollbackFor = SparqlException.class) 
 public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implements ArrayDatasetRepository {
     
     public final static String datasetTypePredicate = ontPrefix + "array_dataset";
@@ -671,23 +671,26 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null)
                             throw new SparqlException ("The slide layout should be provided");
                         
-                        String slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getId();
-                        if (slideLayoutId == null) {
-                            slideLayoutId = rawData.getSlide().getPrintedSlide().getLayout().getUri().substring(
-                                    rawData.getSlide().getPrintedSlide().getLayout().getUri().lastIndexOf("/")+1);
+                        String slideLayoutUri = rawData.getSlide().getPrintedSlide().getLayout().getUri();
+                        if (slideLayoutUri == null) {
+                            if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic()) {
+                                slideLayoutUri = uriPrefixPublic + rawData.getSlide().getPrintedSlide().getLayout().getId();
+                            } else {
+                                slideLayoutUri = uriPrefix + rawData.getSlide().getPrintedSlide().getLayout().getId();
+                            }
                         }
                         
                         String existing;
                         if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic())
-                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
+                            existing = layoutRepository.getSpotByPosition(slideLayoutUri, 
                                 spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), null);
                         else 
-                            existing = layoutRepository.getSpotByPosition(slideLayoutId, 
+                            existing = layoutRepository.getSpotByPosition(slideLayoutUri, 
                                     spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), user);
                         if (existing != null)
                             statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing), graphIRI));
                         else {
-                            throw new SparqlException ("The spot cannot be located in the repository");
+                            throw new SparqlException ("The spot for measurement cannot be located in the repository");
                         }
                     }
                     statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
@@ -769,6 +772,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                     }
                                 } else {
                                     logger.warn("spot for the intensity cannot be located");
+                                    throw new SparqlException ("spot for the intensity cannot be located");
                                 }
                             }
                         }
@@ -875,6 +879,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 }
                             } else {
                                 logger.warn("spot for the intensity cannot be located");
+                                throw new SparqlException("spot for the intensity cannot be located");
                             }
                         }
                     }
@@ -2809,6 +2814,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         // need to get the public uri
                         publicPSURI =getPublicUri(publicPSURI, user);
                     }
+                    // also check the layout's uri
+                    String layoutURI = slide.getPrintedSlide().getLayout().getUri();
+                    if (layoutURI != null && !layoutURI.contains("public")) {
+                     // need to get the public uri
+                        String publicLayoutURI = getPublicUri(layoutURI, user);
+                        slide.getPrintedSlide().getLayout().setUri(publicLayoutURI);
+                    }
                 }
                 slide.getPrintedSlide().setUri(publicPSURI);
                 
@@ -2857,6 +2869,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                                     spot.setBlockLayoutUri(getPublicUri(spot.getBlockLayoutUri(), user));
                                                 // fix its features
                                                 for (Feature f: spot.getFeatures()) {
+                                                    if (f.getUri() != null && f.getUri().contains("public")) {
+                                                        // already public
+                                                        continue;
+                                                    }
                                                     boolean found = false;
                                                     for (Feature mf: modifiedFeatures) {
                                                         if (f.getUri() != null && f.getUri().equals(mf.getUri())) {
@@ -2865,8 +2881,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                                         }
                                                     }
                                                     if (!found) {
-                                                        f.setId(featureRepository.getPublicFeatureId(f.getId(), user));
-                                                        f.setUri(uriPrefixPublic + f.getId());
+                                                        f.setUri(getPublicUri(uriPrefix + f.getId(), user));
+                                                        //f.setUri(uriPrefixPublic + f.getId());
                                                         modifiedFeatures.add(f);
                                                     }
                                                 }
