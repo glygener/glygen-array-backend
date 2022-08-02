@@ -3,10 +3,13 @@ package org.glygen.array.persistence.rdf.template;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+@XmlRootElement
 @JsonTypeName("descriptortemplate")
 public class DescriptorTemplate extends DescriptionTemplate {
     

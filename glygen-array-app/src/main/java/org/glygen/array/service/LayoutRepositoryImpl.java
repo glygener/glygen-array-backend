@@ -1510,39 +1510,37 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             List<Block> publicBlocks = new ArrayList<Block>();
         	for (Block block: layout.getBlocks()) {
         		BlockLayout blockLayout = block.getBlockLayout();
-        		if (uriMapOldToNew.get(blockLayout.getUri()) == null) {
-            		// check if it already exists
-            		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
-            		String publicURI = null;
-            		if (results2.isEmpty()) {
-            		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-            	            String uri = uriPrefix + blockLayout.getId();
-            	            // load them
-            	            blockLayout = blockLayoutCache.get(uri);
-            	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-            	                blockLayout = getBlockLayoutFromURI(uri, user);
-            	            }
-            	        }
-            			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-            			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
-            			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
-            		} else {
-            			String blockLayoutURI = results2.get(0).getValue("s");
-            			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-            			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
-            			uriMapOldToNew.put(blockLayout.getUri(), publicURI);
-            		}
+        		String prevURI = block.getUri();
+        		// check if it already exists
+        		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
+        		String publicURI = null;
+        		if (results2.isEmpty()) {
+        		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+        	            String uri = uriPrefix + blockLayout.getId();
+        	            // load them
+        	            blockLayout = blockLayoutCache.get(uri);
+        	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+        	                blockLayout = getBlockLayoutFromURI(uri, user);
+        	            }
+        	        }
+        			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+        			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
+        		} else {
+        			String blockLayoutURI = results2.get(0).getValue("s");
+        			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+        			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
         		}
+        		
         		deleteByURI (uriPrefix + block.getId(), graph);
-        		String uri = uriMapOldToNew.get(blockLayout.getUri());
         		BlockLayout blockL = null;
-        		if (blockLayoutCache.containsKey(uri))
-        		    blockL = blockLayoutCache.get(uri);
+        		if (blockLayoutCache.containsKey(publicURI))
+        		    blockL = blockLayoutCache.get(publicURI);
         		else
-        		    blockL = getBlockLayoutFromURI(uri, null);
+        		    blockL = getBlockLayoutFromURI(publicURI, null);
         		block.setBlockLayout(blockL);
         		String blockURI = addPublicBlock (block, graph);
         		Block newBlock = getBlock(blockURI, true, null);
+        		uriMapOldToNew.put(prevURI, blockURI);
         		publicBlocks.add(newBlock);
         	}
         	

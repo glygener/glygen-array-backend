@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.rdf.template;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class Namespace {
     
     String uri;

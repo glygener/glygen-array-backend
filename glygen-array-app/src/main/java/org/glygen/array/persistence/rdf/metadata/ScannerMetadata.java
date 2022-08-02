@@ -1,5 +1,8 @@
 package org.glygen.array.persistence.rdf.metadata;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class ScannerMetadata extends MetadataCategory {
     
     public ScannerMetadata() {

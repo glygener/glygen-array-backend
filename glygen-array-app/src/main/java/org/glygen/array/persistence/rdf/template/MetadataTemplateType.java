@@ -1,7 +1,10 @@
 package org.glygen.array.persistence.rdf.template;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+@XmlRootElement
 public enum MetadataTemplateType {
     
     SAMPLE("sample_template"),

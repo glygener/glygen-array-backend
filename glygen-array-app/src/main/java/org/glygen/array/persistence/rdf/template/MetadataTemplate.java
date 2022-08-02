@@ -2,6 +2,9 @@ package org.glygen.array.persistence.rdf.template;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class MetadataTemplate {
     
     String id;

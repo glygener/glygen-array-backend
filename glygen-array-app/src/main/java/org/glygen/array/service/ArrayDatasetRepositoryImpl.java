@@ -386,6 +386,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI slideIRI = f.createIRI(slideURI);
         IRI graphIRI = f.createIRI(graph);
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
+        IRI useBlock = f.createIRI(ontPrefix + "use_block");
         IRI hasAssay = f.createIRI(assayMetadataPredicate);
         
         List<Statement> statements = new ArrayList<Statement>();
@@ -402,6 +403,13 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         if (slide.getMetadata() != null && slide.getMetadata().getUri() != null) {
             statements.add(f.createStatement(slideIRI, hasAssay, f.createIRI(slide.getMetadata().getUri()), graphIRI));
+        }
+        
+        if (slide.getBlocksUsed() != null && !slide.getBlocksUsed().isEmpty()) {
+            // save the information
+            for (String blockId: slide.getBlocksUsed()) {
+                statements.add(f.createStatement(slideIRI, useBlock, f.createIRI(uriPre + blockId), graphIRI));
+            }
         }
         
         if (slide.getPrintedSlide() != null) {
@@ -1627,6 +1635,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI scanOf = f.createIRI(scanOfPredicate);
         IRI hasPrintedSlide = f.createIRI(hasPrintedSlidePredicate);
         IRI hasAssay = f.createIRI(assayMetadataPredicate);
+        IRI useBlock = f.createIRI(ontPrefix + "use_block");
         
         RepositoryResult<Statement> statements = sparqlDAO.getStatements(slideIRI, null, null, graphIRI);
         if (statements.hasNext()) {
@@ -1634,6 +1643,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             slideObject.setUri(uri);
             slideObject.setId(uri.substring(uri.lastIndexOf("/")+1));
             slideObject.setImages(new ArrayList<Image>());
+            slideObject.setBlocksUsed(new ArrayList<String>());
         }
         
         while (statements.hasNext()) {
@@ -1644,6 +1654,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasAssay)) {
                 Value uriValue = st.getObject();
                 slideObject.setMetadata(metadataRepository.getAssayMetadataFromURI(uriValue.stringValue(), loadAll, user));
+            } else if (st.getPredicate().equals(useBlock)) {
+                Value uriValue = st.getObject();
+                String blockId = uriValue.stringValue().substring(uriValue.stringValue().lastIndexOf("/")+1);
+                slideObject.getBlocksUsed().add(blockId);
             }
         }
         
@@ -2768,14 +2782,22 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             slide.setId(null);
             if (slide.getPrintedSlide() != null) {
                 String publicPSURI = null;
-                Map<String, String> blockLayoutUriMap = new HashMap<String, String>();
                 if (!slide.getPrintedSlide().isPublic()) {
                     // make its slide layout public
                     if (!slide.getPrintedSlide().getLayout().getIsPublic()) {
-                        String slideLayoutPublicURI = layoutRepository.makePublic(slide.getPrintedSlide().getLayout(), user, blockLayoutUriMap);
+                        Map<String, String> blockUriMap = new HashMap<String, String>();
+                        String slideLayoutPublicURI = layoutRepository.makePublic(slide.getPrintedSlide().getLayout(), user, blockUriMap);
                         SlideLayout publicLayout = new SlideLayout();
                         publicLayout.setUri(slideLayoutPublicURI);
                         slide.getPrintedSlide().setLayout(publicLayout);
+                        // fix usedBlocks, if any
+                        if (slide.getBlocksUsed() != null) {
+                            List<String> newBlocksUsed = new ArrayList<String>();
+                            for (String blockId: slide.getBlocksUsed()) {
+                                newBlocksUsed.add(blockUriMap.get(uriPrefix + blockId));
+                            }
+                            slide.setBlocksUsed(newBlocksUsed);
+                        }
                     }
                     
                     // make printed slide metadata public

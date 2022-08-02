@@ -1,7 +1,9 @@
 package org.glygen.array.persistence.rdf.metadata;
 
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
 public class Sample extends MetadataCategory {
     
     String internalId;

@@ -4,10 +4,12 @@ import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
 
+@XmlRootElement
 public class MetadataCategory {
     String id;
     String uri;
