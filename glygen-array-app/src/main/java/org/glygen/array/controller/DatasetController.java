@@ -8439,6 +8439,7 @@ public class DatasetController {
             ProcessedData data = datasetRepository.getProcessedDataFromURI(uri, true, user);
             if (data == null) {
                 // check if it is public
+                uri = GlygenArrayRepositoryImpl.uriPrefixPublic + processedDataId;
                 data = datasetRepository.getProcessedDataFromURI(uri, true, null);
                 if (data == null) {
                     errorMessage.addError(new ObjectError("processeddataid", "NotFound"));

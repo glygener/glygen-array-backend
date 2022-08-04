@@ -1706,7 +1706,7 @@ public class PublicGlygenArrayController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
-        String uri = GlygenArrayRepositoryImpl.uriPrefix + processedDataId;
+        String uri = GlygenArrayRepositoryImpl.uriPrefixPublic + processedDataId;
         if (fileName == null || fileName.isEmpty()) {
             fileName = processedDataId + ".xlsx";
         }
@@ -1715,11 +1715,7 @@ public class PublicGlygenArrayController {
         try {
             ProcessedData data = datasetRepository.getProcessedDataFromURI(uri, true, null);
             if (data == null) {
-                // check if it is public
-                data = datasetRepository.getProcessedDataFromURI(uri, true, null);
-                if (data == null) {
-                    errorMessage.addError(new ObjectError("processeddataid", "NotFound"));
-                }
+               errorMessage.addError(new ObjectError("processeddataid", "NotFound"));
             }
           
             if (data != null) {
