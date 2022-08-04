@@ -1655,14 +1655,17 @@ public class PublicGlygenArrayController {
             @ApiParam(required=true, value="id of the slide layout") 
             @RequestParam("slidelayoutid")
             String slidelayoutid,
-            @ApiParam(required=true, value="the name for downloaded file") 
-            @RequestParam("filename")
+            @ApiParam(required=false, value="the name for downloaded file") 
+            @RequestParam(value="filename", required=false)
             String fileName) {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         String uri = GlygenArrayRepositoryImpl.uriPrefixPublic + slidelayoutid;
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = slidelayoutid + ".gal";
+        }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
