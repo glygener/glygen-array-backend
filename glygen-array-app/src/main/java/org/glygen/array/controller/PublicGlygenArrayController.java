@@ -1700,7 +1700,7 @@ public class PublicGlygenArrayController {
             @RequestParam("processeddataid")
             String processedDataId,
             @ApiParam(required=false, value="the name for downloaded file") 
-            @RequestParam("filename")
+            @RequestParam(value="filename", required=false)
             String fileName) {
         
         ErrorMessage errorMessage = new ErrorMessage();

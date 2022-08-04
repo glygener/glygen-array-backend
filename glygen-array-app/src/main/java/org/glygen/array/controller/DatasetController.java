@@ -8421,7 +8421,7 @@ public class DatasetController {
             @RequestParam("processeddataid")
             String processedDataId,
             @ApiParam(required=false, value="the name for downloaded file") 
-            @RequestParam("filename")
+            @RequestParam(value="filename", required=false)
             String fileName,        
             Principal p) {
         
