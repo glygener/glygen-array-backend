@@ -1662,7 +1662,7 @@ public class PublicGlygenArrayController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
-        String uri = GlygenArrayRepositoryImpl.uriPrefix + slidelayoutid;
+        String uri = GlygenArrayRepositoryImpl.uriPrefixPublic + slidelayoutid;
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
