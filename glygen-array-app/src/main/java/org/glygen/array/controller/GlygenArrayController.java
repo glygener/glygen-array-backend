@@ -3212,18 +3212,16 @@ public class GlygenArrayController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
-        String uri = GlygenArrayRepositoryImpl.uriPrefix + slidelayoutid;
         if (fileName == null || fileName.isEmpty()) {
             fileName = slidelayoutid + ".gal";
         }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
-            SlideLayout layout = layoutRepository.getSlideLayoutFromURI(uri, true, user);
+            SlideLayout layout = layoutRepository.getSlideLayoutById(slidelayoutid, user, true);
             if (layout == null) {
                 // check if it is public
-                uri = GlygenArrayRepositoryImpl.uriPrefixPublic + slidelayoutid;
-                layout = layoutRepository.getSlideLayoutFromURI(uri, true, null);
+                layout = layoutRepository.getSlideLayoutById(slidelayoutid, null, true);
                 if (layout == null) {
                     errorMessage.addError(new ObjectError("slidelayoutid", "NotFound"));
                 }
@@ -3316,6 +3314,11 @@ public class GlygenArrayController {
 		}
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			// check if it exists in the repository
+            BlockLayout existing = layoutRepository.getBlockLayoutById(layout.getId(), user, false);
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("layout", "NotFound"));
+            }
 			BlockLayout blockLayout= new BlockLayout();
 			blockLayout.setUri(GlygenArrayRepository.uriPrefix + layout.getId());
 			blockLayout.setDescription(layout.getDescription() != null ? layout.getDescription().trim() : layout.getDescription());
@@ -3388,6 +3391,11 @@ public class GlygenArrayController {
 		
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			Glycan existing = glycanRepository.getGlycanById(glycanView.getId(), user);
+			if (existing == null) {
+                errorMessage.addError(new ObjectError("glycan", "NotFound"));
+            }
+
 			Glycan glycan= new Glycan();
 			if (glycanView.getUri() != null && !glycanView.getUri().isEmpty()) {
 			    glycan.setUri(glycanView.getUri());
@@ -3480,7 +3488,11 @@ public class GlygenArrayController {
 		}
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-			
+			Linker existing = linkerRepository.getLinkerById(linkerView.getId(), user);
+			if (existing == null) {
+                errorMessage.addError(new ObjectError("linker", "NotFound"));
+            }
+
 			if (linkerView.getType() == null) {
 			    linkerView.setType(LinkerType.OTHER);
 			}
@@ -3601,7 +3613,10 @@ public class GlygenArrayController {
         }
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
-            
+            org.glygen.array.persistence.rdf.Feature f = featureRepository.getFeatureById(feature.getId(), user);
+            if (f == null) {
+                errorMessage.addError(new ObjectError("feature", "NotFound"));
+            }
             if (feature.getType() == null) {
                 feature.setType(FeatureType.CONTROL);
             }
@@ -3718,6 +3733,11 @@ public class GlygenArrayController {
 		}
 		try {
 			UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
+			// check if it exists in the repository
+            SlideLayout existing = layoutRepository.getSlideLayoutById(layout.getId(), user, false);
+            if (existing == null) {
+                errorMessage.addError(new ObjectError("layout", "NotFound"));
+            }
 			SlideLayout slideLayout= new SlideLayout();
 			slideLayout.setUri(GlygenArrayRepository.uriPrefix + layout.getId());
 			slideLayout.setDescription(layout.getDescription() != null ? layout.getDescription().trim() : layout.getDescription());

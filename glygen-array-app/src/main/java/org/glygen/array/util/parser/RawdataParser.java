@@ -50,9 +50,11 @@ public class RawdataParser {
                 int x = spot.getColumn();
                 Well well = new Well(x, y);
                 SpotData spotData = new SpotData();
-                int hashcode = spot.getGroup().hashCode();
-                groupIdMap.put (hashcode, spot.getGroup());
-                spotData.setGroup(hashcode);
+                if (spot.getGroup() != null) {
+                    int hashcode = spot.getGroup().hashCode();
+                    groupIdMap.put (hashcode, spot.getGroup());
+                    spotData.setGroup(hashcode);
+                }
                 
                 block.setPosition(new Well(b.getColumn(), b.getRow()));
                 layoutData.put(well, spotData);
@@ -125,7 +127,8 @@ public class RawdataParser {
                         Spot spot = new Spot();
                         spot.setRow(spotData.getPosition().getY());
                         spot.setColumn(spotData.getPosition().getX());
-                        spot.setGroup(groupIdMap.get(spotData.getGroup()));
+                        if (spotData.getGroup() != null)
+                            spot.setGroup(groupIdMap.get(spotData.getGroup()));
                        // LevelUnit con = new LevelUnit();
                         //con.setConcentration(spotData.getConcentration());
                         //con.setLevelUnit(spotData.getProbeLevelUnit());

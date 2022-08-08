@@ -1662,14 +1662,13 @@ public class PublicGlygenArrayController {
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
-        String uri = GlygenArrayRepositoryImpl.uriPrefixPublic + slidelayoutid;
         if (fileName == null || fileName.isEmpty()) {
             fileName = slidelayoutid + ".gal";
         }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
-            SlideLayout layout = layoutRepository.getSlideLayoutFromURI(uri, true, null);
+            SlideLayout layout = layoutRepository.getSlideLayoutById(slidelayoutid, null, true);
             if (layout == null) {    
                 errorMessage.addError(new ObjectError("slidelayoutid", "NotFound"));
             }
