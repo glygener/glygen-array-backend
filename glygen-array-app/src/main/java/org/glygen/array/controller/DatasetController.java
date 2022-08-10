@@ -2758,12 +2758,38 @@ public class DatasetController {
         }
         try {
             UserEntity originalUser = owner;
+            
+            // save whatever we have for now for processed data and update its status to "processing"
+            String uri = datasetRepository.addProcessedData(processedData, rawDataId, owner);  
+            processedData.setUri(uri);
+            String id = uri.substring(uri.lastIndexOf("/")+1);
+            if (processedData.getError() == null)
+                processedData.setStatus(FutureTaskStatus.PROCESSING);
+            else 
+                processedData.setStatus(FutureTaskStatus.ERROR);
+            datasetRepository.updateStatus (uri, processedData, owner);
+            if (exclusionFile != null) {
+                File f = new File (uploadDir, exclusionFile);
+                if (f.exists()) {
+                    ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                    ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
+                    processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                    processedData.setFilteredDataList(emptyData.getFilteredDataList());
+                    //TODO do we need to check if the listed features belong to the slide of this processed data?
+                    datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
+                } else {
+                    errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                    throw new IllegalArgumentException("File cannot be found", errorMessage);
+                }
+            }
+            
             CompletableFuture<List<Intensity>> intensities = null;
             try {
                 intensities = parserAsyncService.parseProcessDataFile(datasetId, file, mySlide, owner);
                 intensities.whenComplete((intensity, e) -> {
                     try {
-                        String uri = processedData.getUri();
+                        //String uri = processedData.getUri();
                         if (e != null) {
                             logger.error(e.getMessage(), e);
                             processedData.setStatus(FutureTaskStatus.ERROR);
@@ -2798,44 +2824,25 @@ public class DatasetController {
                 datasetRepository.updateStatus (processedData.getUri(), processedData, originalUser);
             } catch (TimeoutException e) {
                 synchronized (this) {
-                    // save whatever we have for now for processed data and update its status to "processing"
-                    String uri = datasetRepository.addProcessedData(processedData, rawDataId, owner);  
-                    processedData.setUri(uri);
-                    String id = uri.substring(uri.lastIndexOf("/")+1);
                     if (processedData.getError() == null)
                         processedData.setStatus(FutureTaskStatus.PROCESSING);
                     else 
                         processedData.setStatus(FutureTaskStatus.ERROR);
-                    datasetRepository.updateStatus (uri, processedData, owner);
-                    if (exclusionFile != null) {
-                        File f = new File (uploadDir, exclusionFile);
-                        if (f.exists()) {
-                            ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
-                            ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
-                            processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
-                            processedData.setFilteredDataList(emptyData.getFilteredDataList());
-                            //TODO do we need to check if the listed features belong to the slide of this processed data?
-                            datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
-                        } else {
-                            errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
-                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                            throw new IllegalArgumentException("File cannot be found", errorMessage);
-                        }
-                    }
+                    datasetRepository.updateStatus (uri, processedData, originalUser);
                     return id;
                 }
             } catch (Exception e) {
                 errorMessage.addError(new ObjectError ("exception", e.getMessage()));
                 processedData.setError(errorMessage);
                 processedData.setStatus(FutureTaskStatus.ERROR);
-                datasetRepository.updateStatus (processedData.getUri(), processedData, owner);
+                datasetRepository.updateStatus (processedData.getUri(), processedData, originalUser);
                 logger.error("Cannot add the intensities to the repository", e);
                 return processedData.getUri().substring(processedData.getUri().lastIndexOf("/")+1);
                 //throw new IllegalArgumentException("Cannot add the intensitites to the repository", e);
             }
             
             logger.warn("add processed data, arrived at commented out code!!!");
-            return null;
+            return id;
             
           /*  //TODO do we ever come to this ??
             if (intensities != null && intensities.isDone()) {
