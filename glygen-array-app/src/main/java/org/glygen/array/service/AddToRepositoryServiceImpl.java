@@ -2136,8 +2136,15 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                     String existingURI = glycanRepository.getGlycanBySequence(g.getSequence(), user);
                     if (existingURI != null && !existingURI.contains("public")) {
                         glycan.setId(existingURI.substring(existingURI.lastIndexOf("/")+1));
-                        String[] codes = {existingURI.substring(existingURI.lastIndexOf("/")+1)};
-                        errorMessage.addError(new ObjectError("sequence", codes, null, "Duplicate"));
+                        // set the base type's id into the error message if available
+                        Glycan baseType = glycanRepository.retrieveBaseType(glycan, user);
+                        if (baseType != null) {
+                            String[] codes = {baseType.getUri().substring(baseType.getUri().lastIndexOf("/")+1)};
+                            errorMessage.addError(new ObjectError("sequence", codes, null, "Duplicate"));
+                        } else {
+                            String[] codes = {existingURI.substring(existingURI.lastIndexOf("/")+1)};
+                            errorMessage.addError(new ObjectError("sequence", codes, null, "Duplicate"));
+                        }
                     }
                 }
                 if (parseError)

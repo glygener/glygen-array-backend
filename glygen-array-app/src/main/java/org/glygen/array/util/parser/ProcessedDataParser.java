@@ -124,7 +124,7 @@ public class ProcessedDataParser {
             
             if (!start && (rfuCell == null || stDevCell == null || featureCell == null)) {
                 ErrorMessage error = new ErrorMessage();
-                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                error.setErrorCode(ErrorCodes.PARSE_ERROR);
                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                 error.addError(new ObjectError("config", "Error parsing the file, the configuration does not seem to work")); 
                 throw new IllegalArgumentException(error);
@@ -165,7 +165,7 @@ public class ProcessedDataParser {
                             // add to error list
                             appendErrorMapFile(errorMapFilePath, featureString.trim());
                             ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
-                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setErrorCode(ErrorCodes.PARSE_ERROR);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
                             String[] codes = {row.getRowNum()+""};
                             error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be translated to an existing glycan in the repository"));
@@ -180,7 +180,7 @@ public class ProcessedDataParser {
                         // add to error list
                         appendErrorMapFile(errorMapFilePath, featureString.trim());
                         ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
-                        error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        error.setErrorCode(ErrorCodes.PARSE_ERROR);
                         error.setStatus(HttpStatus.BAD_REQUEST.value());
                         String[] codes = {row.getRowNum()+""};
                         error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be translated to an existing glycan in the repository"));
@@ -207,7 +207,7 @@ public class ProcessedDataParser {
                     } 
                     if (glycanURI == null) {
                         ErrorMessage error = new ErrorMessage("Error retrieving glycan for row" + row.getRowNum());
-                        error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        error.setErrorCode(ErrorCodes.PARSE_ERROR);
                         error.setStatus(HttpStatus.BAD_REQUEST.value());
                         String[] codes = {row.getRowNum()+""};
                         error.addError(new ObjectError("sequence", codes, null, "Row " + row.getRowNum() + ": glycan with the sequence " + featureString + " cannot be found in the repository"));
@@ -230,7 +230,7 @@ public class ProcessedDataParser {
                         if (linker == null) {
                             // error
                             ErrorMessage error = new ErrorMessage("Linker cannot be found in the repository for row: " + row.getRowNum());
-                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setErrorCode(ErrorCodes.PARSE_ERROR);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
                             String[] codes = {row.getRowNum()+""};
                             error.addError(new ObjectError("linker", codes, null, "Row " + row.getRowNum() + ": linker " + linkerName + " cannot be found in the repository"));
@@ -263,7 +263,7 @@ public class ProcessedDataParser {
                             }
                             if (feature == null) {
                                 ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository");
-                                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                error.setErrorCode(ErrorCodes.PARSE_ERROR);
                                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                                 String[] codes = {row.getRowNum()+""};
                                 error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the sequence " + featureString + " cannot be found in the repository"));
@@ -310,7 +310,7 @@ public class ProcessedDataParser {
                             if (feature == null) {
                                 // error
                                 ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the repo id " + fId + " cannot be found in the repository");
-                                error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                error.setErrorCode(ErrorCodes.PARSE_ERROR);
                                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                                 String[] codes = {row.getRowNum()+""};
                                 error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the repo id " + fId + " cannot be found in the repository"));
@@ -333,7 +333,7 @@ public class ProcessedDataParser {
                         if (feature == null) {
                             // error
                             ErrorMessage error = new ErrorMessage("Row " + row.getRowNum() + ": feature with the repo id " + featureString + " cannot be found in the repository");
-                            error.setErrorCode(ErrorCodes.INVALID_INPUT);
+                            error.setErrorCode(ErrorCodes.PARSE_ERROR);
                             error.setStatus(HttpStatus.BAD_REQUEST.value());
                             String[] codes = {row.getRowNum()+""};
                             error.addError(new ObjectError("feature", codes, null, "Row " + row.getRowNum() + ": feature with the repo id " + featureString + " cannot be found in the repository"));

@@ -300,6 +300,54 @@ public class DatasetController {
             throw new IllegalArgumentException("Invalid Input: Not a valid array dataset information", errorMessage);
         
         try {
+            Set<String> duplicateCheck = new HashSet<String>();
+            if (dataset.getPublications() != null && !dataset.getPublications().isEmpty()) {
+                List<Publication> publications = new ArrayList<Publication>();
+                for (Publication pub: dataset.getPublications()) {
+                    // check and remove duplicates
+                    if (!duplicateCheck.contains(pub.getPubmedId()+"")) {
+                        publications.add(pub);
+                        duplicateCheck.add(pub.getPubmedId()+"");
+                    }
+                }
+                dataset.setPublications(publications);
+            }
+            duplicateCheck.clear();
+            if (dataset.getGrants() != null && !dataset.getGrants().isEmpty()) {
+                List<Grant> grants = new ArrayList<Grant>();
+                for (Grant grant: dataset.getGrants()) {
+                    // check and remove duplicates
+                    if (!duplicateCheck.contains(grant.getIdentifier())) {
+                        grants.add(grant);
+                        duplicateCheck.add(grant.getIdentifier());
+                    }
+                }
+                dataset.setGrants(grants);
+            }
+            
+            if (dataset.getKeywords() != null && !dataset.getKeywords().isEmpty()) {
+                List<String> keywords = new ArrayList<String>();
+                for (String keyword: dataset.getKeywords()) {
+                    // check and remove duplicates
+                    if (!keywords.contains(keyword)) {
+                        keywords.add(keyword);
+                    }
+                }
+                dataset.setKeywords(keywords);
+            }
+            duplicateCheck.clear();
+            if (dataset.getCollaborators() != null && !dataset.getCollaborators().isEmpty()) {
+                List<Creator> collaborators = new ArrayList<Creator>();
+                for (Creator collab: dataset.getCollaborators()) {
+                    // check and remove duplicates
+                    if (!duplicateCheck.contains(collab.getName())) {
+                        collaborators.add(collab);
+                        duplicateCheck.add(collab.getName());
+                    }
+                }
+                dataset.setCollaborators(collaborators);
+            }
+             
             String uri = datasetRepository.addArrayDataset(dataset, user);    
             String id = uri.substring(uri.lastIndexOf("/")+1);
             
@@ -1465,7 +1513,6 @@ public class DatasetController {
             Principal p) {
     
         ErrorMessage errorMessage = new ErrorMessage();
-        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -1488,8 +1535,10 @@ public class DatasetController {
                     }
                 }
             }
-            if (dataset == null)
+            if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Dataset " + datasetId + " cannot be retrieved for user " + p.getName(), e);
         }
@@ -1500,6 +1549,7 @@ public class DatasetController {
             image = datasetRepository.getImageFromURI(GlygenArrayRepositoryImpl.uriPrefix + imageId, false, owner);
             if (image == null) {
                 errorMessage.addError(new ObjectError("image", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
             }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Image " + imageId + " cannot be retrieved for user " + p.getName(), e);
@@ -1521,6 +1571,7 @@ public class DatasetController {
          
         if (rawData.getSlide() == null || rawData.getSlide().getPrintedSlide() == null) {
             errorMessage.addError(new ObjectError("slide", "NotFound"));
+            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         } else {
             try {
                 String printedSlideUri = rawData.getSlide().getPrintedSlide().getUri();
@@ -1528,6 +1579,7 @@ public class DatasetController {
                     PrintedSlide existing = datasetRepository.getPrintedSlideFromURI(printedSlideUri, owner);
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     } else {
                         rawData.getSlide().setPrintedSlide(existing);
                     }
@@ -1540,6 +1592,7 @@ public class DatasetController {
                     }
                     if (existing == null) {
                         errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     } else {
                         rawData.getSlide().setPrintedSlide(existing);
                     }
@@ -1550,6 +1603,7 @@ public class DatasetController {
                         existing = datasetRepository.getPrintedSlideByLabel(rawData.getSlide().getPrintedSlide().getName(), false, null);
                         if (existing == null) {
                             errorMessage.addError(new ObjectError("printedSlide", "NotFound"));
+                            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                         } else {
                             rawData.getSlide().setPrintedSlide(existing);
                         }
@@ -1565,7 +1619,10 @@ public class DatasetController {
         File file = null;
         // check to make sure, the file is specified and exists in the uploads folder
         if (rawData.getFile() == null || rawData.getFile().getIdentifier() == null) {
-            if (!allowPartialData) errorMessage.addError(new ObjectError("filename", "NotFound"));
+            if (!allowPartialData) {
+                errorMessage.addError(new ObjectError("filename", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            }
         } else {
             String fileFolder = uploadDir;
             if (rawData.getFile().getFileFolder() != null)
@@ -1573,6 +1630,7 @@ public class DatasetController {
             file = new File (fileFolder, rawData.getFile().getIdentifier());
             if (!file.exists()) {
                 errorMessage.addError(new ObjectError("file", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
             }
             else {
                 // create a folder for the experiment, if it does not exists, and move the file into that folder
@@ -1597,6 +1655,7 @@ public class DatasetController {
                     ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwarByLabel(rawData.getMetadata().getName(), owner);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     } else {
                         rawData.setMetadata(metadata);
                     }
@@ -1604,6 +1663,7 @@ public class DatasetController {
                     ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(rawData.getMetadata().getUri(), owner);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     } else {
                         rawData.setMetadata(metadata);
                     }
@@ -1612,6 +1672,7 @@ public class DatasetController {
                             metadataRepository.getImageAnalysisSoftwareFromURI(ArrayDatasetRepositoryImpl.uriPrefix + rawData.getMetadata().getId(), owner);
                     if (metadata == null) {
                         errorMessage.addError(new ObjectError("imageAnalysisMetadata", "NotFound"));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     } else {
                         rawData.setMetadata(metadata);
                     }
@@ -1696,10 +1757,12 @@ public class DatasetController {
                 }
                 if (fullLayout == null) {
                     errorMessage.addError(new ObjectError("exception", "slide layout cannot be located: " + rawData.getSlide().getPrintedSlide().getLayout().getId()));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     rawData.setError(errorMessage);
                     rawData.setStatus(FutureTaskStatus.ERROR);
                     datasetRepository.updateStatus (uri, rawData, owner);
-                    throw new IllegalArgumentException("Cannot locate the slide layout!", errorMessage);
+                    return id; // already saved the error, no need to throw it
+                    //throw new IllegalArgumentException("Cannot locate the slide layout!", errorMessage);
                 }
                 try {
                     Map<Measurement, Spot> dataMap = RawdataParser.parse(rawData.getFile(), fullLayout, rawData.getPowerLevel());
@@ -1724,7 +1787,8 @@ public class DatasetController {
                             rawData.setError(errorMessage);
                             rawData.setStatus(FutureTaskStatus.ERROR);
                             datasetRepository.updateStatus (uri, rawData, owner);
-                            throw new IllegalArgumentException("Cannot parse the file", errorMessage);
+                            return id;  // already saved the error, no need to throw it
+                            //throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                         }
                         rawData.setDataMap(filteredMap); 
                     } else {
@@ -1732,10 +1796,12 @@ public class DatasetController {
                     }
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", e.getMessage()));
+                    errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
                     rawData.setError(errorMessage);
                     rawData.setStatus(FutureTaskStatus.ERROR);
                     datasetRepository.updateStatus (uri, rawData, owner);
-                    throw new IllegalArgumentException("Cannot parse the file", errorMessage);
+                    return id;// already saved the error, no need to throw it
+                    //throw new IllegalArgumentException("Cannot parse the file", errorMessage);
                 }
                 UserEntity originalUser = owner;
                 rawDataURI = datasetRepository.addMeasurementsToRawData(rawData, owner);
@@ -1748,6 +1814,7 @@ public class DatasetController {
                                 rawData.setError((ErrorMessage) e.getCause().getCause());
                             else {
                                 errorMessage.addError(new ObjectError("exception", e.getMessage()));
+                                errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
                                 rawData.setError(errorMessage);
                             }
                         } else {
@@ -1764,7 +1831,8 @@ public class DatasetController {
                 if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
                     rawData.setError((ErrorMessage) e.getCause());
                 datasetRepository.updateStatus (uri, rawData, owner);
-                throw e;
+                return id;
+                //throw e;
             } catch (TimeoutException e) {
                 synchronized (this) {
                     if (rawData.getError() == null)
@@ -1778,11 +1846,12 @@ public class DatasetController {
                 }
             } catch (Exception e) {
                 errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
                 rawData.setError(errorMessage);
                 rawData.setStatus(FutureTaskStatus.ERROR);
                 datasetRepository.updateStatus (rawData.getUri(), rawData, owner);
                 logger.error("Cannot add the raw data measurements to the repository", e);
-                throw new IllegalArgumentException("Cannot add the raw data measurements to the repository", e);
+                //throw new IllegalArgumentException("Cannot add the raw data measurements to the repository", e);
             }
             return id;
         } catch (SparqlException | SQLException e) {
@@ -2596,8 +2665,10 @@ public class DatasetController {
                     }
                 }
             }
-            if (dataset == null)
+            if (dataset == null) {
                 errorMessage.addError(new ObjectError("dataset", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            }
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }
@@ -2608,10 +2679,12 @@ public class DatasetController {
             rawData = datasetRepository.getRawDataFromURI(GlygenArrayRepositoryImpl.uriPrefix + rawDataId, false, user);
             if (rawData == null) {
                 errorMessage.addError(new ObjectError("rawdata", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
             } else {
                 // check if it is done
                 if (rawData.getStatus() != FutureTaskStatus.DONE) {
                     errorMessage.addError(new ObjectError("rawdata", "NotDone"));
+                    errorMessage.setErrorCode(ErrorCodes.DISABLED);
                 }
             }
         } catch (SparqlException | SQLException e) {
@@ -2640,6 +2713,7 @@ public class DatasetController {
         
         if (mySlide == null) {
             errorMessage.addError(new ObjectError("slide", "NotFound"));
+            errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
         }
             
         if (metadataId != null) {    
@@ -2647,12 +2721,16 @@ public class DatasetController {
                 metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, owner);
                 if (metadata == null) {
                     errorMessage.addError(new ObjectError("metadata", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                 }
             } catch (SparqlException | SQLException e) {
                 throw new GlycanRepositoryException("Cannot retrieve data processing software metadata", e);
             }
         } else {
-            if (!allowPartialData) errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
+            if (!allowPartialData) {
+                errorMessage.addError(new ObjectError("metadata", "NoEmpty"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+            }
         }
         ProcessedData processedData = new ProcessedData();     
         processedData.setMetadata(metadata);
@@ -2665,9 +2743,10 @@ public class DatasetController {
                     found = method;
                 }
             }
-            if (found == null)
+            if (found == null) {
                 errorMessage.addError(new ObjectError("method", "NotValid"));
-            else {
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+            } else {
                 processedData.setMethod(found);
             }
         } catch (SparqlException | SQLException e) {
@@ -2712,6 +2791,7 @@ public class DatasetController {
                     processedData.setError((ErrorMessage) e.getCause());
                 } else {
                     errorMessage.addError(new ObjectError("processedData", "Cannot complete processing. Reason:" + e.getMessage()));
+                    errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
                     processedData.setError(errorMessage);
                 }
                 processedData.setStatus(FutureTaskStatus.ERROR);
@@ -2738,6 +2818,7 @@ public class DatasetController {
                             datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
                         } else {
                             errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                             throw new IllegalArgumentException("File cannot be found", errorMessage);
                         }
                     }
@@ -2749,10 +2830,14 @@ public class DatasetController {
                 processedData.setStatus(FutureTaskStatus.ERROR);
                 datasetRepository.updateStatus (processedData.getUri(), processedData, owner);
                 logger.error("Cannot add the intensities to the repository", e);
-                throw new IllegalArgumentException("Cannot add the intensitites to the repository", e);
+                return processedData.getUri().substring(processedData.getUri().lastIndexOf("/")+1);
+                //throw new IllegalArgumentException("Cannot add the intensitites to the repository", e);
             }
             
-            //TODO do we ever come to this ??
+            logger.warn("add processed data, arrived at commented out code!!!");
+            return null;
+            
+          /*  //TODO do we ever come to this ??
             if (intensities != null && intensities.isDone()) {
                 file.setFileFolder(uploadDir + File.separator + datasetId);
                 processedData.setFile(file);
@@ -2799,7 +2884,7 @@ public class DatasetController {
                     }
                 }
                 return id;
-            }
+            }*/
         } catch (Exception e) {
             if (e instanceof IllegalArgumentException)
                 throw (IllegalArgumentException)e;

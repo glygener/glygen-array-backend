@@ -1653,7 +1653,8 @@ public class GlygenArrayController {
                 if (layout.getStatus() == FutureTaskStatus.PROCESSING) {
                     ErrorMessage errorMessage = new ErrorMessage("There is another active slide layout upload. Please try again later");
                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                    errorMessage.addError(new ObjectError("slideLayout", "Already processing"));
+                    errorMessage.addError(new ObjectError("slideLayout", "NotDone"));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
                     throw new IllegalArgumentException("There is another active slide layout upload. Please try again later", errorMessage);
                 }
             }
@@ -1671,6 +1672,7 @@ public class GlygenArrayController {
 					ErrorMessage errorMessage = new ErrorMessage("No slide layout provided");
 					errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
 					errorMessage.addError(new ObjectError("slideLayout", "NoEmpty"));
+					errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
 					throw new IllegalArgumentException("No slide layout provided", errorMessage);
 				}
 				
@@ -1686,10 +1688,12 @@ public class GlygenArrayController {
 						    SlideLayoutError errorObject = new SlideLayoutError();
                             errorObject.setLayout(createSlideLayoutView(input.getSlideLayout()));
                             errorMessage.addError(new ObjectError("slideLayout", "Duplicate"));
+                            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                             
 						}
 					} catch (Exception e) {
 						errorMessage.addError(new ObjectError("slideLayout", e.getMessage()));
+						errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
 						throw new IllegalArgumentException("Slide layout search failed", errorMessage);
 					}
 				}
@@ -1743,10 +1747,12 @@ public class GlygenArrayController {
                                 slideLayout.setError((ErrorMessage) e.getCause());
                             else {
                                 errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                                errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
                                 slideLayout.setError(errorMessage);
                             }
                             repository.updateStatus (uri, slideLayout, user);
-                            throw e;
+                            return id;
+                            //throw e;
                         } catch (TimeoutException e) {
                             synchronized (this) {
                                 if (slideLayout.getError() == null)
@@ -1769,6 +1775,7 @@ public class GlygenArrayController {
                         return id;
                     } else {
                         errorMessage.addError(new ObjectError("slideLayout", "NotValid"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                         throw new IllegalArgumentException("Given slide layout cannot be found in the file", errorMessage);
                     }
                 } catch (SparqlException | SQLException e) {
@@ -1783,6 +1790,7 @@ public class GlygenArrayController {
                         }
                     } else {
                         errorMessage.addError(new ObjectError("file", e.getMessage()));
+                        errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
                     }
                     throw new IllegalArgumentException("Error getting slide layout from the library file", errorMessage);
                 }

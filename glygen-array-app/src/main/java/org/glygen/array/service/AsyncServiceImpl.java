@@ -160,14 +160,17 @@ public class AsyncServiceImpl implements AsyncService {
                     return CompletableFuture.completedFuture(intensities);
                 } else {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
                     throw new IllegalArgumentException("File cannot be found", errorMessage);
                 }
             } else {
                 errorMessage.addError(new ObjectError("file", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("File cannot be found", errorMessage);
             }
         } catch (InvalidFormatException | IOException e) {
             errorMessage.addError(new ObjectError("file", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
             throw new IllegalArgumentException("File cannot be parsed", errorMessage);
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof ErrorMessage) {
@@ -176,10 +179,12 @@ public class AsyncServiceImpl implements AsyncService {
                 }
             } else {
                 errorMessage.addError(new ObjectError("file", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             }
             throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
         } catch (Exception e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             logger.error("Error parsing the processed data file", e);
             throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
         }
