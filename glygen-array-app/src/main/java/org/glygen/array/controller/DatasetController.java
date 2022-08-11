@@ -2789,7 +2789,7 @@ public class DatasetController {
                         datasetRepository.updateStatus (uri, processedData, originalUser);
                         //throw new IllegalArgumentException("File cannot be found", errorMessage);
                     }
-                } catch (IllegalArgumentException e) {
+                } catch (Exception e) {
                     if (e.getCause() instanceof ErrorMessage) {
                         processedData.setError((ErrorMessage) e.getCause());
                     } else {
