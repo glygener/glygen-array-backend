@@ -2769,18 +2769,34 @@ public class DatasetController {
                 processedData.setStatus(FutureTaskStatus.ERROR);
             datasetRepository.updateStatus (uri, processedData, owner);
             if (exclusionFile != null) {
-                File f = new File (uploadDir, exclusionFile);
-                if (f.exists()) {
-                    ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
-                    ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
-                    processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
-                    processedData.setFilteredDataList(emptyData.getFilteredDataList());
-                    //TODO do we need to check if the listed features belong to the slide of this processed data?
-                    datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
-                } else {
-                    errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
-                    errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                    throw new IllegalArgumentException("File cannot be found", errorMessage);
+                try {
+                    File f = new File (uploadDir, exclusionFile);
+                    if (f.exists()) {
+                        ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
+                        ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
+                        processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
+                        processedData.setFilteredDataList(emptyData.getFilteredDataList());
+                        //TODO do we need to check if the listed features belong to the slide of this processed data?
+                        datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
+                    } else {
+                        errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
+                        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                        processedData.setStatus(FutureTaskStatus.ERROR);
+                        processedData.setError(errorMessage);
+                        datasetRepository.updateStatus (uri, processedData, originalUser);
+                        //throw new IllegalArgumentException("File cannot be found", errorMessage);
+                    }
+                } catch (IllegalArgumentException e) {
+                    if (e.getCause() instanceof ErrorMessage) {
+                        processedData.setError((ErrorMessage) e.getCause());
+                    } else {
+                        errorMessage.addError(new ObjectError("exclusionFile", e.getMessage()));
+                        errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
+                        processedData.setError(errorMessage);
+                    }
+                    processedData.setStatus(FutureTaskStatus.ERROR);
+                    datasetRepository.updateStatus (uri, processedData, originalUser);
+                    return id;
                 }
             }
             
@@ -2832,8 +2848,15 @@ public class DatasetController {
                     return id;
                 }
             } catch (Exception e) {
-                errorMessage.addError(new ObjectError ("exception", e.getMessage()));
-                processedData.setError(errorMessage);
+                if (e instanceof IllegalArgumentException && e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    processedData.setError((ErrorMessage) e.getCause());
+                } else if (e.getCause() instanceof IllegalArgumentException && e.getCause().getCause() != null &&
+                        e.getCause().getCause() instanceof ErrorMessage) {
+                    processedData.setError((ErrorMessage) e.getCause().getCause());
+                } else {
+                    errorMessage.addError(new ObjectError ("exception", e.getMessage()));
+                    processedData.setError(errorMessage);
+                }
                 processedData.setStatus(FutureTaskStatus.ERROR);
                 datasetRepository.updateStatus (processedData.getUri(), processedData, originalUser);
                 logger.error("Cannot add the intensities to the repository", e);
@@ -2841,57 +2864,7 @@ public class DatasetController {
                 //throw new IllegalArgumentException("Cannot add the intensitites to the repository", e);
             }
             
-            logger.warn("add processed data, arrived at commented out code!!!");
             return id;
-            
-          /*  //TODO do we ever come to this ??
-            if (intensities != null && intensities.isDone()) {
-                file.setFileFolder(uploadDir + File.separator + datasetId);
-                processedData.setFile(file);
-                processedData.setIntensity(intensities.get());
-                String uri = datasetRepository.addProcessedData(processedData, rawDataId, owner);   
-                String id = uri.substring(uri.lastIndexOf("/")+1);
-                if (processedData.getError() == null)
-                    processedData.setStatus(FutureTaskStatus.DONE);
-                else 
-                    processedData.setStatus(FutureTaskStatus.ERROR);
-                datasetRepository.updateStatus (uri, processedData, owner);
-                if (exclusionFile != null) {
-                    File f = new File (uploadDir, exclusionFile);
-                    if (f.exists()) {
-                        ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
-                        ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
-                        processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
-                        processedData.setFilteredDataList(emptyData.getFilteredDataList());
-                        //TODO do we need to check if the listed features belong to the slide of this processed data?
-                        datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
-                    } else {
-                        errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
-                        throw new IllegalArgumentException("File cannot be found", errorMessage);
-                    }
-                }
-                return id;
-            } else {
-                String uri = datasetRepository.addProcessedData(processedData, rawDataId, owner);  
-                processedData.setUri(uri);
-                String id = uri.substring(uri.lastIndexOf("/")+1);
-                datasetRepository.updateStatus (uri, processedData, owner);
-                if (exclusionFile != null) {
-                    File f = new File (uploadDir, exclusionFile);
-                    if (f.exists()) {
-                        ExclusionInfoParser parser = new ExclusionInfoParser(featureRepository);
-                        ProcessedData emptyData = parser.parse(f.getAbsolutePath(), owner);
-                        processedData.setTechnicalExclusions(emptyData.getTechnicalExclusions());
-                        processedData.setFilteredDataList(emptyData.getFilteredDataList());
-                        //TODO do we need to check if the listed features belong to the slide of this processed data?
-                        datasetRepository.addExclusionInfoToProcessedData(processedData, owner);
-                    } else {
-                        errorMessage.addError(new ObjectError("exclusionFile", "NotValid"));
-                        throw new IllegalArgumentException("File cannot be found", errorMessage);
-                    }
-                }
-                return id;
-            }*/
         } catch (Exception e) {
             if (e instanceof IllegalArgumentException)
                 throw (IllegalArgumentException)e;
@@ -2901,7 +2874,6 @@ public class DatasetController {
             else throw new GlycanRepositoryException("Cannot add the processed data to the repository", e);
         }
     }
-    
     
     @ApiOperation(value = "Download exclusion lists for the processed data to a file", authorizations = { @Authorization(value="Authorization") })
     @RequestMapping(value = "/downloadProcessedDataExclusionInfo", method=RequestMethod.GET)
