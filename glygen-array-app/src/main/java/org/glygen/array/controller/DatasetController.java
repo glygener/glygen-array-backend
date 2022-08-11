@@ -1741,14 +1741,17 @@ public class DatasetController {
                 // need to load the full layout before parsing
                 SlideLayout fullLayout = null;
                 String uriPre = ArrayDatasetRepositoryImpl.uriPrefix;
+                // check if it is already loaded fully
                 if (rawData.getSlide().getPrintedSlide().getLayout().getBlocks() !=null && !rawData.getSlide().getPrintedSlide().getLayout().getBlocks().isEmpty() &&
                         rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout() != null && 
                         rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout().getSpots() != null &&
                         !rawData.getSlide().getPrintedSlide().getLayout().getBlocks().get(0).getBlockLayout().getSpots().isEmpty()) {
                     fullLayout = rawData.getSlide().getPrintedSlide().getLayout();
+                    if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic()) {
+                        uriPre = ArrayDatasetRepositoryImpl.uriPrefixPublic;
+                    }
                 } else {
                     if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic() || rawData.getSlide().getPrintedSlide().getLayout().getUri().contains("public") ) {
-                        // check if it is already loaded fully
                         fullLayout = layoutRepository.getSlideLayoutById(rawData.getSlide().getPrintedSlide().getLayout().getId(), null);
                         uriPre = ArrayDatasetRepositoryImpl.uriPrefixPublic;
                     } else {
