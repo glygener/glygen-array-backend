@@ -53,20 +53,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/data/has_block">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-C6A9C7E9357ACBBDB65F47E893B5DB4E"/>
+	<rdfs:domain rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-D4D1D305B71518E608BEC171801ECA09"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-C6A9C7E9357ACBBDB65F47E893B5DB4E">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-D4D1D305B71518E608BEC171801ECA09">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-EBB142D7D229E018154487107F14DF80"/>
+	<owl:unionOf rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-DB4D6918103E98DA9A0729AB4A98B374"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-EBB142D7D229E018154487107F14DF80">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-DB4D6918103E98DA9A0729AB4A98B374">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/slide_metadata"/>
-	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-E53416A3B4517FA0800B18B8EB37C436"/>
+	<rdf:rest rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-A15FAD36CBB3A2A804046D08C15DA00D"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-E53416A3B4517FA0800B18B8EB37C436">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-A15FAD36CBB3A2A804046D08C15DA00D">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#slide_layout"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -111,20 +111,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_description_context">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
-	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-F0C81D0B218A6B57A1BD6FAFC52E2353"/>
+	<rdfs:domain rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-19B425E062B0D4C32E408E1621A513D8"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-F0C81D0B218A6B57A1BD6FAFC52E2353">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-19B425E062B0D4C32E408E1621A513D8">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-30B65CBF1C6CE927798F21916F810220"/>
+	<owl:unionOf rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-7D9AA3D201FBA80C142263B6632A9EE9"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-30B65CBF1C6CE927798F21916F810220">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-7D9AA3D201FBA80C142263B6632A9EE9">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#complex_description_context"/>
-	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-057C7624E430F89C9CA7D3AFA60E91A6"/>
+	<rdf:rest rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-70D8FFD5FEA76ABC9C0DC4129E453B91"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-057C7624E430F89C9CA7D3AFA60E91A6">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-70D8FFD5FEA76ABC9C0DC4129E453B91">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#template"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -223,20 +223,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_spot_template">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
 	<rdfs:subPropertyOf rdf:resource="http://purl.org/gadr/template#has_template"/>
-	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-6DBB698C5EDA751B0DD823990288E03F"/>
+	<rdfs:domain rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-8B935C67062BCA6A3DCF85BBF0B95A9E"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-6DBB698C5EDA751B0DD823990288E03F">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-8B935C67062BCA6A3DCF85BBF0B95A9E">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-A15AD7B5D48AC27302233EB3E7A924B3"/>
+	<owl:unionOf rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-E5D3551121A9F8A2FE18D438BAEC1E0B"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-A15AD7B5D48AC27302233EB3E7A924B3">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-E5D3551121A9F8A2FE18D438BAEC1E0B">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata"/>
-	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-32C3CB1DFE8D8F598D2C43EFBAD8166B"/>
+	<rdf:rest rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-0860B8E0F6A3211F969D8CF6222AC41D"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-32C3CB1DFE8D8F598D2C43EFBAD8166B">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-0860B8E0F6A3211F969D8CF6222AC41D">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/spot_metadata_value"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -280,20 +280,20 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#has_display_name">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
-	<rdfs:domain rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-CF353A2F71301C71FC5D0F6983D524E9"/>
+	<rdfs:domain rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-F9D9A5DA9ABC64F9FA85D1ADD6090FD3"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-CF353A2F71301C71FC5D0F6983D524E9">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-F9D9A5DA9ABC64F9FA85D1ADD6090FD3">
 	<rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
-	<owl:unionOf rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-62735234D554B8BE60AE2F2B16FBF872"/>
+	<owl:unionOf rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-C163B9CA178E623B875C965ED9832132"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-62735234D554B8BE60AE2F2B16FBF872">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-C163B9CA178E623B875C965ED9832132">
 	<rdf:first rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdf:rest rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-665EA35866ACB9F3C642682DDE2973AA"/>
+	<rdf:rest rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-039724F8CA1D169AE03BF44CBB96D8DB"/>
 </rdf:Description>
 
-<rdf:Description rdf:nodeID="genid-e69c2118750c463cab14ea31fe33f3a0-665EA35866ACB9F3C642682DDE2973AA">
+<rdf:Description rdf:nodeID="genid-975e6229e9e648e7a61adc6d8656f3dc-039724F8CA1D169AE03BF44CBB96D8DB">
 	<rdf:first rdf:resource="http://purl.org/gadr/template#description_context"/>
 	<rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
 </rdf:Description>
@@ -4391,7 +4391,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 
 <rdf:Description rdf:about="http://purl.org/gadr/template#Descriptor111">
 	<rdf:type rdf:resource="http://purl.org/gadr/data/descriptor"/>
-	<rdfs:label>Other subtpe</rdfs:label>
+	<rdfs:label>Other subtype</rdfs:label>
 	<rdfs:comment>Other subtype of the antibody</rdfs:comment>
 	<template:has_display_label></template:has_display_label>
 </rdf:Description>
@@ -4410,7 +4410,7 @@ It imports gard-data.owl ontology.</rdfs:comment>
 	<template:has_example></template:has_example>
 	<template:allows_not_recorded rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_recorded>
 	<template:allows_not_applicable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</template:allows_not_applicable>
-	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Antibody#Other_subtpe</template:has_url>
+	<template:has_url>https://wiki.glygen.org/index.php/Glycan_array_sample/Antibody#Other_subtype</template:has_url>
 	<template:has_mandate_group rdf:resource="http://purl.org/gadr/template#mandateGroup5-XOR3"/>
 	<template:is_mirage rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</template:is_mirage>
 	<template:has_order rdf:datatype="http://www.w3.org/2001/XMLSchema#int">13</template:has_order>
