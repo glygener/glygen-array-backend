@@ -8349,6 +8349,16 @@ public class DatasetController {
                 datasetURI.get(200, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 return null; // not ready yet
+            } catch (Exception e) {
+                if (e instanceof IllegalArgumentException && e.getCause() instanceof ErrorMessage) {
+                    dataset.setError((ErrorMessage) e.getCause());
+                } else {
+                    errorMessage.addError(new ObjectError ("Exception", e.getMessage()));
+                    dataset.setError(errorMessage);
+                }
+                dataset.setStatus(FutureTaskStatus.ERROR);
+                datasetRepository.updateStatus (dataset.getUri(), dataset, owner);
+                return null;
             }
             if (task.getStatus() == FutureTaskStatus.DONE) {
                 String uri = datasetURI.get();

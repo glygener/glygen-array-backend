@@ -698,7 +698,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         if (existing != null)
                             statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing), graphIRI));
                         else {
-                            throw new SparqlException ("The spot for measurement cannot be located in the repository");
+                            throw new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
+                                    + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri());
                         }
                     }
                     statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
