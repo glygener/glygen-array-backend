@@ -8350,6 +8350,7 @@ public class DatasetController {
             } catch (TimeoutException e) {
                 return null; // not ready yet
             } catch (Exception e) {
+                logger.error("exception while making dataset public", e);
                 if (e instanceof IllegalArgumentException && e.getCause() instanceof ErrorMessage) {
                     dataset.setError((ErrorMessage) e.getCause());
                 } else {
