@@ -676,8 +676,10 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(spot.getUri()), graphIRI));
                     else {
                         // find the spot
-                        if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null)
-                            throw new SparqlException ("The slide layout should be provided");
+                        if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null) {
+                            CompletableFuture.failedFuture(new SparqlException ("The slide layout should be provided"));
+                            //throw new SparqlException ("The slide layout should be provided");
+                        }
                         
                         String slideLayoutUri = rawData.getSlide().getPrintedSlide().getLayout().getUri();
                         if (slideLayoutUri == null) {
@@ -698,8 +700,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         if (existing != null)
                             statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing), graphIRI));
                         else {
-                            throw new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
-                                    + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri());
+                            CompletableFuture.failedFuture(new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
+                                    + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri()));
                         }
                     }
                     statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
