@@ -2406,7 +2406,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             graph = getGraphForUser(user);
         }
         
-        if (slideLayoutURI != null) {
+        /*if (slideLayoutURI != null) {
             // load the slide layout from cache and find the spots there
             SlideLayoutEntity entity = slideLayoutRepository.findByUri(slideLayoutURI);
             if (entity != null) {
@@ -2414,7 +2414,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 if (spot != null)
                     return spot.getUri();
             }
-        } /*else {
+        } else {
             // check all slide layouts
             List<SlideLayoutEntity> layouts = slideLayoutRepository.findAll();
             for (SlideLayoutEntity entity: layouts) {
