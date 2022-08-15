@@ -1808,6 +1808,9 @@ public class DatasetController {
                 }
                 UserEntity originalUser = owner;
                 rawDataURI = datasetRepository.addMeasurementsToRawData(rawData, owner);
+                if (rawDataURI.isCompletedExceptionally()) {
+                    logger.error("completed exceptionally!!!");
+                }
                 rawDataURI.whenComplete((uriString, e) -> {
                     try {
                         if (e != null) {
