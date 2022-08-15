@@ -678,7 +678,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         // find the spot
                         if (rawData.getSlide().getPrintedSlide() == null || rawData.getSlide().getPrintedSlide().getLayout() == null) {
                             logger.error("The slide layout should be provided");
-                            CompletableFuture.failedFuture(new SparqlException ("The slide layout should be provided"));
+                            return CompletableFuture.failedFuture(new SparqlException ("The slide layout should be provided"));
                             //throw new SparqlException ("The slide layout should be provided");
                         }
                         
@@ -703,7 +703,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         else {
                             logger.error("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
                                     + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri());
-                            CompletableFuture.failedFuture(new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
+                            return CompletableFuture.failedFuture(new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
                                     + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri()));
                         }
                     }
