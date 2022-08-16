@@ -2809,6 +2809,9 @@ public class DatasetController {
             CompletableFuture<List<Intensity>> intensities = null;
             try {
                 intensities = parserAsyncService.parseProcessDataFile(datasetId, file, mySlide, owner);
+                if (intensities.isCompletedExceptionally()) {
+                    logger.error("processed data completed exceptionally!!!");
+                }
                 intensities.whenComplete((intensity, e) -> {
                     try {
                         //String uri = processedData.getUri();
@@ -8287,6 +8290,9 @@ public class DatasetController {
                 datasetURI = datasetRepository.makePublicArrayDataset(dataset, owner); 
                 final ArrayDataset data = dataset;
                 final UserEntity o = owner;
+                if (datasetURI.isCompletedExceptionally()) {
+                    logger.error("make public completed with exception!!");
+                }
                 datasetURI.whenComplete((uri, e) -> {
                     try {
                         String existingURI = data.getUri();

@@ -510,6 +510,9 @@ public class GlygenArrayController {
                     throw new IllegalArgumentException("File is not acceptable", errorMessage);
                 }
                 
+                if (confirmation.isCompletedExceptionally()) {
+                    logger.error("glycan upload completed with exception!!");
+                }
                 confirmation.whenComplete((conf, e) -> {
                     try {
                         if (e != null) {
@@ -594,6 +597,9 @@ public class GlygenArrayController {
                     confirmation = parserAsyncService.addFeaturesFromExportFile(contents, user, errorMessage);
                 }
                 
+                if (confirmation.isCompletedExceptionally()) {
+                    logger.error("feature/linker upload completed with exception!!");
+                }
                 confirmation.whenComplete((conf, e) -> {
                     try {
                         if (e != null) {
@@ -1720,6 +1726,9 @@ public class GlygenArrayController {
                         
                         try {
                             slideId = parserAsyncService.importSlideLayout(slideLayout, errorMessage, user);
+                            if (slideId.isCompletedExceptionally()) {
+                                logger.error("slide upload completed with exception!!");
+                            }
                             // add the slide layout 
                             slideId.whenComplete((uriString, e) -> {
                                 try {

@@ -161,17 +161,17 @@ public class AsyncServiceImpl implements AsyncService {
                 } else {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
                     errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
-                    throw new IllegalArgumentException("File cannot be found", errorMessage);
+                    return CompletableFuture.failedFuture(new IllegalArgumentException("File cannot be found", errorMessage));
                 }
             } else {
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-                throw new IllegalArgumentException("File cannot be found", errorMessage);
+                return CompletableFuture.failedFuture( new IllegalArgumentException("File cannot be found", errorMessage));
             }
         } catch (InvalidFormatException | IOException e) {
             errorMessage.addError(new ObjectError("file", e.getMessage()));
             errorMessage.setErrorCode(ErrorCodes.PARSE_ERROR);
-            throw new IllegalArgumentException("File cannot be parsed", errorMessage);
+            return CompletableFuture.failedFuture( new IllegalArgumentException("File cannot be parsed", errorMessage));
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof ErrorMessage) {
                 for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
@@ -181,12 +181,12 @@ public class AsyncServiceImpl implements AsyncService {
                 errorMessage.addError(new ObjectError("file", "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             }
-            throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
+            return CompletableFuture.failedFuture( new IllegalArgumentException("File is not a valid excel file", errorMessage));
         } catch (Exception e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             logger.error("Error parsing the processed data file", e);
-            throw new IllegalArgumentException("File is not a valid excel file", errorMessage);
+            return CompletableFuture.failedFuture( new IllegalArgumentException("File is not a valid excel file", errorMessage));
         }
     }
     
@@ -402,7 +402,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-            throw new IllegalArgumentException("error adding block layouts! Reason: " + errorMessage.toString(), errorMessage);
+            return CompletableFuture.failedFuture(new IllegalArgumentException("error adding block layouts! Reason: " + errorMessage.toString(), errorMessage));
         }
         
         try {
@@ -416,7 +416,7 @@ public class AsyncServiceImpl implements AsyncService {
             } else {
                 logger.debug("Could not add slide layout", e);
                 errorMessage.addError(new ObjectError("slideLayout", e.getMessage()));
-                throw new IllegalArgumentException("error adding slide layout", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("error adding slide layout", errorMessage));
             }
         }
     }
@@ -508,7 +508,7 @@ public class AsyncServiceImpl implements AsyncService {
             }
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
          
             //result.setSuccessMessage(countSuccess + " out of " + inputArray.length() + " glycans are added");
@@ -517,7 +517,7 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (IOException | JSONException e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            return CompletableFuture.failedFuture(new IllegalArgumentException("File is not acceptable", errorMessage));
         }
     }
     
@@ -626,7 +626,7 @@ public class AsyncServiceImpl implements AsyncService {
             stream.close();
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
             //result.setSuccessMessage(countSuccess + " out of " + count + " glycans are added");
             logger.info("Processed the file. " + countSuccess + " out of " + count + " glycans are added" );
@@ -635,7 +635,7 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (Exception e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not valid.", errorMessage);
+            return CompletableFuture.failedFuture(new IllegalArgumentException("File is not valid.", errorMessage));
         } 
     }
     
@@ -756,14 +756,14 @@ public class AsyncServiceImpl implements AsyncService {
             stream.close();
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
             Confirmation confirmation = new Confirmation (countSuccess + " out of " + count + " glycans are added", HttpStatus.OK.value());
             return CompletableFuture.completedFuture(confirmation);
         } catch (IOException e) {
             errorMessage.addError(new ObjectError("file", "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
-            throw new IllegalArgumentException("File is not valid.", errorMessage);
+            return CompletableFuture.failedFuture(new IllegalArgumentException("File is not valid.", errorMessage));
         }
     }
     
@@ -844,7 +844,7 @@ public class AsyncServiceImpl implements AsyncService {
                 catch (SparqlException e) {
                     // cannot add glycan
                     stream.close();
-                    throw new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage());
+                    return CompletableFuture.failedFuture(new GlycanRepositoryException("Glycans cannot be added. Reason: " + e.getMessage()));
                 } catch (Exception e) {
                     logger.error ("Exception adding the sequence: " + sequence, e);
                     // sequence is not valid
@@ -856,12 +856,12 @@ public class AsyncServiceImpl implements AsyncService {
             stream.close();
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
             Confirmation confirmation = new Confirmation (countSuccess + " out of " + count + " glycans are added", HttpStatus.OK.value());
             return CompletableFuture.completedFuture(confirmation);
         } catch (IOException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+            return CompletableFuture.failedFuture(new IllegalArgumentException("File is not valid. Reason: " + e.getMessage()));
         }
     }
     
@@ -936,12 +936,12 @@ public class AsyncServiceImpl implements AsyncService {
             }
             
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
          
             return CompletableFuture.completedFuture(new Confirmation(countSuccess + " out of " + inputArray.length() + " features are added", HttpStatus.OK.value()));
         } catch (IOException | JSONException e) {
-            throw new IllegalArgumentException("File is not valid. Reason: " + e.getMessage());
+            return CompletableFuture.failedFuture( new IllegalArgumentException("File is not valid. Reason: " + e.getMessage()));
         }
     }
 
@@ -1021,12 +1021,12 @@ public class AsyncServiceImpl implements AsyncService {
             }
          
             if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
-                throw new IllegalArgumentException("Errors in the upload process", errorMessage);
+                return CompletableFuture.failedFuture(new IllegalArgumentException("Errors in the upload process", errorMessage));
             }
          
             return CompletableFuture.completedFuture(new Confirmation(countSuccess + " out of " + inputArray.length() + " linkers are added", HttpStatus.OK.value()));
         } catch (IOException | JSONException e) {
-            throw new IllegalArgumentException("File is not acceptable", e);
+            return CompletableFuture.failedFuture(new IllegalArgumentException("File is not acceptable", e));
         }
     }
 }
