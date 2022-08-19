@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Entity
-@Table (name="experiment", schema="cfg_5_2")
+@Table (name="experiment", schema="cfg")
 @XmlRootElement (name="experiment")
 @JsonSerialize
 public class Experiment {
@@ -48,7 +48,7 @@ public class Experiment {
     
     @OneToMany
     @JoinTable(name="experiment_link",
-        schema="cfg_5_2",
+        schema="cfg",
         joinColumns = @JoinColumn(name = "experiment_id", 
                                   referencedColumnName = "id"), 
         inverseJoinColumns = @JoinColumn(name = "link_id", 

@@ -17,6 +17,7 @@ public class CFG52Model {
     DataWithTitle requestData;
     DataWithTitle protocolData;
     String filename;
+    Boolean downloadedwithget;
     /**
      * @return the primscreen
      */
@@ -184,6 +185,18 @@ public class CFG52Model {
      */
     public void setProtocolData(DataWithTitle protocolData) {
         this.protocolData = protocolData;
+    }
+    /**
+     * @return the downloadedwithget
+     */
+    public Boolean getDownloadedwithget() {
+        return downloadedwithget;
+    }
+    /**
+     * @param downloadedwithget the downloadedwithget to set
+     */
+    public void setDownloadedwithget(Boolean downloadedwithget) {
+        this.downloadedwithget = downloadedwithget;
     }
     
 }

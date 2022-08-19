@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomNode;
@@ -32,160 +34,174 @@ public class ParseCFGUtil {
     Set<String> requestColumns = new HashSet<String>();
     Set<String> protocolColumns = new HashSet<String>();
     Map<String, String> protocolColumnMap = new HashMap<String, String>();
+    Map<String, String> sampleColumnMap = new HashMap<String, String>();
+    Map<String, String> experimentColumnMap = new HashMap<String, String>();
+    Map<String, String> requestColumnMap = new HashMap<String, String>();
+    
+    public void determineColumns (String folderWithJson) throws JsonParseException, JsonMappingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        File folder = new File (folderWithJson);
+        if (folder.isDirectory()) {
+            for (File jsonfile: folder.listFiles()) {
+                if (jsonfile.getName().endsWith("json")) {
+                    InputStream is = new FileInputStream(jsonfile);
+                    System.out.println ("Processing file " + jsonfile.getName());
+                    CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
+                    for (CFG52Model entry: rows) {
+                        DataWithTitle sampleData = entry.getSampleData();
+                        if (sampleData != null && sampleData.getData() != null) {
+                            sampleColumns.addAll(findColumns (sampleData.getData(), sampleColumnMap));
+                        }
+                        DataWithTitle experimentData = entry.getExperimentData();
+                        if (experimentData != null && experimentData.getData() != null) {
+                            experimentColumns.addAll(findColumns (experimentData.getData(), experimentColumnMap));
+                        }
+                        DataWithTitle requestData = entry.getRequestData();
+                        if (requestData != null && requestData.getData() != null) {
+                            requestColumns.addAll(findColumns (requestData.getData(), requestColumnMap));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    void printColumns () throws FileNotFoundException {
+        PrintStream columnFile = new PrintStream(new FileOutputStream("cfgcolumns.txt" ));
+        // print out the column maps
+        columnFile.println("sampledata");
+        for (String key: sampleColumnMap.keySet()) {
+            columnFile.println (key + "\t" + sampleColumnMap.get(key));
+        }
+        columnFile.println();
+        
+        columnFile.println("experimentdata");
+        for (String key: experimentColumnMap.keySet()) {
+            columnFile.println (key + "\t" + experimentColumnMap.get(key));
+        }
+        columnFile.println();
+        columnFile.println("requestdata");
+        for (String key: requestColumnMap.keySet()) {
+            columnFile.println (key + "\t" + requestColumnMap.get(key));
+        }
+        
+        columnFile.println();
+        columnFile.println("protocoldata");
+        for (String key: protocolColumnMap.keySet()) {
+            columnFile.println (key + "\t" + protocolColumnMap.get(key));
+        }
+        columnFile.close();
+    }
     
     
-    public List<String> parse (String filename, String version) {
-        Map<String, String> sampleColumnMap = new HashMap<String, String>();
-        Map<String, String> experimentColumnMap = new HashMap<String, String>();
-        Map<String, String> requestColumnMap = new HashMap<String, String>();
-        
-        
+    public List<String> parse (String folderWithJson) {
         ObjectMapper mapper = new ObjectMapper();
         List<String> sqlCommands = new ArrayList<String>();
         
-        //if (version.contains("5.2") || version.contains("5.1") || version.contains("5.0")) {
-            try {
-                PrintStream columnFile = new PrintStream(new FileOutputStream("cfg" + version + "columns.txt" ));
-                InputStream is = new FileInputStream(new File(filename));
-                CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
-                //CFG52 model = mapper.readValue(is, new TypeReference<List<CFG52Model>>(){});
-                String schema = "cfg_" + version.substring(0, 1) + "_" + version.substring(2,3);
-                sqlCommands.add("CREATE SCHEMA IF NOT EXISTS "+ schema + ";\n");
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment(\n");
-                sqlCommands.add("id bigint primary key, \n " + 
-                        "primscreen varchar(256),\n" + 
-                        "sample_name varchar(256),\n" + 
-                        "species  varchar(256),\n" + 
-                        "protein_family varchar(256) ,\n" + 
-                        "investigator  varchar(256), \n" +
-                        "request varchar(256), \n" +
-                        "date Date, \n" +
-                        "sample_data_id bigint, \n"+
-                        "experiment_data_id bigint, \n" +
-                        "request_data_id bigint, \n" +
-                        "filename varchar(256) );\n");
-                
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment_link(\n");
-                sqlCommands.add("experiment_id bigint,\n" + 
-                        "link_id bigint );\n");
-                
-                // go through data parts to determine the columns for the those data tables
-                
-                for (CFG52Model entry: rows) {
-                    DataWithTitle sampleData = entry.getSampleData();
-                    if (sampleData != null && sampleData.getData() != null) {
-                        sampleColumns.addAll(findColumns (sampleData.getData(), sampleColumnMap));
-                    }
-                    DataWithTitle experimentData = entry.getExperimentData();
-                    if (experimentData != null && experimentData.getData() != null) {
-                        experimentColumns.addAll(findColumns (experimentData.getData(), experimentColumnMap));
-                    }
-                    DataWithTitle requestData = entry.getRequestData();
-                    if (requestData != null && requestData.getData() != null) {
-                        requestColumns.addAll(findColumns (requestData.getData(), requestColumnMap));
-                    }
-                }
-                
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".sampledata(\n");
-                sqlCommands.add("id bigint primary key,\n");
-                sqlCommands.add("title text,\n");
-                int i=0;
-                for (String col: sampleColumns) {
-                    sqlCommands.add("\"" + col + "\" text");
-                    if (i < sampleColumns.size()-1) 
-                        sqlCommands.add(",\n");
-                    i++;
-                }
-                sqlCommands.add("\n);\n");
-                
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experimentdata(\n");
-                sqlCommands.add("id bigint primary key,\n");
-                sqlCommands.add("title text,\n");
-                i=0;
-                for (String col: experimentColumns) {
-                    sqlCommands.add("\"" + col + "\" text");
-                    if (i < experimentColumns.size()-1) 
-                        sqlCommands.add(",\n");
-                    i++;
-                }
-                sqlCommands.add("\n);\n");
-                
-                sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".requestdata(\n");
-                sqlCommands.add("id bigint primary key,\n");
-                sqlCommands.add("title text,\n");
-                i=0;
-                for (String col: requestColumns) {
-                    sqlCommands.add("\"" + col + "\" text");
-                    if (i < requestColumns.size()-1) 
-                        sqlCommands.add(",\n");
-                    i++;
-                }
-                sqlCommands.add("\n);\n");
-                
-                sqlCommands.add("CREATE TABLE \"" + schema + "\".link(\n");
-                sqlCommands.add("id bigint primary key, \n" +
-                        "linkText varchar(256),\n" +
-                        "href varchar(256),\n" +
-                        "parentCell  INT);\n");
-                
-                int endTableIndex = sqlCommands.size()-2;
-                
-                
-                // insert data
+        String schema = "cfg";
+        sqlCommands.add("CREATE SCHEMA IF NOT EXISTS "+ schema + ";\n");
+        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment(\n");
+        sqlCommands.add("id bigint primary key, \n " + 
+                "primscreen varchar(256),\n" + 
+                "sample_name varchar(256),\n" + 
+                "species  varchar(256),\n" + 
+                "protein_family varchar(256) ,\n" + 
+                "investigator  varchar(256), \n" +
+                "request varchar(256), \n" +
+                "date Date, \n" +
+                "sample_data_id bigint, \n"+
+                "experiment_data_id bigint, \n" +
+                "request_data_id bigint, \n" +
+                "filename varchar(256) );\n");
+        
+        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experiment_link(\n");
+        sqlCommands.add("experiment_id bigint,\n" + 
+                "link_id bigint );\n");
+        
+        try {
+            determineColumns(folderWithJson);
+            File folder = new File (folderWithJson);
+            if (folder.isDirectory()) {
                 long experimentId = 1;
-                for (CFG52Model entry: rows) {
-                    sqlCommands.addAll(addRow (entry, experimentId, schema));
-                    experimentId ++;
+                for (File jsonfile: folder.listFiles()) {
+                    if (jsonfile.getName().endsWith("json")) {
+                        InputStream is = new FileInputStream(jsonfile);
+                        CFG52Model[] rows = mapper.readValue(is, CFG52Model[].class);
+            
+                        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".sampledata(\n");
+                        sqlCommands.add("id bigint primary key,\n");
+                        sqlCommands.add("title text,\n");
+                        int i=0;
+                        for (String col: sampleColumns) {
+                            sqlCommands.add("\"" + col + "\" text");
+                            if (i < sampleColumns.size()-1) 
+                                sqlCommands.add(",\n");
+                            i++;
+                        }
+                        sqlCommands.add("\n);\n");
+                        
+                        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".experimentdata(\n");
+                        sqlCommands.add("id bigint primary key,\n");
+                        sqlCommands.add("title text,\n");
+                        i=0;
+                        for (String col: experimentColumns) {
+                            sqlCommands.add("\"" + col + "\" text");
+                            if (i < experimentColumns.size()-1) 
+                                sqlCommands.add(",\n");
+                            i++;
+                        }
+                        sqlCommands.add("\n);\n");
+                        
+                        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".requestdata(\n");
+                        sqlCommands.add("id bigint primary key,\n");
+                        sqlCommands.add("title text,\n");
+                        i=0;
+                        for (String col: requestColumns) {
+                            sqlCommands.add("\"" + col + "\" text");
+                            if (i < requestColumns.size()-1) 
+                                sqlCommands.add(",\n");
+                            i++;
+                        }
+                        sqlCommands.add("\n);\n");
+                        
+                        sqlCommands.add("CREATE TABLE IF NOT EXISTS \"" + schema + "\".link(\n");
+                        sqlCommands.add("id bigint primary key, \n" +
+                                "linkText varchar(256),\n" +
+                                "href varchar(256),\n" +
+                                "parentCell  INT);\n");
+                        
+                        int endTableIndex = sqlCommands.size()-2;
+                        
+                        // insert data
+                        for (CFG52Model entry: rows) {
+                            sqlCommands.addAll(addRow (entry, experimentId, schema));
+                            experimentId ++;
+                        }
+                        
+                        protocolColumns.add("Overview");
+                        protocolColumnMap.put("Overview", "Overview");
+                        StringBuffer tableStatement = new StringBuffer();
+                        tableStatement.append("CREATE TABLE IF NOT EXISTS \"" + schema + "\".protocoldata(\n");
+                        tableStatement.append("id bigint primary key,\n");
+                        tableStatement.append("title text,\n");
+                        i=0;
+                        for (String col: protocolColumns) {
+                            tableStatement.append("\"" + col + "\" text");
+                            if (i < protocolColumns.size()-1) 
+                                tableStatement.append(",\n");
+                            i++;
+                        }
+                        tableStatement.append("\n);\n");
+                        
+                        sqlCommands.add(endTableIndex, tableStatement.toString());
+                    }
                 }
-                
-                protocolColumns.add("Overview");
-                protocolColumnMap.put("Overview", "Overview");
-                StringBuffer tableStatement = new StringBuffer();
-                tableStatement.append("CREATE TABLE IF NOT EXISTS \"" + schema + "\".protocoldata(\n");
-                tableStatement.append("id bigint primary key,\n");
-                tableStatement.append("title text,\n");
-                i=0;
-                for (String col: protocolColumns) {
-                    tableStatement.append("\"" + col + "\" text");
-                    if (i < protocolColumns.size()-1) 
-                        tableStatement.append(",\n");
-                    i++;
-                }
-                tableStatement.append("\n);\n");
-                
-                sqlCommands.add(endTableIndex, tableStatement.toString());
-                
-                // print out the column maps
-                columnFile.println("sampledata");
-                for (String key: sampleColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + sampleColumnMap.get(key));
-                }
-                columnFile.println();
-                
-                columnFile.println("experimentdata");
-                for (String key: experimentColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + experimentColumnMap.get(key));
-                }
-                columnFile.println();
-                columnFile.println("requestdata");
-                for (String key: requestColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + requestColumnMap.get(key));
-                }
-                
-                columnFile.println();
-                columnFile.println("protocoldata");
-                for (String key: protocolColumnMap.keySet()) {
-                    columnFile.println (key + "\t" + protocolColumnMap.get(key));
-                }
-                
-                columnFile.close();
-                
-                
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }   
-       //}
+            }
+            printColumns();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }   
         
         return sqlCommands;
     }
@@ -410,15 +426,15 @@ public class ParseCFGUtil {
     }
     
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("usage: filename version");
+        if (args.length < 1) {
+            System.err.println("usage: folder (containing json files)");
             System.exit(1);
         }
-        String filename = args[0];
-        String version = args[1].trim();
+        String folderName = args[0];
+        
         try {
-            PrintStream outputFile = new PrintStream(new FileOutputStream("cfg" + version + ".sql" ));
-            List<String> lines = new ParseCFGUtil().parse(filename, version);
+            PrintStream outputFile = new PrintStream(new FileOutputStream("cfg.sql" ));
+            List<String> lines = new ParseCFGUtil().parse(folderName);
             for (String line: lines) {
                 outputFile.print(line);
             }

@@ -187,9 +187,9 @@ public class MetadataOntologyParser {
                                 if (cell.getColumnIndex() == 0) {
                                     if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
                                         String name = cell.getRichStringCellValue().getString();
-                                        if (!name.equals("")) {
+                                        if (!name.trim().equals("")) {
                                             descriptor = new Descriptor();
-                                            descriptor.setName(name);
+                                            descriptor.setName(name.trim());
                                             descriptor.setPosition(row.getRowNum());
                                             findDuplicates(descriptorList, descriptor);
                                             descriptorList.add(descriptor);
@@ -204,9 +204,9 @@ public class MetadataOntologyParser {
                                 } else if (cell.getColumnIndex() == 1) {
                                     if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
                                         String childName = cell.getRichStringCellValue().getString();
-                                        if (!childName.equals("")) {
+                                        if (!childName.trim().equals("")) {
                                             childDescriptor = new Descriptor();
-                                            childDescriptor.setName(childName);
+                                            childDescriptor.setName(childName.trim());
                                             if (descriptor != null) {
                                                 descriptor.addChild(childDescriptor);
                                                 childDescriptor.setPosition(row.getRowNum() - descriptor.getPosition());
@@ -223,9 +223,9 @@ public class MetadataOntologyParser {
                                     // third level descriptor
                                     if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
                                         String childName = cell.getRichStringCellValue().getString();
-                                        if (!childName.equals("")) {
+                                        if (!childName.trim().equals("")) {
                                             subDescriptor = new Descriptor();
-                                            subDescriptor.setName(childName);
+                                            subDescriptor.setName(childName.trim());
                                             if (childDescriptor != null) {
                                                 childDescriptor.addChild(subDescriptor);
                                                 subDescriptor.setPosition(row.getRowNum() - childDescriptor.getPosition());
@@ -311,11 +311,11 @@ public class MetadataOntologyParser {
                 String label = cell.getRichStringCellValue().getString();
                 if (label != null && !label.trim().isEmpty()) {
                     if (level == 2) {
-                        subDescriptor.setDisplayLabel(label);
+                        subDescriptor.setDisplayLabel(label.trim());
                     } else if (level == 1) {
-                        childDescriptor.setDisplayLabel(label);
+                        childDescriptor.setDisplayLabel(label.trim());
                     } else if (level == 0){
-                        descriptor.setDisplayLabel(label);
+                        descriptor.setDisplayLabel(label.trim());
                     }
                 }
             }
@@ -368,11 +368,11 @@ public class MetadataOntologyParser {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
             String name = cell.getRichStringCellValue().getString();
             if (level == 1) {
-                childDescriptor.setGroupName(name);
+                childDescriptor.setGroupName(name.trim());
             } else if (level == 0){
-                descriptor.setGroupName(name);
+                descriptor.setGroupName(name.trim());
             } else if (level == 2){
-                subDescriptor.setGroupName(name);
+                subDescriptor.setGroupName(name.trim());
             }
         } else {
             errorOut.println("ERROR: Invalid value for mandate group name on sheet: "
@@ -422,8 +422,8 @@ public class MetadataOntologyParser {
         } else if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
             String multiplicity = cell.getRichStringCellValue().getString();
             if (level == 0) {
-                if (multiplicity.equals("n") || multiplicity.equals("1")) {
-                    descriptor.setMultiplicity(multiplicity);
+                if (multiplicity.trim().equals("n") || multiplicity.trim().equals("1")) {
+                    descriptor.setMultiplicity(multiplicity.trim());
                 } else if (multiplicity.equals("0-n")) {
                     descriptor.setMultiplicity("n");
                 } else {
@@ -431,18 +431,18 @@ public class MetadataOntologyParser {
                     
                 }
             } else if (level == 1) {
-                if (multiplicity.equals("n") || multiplicity.equals("0-1")
-                        || multiplicity.equals("1-n") || multiplicity.equals("1")) {
-                    childDescriptor.setMultiplicity(multiplicity);
+                if (multiplicity.trim().equals("n") || multiplicity.trim().equals("0-1")
+                        || multiplicity.trim().equals("1-n") || multiplicity.trim().equals("1")) {
+                    childDescriptor.setMultiplicity(multiplicity.trim());
                 } else if (multiplicity.equals("0-n")) {
                     childDescriptor.setMultiplicity("n");
                 } else {
                     errorOut.println(errorMessage);
                 }
             } else if (level == 2) {
-                if (multiplicity.equals("n") || multiplicity.equals("0-1")
-                        || multiplicity.equals("1-n") || multiplicity.equals("1")) {
-                    subDescriptor.setMultiplicity(multiplicity);
+                if (multiplicity.trim().equals("n") || multiplicity.trim().equals("0-1")
+                        || multiplicity.trim().equals("1-n") || multiplicity.trim().equals("1")) {
+                    subDescriptor.setMultiplicity(multiplicity.trim());
                 } else if (multiplicity.equals("0-n")) {
                     subDescriptor.setMultiplicity("n");
                 } else {
@@ -464,11 +464,11 @@ public class MetadataOntologyParser {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
             String description = cell.getRichStringCellValue().getString();
             if (level == 1) {
-                childDescriptor.setDescription(description);
+                childDescriptor.setDescription(description.trim());
             } else if (level == 0){
-                descriptor.setDescription(description);
+                descriptor.setDescription(description.trim());
             } else if (level == 2){
-                subDescriptor.setDescription(description);
+                subDescriptor.setDescription(description.trim());
             }
         } else {
             errorOut.println("ERROR: Invalid value for description on sheet: "
@@ -490,13 +490,13 @@ public class MetadataOntologyParser {
         if (cell != null && !cell.getStringCellValue().isEmpty()) {
             if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
                 String type = cell.getRichStringCellValue().getString();
-                if (Arrays.asList(allowedTypesList).contains(type)) {
+                if (Arrays.asList(allowedTypesList).contains(type.trim())) {
                     if (level == 2) {
-                        subDescriptor.setType(type);
+                        subDescriptor.setType(type.trim());
                     } else if (level == 1) {
-                        childDescriptor.setType(type);
+                        childDescriptor.setType(type.trim());
                     } else if (level == 0){
-                        descriptor.setType(type);
+                        descriptor.setType(type.trim());
                     }
                 }
             }
@@ -515,7 +515,7 @@ public class MetadataOntologyParser {
     public static void readMandatory(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell != null && !cell.getStringCellValue().isEmpty()) {
             if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                String mandatoryCell = cell.getRichStringCellValue().getString();
+                String mandatoryCell = cell.getRichStringCellValue().getString().trim();
                 Boolean mandatory = mandatoryCell.equalsIgnoreCase("y");
                 if (level == 2) {
                     subDescriptor.setMandatory(mandatory);
@@ -611,13 +611,13 @@ public class MetadataOntologyParser {
     public static void readExample(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
             String example = cell.getRichStringCellValue().getString();
-            if (!example.equals("")) {
+            if (!example.trim().equals("")) {
                 if (level == 1) {
-                    childDescriptor.setExample(example);
+                    childDescriptor.setExample(example.trim());
                 } else if (level == 0){
-                    descriptor.setExample(example);
+                    descriptor.setExample(example.trim());
                 } else if (level == 2){
-                    subDescriptor.setExample(example);
+                    subDescriptor.setExample(example.trim());
                 }
             } else {
                 warningOut.println("WARNING: No value for Example provided on sheet: "
@@ -769,7 +769,7 @@ public class MetadataOntologyParser {
             Sheet sheet, int level) {
         if (cell != null && !cell.getStringCellValue().isEmpty()) {
             if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-                String mirageCell = cell.getRichStringCellValue().getString();
+                String mirageCell = cell.getRichStringCellValue().getString().trim();
                 Boolean mirage = mirageCell.equalsIgnoreCase("y");
                 if (level == 2) {
                     subDescriptor.setMirage(mirage);
@@ -794,7 +794,7 @@ public class MetadataOntologyParser {
      */
     public static void readMeasurement(Cell cell, Descriptor descriptor, Descriptor childDescriptor, Descriptor subDescriptor, Sheet sheet, int level) {
         if (cell.getCellType() == Cell.CELL_TYPE_STRING) {
-            String units = cell.getRichStringCellValue().getString();
+            String units = cell.getRichStringCellValue().getString().trim();
             String[] measurements = units.split(SEPERATOR2);
             if (level == 1) {
                 childDescriptor.setMeasurement(measurements);

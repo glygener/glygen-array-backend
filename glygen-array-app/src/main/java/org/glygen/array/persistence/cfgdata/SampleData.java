@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Entity
-@Table (name="sampledata", schema="cfg_5_2")
+@Table (name="sampledata", schema="cfg")
 @XmlRootElement (name="sampledata")
 @JsonSerialize
 public class SampleData {  
@@ -25,20 +25,30 @@ public class SampleData {
     String immunizationSex; // -1790003555
     @Column(name="\"Primary_Sequence\"")
     String primarySequence;
+    @Column(name="\"Further_Info1\"") 
+    String furtherInfo1;
     @Column(name="\"27291108\"")
     String subtype; // 27291108
+    @Column(name="\"-2015455063\"")
+    String primaryAASequence;
     @Column(name="\"Condition_of_storage\"")
     String storageCondition;
     @Column(name="\"-782475580\"")
     String antibodyName; // -782475580
     @Column(name="\"Name\"")
     String name;
+    @Column(name="\"Gene_Symbol\"")
+    String geneSymbol;
     @Column(name="\"Organism_Cells\"")
     String organismCells;
+    @Column(name="\"Species\"")
+    String species2;
     @Column(name="\"-861196869\"")
     String dateStored;   //-861196869
     @Column(name="\"Status\"")
     String status;
+    @Column(name="\"Synonyms\"")
+    String synonyms;
     @Column(name="\"-1051843856\"")
     String immunizationSchedule; //-1051843856
     @Column(name="\"790714772\"")
@@ -47,6 +57,8 @@ public class SampleData {
     String diluent; //-188920193
     @Column(name="\"443812426\"")
     String experimentTitle; //443812426
+    @Column(name="\"Further_Info\"")
+    String furtherInfo;
     @Column(name="\"1943838091\"")
     String organismDescription; //1943838091
     @Column(name="\"Sub_Family\"")
@@ -95,6 +107,8 @@ public class SampleData {
     String contaminants; //987326654
     @Column(name="\"75611650\"")
     String carrierProtein; //75611650
+    @Column(name="\"-1356324269\"")
+    String comments2;
     @Column(name="\"Comments\"")
     String comments;
     @Column(name="\"-728300322\"")
@@ -109,6 +123,8 @@ public class SampleData {
     String expressionInfo; //473641455
     @Column(name="\"114605882\"")
     String reference; //114605882
+    @Column(name="\"PDB_\"")
+    String pdb;
     @Column(name="\"-1726439334\"")
     String testingMethod; //-1726439334
     @Column(name="\"-1585180357\"")
@@ -754,6 +770,102 @@ public class SampleData {
      */
     public void setImmunizationProtocol(String immunizationProtocol) {
         this.immunizationProtocol = immunizationProtocol;
+    }
+    /**
+     * @return the furtherInfo1
+     */
+    public String getFurtherInfo1() {
+        return furtherInfo1;
+    }
+    /**
+     * @param furtherInfo1 the furtherInfo1 to set
+     */
+    public void setFurtherInfo1(String furtherInfo1) {
+        this.furtherInfo1 = furtherInfo1;
+    }
+    /**
+     * @return the primaryAASequence
+     */
+    public String getPrimaryAASequence() {
+        return primaryAASequence;
+    }
+    /**
+     * @param primaryAASequence the primaryAASequence to set
+     */
+    public void setPrimaryAASequence(String primaryAASequence) {
+        this.primaryAASequence = primaryAASequence;
+    }
+    /**
+     * @return the geneSymbol
+     */
+    public String getGeneSymbol() {
+        return geneSymbol;
+    }
+    /**
+     * @param geneSymbol the geneSymbol to set
+     */
+    public void setGeneSymbol(String geneSymbol) {
+        this.geneSymbol = geneSymbol;
+    }
+    /**
+     * @return the species2
+     */
+    public String getSpecies2() {
+        return species2;
+    }
+    /**
+     * @param species2 the species2 to set
+     */
+    public void setSpecies2(String species2) {
+        this.species2 = species2;
+    }
+    /**
+     * @return the synonyms
+     */
+    public String getSynonyms() {
+        return synonyms;
+    }
+    /**
+     * @param synonyms the synonyms to set
+     */
+    public void setSynonyms(String synonyms) {
+        this.synonyms = synonyms;
+    }
+    /**
+     * @return the furtherInfo
+     */
+    public String getFurtherInfo() {
+        return furtherInfo;
+    }
+    /**
+     * @param furtherInfo the furtherInfo to set
+     */
+    public void setFurtherInfo(String furtherInfo) {
+        this.furtherInfo = furtherInfo;
+    }
+    /**
+     * @return the comments2
+     */
+    public String getComments2() {
+        return comments2;
+    }
+    /**
+     * @param comments2 the comments2 to set
+     */
+    public void setComments2(String comments2) {
+        this.comments2 = comments2;
+    }
+    /**
+     * @return the pdb
+     */
+    public String getPdb() {
+        return pdb;
+    }
+    /**
+     * @param pdb the pdb to set
+     */
+    public void setPdb(String pdb) {
+        this.pdb = pdb;
     }
 
 }

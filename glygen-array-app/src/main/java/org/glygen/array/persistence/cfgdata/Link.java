@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Entity
-@Table (name="link", schema="cfg_5_2")
+@Table (name="link", schema="cfg")
 @XmlRootElement (name="link")
 @JsonSerialize
 public class Link {
