@@ -22,6 +22,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ContextConfiguration(loader=MySpringBootContextLoader.class)
 @SpringBootTest(classes = GlygenArrayApplication.class)
 public class GlytoucanRegistrationTest {
+    
+    /*
+     * structureschema.sql and structure.sql (containing glycoct) should be imported into 
+     * postgres database before running this application
+     */
 	
 	@Autowired
 	GlycoCTStructureRepository glycoCTRepository;
