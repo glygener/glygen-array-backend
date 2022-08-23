@@ -1773,18 +1773,26 @@ public class DatasetController {
                     if (rawData.getSlide().getBlocksUsed() != null && !rawData.getSlide().getBlocksUsed().isEmpty()) {
                         Map<Measurement, Spot> filteredMap = new HashMap<Measurement, Spot>();
                         List<String> foundBlocks = new ArrayList<String>();
-                        for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
-                            for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                        for (String blockId: rawData.getSlide().getBlocksUsed()) { 
+                            boolean found = false;
+                            for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
                                 if (entry.getValue().getBlockLayoutUri().equals(uriPre + blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
+                                    found = true;
                                     if (!foundBlocks.contains(blockId)) {
                                         foundBlocks.add(blockId);
                                     }
                                     break;
                                 }
                             }
+                            if (!found) {
+                                String[] codes = new String[] {blockId};
+                                logger.warn("cannot find data for the selected block " + blockId);
+                               // errorMessage.addError(new ObjectError("blockId", codes, null, "cannot find data for the selected block"));
+                            }
                         }
-                        if (foundBlocks.size() != rawData.getSlide().getBlocksUsed().size()) {
+                        //TODO commented out temporarily
+                       /* if (foundBlocks.size() != rawData.getSlide().getBlocksUsed().size()) {
                             // we could not find the data for the selected blocks from the raw data file
                             errorMessage.addError(new ObjectError("blocksUsed", "NotValid"));
                             rawData.setError(errorMessage);
@@ -1792,7 +1800,8 @@ public class DatasetController {
                             datasetRepository.updateStatus (uri, rawData, owner);
                             return id;  // already saved the error, no need to throw it
                             //throw new IllegalArgumentException("Cannot parse the file", errorMessage);
-                        }
+                        }*/
+                       
                         rawData.setDataMap(filteredMap); 
                     } else {
                         rawData.setDataMap(dataMap);
