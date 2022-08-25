@@ -2155,63 +2155,95 @@ public class GlygenArrayController {
         				}
         			}
         			if (probe != null) {
-        				for (Ratio r1 : probe.getRatio()) {
-        					LinkedGlycan myFeature = new LinkedGlycan();
-        					myFeature.setGlycans(new ArrayList<GlycanInFeature>());
-        					myFeature.setMetadata(featureMetadata);
-        					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
-        					if (glycan != null) {
-		        				Glycan myGlycan = null;
-		        				GlycanInFeature glycanFeature = new GlycanInFeature();
-		        				//TODO check probe metadata to see if source information is available
-                                glycanFeature.setSource(glycanSource);
-		        				if (glycan.getSequence() != null) {
-		        					myGlycan = new SequenceDefinedGlycan();
-		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence().trim());  
-		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
-		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
-		        					//determine the reducing end type
-		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
-	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
-	                                glycanFeature.setReducingEndConfiguration(redEnd);
-		        				} else {
-		        					myGlycan = new UnknownGlycan();
-		        				}
-		        				glycanFeature.setGlycan(myGlycan);
-		        				myGlycan.setName(glycan.getName());
-		        				myGlycan.setDescription(glycan.getComment());
-		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
-		        				myFeature.getGlycans().add(glycanFeature);
-        					} else {
-        					    // should have been there
-                                errorMessage.addError(new ObjectError("glycan:" + r1.getItemId(), "NotFound"));
-        					}
-		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
-		        			if (linker != null) {
-		        				Linker myLinker = new SmallMoleculeLinker();
-		        				if (linker.getPubChemId() != null) {
-		        					((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
-		        					myLinker.setType(LinkerType.SMALLMOLECULE);
-		        				} else {
-		        					// create unknown linker
-		        					myLinker.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
-		        				}
-		        				myLinker.setName(linker.getName());
-		        				myLinker.setDescription(linker.getComment());
-		        				myFeature.setLinker(myLinker);
-		        			}
-		        			else {
-		        			    // should have been there
+        			    if (probe.getRatio() != null && !probe.getRatio().isEmpty()) {
+            				for (Ratio r1 : probe.getRatio()) {
+            					LinkedGlycan myFeature = new LinkedGlycan();
+            					myFeature.setGlycans(new ArrayList<GlycanInFeature>());
+            					myFeature.setMetadata(featureMetadata);
+            					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
+            					if (glycan != null) {
+    		        				Glycan myGlycan = null;
+    		        				GlycanInFeature glycanFeature = new GlycanInFeature();
+    		        				//TODO check probe metadata to see if source information is available
+                                    glycanFeature.setSource(glycanSource);
+    		        				if (glycan.getSequence() != null) {
+    		        					myGlycan = new SequenceDefinedGlycan();
+    		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence().trim());  
+    		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
+    		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+    		        					//determine the reducing end type
+    		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
+    	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
+    	                                glycanFeature.setReducingEndConfiguration(redEnd);
+    		        				} else {
+    		        					myGlycan = new UnknownGlycan();
+    		        				}
+    		        				glycanFeature.setGlycan(myGlycan);
+    		        				myGlycan.setName(glycan.getName());
+    		        				myGlycan.setDescription(glycan.getComment());
+    		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
+    		        				myFeature.getGlycans().add(glycanFeature);
+            					} else {
+            					    // should have been there
+                                    errorMessage.addError(new ObjectError("glycan:" + r1.getItemId(), "NotFound"));
+            					}
+    		        			org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+    		        			if (linker != null) {
+    		        				Linker myLinker = new SmallMoleculeLinker();
+    		        				if (linker.getPubChemId() != null) {
+    		        					((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
+    		        					myLinker.setType(LinkerType.SMALLMOLECULE);
+    		        				} else {
+    		        					// create unknown linker
+    		        					myLinker.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
+    		        				}
+    		        				myLinker.setName(linker.getName());
+    		        				myLinker.setDescription(linker.getComment());
+    		        				myFeature.setLinker(myLinker);
+    		        			}
+    		        			else {
+    		        			    // should have been there
+                                    errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
+                                }
+    		        			myFeature.setName (feature.getName());
+    		        			myFeature.setInternalId(feature.getName());
+    		        			myFeature.setMetadata(featureMetadata);
+    		        			ratioMap.put(myFeature, r1.getItemRatio());
+    		        			//TODO get the concentration from probe once the library model is updated
+    		        			concentrationMap.put(myFeature, spot.getConcentration());
+    		        			features.add(myFeature);
+            				}
+        			    }
+        			    else {
+        			        // no glycan ratio --> Control
+        			        org.grits.toolbox.glycanarray.library.om.feature.Linker linker = LibraryInterface.getLinker(library, probe.getLinker());
+                            if (linker != null) {
+                                org.glygen.array.persistence.rdf.Feature myFeature = null;
+                                if (linker.getName().toLowerCase().contains("grid marker")) {
+                                    myFeature = new LandingLight();
+                                } else {
+                                    myFeature = new ControlFeature();
+                                }
+                                myFeature.setMetadata(featureMetadata);
+                                Linker myLinker = new SmallMoleculeLinker();
+                                if (linker.getPubChemId() != null) {
+                                    ((SmallMoleculeLinker) myLinker).setPubChemId(linker.getPubChemId().longValue());
+                                    myLinker.setType(LinkerType.SMALLMOLECULE);
+                                } else {
+                                    // create unknown linker
+                                    myLinker.setType(LinkerType.UNKNOWN_SMALLMOLECULE);
+                                }
+                                myLinker.setName(linker.getName());
+                                myLinker.setDescription(linker.getComment());
+                                myFeature.setLinker(myLinker);
+                                concentrationMap.put(myFeature, spot.getConcentration());
+                                features.add(myFeature);
+                            }
+                            else {
+                                // should have been there
                                 errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
                             }
-		        			myFeature.setName (feature.getName());
-		        			myFeature.setInternalId(feature.getName());
-		        			myFeature.setMetadata(featureMetadata);
-		        			ratioMap.put(myFeature, r1.getItemRatio());
-		        			//TODO get the concentration from probe once the library model is updated
-		        			concentrationMap.put(myFeature, spot.getConcentration());
-		        			features.add(myFeature);
-        				}
+        			    }
         			} else {
         			    // should have been there
         			    errorMessage.addError(new ObjectError("probe:" + r.getItemId(), "NotFound"));
