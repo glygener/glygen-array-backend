@@ -318,48 +318,52 @@ public class AsyncServiceImpl implements AsyncService {
                                     }
                                     
                                 }
-                                if (feature.getLinker() != null) {                                 
-                                    try {
-                                        String linkerID = addService.addLinker(feature.getLinker(),
-                                                feature.getLinker().getType().name().startsWith("UNKNOWN"), user);
-                                        feature.getLinker().setId(linkerID);
-                                        feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
-                                    } catch (Exception e) {
-                                        if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-                                            ErrorMessage error = (ErrorMessage) e.getCause();
-                                            boolean needAlias = false;
-                                            for (ObjectError err: error.getErrors()) {
-                                                if (err.getDefaultMessage().contains("Duplicate")) {
-                                                    needAlias = true;
-                                                    if (err.getObjectName().contains("pubchemid")) {
-                                                        needAlias = false;
-                                                        break;
-                                                    }
-                                                } else {
-                                                    errorMessage.addError(err);
+                            }
+                            if (feature.getLinker() != null) {                                 
+                                try {
+                                    String linkerID = addService.addLinker(feature.getLinker(),
+                                            feature.getLinker().getType().name().startsWith("UNKNOWN"), user);
+                                    feature.getLinker().setId(linkerID);
+                                    feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
+                                } catch (Exception e) {
+                                    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                                        ErrorMessage error = (ErrorMessage) e.getCause();
+                                        boolean needAlias = false;
+                                        for (ObjectError err: error.getErrors()) {
+                                            if (err.getDefaultMessage().contains("Duplicate")) {
+                                                needAlias = true;
+                                                if (err.getObjectName().contains("pubchemid")) {
+                                                    needAlias = false;
+                                                    break;
                                                 }
-                                            }
-                                            if (needAlias) {        
-                                                Linker linker = feature.getLinker();
-                                                linker.setName(linker.getName()+"B");
-                                                try {
-                                                    String linkerID = addService.addLinker(linker, linker.getType().name().startsWith("UNKNOWN"), user);
-                                                    feature.getLinker().setId(linkerID);
-                                                    feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
-                                                } catch (IllegalArgumentException e1) {
-                                                    // ignore, probably already added
-                                                    logger.debug ("duplicate linker cannot be added", e1);
+                                                if (feature.getType() == FeatureType.CONTROL || feature.getType() == FeatureType.LANDING_LIGHT) {
+                                                	needAlias = false;
+                                                	break;
                                                 }
+                                            } else {
+                                                errorMessage.addError(err);
                                             }
                                         }
-                                        else {
-                                            logger.info("Could not add linker: ", e);
-                                            errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                                        if (needAlias) {        
+                                            Linker linker = feature.getLinker();
+                                            linker.setName(linker.getName()+"B");
+                                            try {
+                                                String linkerID = addService.addLinker(linker, linker.getType().name().startsWith("UNKNOWN"), user);
+                                                feature.getLinker().setId(linkerID);
+                                                feature.getLinker().setUri(GlygenArrayRepositoryImpl.uriPrefix + linkerID);
+                                            } catch (IllegalArgumentException e1) {
+                                                // ignore, probably already added
+                                                logger.debug ("duplicate linker cannot be added", e1);
+                                            }
                                         }
                                     }
+                                    else {
+                                        logger.info("Could not add linker: ", e);
+                                        errorMessage.addError(new ObjectError("linker", e.getMessage()));
+                                    }
                                 }
-                                 
                             }
+                           
                             try {
                                 String id = addService.addFeature(feature, user);
                                 feature.setId(id);

@@ -2236,6 +2236,8 @@ public class GlygenArrayController {
                                 myLinker.setName(linker.getName());
                                 myLinker.setDescription(linker.getComment());
                                 myFeature.setLinker(myLinker);
+                                myFeature.setName (feature.getName());
+    		        			myFeature.setInternalId(feature.getName());
                                 concentrationMap.put(myFeature, spot.getConcentration());
                                 features.add(myFeature);
                             }
