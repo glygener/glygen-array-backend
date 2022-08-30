@@ -54,7 +54,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-@Transactional(value="sesameTransactionManager") 
+@Transactional(value="sesameTransactionManager", rollbackFor = SparqlException.class) 
 public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements LayoutRepository {
 	
 	@Autowired

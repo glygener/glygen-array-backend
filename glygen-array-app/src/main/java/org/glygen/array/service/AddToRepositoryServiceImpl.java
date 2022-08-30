@@ -2531,7 +2531,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
             throw new GlycanRepositoryException("Block layout cannot be added for user " + user.getUsername(), e);
         }
         
-        if (noFeatureCheck != null && !noFeatureCheck) {
+        if (noFeatureCheck == null || !noFeatureCheck) {
             // check if features exist
             Map<String, org.glygen.array.persistence.rdf.Feature> checkedMap = new HashMap<>();
             if (layout.getSpots() != null) {

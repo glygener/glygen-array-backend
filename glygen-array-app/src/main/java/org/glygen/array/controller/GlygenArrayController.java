@@ -275,7 +275,7 @@ public class GlygenArrayController {
 			@ApiParam(required=true, value="Block layout to be added, name, width, height, and spots are required, features should already exist in the repository")
 			@RequestBody BlockLayout layout, 
 			@ApiParam(required=false, value="true if there is no need to check again if feature exists")
-			@RequestParam
+			@RequestParam(required=false, value="noFeatureCheck")
 			Boolean noFeatureCheck, Principal p) {
 	    UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         return addService.addBlockLayout(layout, noFeatureCheck, user);

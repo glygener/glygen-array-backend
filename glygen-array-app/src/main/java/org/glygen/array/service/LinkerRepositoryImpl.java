@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(value="sesameTransactionManager") 
+@Transactional(value="sesameTransactionManager", rollbackFor = SparqlException.class) 
 public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements LinkerRepository {
 	
 	public final static String hasPubChemIdProperty = "has_pubchem_compound_id";
