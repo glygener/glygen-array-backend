@@ -325,6 +325,8 @@ public class GlygenArrayRepositoryTest {
 			    }
 			}
 			
+			System.out.println(new ObjectMapper().writeValueAsString(blockLayout));
+			
 			String blockLayoutURI = layoutRepository.addBlockLayout(blockLayout, user);
 			
 			BlockLayout existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
@@ -335,16 +337,17 @@ public class GlygenArrayRepositoryTest {
 			assertTrue ("Users layouts is not empty", layouts != null && !layouts.isEmpty());
 			
 			// delete the glycans and linker and the block layout
-			// add features first
+			linkerRepository.deleteLinker(linkerId1, user);
+            linkerRepository.deleteLinker(linkerId2, user);
+            glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
+            glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			// delete features 
             for (Spot s: blockLayout.getSpots()) {
                 for (Feature f: s.getFeatures()) {
                     featureRepository.deleteFeature(f.getId(), user);
                 }
             }
-			//linkerRepository.deleteLinker(linkerId1, user);
-			//linkerRepository.deleteLinker(linkerId2, user);
-			//glycanRepository.deleteGlycan(g.getUri().substring(g.getUri().lastIndexOf("/")+1), user);
-			//glycanRepository.deleteGlycan(g1.getUri().substring(g1.getUri().lastIndexOf("/")+1), user);
+			//
 			layoutRepository.deleteBlockLayout (blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
 			
 			existing = layoutRepository.getBlockLayoutById(blockLayoutURI.substring(blockLayoutURI.lastIndexOf("/")+1), user);
@@ -356,7 +359,10 @@ public class GlygenArrayRepositoryTest {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			assertFalse("Failed to create block layout", true);
-		}
+		} catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 
 	@Test

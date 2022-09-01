@@ -29,6 +29,7 @@ import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.FeatureType;
 import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
@@ -3448,6 +3449,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     "<" + uriPre + processedDataId +"> gadr:has_intensity ?intensity .\n" +
                     " ?intensity gadr:binding_value_of ?spot . \n" +
                     " ?spot gadr:has_feature ?feature . \n" +
+                    getFeatureTypeForIntensityQuery() + 
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
                     searchPredicate +
                     " }");
@@ -3464,6 +3466,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         return total;
+    }
+    
+    String getFeatureTypeForIntensityQuery () {
+        StringBuffer query = new StringBuffer ();
+        query.append(" ?feature gadr:has_type ?type . ");
+        query.append(" VALUES ?type {" );
+        query.append("\"" + FeatureType.LINKEDGLYCAN.name() + "\"^^xsd:string " + "\"" + FeatureType.GLYCOLIPID.name() + "\"^^xsd:string " + "\""
+                + FeatureType.GLYCOPEPTIDE.name() + "\"^^xsd:string" +
+                "\"" +FeatureType.GLYCOPROTEIN.name() + "\"^^xsd:string " + "\"" +FeatureType.GPLINKEDGLYCOPEPTIDE.name() + "\"^^xsd:string");
+        query.append("}");
+        return query.toString();
     }
 
     @Override
@@ -3501,6 +3514,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     "<" + uriPre + processedDataId +"> gadr:has_intensity ?intensity .\n" +
                     " ?intensity gadr:binding_value_of ?spot . \n" +
                     " ?spot gadr:has_feature ?feature . \n" +
+                    getFeatureTypeForIntensityQuery() +
                     " ?intensity gadr:has_rfu ?rfu . \n" + 
                     " OPTIONAL {?intensity gadr:has_stdev ?stdev . } \n" + 
                     " OPTIONAL { ?intensity gadr:has_cv ?cv .} \n" + 
