@@ -3009,6 +3009,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         IRI hasSlide = f.createIRI(ontPrefix + "has_slide");
         IRI createdBy= f.createIRI(ontPrefix + "created_by");
         IRI type = f.createIRI(datasetTypePredicate);
+        IRI hasKeyword = f.createIRI(ontPrefix + "has_keyword");
         
         Literal owner = f.createLiteral(dataset.getUser().getName());
         
@@ -3058,6 +3059,38 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         statements.add(f.createStatement(publicDataset, hasModifiedDate, date, graphIRI));
         statements.add(f.createStatement(publicDataset, createdBy, owner, graphIRI));
         statements.add(f.createStatement(publicDataset, RDF.TYPE, type, graphIRI));
+        
+        
+        if (dataset.getKeywords() != null) {
+            for (String keyword: dataset.getKeywords()) {
+                Literal keyLit = f.createLiteral(keyword);
+                statements.add(f.createStatement(publicDataset, hasKeyword, keyLit, graphIRI));
+            }
+        }
+        
+        if (dataset.getPublications() != null && !dataset.getPublications().isEmpty()) {
+            for (Publication pub: dataset.getPublications()) {
+                addPublication(pub, datasetId, null);
+            }
+        }
+        
+        if (dataset.getCollaborators() != null && !dataset.getCollaborators().isEmpty()) {
+            for (Creator collab: dataset.getCollaborators()) {
+                addCollaborator(collab, datasetId, null);
+            }
+        }
+        
+        if (dataset.getGrants() != null && !dataset.getGrants().isEmpty()) {
+            for (Grant grant: dataset.getGrants()) {
+                addGrant(grant, datasetId, null);
+            }
+        }
+        if (dataset.getFiles() != null) {
+            for (FileWrapper file: dataset.getFiles()) {
+                saveFile(file, publicURI, DEFAULT_GRAPH);
+            }
+        }
+        
         sparqlDAO.addStatements(statements, graphIRI);
         
         return publicURI;

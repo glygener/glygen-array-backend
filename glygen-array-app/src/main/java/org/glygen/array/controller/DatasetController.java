@@ -8334,7 +8334,8 @@ public class DatasetController {
                                                 && !s.getPrintedSlide().getLayout().getUri().contains("public")) {
                                             String publicURI = repository.getPublicUri(s.getPrintedSlide().getLayout().getUri(), user);
                                             if (publicURI != null) {
-                                                l = layoutRepository.getSlideLayoutById(publicURI, null, true);
+                                                String publicId = publicURI.substring(publicURI.lastIndexOf("/")+1);
+                                                l = layoutRepository.getSlideLayoutById(publicId, null, true);
                                             }
                                             
                                         }
