@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.persistence.EntityNotFoundException;
@@ -20,11 +22,18 @@ import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
+import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
 import org.glygen.array.persistence.rdf.Glycan;
+import org.glygen.array.persistence.rdf.GlycanInFeature;
 import org.glygen.array.persistence.rdf.GlycanType;
+import org.glygen.array.persistence.rdf.GlycoLipid;
+import org.glygen.array.persistence.rdf.GlycoPeptide;
+import org.glygen.array.persistence.rdf.GlycoProtein;
+import org.glygen.array.persistence.rdf.LinkedGlycan;
 import org.glygen.array.persistence.rdf.Linker;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
@@ -1577,6 +1586,93 @@ public class PublicGlygenArrayController {
         
         return null;
         
+    }
+    
+    @ApiOperation(value = "List of all glytoucanIDs in a given block layout")
+    @RequestMapping(value="/listGlycoucanidsByblockLayout", method = RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved sucessfully"), 
+            @ApiResponse(code=415, message="Media type is not supported"),
+            @ApiResponse(code=500, message="Internal Server Error")})
+    public Set<String> listGlycansByBlockLayout (
+            @ApiParam(required=true, value="the id of the block layout") 
+            @RequestParam String blockLayoutId) {
+        Set<String> ids = new HashSet<String>();
+        BlockLayout layout = getBlockLayout(blockLayoutId, true);
+        for (Spot spot: layout.getSpots()) {
+            if (spot == null) continue;
+            for (Feature feature: spot.getFeatures()) {
+                if (feature == null) continue;
+                switch (feature.getType()) {
+                case LINKEDGLYCAN:
+                    for (GlycanInFeature gf: ((LinkedGlycan) feature).getGlycans()) {
+                        if (gf.getGlycan() != null && gf.getGlycan().getType() == GlycanType.SEQUENCE_DEFINED) {
+                            String glytoucanId = ((SequenceDefinedGlycan)gf.getGlycan()).getGlytoucanId();
+                            if (glytoucanId != null && glytoucanId.length() <= 10) {
+                                ids.add(glytoucanId);
+                            }
+                        }
+                    }
+                    break;
+                case GLYCOLIPID:
+                    for (LinkedGlycan lg: ((GlycoLipid) feature).getGlycans()) {
+                        for (GlycanInFeature gf: lg.getGlycans()) {
+                            if (gf.getGlycan() != null && gf.getGlycan().getType() == GlycanType.SEQUENCE_DEFINED) {
+                                String glytoucanId = ((SequenceDefinedGlycan)gf.getGlycan()).getGlytoucanId();
+                                if (glytoucanId != null && glytoucanId.length() <= 10) {
+                                    ids.add(glytoucanId);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case GLYCOPEPTIDE:
+                    for (LinkedGlycan lg: ((GlycoPeptide) feature).getGlycans()) {
+                        for (GlycanInFeature gf: lg.getGlycans()) {
+                            if (gf.getGlycan() != null && gf.getGlycan().getType() == GlycanType.SEQUENCE_DEFINED) {
+                                String glytoucanId = ((SequenceDefinedGlycan)gf.getGlycan()).getGlytoucanId();
+                                if (glytoucanId != null && glytoucanId.length() <= 10) {
+                                    ids.add(glytoucanId);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case GLYCOPROTEIN:
+                    for (LinkedGlycan lg: ((GlycoProtein) feature).getGlycans()) {
+                        for (GlycanInFeature gf: lg.getGlycans()) {
+                            if (gf.getGlycan() != null && gf.getGlycan().getType() == GlycanType.SEQUENCE_DEFINED) {
+                                String glytoucanId = ((SequenceDefinedGlycan)gf.getGlycan()).getGlytoucanId();
+                                if (glytoucanId != null && glytoucanId.length() <= 10) {
+                                    ids.add(glytoucanId);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case GPLINKEDGLYCOPEPTIDE:
+                    for (GlycoPeptide gp: ((GPLinkedGlycoPeptide) feature).getPeptides()) {
+                        for (LinkedGlycan lg: gp.getGlycans()) {
+                            for (GlycanInFeature gf: lg.getGlycans()) {
+                                if (gf.getGlycan() != null && gf.getGlycan().getType() == GlycanType.SEQUENCE_DEFINED) {
+                                    String glytoucanId = ((SequenceDefinedGlycan)gf.getGlycan()).getGlytoucanId();
+                                    if (glytoucanId != null && glytoucanId.length() <= 10) {
+                                        ids.add(glytoucanId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case LANDING_LIGHT:
+                case NEGATIVE_CONTROL:
+                case COMPOUND:
+                case CONTROL:
+                    break;
+                }
+                
+            }
+        }
+        return ids;
     }
     
     @ApiOperation(value = "Download the given file")
