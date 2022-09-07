@@ -37,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -111,9 +113,21 @@ public class GlytoucanUtil {
 		String url;
 		//try {
 			url = retrieveURL + wurcsSequence;
+			
+			
+			UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl("https://api.glycosmos.org")
+            .path("sparqlist/wurcs2gtcids")
+            .queryParam("wurcs", wurcsSequence)
+            .build();
+			
+			System.out.println ("url:" + uriComponents.toUri());
+			
 			HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
 			try {
-				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
+				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
+				if (response.getBody()[0].message  != null) {
+				    logger.info("Error retrieving glycan " + response.getBody()[0].message);
+				}
 				return response.getBody()[0].id;
 			} catch (HttpClientErrorException e) {
 				logger.info("Exception retrieving glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
@@ -390,7 +404,11 @@ public class GlytoucanUtil {
         
         wurcs = "WURCS=2.0/6,15,14/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O][a1221m-1a_1-5]/1-1-2-3-1-4-5-1-4-5-3-1-4-5-6/a4-b1_a6-o1_b4-c1_d2-h1_e4-f1_f3-g2_h4-i1_i3-j2_k2-l1_l4-m1_m3-n2_c?-d1_c?-k1_d?-e1";
         System.out.println(wurcs);
-       // String glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+        glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+        System.out.println(glyTouCanId);
+        
+        wurcs = "WURCS=2.0/3,4,4/[a2112h-1a_1-5][a2122h-1b_1-5_2*NCC/3=O][a2211m-1b_1-5]/1-2-2-3/a6-b1_b4-d1_c1-b3%.6%_a1-d3~n";
+        glyTouCanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
         System.out.println(glyTouCanId);
         try {
             SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
@@ -634,6 +652,7 @@ class RetrieveResponse {
 class GlytoucanResponse {
 	String id;
 	String wurcs;
+	String message; // in case of error
 	
 	public String getId() {
 		return id;
@@ -651,4 +670,12 @@ class GlytoucanResponse {
 	public void setWurcs(String wurcs) {
 		this.wurcs = wurcs;
 	}
+	
+	public String getMessage() {
+        return message;
+    }
+	
+	public void setMessage(String message) {
+        this.message = message;
+    }
 }
