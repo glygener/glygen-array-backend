@@ -37,8 +37,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,7 +48,7 @@ public class GlytoucanUtil {
 	String userId;
 	
 	static String glycanURL = "https://sparqlist.glycosmos.org/sparqlist/api/gtc_wurcs_by_accession?accNum=";
-	static String retrieveURL ="https://api.glycosmos.org/sparqlist/wurcs2gtcids?wurcs=";
+	static String retrieveURL ="https://sparqlist.glyconavi.org/api/WURCS2GlyTouCan?WURCS=";
 	static String registerURL = "https://api.glytoucan.org/glycan/register";
 	
 	private static RestTemplate restTemplate = new RestTemplate();
@@ -114,17 +112,9 @@ public class GlytoucanUtil {
 		//try {
 			url = retrieveURL + wurcsSequence;
 			
-			
-			UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl("https://api.glycosmos.org")
-            .path("sparqlist/wurcs2gtcids")
-            .queryParam("wurcs", wurcsSequence)
-            .build();
-			
-			System.out.println ("url:" + uriComponents.toUri());
-			
 			HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
 			try {
-				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
+				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
 				if (response.getBody()[0].message  != null) {
 				    logger.info("Error retrieving glycan " + response.getBody()[0].message);
 				}
@@ -654,6 +644,7 @@ class GlytoucanResponse {
 	String wurcs;
 	String message; // in case of error
 	
+	@JsonProperty("GlyTouCan")
 	public String getId() {
 		return id;
 	}
