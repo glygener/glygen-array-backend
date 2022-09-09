@@ -115,6 +115,10 @@ public class GlytoucanUtil {
 			HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
 			try {
 				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
+				if (response.getBody().length == 0) {
+				    logger.info ("No accession number is found!");
+				    return null;
+				}
 				if (response.getBody()[0].message  != null) {
 				    logger.info("Error retrieving glycan " + response.getBody()[0].message);
 				}

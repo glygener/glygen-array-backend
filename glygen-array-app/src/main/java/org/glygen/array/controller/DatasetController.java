@@ -6977,7 +6977,10 @@ public class DatasetController {
             }
             Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (sample == null) {
-                throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
+                // check the public ones
+                sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (sample == null)
+                    throw new EntityNotFoundException("Sample with id : " + id + " does not exist in the repository");
             }
             return sample;
         } catch (SparqlException | SQLException e) {

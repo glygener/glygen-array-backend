@@ -1198,16 +1198,16 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.setDescription(comment.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, user));            
+                        datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, null));            
                     } else if (st.getPredicate().equals(hasKeyword)) {
                         Value keyword = stPublic.getObject();
                         datasetObject.getKeywords().add(keyword.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));        
+                        datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, null));        
                     } else if (stPublic.getPredicate().equals(hasPub)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), user));            
+                        datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), null));            
                     } else if (stPublic.getPredicate().equals(hasCollab)) {
                         Value label = stPublic.getObject();
                         Creator collab = new Creator();
@@ -1223,14 +1223,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         datasetObject.getCollaborators().add(collab);       
                     } else if (stPublic.getPredicate().equals(hasGrantPred)) {
                         uriValue = stPublic.getObject();
-                        datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), user));            
+                        datasetObject.getGrants().add(getGrantFromURI(uriValue.stringValue(), null));            
                     } else if (stPublic.getPredicate().equals(hasFile)) {
                         Value value = stPublic.getObject();
                         if (!value.stringValue().startsWith("http"))
                             continue;
                         // retrieve file details
                         FileWrapper file = new FileWrapper();
-                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, graphIRI);
+                        RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, defaultGraphIRI);
                         while (statements2.hasNext()) {
                             Statement st2 = statements2.next();
                             if (st2.getPredicate().equals(hasFileName)) {

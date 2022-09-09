@@ -1728,6 +1728,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                }
 	                if (g.getIsPublic()) {
 	                    // already public
+	                    if (!g.getUri().contains("public")) {
+	                        // need to get the public uri
+	                        g.setUri(getPublicUri(g.getUri(), user));
+	                    }
                         if (!processedGlycans.containsKey(g.getUri())) {
                             publicGlycans.add(gf); 
                             processedGlycans.put(g.getUri(), g);
@@ -1758,6 +1762,10 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	            } else {
     	            if (g.getIsPublic()) {
     	                // already public
+    	                if (!g.getUri().contains("public")) {
+                            // need to get the public uri
+                            g.setUri(getPublicUri(g.getUri(), user));
+                        }
     	                if (!processedGlycans.containsKey(g.getUri())) {
     	                    publicGlycans.add(gf); 
     	                    processedGlycans.put(g.getUri(), g);
@@ -1800,18 +1808,33 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                }
 	            } else {
 	                String previousG = f.getUri();
-                    if (!processedFeatures.containsKey(previousG)) {
-                        String glycanURI = featureRepository.addPublicFeature(f, user);
-                        if (glycanURI != null) {
-                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+	                // check if there is a public uri
+	                String publicG = previousG != null ? getPublicUri(previousG, user) : null;
+                    if (publicG != null) {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(publicG, null);
                             if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
                                 publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
                                 processedFeatures.put(previousG, newLinkedGlycan);
                             }
                         } 
-                    }
-                    else {
-                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
+                    } else {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            String glycanURI = featureRepository.addPublicFeature(f, user);
+                            if (glycanURI != null) {
+                                Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                                if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                    publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                    processedFeatures.put(previousG, newLinkedGlycan);
+                                }
+                            } 
+                        }
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
                     }
 	            }
 	        }
@@ -1828,18 +1851,33 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     }
                 } else {
                     String previousG = f.getUri();
-                    if (!processedFeatures.containsKey(previousG)) {
-                        String glycanURI = featureRepository.addPublicFeature(f, user);
-                        if (glycanURI != null) {
-                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                    // check if there is a public uri
+                    String publicG = previousG != null ? getPublicUri(previousG, user) : null;
+                    if (publicG != null) {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(publicG, null);
                             if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
                                 publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
                                 processedFeatures.put(previousG, newLinkedGlycan);
                             }
                         } 
-                    }
-                    else {
-                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
+                    } else {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            String glycanURI = featureRepository.addPublicFeature(f, user);
+                            if (glycanURI != null) {
+                                Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                                if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                    publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                    processedFeatures.put(previousG, newLinkedGlycan);
+                                }
+                            } 
+                        }
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
                     }
                 }
             }
@@ -1856,18 +1894,33 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     }
                 } else {
                     String previousG = f.getUri();
-                    if (!processedFeatures.containsKey(previousG)) {
-                        String glycanURI = featureRepository.addPublicFeature(f, user);
-                        if (glycanURI != null) {
-                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                    // check if there is a public uri
+                    String publicG = previousG != null ? getPublicUri(previousG, user) : null;
+                    if (publicG != null) {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(publicG, null);
                             if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
                                 publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
                                 processedFeatures.put(previousG, newLinkedGlycan);
                             }
                         } 
-                    }
-                    else {
-                        publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
+                    } else {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            String glycanURI = featureRepository.addPublicFeature(f, user);
+                            if (glycanURI != null) {
+                                Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                                if (newLinkedGlycan != null && newLinkedGlycan instanceof LinkedGlycan) {
+                                    publicFeatures.add((LinkedGlycan) newLinkedGlycan); // get the public one
+                                    processedFeatures.put(previousG, newLinkedGlycan);
+                                }
+                            } 
+                        }
+                        else {
+                            publicFeatures.add((LinkedGlycan) processedFeatures.get(previousG)); // get the public one
+                        }
                     }
                 }
             }
@@ -1884,24 +1937,39 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     }
                 } else {
                     String previousG = f.getUri();
-                    if (!processedFeatures.containsKey(previousG)) {
-                        String glycanURI = featureRepository.addPublicFeature(f, user);
-                        if (glycanURI != null) {
-                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                    // check if there is a public uri
+                    String publicG = previousG != null ? getPublicUri(previousG, user) : null;
+                    if (publicG != null) {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            Feature newLinkedGlycan = featureRepository.getFeatureFromURI(publicG, null);
                             if (newLinkedGlycan != null && newLinkedGlycan instanceof GlycoPeptide) {
                                 publicFeatures2.add((GlycoPeptide) newLinkedGlycan); // get the public one
                                 processedFeatures.put(previousG, newLinkedGlycan);
                             }
                         } 
-                    }
-                    else {
-                        publicFeatures2.add((GlycoPeptide) processedFeatures.get(previousG)); // get the public one
+                        else {
+                            publicFeatures2.add((GlycoPeptide) processedFeatures.get(previousG)); // get the public one
+                        }
+                    } else {
+                        if (!processedFeatures.containsKey(previousG)) {
+                            String glycanURI = featureRepository.addPublicFeature(f, user);
+                            if (glycanURI != null) {
+                                Feature newLinkedGlycan = featureRepository.getFeatureFromURI(glycanURI, null);
+                                if (newLinkedGlycan != null && newLinkedGlycan instanceof GlycoPeptide) {
+                                    publicFeatures2.add((GlycoPeptide) newLinkedGlycan); // get the public one
+                                    processedFeatures.put(previousG, newLinkedGlycan);
+                                }
+                            } 
+                        }
+                        else {
+                            publicFeatures2.add((GlycoPeptide) processedFeatures.get(previousG)); // get the public one
+                        }
                     }
                 }
             }
             ((GPLinkedGlycoPeptide)feature).setPeptides(publicFeatures2);
             break;
-        default:
+        default: 
             break;
 	        
 	    }

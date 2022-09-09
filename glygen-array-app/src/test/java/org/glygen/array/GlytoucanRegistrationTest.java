@@ -9,6 +9,7 @@ import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondense
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
+import org.glycoinfo.WURCSFramework.io.GlycoCT.GlycoVisitorValidationForWURCS;
 import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glygen.array.persistence.cfgdata.GlycoCTStructureRepository;
 import org.glygen.array.persistence.cfgdata.GlytoucanInfo;
@@ -48,31 +49,33 @@ public class GlytoucanRegistrationTest {
 		for (Structure st: structures) {
 		    Optional<GlytoucanInfo> existing = glytoucanRepository.findById(st.getStructure_id());
 		    if (!existing.isPresent()) {
+		        System.out.println ("Processing " + st.getStructure_id());
 		        String glycoCT = st.getGlyco_ct();
 	            try {
-	                Glycan glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT.trim());
-                    if (glycanObject != null) {
-                        glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
+	                SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                    Sugar sugar = importer.parse(glycoCT.trim());
+                    if (sugar != null) {
+                        SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                        exporter.start(sugar);
+                        glycoCT = exporter.getHashCode();
                         glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
-                        System.out.println("saving recoded glycoCT");
                         st.setGlyco_ct(glycoCT);
+                        System.out.println("saving recoded glycoCT");
                         glycoCTRepository.save(st);
-                    } else {
-                        SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
-                        Sugar sugar = importer.parse(glycoCT.trim());
-                        if (sugar != null) {
-                            SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
-                            exporter.start(sugar);
-                            glycoCT = exporter.getHashCode();
-                            glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
-                            st.setGlyco_ct(glycoCT);
-                            System.out.println("saving recoded glycoCT");
-                            glycoCTRepository.save(st);
+                        GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                        t_validationWURCS.start(sugar);
+                        List<String> errors = t_validationWURCS.getErrors();
+                        if (errors != null && !errors.isEmpty()) {
+                            System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": ");
+                            for (String e: errors) {
+                                System.out.println (e);
+                            }
+                            continue;
                         }
                     }
 	            }
                 catch (Exception e) {
-                    System.out.println ("Error parsing/recoding " + st.getStructure_id() + " Reason:" + e.getMessage());
+                    System.out.println ("Error parsing/recoding/validating " + st.getStructure_id() + " Reason:" + e.getMessage());
                     //e.printStackTrace();
                 }
 	            try {
@@ -89,6 +92,7 @@ public class GlytoucanRegistrationTest {
 	                g.setId(st.getStructure_id());
 	                g.setGlytoucan_id(glytoucanId);
 	                glytoucanRepository.save(g);
+	                System.out.println ("Done processing!");
 	                assertTrue(true);
 	            } catch (Exception e) {
 	                System.out.println ("Error getting accession number for " + st.getStructure_id() + " Reason:" + e.getMessage());
@@ -100,42 +104,71 @@ public class GlytoucanRegistrationTest {
 		            // hash
 		            String glycoCT = st.getGlyco_ct();
 	                try {
+	                    System.out.println ("Processing previously registered " + st.getStructure_id());
+	                    System.out.println ("Validating previously registered " + st.getStructure_id());
+	                    SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                        Sugar sugar = importer.parse(glycoCT.trim());
+                        GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                        t_validationWURCS.start(sugar);
+                        List<String> errors = t_validationWURCS.getErrors();
+                        if (errors != null && !errors.isEmpty()) {
+                            System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": ");
+                            for (String err: errors) {
+                                System.out.println (err);
+                            }
+                            continue;
+                        }
+                        if (sugar != null) {
+                            SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                            exporter.start(sugar);
+                            glycoCT = exporter.getHashCode();
+                            glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
+                            st.setGlyco_ct(glycoCT);
+                            System.out.println("saving recoded glycoCT");
+                            glycoCTRepository.save(st);
+                        }
 	                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 	                    exporter.start(glycoCT);
 	                    String wurcs = exporter.getWURCS(); 
-	                    System.out.println ("getting accession number for previously registered" + st.getStructure_id());
+	                    System.out.println ("getting accession number for previously registered " + st.getStructure_id());
+	                    System.out.println ("WURCS: " + wurcs + " registration hash " + existing.get().getGlytoucan_id());
 	                    String glytoucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 	                    System.out.println ("Got " + glytoucanId);
-	                    if (glytoucanId != null) {
-	                        GlytoucanInfo g = new GlytoucanInfo();
-	                        g.setId(st.getStructure_id());
-	                        g.setGlytoucan_id(glytoucanId);
-	                        glytoucanRepository.save(g);
-	                    }
+	                    if (glytoucanId == null) {
+	                        // register again
+                            System.out.println ("registering again " + st.getStructure_id());
+                            glytoucanId = GlytoucanUtil.getInstance().registerGlycan(wurcs);
+	                    } 
+	                    GlytoucanInfo g = new GlytoucanInfo();
+                        g.setId(st.getStructure_id());
+                        g.setGlytoucan_id(glytoucanId);
+                        glytoucanRepository.save(g);
 	                } catch (Exception e) {
 	                    System.out.println ("error getting accession number for previously registered " + st.getStructure_id());
 	                    System.out.println ("try recoding again!");
 	                    try {
-	                        Glycan glycanObject = org.eurocarbdb.application.glycanbuilder.Glycan.fromGlycoCTCondensed(glycoCT.trim());
-	                        if (glycanObject != null) {
-	                            glycoCT = glycanObject.toGlycoCTCondensed(); // required to fix formatting errors like extra line break etc.
-	                            glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
-	                            System.out.println("saving recoded glycoCT");
-	                            st.setGlyco_ct(glycoCT);
-	                            glycoCTRepository.save(st);
-	                        } else {
-	                            SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
-	                            Sugar sugar = importer.parse(glycoCT.trim());
-	                            if (sugar != null) {
-	                                SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
-	                                exporter.start(sugar);
-	                                glycoCT = exporter.getHashCode();
-	                                glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
-	                                st.setGlyco_ct(glycoCT);
-	                                System.out.println("saving recoded glycoCT");
-	                                glycoCTRepository.save(st);
-	                            }
-	                        }
+	                        SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
+                            Sugar sugar = importer.parse(glycoCT.trim());
+                            if (sugar != null) {
+                                SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
+                                exporter.start(sugar);
+                                glycoCT = exporter.getHashCode();
+                                glycoCT = fixGlycoCT.fixGlycoCT(glycoCT);
+                                st.setGlyco_ct(glycoCT);
+                                System.out.println("saving recoded glycoCT");
+                                glycoCTRepository.save(st);
+                                GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                                t_validationWURCS.start(sugar);
+                                List<String> errors = t_validationWURCS.getErrors();
+                                if (errors != null && !errors.isEmpty()) {
+                                    System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": ");
+                                    for (String err: errors) {
+                                        System.out.println (err);
+                                    }
+                                    continue;
+                                }
+                            }
+	                        
 	                    }
                         catch (Exception e1) {
                             System.out.println ("Error parsing/recoding " + st.getStructure_id() + " Reason:" + e1.getMessage());

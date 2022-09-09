@@ -20,6 +20,14 @@
 			<id>nexus</id>
 			<url>https://glygen.ccrc.uga.edu/repository/content/repositories/thirdparty/</url>
 		</repository>
+		<repository>
+	        <id>org.glycoinfo</id>
+	        <url>https://glycoinfo.gitlab.io/wurcsframework</url>
+	        <releases>
+	            <enabled>true</enabled>
+	        </releases>
+	    </repository>
+
 	</repositories>
 
 	<dependencies>
@@ -188,9 +196,14 @@
 		  <artifactId>molecular</artifactId>
 		  <version>0.1.37</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 		  <groupId>glycoinfo</groupId>
 		  <artifactId>wurcs</artifactId>
+		  <version>1.0.1</version>
+		</dependency> -->
+		<dependency>
+		  <groupId>org.glycoinfo</groupId>
+		  <artifactId>wurcsframework</artifactId>
 		  <version>1.0.1</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jdom/jdom -->
