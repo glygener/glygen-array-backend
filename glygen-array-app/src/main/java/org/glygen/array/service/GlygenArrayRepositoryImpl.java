@@ -800,6 +800,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI graphIRI = f.createIRI(graph);
         // retrieve file details
         FileWrapper file = new FileWrapper();
+        file.setUri(fileURI);
+        file.setId(fileURI.substring(fileURI.lastIndexOf("/")+1));
         RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(fileURI), null, null, graphIRI);
         while (statements2.hasNext()) {
             Statement st2 = statements2.next();

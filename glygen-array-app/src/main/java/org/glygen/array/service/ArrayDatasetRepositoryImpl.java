@@ -1229,7 +1229,9 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         if (!value.stringValue().startsWith("http"))
                             continue;
                         // retrieve file details
-                        FileWrapper file = new FileWrapper();
+                        FileWrapper file = getFileFromURI(value.stringValue(), DEFAULT_GRAPH);
+                        /*file.setUri(value.stringValue());
+                        file.setId(value.stringValue().substring(value.stringValue().lastIndexOf("/")+1));
                         RepositoryResult<Statement> statements2 = sparqlDAO.getStatements(f.createIRI(value.stringValue()), null, null, defaultGraphIRI);
                         while (statements2.hasNext()) {
                             Statement st2 = statements2.next();
@@ -1256,8 +1258,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 Value val = st2.getObject();
                                 file.setDescription(val.stringValue());
                             }
+                        }*/
+                        if (file.getIdentifier() != null)
+                            datasetObject.getFiles().add(file); 
+                        else {
+                            logger.info("dangling file " + value.stringValue() + " in the repository");
                         }
-                        datasetObject.getFiles().add(file);    
                     }
                 }
             }
