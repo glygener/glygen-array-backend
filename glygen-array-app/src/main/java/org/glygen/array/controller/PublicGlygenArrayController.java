@@ -35,6 +35,7 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.IntensityData;
 import org.glygen.array.persistence.rdf.data.PrintedSlide;
@@ -1686,20 +1687,21 @@ public class PublicGlygenArrayController {
             @RequestParam String fileFolder, 
             @ApiParam(required=true, value="the identifier of the file to be downloaded") 
             @RequestParam String fileIdentifier,
-            @ApiParam(required=true, value="the original file name") 
-            @RequestParam String originalName) {
+            @ApiParam(required=false, value="filename to save the downloaded file as. If not provided, the original file name is used if available") 
+            @RequestParam(value="filename", required=false)
+            String originalName) {
         
         // check to see if the user can access this file
         fileFolder = fileFolder.trim();
         fileIdentifier = fileIdentifier.trim();
-        originalName = originalName.trim();
+        if (originalName != null) originalName = originalName.trim();
         String datasetId = fileFolder.substring(fileFolder.lastIndexOf("/")+1);
         ErrorMessage errorMessage = new ErrorMessage("Invalid input");
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         try {
             String publicid = datasetRepository.getDatasetPublicId(datasetId);
             if (publicid == null) {
-                errorMessage.addError(new ObjectError("fileWrapper", "This file is not public. Cannot be downloaded!"));
+                errorMessage.addError(new ObjectError("fileIdentifier", "This file is not public. Cannot be downloaded!"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             } 
         } catch (Exception e) {
@@ -1709,35 +1711,27 @@ public class PublicGlygenArrayController {
         
         File file = new File(fileFolder, fileIdentifier);
         if (!file.exists()) {
-            errorMessage.addError(new ObjectError("file", "NotFound"));
+            errorMessage.addError(new ObjectError("fileIdentifier", "NotFound"));
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             return ResponseEntity.notFound().build();
-            //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
         
+        if (originalName == null) {
+            try {
+                FileWrapper fw = repository.getFileByIdentifier(fileIdentifier, null);
+                if (fw != null) {
+                    originalName = fw.getOriginalName();
+                }
+            } catch (Exception e) {
+                logger.warn ("error getting file details from the repository", e);
+                
+            }
+            if (originalName == null)
+                originalName = fileIdentifier;
+        }
         return DatasetController.download(file, originalName);
-  
-        /*FileSystemResource r = new FileSystemResource(file);
-        MediaType mediaType = MediaTypeFactory
-                .getMediaType(r)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
-        
-        HttpHeaders respHeaders = new HttpHeaders();
-        respHeaders.setContentType(mediaType);
-        respHeaders.setContentLength(file.length());
-
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename(originalName)
-                .build();
-
-        respHeaders.set(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString());
-        respHeaders.set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS,"Content-Disposition");
-        
-        return new ResponseEntity<Resource>(
-                r, respHeaders, HttpStatus.OK
-        );*/
     }
     
     
