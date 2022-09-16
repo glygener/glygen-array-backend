@@ -15,7 +15,6 @@ public class ProcessedResultConfiguration {
     String sheetName;
     String resultFileType = "cfg";
     String slideLayoutUri;
-    String blockLayoutUri = null;
     
     
     /**
@@ -133,18 +132,6 @@ public class ProcessedResultConfiguration {
      */
     public void setSlideLayoutUri(String slideLayoutURI) {
         this.slideLayoutUri = slideLayoutURI;
-    }
-    /**
-     * @return the blockLayoutUri
-     */
-    public String getBlockLayoutUri() {
-        return blockLayoutUri;
-    }
-    /**
-     * @param blockLayoutUri the blockLayoutUri to set
-     */
-    public void setBlockLayoutUri(String blockLayoutUri) {
-        this.blockLayoutUri = blockLayoutUri;
     }
     /**
      * @return the groupColumnId

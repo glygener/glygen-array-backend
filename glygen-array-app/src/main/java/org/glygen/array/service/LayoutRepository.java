@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.SlideLayout;
@@ -62,16 +63,17 @@ public interface LayoutRepository {
     BlockLayout getBlockLayoutByName(String name, UserEntity user, boolean loadAll)
             throws SparqlException, SQLException;
     Spot getSpotFromURI(String spotURI, UserEntity user) throws SQLException, SparqlException;
-    //List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutUri, String blockLayoutUri, UserEntity user) throws SparqlException, SQLException;
-    String getSpotByPosition(String slideLayoutId, String blockId, int row, int column, UserEntity user)
-            throws SparqlException, SQLException;
     String makePublic(SlideLayout layout, UserEntity user, Map<String, String> spotIdMap)
             throws SparqlException, SQLException;
     SlideLayout getSlideLayoutFromURI(String slideLayoutURI, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
     String addSlideLayout(SlideLayout s, UserEntity user, Boolean layoutOnly) throws SparqlException, SQLException;
     String addBlocksToSlideLayout(SlideLayout s, UserEntity user) throws SparqlException, SQLException;
-    List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String blockLayoutURI, String groupId,
-            UserEntity user) throws SparqlException, SQLException;
     Spot getSpotFromURI(String spotURI, Boolean loadAll, UserEntity user) throws SQLException, SparqlException;
+    String getPublicBlockURI(String blockURI, String publicSlideLayoutURI, UserEntity user)
+            throws SparqlException, SQLException;
+    List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String groupId, UserEntity user)
+            throws SparqlException, SQLException;
+    String getSpotByPosition(String slideLayoutURI, int row, int column, UserEntity user)
+            throws SparqlException, SQLException;
 }

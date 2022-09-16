@@ -27,6 +27,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.GraphPermissionEntity;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.Creator;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.FeatureType;
@@ -695,17 +696,17 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                         String existing;
                         if (rawData.getSlide().getPrintedSlide().getLayout().getIsPublic())
                             existing = layoutRepository.getSpotByPosition(slideLayoutUri, 
-                                spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), null);
+                                 spot.getRow(), spot.getColumn(), null);
                         else 
                             existing = layoutRepository.getSpotByPosition(slideLayoutUri, 
-                                    spot.getBlockLayoutUri(), spot.getRow(), spot.getColumn(), user);
+                                    spot.getRow(), spot.getColumn(), user);
                         if (existing != null)
                             statements.add(f.createStatement(f.createIRI(measurementURI), measurementOf, f.createIRI(existing), graphIRI));
                         else {
                             logger.error("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
-                                    + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri());
+                                    + "located in the repository for slidelayout " + slideLayoutUri);
                             return CompletableFuture.failedFuture(new SparqlException ("The spot (" + spot.getRow() + "-" + spot.getColumn() + ") for measurement cannot be "
-                                    + "located in the repository for slidelayout " + slideLayoutUri + " and blockLayout " + spot.getBlockLayoutUri()));
+                                    + "located in the repository for slidelayout " + slideLayoutUri));
                         }
                     }
                     statements.add(f.createStatement(raw, hasMeasurement, f.createIRI(measurementURI), graphIRI));
@@ -779,7 +780,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                 statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                             } else {
                                 // need to locate the spot
-                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), null, user);
+                                List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getGroup(), user);
                                 if (existing != null && !existing.isEmpty()) {
                                     for (Spot s: existing) {
                                         IRI spotIRI = f.createIRI(s.getUri());
@@ -886,7 +887,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                             statements.add(f.createStatement(intensityIRI, bindingValueOf, spotIRI, graphIRI));
                         } else {
                             // need to locate the spot
-                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getBlockLayoutUri(), null, user);
+                            List<Spot> existing = layoutRepository.getSpotByFeatures(spot.getFeatures(), null, spot.getGroup(), user);
                             if (existing != null && !existing.isEmpty()) {
                                 for (Spot s: existing) {
                                     IRI spotIRI = f.createIRI(s.getUri());
@@ -2870,23 +2871,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                         // no need to make changes
                                         continue;
                                     spot.setUri(null);
-                                    if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
-                                        spot.setBlockLayoutUri(getPublicUri(spot.getBlockLayoutUri(), user));
-                                    /*if (spot.getBlockLayoutUri() != null) {
-                                        //fix its blocklayoutid
-                                        String blockLayoutUri = blockLayoutUriMap.get(spot.getBlockLayoutUri());
-                                        String blockLayoutId = null;
-                                        if (blockLayoutUri != null) {
-                                            blockLayoutId = blockLayoutUri.substring(blockLayoutUri.lastIndexOf("/")+1);
-                                        }
-                                        if (blockLayoutId == null)
-                                            blockLayoutId = layoutRepository.getPublicBlockLayoutUri(spot.getBlockLayoutUri(), user);
-                                        if (blockLayoutId != null)
-                                            spot.setBlockLayoutUri(blockLayoutId);
-                                        else {
-                                            throw new SparqlException ("public block layout for the spot cannot be set. Current block layout id: " + spot.getBlockLayoutUri());
-                                        }
-                                    }*/
+                                    //TODO what to do with blockIds
+                                    /*
+                                    if (spot.getBlockURI() != null && !spot.getBlockURI().contains("public"))
+                                        spot.setBlockURI(layoutRepository.getPublicBlockURI(spot.getBlockURI(), slide.getPrintedSlide().getLayout().getUri(), user));*/
+                                    
                                 }
                             }
                             if (rawData.getProcessedDataList() != null) {
@@ -2900,8 +2889,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                                                     continue;
                                                 spot.setUri(null);
                                                 //fix its blocklayoutid
-                                                if (spot.getBlockLayoutUri() != null && !spot.getBlockLayoutUri().contains("public"))
-                                                    spot.setBlockLayoutUri(getPublicUri(spot.getBlockLayoutUri(), user));
+                                                /*if (spot.getBlockURI() != null && !spot.getBlockURI().contains("public"))
+                                                    spot.setBlockURI(layoutRepository.getPublicBlockURI(spot.getBlockURI(), slide.getPrintedSlide().getLayout().getUri(), user));*/
                                                 // fix its features
                                                 for (Feature f: spot.getFeatures()) {
                                                     if (f.getUri() != null && f.getUri().contains("public")) {
@@ -2987,6 +2976,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         String publicURI  = addPublicDataset(dataset, graph);
         return CompletableFuture.completedFuture(publicURI);  
     }
+
+    
 
     private String makePrintedSlidePublic(PrintedSlide printedSlide, String graph) throws SparqlException, SQLException {
         deletePrintedSlideById(printedSlide.getId(), graph);

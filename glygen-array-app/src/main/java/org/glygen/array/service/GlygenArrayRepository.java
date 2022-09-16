@@ -7,6 +7,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.view.AsyncBatchUploadResult;
 
@@ -58,4 +59,6 @@ public interface GlygenArrayRepository {
     String updateBatchUploadAccess(AsyncBatchUploadResult result, UserEntity user) throws SparqlException, SQLException;
 
     String getPublicUri(String uri, UserEntity user) throws SQLException, SparqlException;
+
+    FileWrapper getFileByIdentifier(String fileIdentifier, UserEntity user) throws SQLException, SparqlException;
 }

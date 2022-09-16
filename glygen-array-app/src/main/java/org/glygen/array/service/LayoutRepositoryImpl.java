@@ -626,6 +626,26 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 	}
 	
+	@Override
+	public String getPublicBlockURI(String blockURI, String publicSlideLayoutURI, UserEntity user) throws SparqlException, SQLException {
+        Block block = getBlock(blockURI, false, user);
+        
+        // find the same block in the given slide layout in the public repository
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?b \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( "<" + publicSlideLayoutURI + "> gadr:has_block ?b");
+        queryBuf.append ( "?b gadr:has_row \"" + block.getRow() + "\"^^xsd:int . ?b gadr:has_column \"" + block.getColumn() + "\"^^xsd:int .  }\n");
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity sparqlEntity : results) {
+            String blockLayoutURI = sparqlEntity.getValue("b");
+            return blockLayoutURI;
+        }
+        return null;
+    }
+	
 	private Block getBlock (String blockURI, boolean loadAll, UserEntity user) throws SparqlException, SQLException {
 	    String graph = null;
         if (user == null)
@@ -2103,21 +2123,22 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 s.setMetadata(metadataRepository.getSpotMetadataValueFromURI(uriValue.stringValue(), loadAll, user));
             }
 		}
-		
+		/*
 		// find its blockLayoutId
 		RepositoryResult<Statement> statements = sparqlDAO.getStatements(null, hasSpot, spot, graphIRI);
 		while (statements.hasNext()) {
             Statement st = statements.next();
             String blockLayoutURI = st.getSubject().stringValue();
             s.setBlockLayoutUri(blockLayoutURI);
-		}
+		}*/
 		return s;
 	}
 
 	private String addPublicSpot(Spot s) throws SparqlException, SQLException {
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
-		String spotURI = generateUniqueURI(uriPrefixPublic + "S");
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+		String spotURI = generateUniqueURI(uriPrefixPublic + "S", allGraphs);
 		IRI spot = f.createIRI(spotURI);
 		Literal row = f.createLiteral(s.getRow());
 		Literal column = f.createLiteral(s.getColumn());
@@ -2299,7 +2320,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	}
 
     @Override
-    public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI, String blockLayoutURI,
+    public List<Spot> getSpotByFeatures(List<Feature> features, String slideLayoutURI,
             String groupId, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null) {
@@ -2338,9 +2359,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         if (groupId != null && !groupId.isEmpty()) {
             where += " ?s gadr:has_group \'" + groupId + "'^^xsd:string . \n";
         }
-        if (blockLayoutURI != null) {
-            where +=  "<" + blockLayoutURI + "> template:has_spot ?s .  \n";
-        } else if (slideLayoutURI != null) {
+        if (slideLayoutURI != null) {
             where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
         }
         where += "}";
@@ -2358,13 +2377,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 where += " ?s gadr:has_group \'" + groupId + "'^^xsd:string . \n";
             }
             
-            if (blockLayoutURI != null) {
-                if (blockLayoutURI.contains("public")) {
-                    where +=  "<" + blockLayoutURI + ">  template:has_spot ?s .  \n";
-                } else {
-                    where +=  "<" + blockLayoutURI + "> gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
-                }
-            } else if (slideLayoutURI != null) {
+            if (slideLayoutURI != null) {
                 if (slideLayoutURI.contains("public")) {
                     where += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
                 } else {
@@ -2465,7 +2478,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
     @Override
-    public String getSpotByPosition (String slideLayoutURI, String blockLayoutURI, int row, int column, UserEntity user) throws SparqlException, SQLException {
+    public String getSpotByPosition (String slideLayoutURI, int row, int column, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (user == null) {
             graph = DEFAULT_GRAPH;
@@ -2496,9 +2509,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         String fromString = "FROM <" + DEFAULT_GRAPH + ">\n";
         whereClause += "?s gadr:has_row \"" + row + "\"^^xsd:int . \n"; 
         whereClause += "?s gadr:has_column \"" + column + "\"^^xsd:int . \n";
-        if (blockLayoutURI != null) {
-            whereClause += "<" + blockLayoutURI + "> template:has_spot ?s .  \n";
-        } else if (slideLayoutURI != null) {
+        if (slideLayoutURI != null) {
             whereClause += "<" + slideLayoutURI + "> gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
         }   
         whereClause += "}\n";
@@ -2507,9 +2518,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             whereClause += " UNION {";
             whereClause += "?s gadr:has_row \"" + row + "\"^^xsd:int . \n"; 
             whereClause += "?s gadr:has_column \"" + column + "\"^^xsd:int . \n";
-            if (blockLayoutURI != null) {
-                whereClause += "<" + blockLayoutURI + ">  gadr:has_public_uri ?pb . ?pb template:has_spot ?s .  \n";
-            } else if (slideLayoutURI != null) {
+            if (slideLayoutURI != null) {
                 whereClause += "<" + slideLayoutURI + "> gadr:has_public_uri ?ps . ?ps gadr:has_block ?b . ?b template:has_block_layout ?bl . ?bl template:has_spot ?s .  \n";
             } 
             whereClause += "}";

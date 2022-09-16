@@ -1776,13 +1776,12 @@ public class DatasetController {
                         for (String blockId: rawData.getSlide().getBlocksUsed()) { 
                             boolean found = false;
                             for (Map.Entry<Measurement, Spot> entry: dataMap.entrySet()) {
-                                if (entry.getValue().getBlockLayoutUri().equals(uriPre + blockId)) {
+                                if (entry.getValue().getBlockURI().equals(uriPre + blockId)) {
                                     filteredMap.put(entry.getKey(), entry.getValue());
                                     found = true;
                                     if (!foundBlocks.contains(blockId)) {
                                         foundBlocks.add(blockId);
                                     }
-                                    break;
                                 }
                             }
                             if (!found) {
@@ -8444,8 +8443,13 @@ public class DatasetController {
             @RequestParam String fileFolder, 
             @ApiParam(required=true, value="the identifier of the file to be downloaded") 
             @RequestParam String fileIdentifier,
-            @ApiParam(required=true, value="the original file name") 
-            @RequestParam String originalName, Principal p) {
+            @ApiParam(required=false, value="filename to save the downloaded file as. If not provided, the original file name is used if available") 
+            @RequestParam(value="filename", required=false)
+            String originalName, Principal p) {
+        
+        if (originalName != null) originalName = originalName.trim();
+        fileFolder = fileFolder.trim();
+        fileIdentifier = fileIdentifier.trim();
         
         // check to see if the user can access this file
         String datasetId = fileFolder.substring(fileFolder.lastIndexOf("/")+1);
@@ -8464,7 +8468,7 @@ public class DatasetController {
                     }
                 }
                 if (dataset == null) {
-                    errorMessage.addError(new ObjectError("fileWrapper", "This file does not belong to this user. Cannot be downloaded!"));
+                    errorMessage.addError(new ObjectError("fileIdentifier", "This file does not belong to this user. Cannot be downloaded!"));
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 }
             } 
@@ -8473,14 +8477,28 @@ public class DatasetController {
         }
         File file = new File(fileFolder, fileIdentifier);
         if (!file.exists()) {
-            errorMessage.addError(new ObjectError("fileWrapper", "NotFound"));
+            errorMessage.addError(new ObjectError("fileIdentifier", "NotFound"));
         }
         
         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
             return ResponseEntity.notFound().build();
             //throw new IllegalArgumentException ("File is not accessible", errorMessage);
         }
-
+        
+        if (originalName == null) {
+            try {
+                FileWrapper fw = repository.getFileByIdentifier(fileIdentifier, user);
+                if (fw != null) {
+                    originalName = fw.getOriginalName();
+                }
+            } catch (Exception e) {
+                logger.warn ("error getting file details from the repository", e);
+                
+            }
+            if (originalName == null)
+                originalName = fileIdentifier;
+        }
+ 
         return download (file, originalName);
     }
     

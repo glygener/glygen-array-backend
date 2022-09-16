@@ -240,7 +240,7 @@ public class ProcessedDataParser {
                         String key = glycan.getUri() + linker.getUri();
                         Feature feature = featureCache.get(key);
                         if (feature == null) {
-                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
+                            feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), null, user);
                             if (feature != null)
                                 featureCache.put(key, feature);
                         }
@@ -256,7 +256,7 @@ public class ProcessedDataParser {
                                 key = glycan.getUri() + linker.getUri();
                                 feature = featureCache.get(key);
                                 if (feature == null) {
-                                    feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), config.getBlockLayoutUri(), user);
+                                    feature = featureRepository.getFeatureByGlycanLinker(glycan, linker, config.getSlideLayoutUri(), null, user);
                                     if (feature != null)
                                         featureCache.put(key, feature);
                                 }
@@ -271,23 +271,23 @@ public class ProcessedDataParser {
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
                                 features.add(feature);
-                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), null, user);
-                                if (spots != null) {
+                                List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), null, user);
+                                /*if (spots != null) {
                                     for (Spot spot: spots) {
                                         spot.setBlockLayoutUri(config.getBlockLayoutUri());
                                     }
-                                }
+                                }*/
                                 intensity.setSpots(spots);
                             }
                         } else {
                             List<Feature> features = new ArrayList<Feature>();
                             features.add(feature);
-                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), null, user);
-                            if (spots != null) {
+                            List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), null, user);
+                            /*if (spots != null) {
                                 for (Spot spot: spots) {
                                     spot.setBlockLayoutUri(config.getBlockLayoutUri());
                                 }
-                            }
+                            }*/
                             intensity.setSpots(spots);
                         }
                     }
@@ -359,12 +359,12 @@ public class ProcessedDataParser {
                             groupId = groupCell.getStringCellValue().trim();
                         }
                     }
-                    List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), config.getBlockLayoutUri(), groupId, user);
-                    if (spots != null) {
+                    List<Spot> spots = layoutRepository.getSpotByFeatures(features, config.getSlideLayoutUri(), groupId, user);
+                    /*if (spots != null) {
                         for (Spot spot: spots) {
                             spot.setBlockLayoutUri(config.getBlockLayoutUri());
                         }
-                    }
+                    }*/
                     intensity.setSpots(spots);
                 } catch (SparqlException | SQLException e) {
                     ErrorMessage error = new ErrorMessage("Repository exception:" + e.getMessage());

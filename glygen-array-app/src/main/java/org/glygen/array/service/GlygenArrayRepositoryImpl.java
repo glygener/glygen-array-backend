@@ -834,6 +834,33 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
     
     @Override
+    public FileWrapper getFileByIdentifier (String fileIdentifier, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+         
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:has_filename \"\"\"" + fileIdentifier + "\"\"\"^^xsd:string . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                return getFileFromURI(uri, graph);
+            }
+        }
+        return null;
+        
+    }
+    
+    @Override
     public String addBatchUpload(AsyncBatchUploadResult result, String type, UserEntity user) throws SparqlException, SQLException {
         String graph = getGraphForUser(user);
         String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);

@@ -17,7 +17,7 @@ public class Spot {
 	Integer row;
 	Integer column;
 	String group;
-	String blockLayoutUri;
+	String blockURI;
 	String uri;
 	String flag;
 	
@@ -114,20 +114,6 @@ public class Spot {
 	}
 
     /**
-     * @return the blockLayoutUri
-     */
-    public String getBlockLayoutUri() {
-        return blockLayoutUri;
-    }
-
-    /**
-     * @param blockLayoutUri the blockLayoutUri to set
-     */
-    public void setBlockLayoutUri(String blockLayoutUri) {
-        this.blockLayoutUri = blockLayoutUri;
-    }
-
-    /**
      * @return the metadata
      */
     public SpotMetadata getMetadata() {
@@ -168,5 +154,19 @@ public class Spot {
      */
     public void setRatioConcentrationMap(Map<String, RatioConcentration> ratioConcentrationMap) {
         this.ratioConcentrationMap = ratioConcentrationMap;
+    }
+
+    /**
+     * @return the blockURI
+     */
+    public String getBlockURI() {
+        return blockURI;
+    }
+
+    /**
+     * @param blockURI the blockURI to set
+     */
+    public void setBlockURI(String blockURI) {
+        this.blockURI = blockURI;
     }
 }
