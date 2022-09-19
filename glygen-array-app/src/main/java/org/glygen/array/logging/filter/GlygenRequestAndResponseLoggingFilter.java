@@ -116,7 +116,8 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
             WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
         if (wrapper != null) {
             if (wrapper.getContentSize() < 0) {
-                LoggerFactory.getLogger(GlygenRequestAndResponseLoggingFilter.class).warn("size of response is negative! ", response.getStatus());
+                LoggerFactory.getLogger(GlygenRequestAndResponseLoggingFilter.class).warn("size of response is negative! " + response.getStatus() + " " + response.getHeaderNames());
+                return null;
             }
             byte[] buf = wrapper.getContentAsByteArray();
             if (buf.length > 0) {
