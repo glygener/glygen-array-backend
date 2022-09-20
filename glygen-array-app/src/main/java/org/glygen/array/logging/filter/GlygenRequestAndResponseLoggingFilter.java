@@ -102,9 +102,11 @@ public class GlygenRequestAndResponseLoggingFilter extends OncePerRequestFilter 
         String payload = null;
         ContentCachingRequestWrapper wrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
         if (wrapper != null) {
-            byte[] buf = wrapper.getContentAsByteArray();
-            if (buf.length > 0) {
-                payload = new String(buf, 0, buf.length, wrapper.getCharacterEncoding());
+            if (wrapper.getContentLength() > 0) {
+                byte[] buf = wrapper.getContentAsByteArray();
+                if (buf.length > 0) {
+                    payload = new String(buf, 0, buf.length, wrapper.getCharacterEncoding());
+                }
             }
         }
         return payload;
