@@ -677,7 +677,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 				Value v = st.getObject();
 				String blockLayoutURI = v.stringValue();
 				BlockLayout blockLayout = null;
-				if (blockLayoutCache.containsKey(blockLayoutURI)) {
+				if (loadAll && blockLayoutCache.containsKey(blockLayoutURI)) {
 				    blockLayout = blockLayoutCache.get(blockLayoutURI);
 				    if (loadAll && (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty())) {
 				        // need to reload
@@ -685,8 +685,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                    blockLayoutCache.put(blockLayoutURI, blockLayout);
 				    }
 				} else {
-				    blockLayout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);    // need the spots
-				    blockLayoutCache.put(blockLayoutURI, blockLayout);
+				    blockLayout = getBlockLayoutFromURI(blockLayoutURI, loadAll, user);    
+				    if (loadAll) blockLayoutCache.put(blockLayoutURI, blockLayout);
 				}
 				blockObject.setBlockLayout(blockLayout);
 			} else if (st.getPredicate().equals(hasRow)) {
@@ -734,15 +734,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			return null;
 		else {
 		    // first check the cache if it is already loaded
-	        if (blockLayoutCache.containsKey(uriPre + blockLayoutId)) {
+	        if (loadAll && blockLayoutCache.containsKey(uriPre + blockLayoutId)) {
 	            BlockLayout b = blockLayoutCache.get(uriPre + blockLayoutId);
-	            if (loadAll) {  // check if the spots are there
-	                if (b.getSpots() != null && !b.getSpots().isEmpty()) {
-	                    return b;
-	                }
-	            } else {
-	                return b;
-	            }
+	            // check if the spots are there
+                if (b.getSpots() != null && !b.getSpots().isEmpty()) {
+                    return b;
+                } 
 	        }
 			return getBlockLayoutFromURI(uriPre + blockLayoutId, loadAll, user);
 		}

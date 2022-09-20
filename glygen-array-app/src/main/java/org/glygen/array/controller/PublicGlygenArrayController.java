@@ -20,6 +20,7 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
+import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
@@ -569,6 +570,20 @@ public class PublicGlygenArrayController {
             int total = datasetRepository.getArrayDatasetCountByUser(null, searchValue);
             
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, loadAll);
+            for (ArrayDataset d: resultList) {
+                if (!loadAll) {
+                    // clear block layout info if exists
+                    for (Slide slide: d.getSlides()) {
+                        if (slide.getPrintedSlide() != null && slide.getPrintedSlide().getLayout() != null && slide.getPrintedSlide().getLayout().getBlocks() != null) {
+                            for (Block b: slide.getPrintedSlide().getLayout().getBlocks()) {
+                               if (b.getBlockLayout() != null) {
+                                   b.getBlockLayout().setSpots(new ArrayList<Spot>());
+                               }
+                            }
+                        }
+                    }
+                }
+            }
             result.setRows(resultList);
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
