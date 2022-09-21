@@ -1307,7 +1307,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             graph = getGraphForUser(user);
         if (graph != null) {
             
-            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate, false);
+            List<SparqlEntity> results = retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, datasetTypePredicate, false, true);
             
             for (SparqlEntity sparqlEntity : results) {
                 String uri = sparqlEntity.getValue("s");
@@ -3529,12 +3529,12 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             
             String searchPredicate = "";
             if (searchValue != null && !searchValue.isEmpty())
-                searchPredicate = getSearchPredicate(searchValue, "?s");
+                searchPredicate = getSearchPredicate(searchValue, "?feature");
             
             String sortLine = "";
             if (sortPredicate != null)
-                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
-            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+                sortLine = "OPTIONAL {?feature " + sortPredicate + " ?sortBy } .\n";  
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?feature)": "(?sortBy)");  
             StringBuffer queryBuf = new StringBuffer();
             queryBuf.append (prefix + "\n");
             queryBuf.append ("SELECT DISTINCT ?feature, ?intensity, ?rfu, ?stdev, ?cv \n");
