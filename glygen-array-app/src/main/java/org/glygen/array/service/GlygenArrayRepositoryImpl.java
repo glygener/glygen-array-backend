@@ -432,6 +432,10 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
     }
     
     protected String getSearchPredicate (String searchValue, String queryLabel) {
+        return getSearchPredicate(searchValue, queryLabel, false);
+    }
+    
+    protected String getSearchPredicate (String searchValue, String queryLabel, boolean addQueryLabel) {
         if (searchValue != null) {
             searchValue = SparqlUtils.escapeSpecialCharacters (searchValue.trim());
         }
@@ -446,6 +450,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             filterClause += "regex (str(?value" + i + "), '" + searchValue + "', 'i')";
             if (i + 1 < numberOfValues)
                 filterClause += " || ";
+        }
+        if (addQueryLabel) {
+            filterClause += "|| regex (str(" + queryLabel + "), '" + searchValue + "', 'i')";
         }
         filterClause += ")\n";
             
@@ -472,16 +479,21 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             return "gadr:created_by ";
         return null;
     }
-
+    
     protected List<SparqlEntity> retrieveByTypeAndUser(int offset, int limit, String field, int order, String searchValue,
             String graph, String type, boolean includePublic) throws SparqlException {
+        return retrieveByTypeAndUser(offset, limit, field, order, searchValue, graph, type, includePublic, false);
+    }
+
+    protected List<SparqlEntity> retrieveByTypeAndUser(int offset, int limit, String field, int order, String searchValue,
+            String graph, String type, boolean includePublic, boolean includeURIinSearch) throws SparqlException {
         
         String sortPredicate = getSortPredicate (field);
         String searchPredicate = "";
         String publicSearchPredicate = "";
         if (searchValue != null) {
-            searchPredicate = getSearchPredicate(searchValue, "?s");
-            publicSearchPredicate = getSearchPredicate(searchValue, "?public");
+            searchPredicate = getSearchPredicate(searchValue, "?s", includeURIinSearch);
+            publicSearchPredicate = getSearchPredicate(searchValue, "?public", includeURIinSearch);
         }
         
         String sortLine = "";
@@ -497,9 +509,6 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         StringBuffer queryBuf = new StringBuffer();
         queryBuf.append (prefix + "\n");
         queryBuf.append ("SELECT DISTINCT ?s");
-        if (sortPredicate != null) {
-            //queryBuf.append(", ?sortBy");
-        }
         queryBuf.append ("\nFROM <" + graph + ">\n");
         if (!graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))  {
             queryBuf.append ("FROM NAMED <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");

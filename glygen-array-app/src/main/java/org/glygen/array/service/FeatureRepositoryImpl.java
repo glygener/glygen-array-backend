@@ -1817,7 +1817,8 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 	public String addPublicFeature(Feature feature, UserEntity user) throws SparqlException, SQLException {
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI featureType = f.createIRI(featureTypePredicate);
-		String featureURI = generateUniqueURI(uriPrefixPublic + "F");
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+		String featureURI = generateUniqueURI(uriPrefixPublic + "F", allGraphs);
 		IRI feat = f.createIRI(featureURI);
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 		IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);
@@ -1965,7 +1966,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         
         }
 		
-		String positionContextURI = generateUniqueURI(uriPrefixPublic + "PC");
+		String positionContextURI = generateUniqueURI(uriPrefixPublic + "PC", allGraphs);
         IRI positionContext = f.createIRI(positionContextURI);
 		if (feature.getPositionMap() != null) {
 			for (String position: feature.getPositionMap().keySet()) {

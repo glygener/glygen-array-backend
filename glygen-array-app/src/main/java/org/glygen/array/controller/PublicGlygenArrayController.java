@@ -548,7 +548,7 @@ public class PublicGlygenArrayController {
             @ApiParam(required=false, value="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         ArrayDatasetListView result = new ArrayDatasetListView();
-        logger.info("getting the list of array datasets");
+        //logger.info("getting the list of array datasets");
         try {
             if (offset == null)
                 offset = 0;
@@ -591,7 +591,7 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
         }
         
-        logger.info("returning the list of array datasets");
+        //logger.info("returning the list of array datasets");
         return result;
     }
     

@@ -983,7 +983,7 @@ public class DatasetController {
         
         if (slide.getMetadata() == null) {
             if (!allowPartialData)
-                errorMessage.addError(new ObjectError("assatMetadata", "NoEmpty"));
+                errorMessage.addError(new ObjectError("assayMetadata", "NoEmpty"));
         } else  {
             try {
                 if (slide.getMetadata().getName() != null) {
