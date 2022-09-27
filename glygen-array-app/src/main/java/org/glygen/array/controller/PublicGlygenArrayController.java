@@ -572,16 +572,7 @@ public class PublicGlygenArrayController {
             List<ArrayDataset> resultList = datasetRepository.getArrayDatasetByUser(null, offset, limit, field, order, searchValue, loadAll);
             for (ArrayDataset d: resultList) {
                 if (!loadAll) {
-                    // clear block layout info if exists
-                    for (Slide slide: d.getSlides()) {
-                        if (slide.getPrintedSlide() != null && slide.getPrintedSlide().getLayout() != null && slide.getPrintedSlide().getLayout().getBlocks() != null) {
-                            for (Block b: slide.getPrintedSlide().getLayout().getBlocks()) {
-                               if (b.getBlockLayout() != null) {
-                                   b.getBlockLayout().setSpots(new ArrayList<Spot>());
-                               }
-                            }
-                        }
-                    }
+                    d.setSlides(null);
                 }
             }
             result.setRows(resultList);
