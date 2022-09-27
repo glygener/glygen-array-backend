@@ -1200,7 +1200,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     } else if (stPublic.getPredicate().equals(hasSample)) {
                         uriValue = stPublic.getObject();
                         datasetObject.setSample((Sample) metadataRepository.getMetadataCategoryFromURI(uriValue.stringValue(), sampleTypePredicate, loadAll, null));            
-                    } else if (st.getPredicate().equals(hasKeyword)) {
+                    } else if (stPublic.getPredicate().equals(hasKeyword)) {
                         Value keyword = stPublic.getObject();
                         datasetObject.getKeywords().add(keyword.stringValue());
                     } else if (stPublic.getPredicate().equals(hasSlide)) {
