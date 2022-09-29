@@ -2990,7 +2990,8 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         // add it to the public graph
         List<Statement> statements = new ArrayList<Statement>();
         ValueFactory f = sparqlDAO.getValueFactory();
-        String publicURI = generateUniqueURI(uriPrefixPublic + "AD", graph);
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+        String publicURI = generateUniqueURI(uriPrefixPublic + "AD", allGraphs);
         Literal date = f.createLiteral(new Date());
         Literal createdDate = f.createLiteral(dataset.getDateAddedToLibrary());
         IRI hasCreatedDate = f.createIRI(hasCreatedDatePredicate);

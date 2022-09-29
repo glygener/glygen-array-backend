@@ -91,8 +91,9 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		}
 	}
 	
-	private void addSource (Linker l, IRI linker, List<Statement> statements, String graph) throws SparqlException {
+	private void addSource (Linker l, IRI linker, List<Statement> statements, String graph) throws SparqlException, SQLException {
 	    ValueFactory f = sparqlDAO.getValueFactory();
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         IRI graphIRI = f.createIRI(graph);
         IRI hasSource = f.createIRI(hasSourcePredicate);
         IRI hasBatchId = f.createIRI(hasBatchIdPredicate);
@@ -102,7 +103,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI hasMethod = f.createIRI(hasMethodPredicate);
         IRI hasType = f.createIRI(hasTypePredicate);
         if (l.getSource() != null) {
-            String sourceURI = generateUniqueURI(uriPrefix + "SO", graph);
+            String sourceURI = generateUniqueURI(uriPrefix + "SO", allGraphs);
             IRI source = f.createIRI(sourceURI);
             statements.add(f.createStatement(linker, hasSource, source, graphIRI));
             statements.add(f.createStatement(source, hasType, f.createLiteral(l.getSource().getType().name()), graphIRI));
@@ -244,13 +245,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     }
 
 
-    private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException {
+    private void addLinkerPublications(Linker l, String uri, String graph) throws SparqlException, SQLException {
 	    String uriPre = uriPrefix;
 	    if (graph.equals(DEFAULT_GRAPH)) {
 	        uriPre = uriPrefixPublic;
 	    }
 	    ValueFactory f = sparqlDAO.getValueFactory();
-	    
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 	    IRI linker = f.createIRI(uri);
 	    IRI graphIRI = f.createIRI(graph);
         IRI hasTitle = f.createIRI(hasTitlePredicate);
@@ -269,7 +270,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	    if (l.getPublications() != null) {
 	        for (Publication pub : l.getPublications()) {
 	            List<Statement> statements = new ArrayList<Statement>();
-	            String publicationURI = generateUniqueURI(uriPre + "P", graph);
+	            String publicationURI = generateUniqueURI(uriPre + "P", allGraphs);
 	            IRI publication = f.createIRI(publicationURI);
 	            Literal title = pub.getTitle() == null ? f.createLiteral("") : f.createLiteral(pub.getTitle());
 	            Literal authors = pub.getAuthors() == null ? f.createLiteral("") : f.createLiteral(pub.getAuthors());
@@ -539,7 +540,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                                 hasClassificationValuePredicate.substring(hasClassificationValuePredicate.lastIndexOf("#")+1), "string", graph);
 				    }
 				    if (classificationIRI == null) {
-				        classificationIRI = generateUniqueURI(uriPrefix + "LC", graph);
+				        classificationIRI = generateUniqueURI(uriPrefix + "LC", allGraphs);
 				    } 
 				}
 				IRI classification = f.createIRI(classificationIRI);
@@ -1495,12 +1496,13 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
     }
     
-    public String addPublicLinker (Linker linker, String publicURI, String userGraph, String creator) throws SparqlException {
+    public String addPublicLinker (Linker linker, String publicURI, String userGraph, String creator) throws SparqlException, SQLException {
         // add has_public_uri predicate to user's graph
     	boolean existing = (publicURI != null);
         ValueFactory f = sparqlDAO.getValueFactory();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefixPublic + "L", userGraph);
+            publicURI = generateUniqueURI(uriPrefixPublic + "L", allGraphs);
         } 
         IRI local = f.createIRI(linker.getUri());
         IRI publicLinker = f.createIRI(publicURI);
@@ -1619,7 +1621,7 @@ public class LinkerRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                                hasClassificationValuePredicate.substring(hasClassificationValuePredicate.lastIndexOf("#")+1), "string", DEFAULT_GRAPH);
 	                    }
 	                    if (classificationIRI == null) {
-	                        classificationIRI = generateUniqueURI(uriPrefix + "LC", userGraph);
+	                        classificationIRI = generateUniqueURI(uriPrefix + "LC", allGraphs);
 	                    } 
 	                }
 	                IRI classification = f.createIRI(classificationIRI);

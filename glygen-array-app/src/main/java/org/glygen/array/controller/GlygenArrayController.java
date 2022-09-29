@@ -2162,27 +2162,29 @@ public class GlygenArrayController {
             					myFeature.setMetadata(featureMetadata);
             					org.grits.toolbox.glycanarray.library.om.feature.Glycan glycan = LibraryInterface.getGlycan(library, r1.getItemId());
             					if (glycan != null) {
-    		        				Glycan myGlycan = null;
-    		        				GlycanInFeature glycanFeature = new GlycanInFeature();
-    		        				//TODO check probe metadata to see if source information is available
-                                    glycanFeature.setSource(glycanSource);
-    		        				if (glycan.getSequence() != null) {
-    		        					myGlycan = new SequenceDefinedGlycan();
-    		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence().trim());  
-    		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
-    		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
-    		        					//determine the reducing end type
-    		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
-    	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
-    	                                glycanFeature.setReducingEndConfiguration(redEnd);
-    		        				} else {
-    		        					myGlycan = new UnknownGlycan();
-    		        				}
-    		        				glycanFeature.setGlycan(myGlycan);
-    		        				myGlycan.setName(glycan.getName());
-    		        				myGlycan.setDescription(glycan.getComment());
-    		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
-    		        				myFeature.getGlycans().add(glycanFeature);
+            					    if (!glycan.getName().equalsIgnoreCase("empty")) {
+            					      	Glycan myGlycan = null;
+        		        				GlycanInFeature glycanFeature = new GlycanInFeature();
+        		        				//TODO check probe metadata to see if source information is available
+                                        glycanFeature.setSource(glycanSource);
+        		        				if (glycan.getSequence() != null) {
+        		        					myGlycan = new SequenceDefinedGlycan();
+        		        					((SequenceDefinedGlycan) myGlycan).setSequence(glycan.getSequence().trim());  
+        		        					((SequenceDefinedGlycan) myGlycan).setGlytoucanId(glycan.getGlyTouCanId());
+        		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
+        		        					//determine the reducing end type
+        		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
+        	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
+        	                                glycanFeature.setReducingEndConfiguration(redEnd);
+        		        				} else {
+        		        					myGlycan = new UnknownGlycan();
+        		        				}
+        		        				glycanFeature.setGlycan(myGlycan);
+        		        				myGlycan.setName(glycan.getName());
+        		        				myGlycan.setDescription(glycan.getComment());
+        		        				myGlycan.setInternalId(glycan.getId() == null ? "" : glycan.getId().toString());
+        		        				myFeature.getGlycans().add(glycanFeature);
+            					    }
             					} else {
             					    // should have been there
                                     errorMessage.addError(new ObjectError("glycan:" + r1.getItemId(), "NotFound"));
@@ -2202,6 +2204,10 @@ public class GlygenArrayController {
     		        				myFeature.setLinker(myLinker);
     		        			}
     		        			else {
+    		        			    if (glycan != null && glycan.getName().equalsIgnoreCase("empty")) {
+    		        			        // skip this feature
+    		        			        continue;
+    		        			    }
     		        			    // should have been there
                                     errorMessage.addError(new ObjectError("linker:" + probe.getLinker(), "NotFound"));
                                 }

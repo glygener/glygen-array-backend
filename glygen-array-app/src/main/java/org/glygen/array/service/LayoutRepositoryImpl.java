@@ -85,8 +85,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	
 	private String addBlock(Block b, UserEntity user, String graph) throws SparqlException, SQLException {
-
-		String blockURI = generateUniqueURI(uriPrefix + "B", graph);
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+		String blockURI = generateUniqueURI(uriPrefix + "B", allGraphs);
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
 		IRI graphIRI = f.createIRI(graph);
@@ -190,6 +190,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	
 	String addSpot (Spot s, UserEntity user, String graph) throws SparqlException, SQLException {
 	    ValueFactory f = sparqlDAO.getValueFactory();
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 	    IRI graphIRI = f.createIRI(graph);
 	    IRI hasFeature = f.createIRI(ontPrefix + "has_feature");
         IRI hasConcentration = f.createIRI(ontPrefix + "has_concentration");
@@ -202,7 +203,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI spotType = f.createIRI(ontPrefix + "Spot");
         IRI hasSpotMetadata = f.createIRI(hasSpotMetadataPredicate);
 	    List<Statement> statements = new ArrayList<Statement>();
-        String spotURI = generateUniqueURI(uriPrefix + "S", graph);
+        String spotURI = generateUniqueURI(uriPrefix + "S", allGraphs);
         IRI spot = f.createIRI(spotURI);
         Literal row = f.createLiteral(s.getRow());
         Literal column = f.createLiteral(s.getColumn());
@@ -240,7 +241,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     if (ratio != null) {
                         // add ratio for the feature
                         Literal ratioL = f.createLiteral(ratio);
-                        String positionContextURI = generateUniqueURI(uriPrefix + "PC", graph);
+                        String positionContextURI = generateUniqueURI(uriPrefix + "PC", allGraphs);
                         IRI hasRatio = f.createIRI (hasRatioPredicate);
                         IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
                         IRI positionContext = f.createIRI(positionContextURI);
@@ -262,7 +263,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         // check if it has already been created before
                         String concentrationURI = concentrationCache.get(concentration);
                         if (concentrationURI == null) {
-                            concentrationURI = generateUniqueURI(uriPrefix + "C", graph);
+                            concentrationURI = generateUniqueURI(uriPrefix + "C", allGraphs);
                             concentrationCache.put(concentration, concentrationURI);
                         }
                         IRI concentrationL = f.createIRI(concentrationURI);
@@ -270,7 +271,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                         Literal concentrationUnit = f.createLiteral(concentration.getLevelUnit().getLabel());
                         Literal concentrationValue = concentration.getConcentration() == null ? null : f.createLiteral(concentration.getConcentration());
                         if (concentrationValue != null) {
-                            String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", graph);    
+                            String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", allGraphs);    
                             IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
                             IRI concentrationContext = f.createIRI(concentrationContextURI);
                             statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
@@ -1508,81 +1509,58 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	@Override
 	public String makePublic(SlideLayout layout, UserEntity user, Map<String, String> uriMapOldToNew) throws SparqlException, SQLException {
 		String graph = getGraphForUser(user);
-       /* String existingURI = null;
-        
-        if (layout.getName() != null && !layout.getName().isEmpty()) {
-        	SlideLayout existing = getSlideLayoutByName(layout.getName(), null);
-        	if (existing != null)
-        		existingURI = existing.getUri();
-        }*/
-        
         Map<String, Glycan > processedGlycans = new HashMap<>();
         Map<String, Linker > processedLinkers = new HashMap<>();
         Map<String, Feature > processedFeatures = new HashMap<>();
-        //blockLayoutCache.clear();
-        //slideLayoutCache.clear();
-        
-       // if (existingURI == null) {  // allow duplicate names in the public repository - Feb 23rd 2021
-        	// first make other components public
-            List<Block> publicBlocks = new ArrayList<Block>();
-        	for (Block block: layout.getBlocks()) {
-        		BlockLayout blockLayout = block.getBlockLayout();
-        		String prevURI = block.getUri();
-        		// check if it already exists
-        		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
-        		String publicURI = null;
-        		if (results2.isEmpty()) {
-        		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-        	            String uri = uriPrefix + blockLayout.getId();
-        	            // load them
-        	            blockLayout = blockLayoutCache.get(uri);
-        	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
-        	                blockLayout = getBlockLayoutFromURI(uri, user);
-        	            }
-        	        }
-        			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-        			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
-        		} else {
-        			String blockLayoutURI = results2.get(0).getValue("s");
-        			deleteByURI (uriPrefix + blockLayout.getId(), graph);
-        			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
-        		}
-        		
-        		deleteByURI (uriPrefix + block.getId(), graph);
-        		BlockLayout blockL = null;
-        		if (blockLayoutCache.containsKey(publicURI))
-        		    blockL = blockLayoutCache.get(publicURI);
-        		else
-        		    blockL = getBlockLayoutFromURI(publicURI, null);
-        		block.setBlockLayout(blockL);
-        		String blockURI = addPublicBlock (block, graph);
-        		Block newBlock = getBlock(blockURI, true, null);
-        		uriMapOldToNew.put(prevURI, blockURI);
-        		publicBlocks.add(newBlock);
-        	}
-        	
-        	layout.setBlocks(publicBlocks);
-            // make it public
-            deleteByURI(uriPrefix + layout.getId(), graph);
-            updateSlideLayoutInGraph(layout, graph);
-            
-            // delete from SlideLayoutRepository too
-            SlideLayoutEntity entity = slideLayoutRepository.findByUri(layout.getUri());
-            if (entity != null)
-                slideLayoutRepository.delete(entity);
-            // need to create the slidelayout in the public graph, link the user's version to public one
-            return addPublicSlideLayout(layout, null, graph, user.getUsername()); 
-       /* } else {
-            //TODO this part seems unnecessary?? why should we delete again and create again in the private one
-            deleteByURI(uriPrefix + layout.getId(), graph);
-            updateSlideLayoutInGraph(layout, graph);
-            // need to link the user's version to the existing URI
-            return addPublicSlideLayout(layout, existingURI, graph, user.getUsername());
-        }*/
+    	// first make other components public
+        List<Block> publicBlocks = new ArrayList<Block>();
+    	for (Block block: layout.getBlocks()) {
+    		BlockLayout blockLayout = block.getBlockLayout();
+    		String prevURI = block.getUri();
+    		// check if it already exists
+    		List <SparqlEntity> results2 = retrieveBlockLayoutByName (blockLayout.getName(), null);
+    		String publicURI = null;
+    		if (results2.isEmpty()) {
+    		    if (blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+    	            String uri = uriPrefix + blockLayout.getId();
+    	            // load them
+    	            blockLayout = blockLayoutCache.get(uri);
+    	            if (blockLayout == null || blockLayout.getSpots() == null || blockLayout.getSpots().isEmpty()) {
+    	                blockLayout = getBlockLayoutFromURI(uri, user);
+    	            }
+    	        }
+    			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+    			publicURI = addPublicBlockLayout (blockLayout, null, user, processedGlycans, processedLinkers, processedFeatures);
+    		} else {
+    			String blockLayoutURI = results2.get(0).getValue("s");
+    			deleteByURI (uriPrefix + blockLayout.getId(), graph);
+    			publicURI = addPublicBlockLayout (blockLayout, blockLayoutURI, user, processedGlycans, processedLinkers, processedFeatures);
+    		}
+    		
+    		deleteByURI (uriPrefix + block.getId(), graph);
+    		BlockLayout blockL = null;
+    		if (blockLayoutCache.containsKey(publicURI))
+    		    blockL = blockLayoutCache.get(publicURI);
+    		else
+    		    blockL = getBlockLayoutFromURI(publicURI, null);
+    		block.setBlockLayout(blockL);
+    		String blockURI = addPublicBlock (block, graph);
+    		Block newBlock = getBlock(blockURI, true, null);
+    		uriMapOldToNew.put(prevURI, blockURI);
+    		publicBlocks.add(newBlock);
+    	}
+    	
+    	layout.setBlocks(publicBlocks);
+        // make it public
+        deleteByURI(uriPrefix + layout.getId(), graph);
+        updateSlideLayoutInGraph(layout, graph);
+        // need to create the slidelayout in the public graph, link the user's version to public one
+        return addPublicSlideLayout(layout, null, graph, user.getUsername()); 
 	}
 
-	private String addPublicBlock(Block block, String graph) throws SparqlException {
-		String blockURI = generateUniqueURI(uriPrefixPublic + "B", graph);
+	private String addPublicBlock(Block block, String graph) throws SparqlException, SQLException {
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
+		String blockURI = generateUniqueURI(uriPrefixPublic + "B", allGraphs);
 		ValueFactory f = sparqlDAO.getValueFactory();
 		
 		IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
@@ -1618,44 +1596,60 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			for (Feature feature: spot.getFeatures()) {
 			    String featureURI = null;
 			    String previous = feature.getUri();
-			    if (!processedFeatures.containsKey(previous)) {
-    				populatePublicGlycansForFeature(feature, processedGlycans, processedFeatures, processedLinkers, user);
-    				Linker l = feature.getLinker();
-    				if (l != null) {
-    				    if (l.getIsPublic()) {
-    				        if (!processedLinkers.containsKey(l.getUri())) {
-    				            processedLinkers.put(l.getUri(), l);
-    				            feature.setLinker(l); // get the public one
-    				        }
-    				    } else {
-        				    String previousL = l.getUri();
-                            if (!processedLinkers.containsKey(previousL)) {
-            					String linkerURI = linkerRepository.makePublic(l, user);
-            					if (linkerURI != null) {
-                					Linker newLinker = linkerRepository.getLinkerFromURI(linkerURI, null);
-                					feature.setLinker(newLinker); // get the public one
-                					processedLinkers.put(previousL, newLinker);
-            					} else {
-                					// retrieve the existing one
-                					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), l.getType(), null);
-                					if (existing != null) {
-                					    feature.setLinker(existing);
-                					    processedLinkers.put(previousL, existing);
-                					}
-            					}
-                            } else {
-                                feature.setLinker(processedLinkers.get(previousL));
-                            }
-    				    }
-    				}
-    				// make feature public
-    				featureURI = featureRepository.addPublicFeature (feature, user);
-    				Feature newFeature = featureRepository.getFeatureFromURI(featureURI, null);
-    				publicFeatures.add(newFeature);
-    				processedFeatures.put(previous, newFeature);
+			    String featurePublicURI = getPublicUri(previous, user);
+			    if (featurePublicURI != null || previous.contains("public")) {
+			        Feature newFeature = feature;
+			        // already public
+			        if (!previous.contains("public")) {
+			            newFeature = featureRepository.getFeatureFromURI(featurePublicURI, null);
+			        }
+			        publicFeatures.add(newFeature);
+			        processedFeatures.put(previous, newFeature);
 			    } else {
-	                publicFeatures.add(processedFeatures.get(previous));
-	            }
+    			    if (!processedFeatures.containsKey(previous)) {
+        				populatePublicGlycansForFeature(feature, processedGlycans, processedFeatures, processedLinkers, user);
+        				Linker l = feature.getLinker();
+        				if (l != null) {
+        				    String publicURI  = getPublicUri(l.getUri(), user);
+        				    if (publicURI != null || l.getUri().contains("public")) {
+        				        if (!l.getUri().contains("public")) {
+        				            l.setUri(publicURI);
+        				            l.setIsPublic(true);
+        				        }
+        				        if (!processedLinkers.containsKey(l.getUri())) {
+        				            processedLinkers.put(l.getUri(), l);
+        				            feature.setLinker(l); // get the public one
+        				        }
+        				    } else {
+            				    String previousL = l.getUri();
+                                if (!processedLinkers.containsKey(previousL)) {
+                					String linkerURI = linkerRepository.makePublic(l, user);
+                					if (linkerURI != null) {
+                    					Linker newLinker = linkerRepository.getLinkerFromURI(linkerURI, null);
+                    					feature.setLinker(newLinker); // get the public one
+                    					processedLinkers.put(previousL, newLinker);
+                					} else {
+                    					// retrieve the existing one
+                    					Linker existing = linkerRepository.getLinkerByLabel(l.getName(), l.getType(), null);
+                    					if (existing != null) {
+                    					    feature.setLinker(existing);
+                    					    processedLinkers.put(previousL, existing);
+                    					}
+                					}
+                                } else {
+                                    feature.setLinker(processedLinkers.get(previousL));
+                                }
+        				    }
+        				}
+        				// make feature public
+        				featureURI = featureRepository.addPublicFeature (feature, user);
+        				Feature newFeature = featureRepository.getFeatureFromURI(featureURI, null);
+        				publicFeatures.add(newFeature);
+        				processedFeatures.put(previous, newFeature);
+    			    } else {
+    	                publicFeatures.add(processedFeatures.get(previous));
+    	            }
+			    }
 			} 
 			spot.setFeatures(publicFeatures);
 			// make spot public
@@ -1665,7 +1659,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		blockLayout.setSpots(publicSpots);
 		// make block layout public
 		ValueFactory f = sparqlDAO.getValueFactory();
-		
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		String userGraph = getGraphForUser(user);
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
@@ -1679,7 +1673,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         Literal dateCreated = blockLayout.getDateCreated() == null ? f.createLiteral(date) : f.createLiteral(blockLayout.getDateCreated());
 		
 		if (blockLayoutURI == null) {
-			blockLayoutURI = generateUniqueURI(uriPrefixPublic + "BL", userGraph);
+			blockLayoutURI = generateUniqueURI(uriPrefixPublic + "BL", allGraphs);
 			IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
 			IRI blockLayoutIRI = f.createIRI(blockLayoutURI);
 			IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
@@ -1743,11 +1737,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                        baseGlycan = glycanRepository.retrieveBaseType(g, user);
 	                    }
 	                }
-	                if (g.getIsPublic()) {
+	                String publicURI = getPublicUri(g.getUri(), user);
+	                if (publicURI != null || g.getUri().contains("public")) {
 	                    // already public
 	                    if (!g.getUri().contains("public")) {
 	                        // need to get the public uri
-	                        g.setUri(getPublicUri(g.getUri(), user));
+	                        g.setUri(publicURI);
 	                    }
                         if (!processedGlycans.containsKey(g.getUri())) {
                             publicGlycans.add(gf); 
@@ -2175,7 +2170,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                 if (ratio != null) {
                     // add ratio for the feature
                     Literal ratioL = f.createLiteral(ratio);
-                    String positionContextURI = generateUniqueURI(uriPrefix + "PC", DEFAULT_GRAPH);
+                    String positionContextURI = generateUniqueURI(uriPrefix + "PC", allGraphs);
                     IRI hasRatio = f.createIRI (hasRatioPredicate);
                     IRI hasRatioContext = f.createIRI(hasRatioContextPredicate);
                     IRI positionContext = f.createIRI(positionContextURI);
@@ -2197,7 +2192,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     // check if it has already been created before
                     String concentrationURI = concentrationCache.get(concentration);
                     if (concentrationURI == null) {
-                        concentrationURI = generateUniqueURI(uriPrefix + "C", DEFAULT_GRAPH);
+                        concentrationURI = generateUniqueURI(uriPrefix + "C", allGraphs);
                         concentrationCache.put(concentration, concentrationURI);
                     }
                     IRI concentrationL = f.createIRI(concentrationURI);
@@ -2205,7 +2200,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                     Literal concentrationUnit = f.createLiteral(concentration.getLevelUnit().getLabel());
                     Literal concentrationValue = concentration.getConcentration() == null ? null : f.createLiteral(concentration.getConcentration());
                     if (concentrationValue != null) {
-                        String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", DEFAULT_GRAPH);    
+                        String concentrationContextURI = generateUniqueURI(uriPrefix + "CC", allGraphs);    
                         IRI hasConcentrationContext = f.createIRI(hasConcentrationContextPredicate);
                         IRI concentrationContext = f.createIRI(concentrationContextURI);
                         statements.add(f.createStatement(spot, hasConcentrationContext, concentrationContext, graphIRI));
@@ -2236,8 +2231,9 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 
 	private String addPublicSlideLayout(SlideLayout s, String publicURI, String graph, String username) throws SparqlException, SQLException {
 		boolean existing = publicURI != null;
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		if (publicURI == null)
-			publicURI = generateUniqueURI(uriPrefixPublic + "SL", graph);
+			publicURI = generateUniqueURI(uriPrefixPublic + "SL", allGraphs);
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		IRI slideLayout = f.createIRI(publicURI);

@@ -116,7 +116,7 @@ public class GlytoucanUtil {
 			try {
 				ResponseEntity<GlytoucanResponse[]> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, GlytoucanResponse[].class);
 				if (response.getBody().length == 0) {
-				    logger.info ("No accession number is found!");
+				    logger.info ("No accession number is found! " + wurcsSequence);
 				    return null;
 				}
 				if (response.getBody()[0].message  != null) {

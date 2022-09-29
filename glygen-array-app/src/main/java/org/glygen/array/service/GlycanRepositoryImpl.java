@@ -130,11 +130,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         String glycanURI = addBasicInfoForGlycan(g, graph);
 	    
 	    ValueFactory f = sparqlDAO.getValueFactory();
+	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 	    IRI glycan = f.createIRI(glycanURI);
         IRI graphIRI = f.createIRI(graph);
 	    IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
         IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
-        String seqURI = generateUniqueURI(uriPrefix + "Seq", graph);
+        String seqURI = generateUniqueURI(uriPrefix + "Seq", allGraphs);
         IRI sequence = f.createIRI(seqURI);
         IRI hasSequence = f.createIRI(ontPrefix + "has_sequence");
         IRI sequenceType = f.createIRI(ontPrefix + "Sequence");
@@ -298,12 +299,12 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		
 		ValueFactory f = sparqlDAO.getValueFactory();
 		String glycanURI;
-		
+		String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		// check if the glycan already exists in "default-graph", then we need to add a triple glycan->has_public_uri->existingURI to the private repo
 		String existing = getGlycanBySequence(g.getSequence().trim());
 		if (existing == null) {
 			glycanURI = addBasicInfoForGlycan(g, graph);	
-			String seqURI = generateUniqueURI(uriPrefix + "Seq", graph);
+			String seqURI = generateUniqueURI(uriPrefix + "Seq", allGraphs);
 		
 			IRI sequence = f.createIRI(seqURI);
 			IRI glycan = f.createIRI(glycanURI);
@@ -400,7 +401,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			String publicURI = existing;
 			IRI glycan = f.createIRI(publicURI);
 			
-			glycanURI = generateUniqueURI(uriPrefix, graph) + "GAR";
+			glycanURI = generateUniqueURI(uriPrefix, allGraphs) + "GAR";
 			IRI localGlycan = f.createIRI(glycanURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
@@ -1244,15 +1245,15 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         sparqlDAO.addStatements(statements, graphIRI);
     }
 
-    public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph, String creator, boolean createPublicLink) throws SparqlException {
-    	boolean existing = publicURI != null;
-        if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefixPublic, userGraph) + "GAR";  
-        } 
+    public String addPublicGlycan (Glycan glycan, String publicURI, String userGraph, String creator, boolean createPublicLink) throws SparqlException, SQLException {
+    	ValueFactory f = sparqlDAO.getValueFactory();
+        String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
         
-        ValueFactory f = sparqlDAO.getValueFactory();
+        boolean existing = publicURI != null;
+        if (publicURI == null) {
+            publicURI = generateUniqueURI(uriPrefixPublic, allGraphs) + "GAR";  
+        }
         IRI publicGlycan = f.createIRI(publicURI);
-       
         IRI graphIRI = f.createIRI(userGraph);
         IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
         Literal date = f.createLiteral(new Date());
@@ -1342,7 +1343,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	                }
 	            } 
 	            // add sequence and glytoucanid if any
-	            String seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
+	            String seqURI = generateUniqueURI(uriPrefixPublic + "Seq", allGraphs);
 	            IRI sequence = f.createIRI(seqURI);
 	            Literal glytoucanLit = ((SequenceDefinedGlycan) glycan).getGlytoucanId() == null ? 
 	                    null : f.createLiteral(((SequenceDefinedGlycan) glycan).getGlytoucanId().trim());
@@ -1379,7 +1380,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	            break;
 	        case OTHER:
 	            // add sequence and chemical properties
-                seqURI = generateUniqueURI(uriPrefixPublic + "Seq", userGraph);
+                seqURI = generateUniqueURI(uriPrefixPublic + "Seq", allGraphs);
                 sequence = f.createIRI(seqURI);
                 sequenceValue = ((OtherGlycan) glycan).getSequence() == null ? 
                 		f.createLiteral("") : f.createLiteral(((OtherGlycan) glycan).getSequence().trim());
