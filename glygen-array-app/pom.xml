@@ -27,6 +27,20 @@
 	            <enabled>true</enabled>
 	        </releases>
 	    </repository>
+	    <repository>
+            <id>glycoinfo</id>
+            <url>https://nexus.glycoinfo.org/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </repository>
 
 	</repositories>
 
@@ -187,10 +201,10 @@
 		</dependency>
 		<!--  GlycoInfo -->
 		<dependency>
-		  <groupId>glycoinfo</groupId>
-		  <artifactId>converter</artifactId>
-		  <version>2.6.0</version>
-		</dependency>
+            <groupId>org.glycoinfo.convert</groupId>
+            <artifactId>glycanformatconverter</artifactId>
+            <version>2.8.0</version>
+        </dependency>
 		<dependency>
 		  <groupId>glycoinfo</groupId>
 		  <artifactId>molecular</artifactId>
@@ -204,7 +218,7 @@
 		<dependency>
 		  <groupId>org.glycoinfo</groupId>
 		  <artifactId>wurcsframework</artifactId>
-		  <version>1.0.1</version>
+		  <version>1.2.9</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jdom/jdom -->
 		<dependency>
