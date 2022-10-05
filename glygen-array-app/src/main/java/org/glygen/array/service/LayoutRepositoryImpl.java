@@ -592,7 +592,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
     				return;
     			}
 		    } else {
-		        throw new IllegalArgumentException("Cannot delete slide layout " + slideLayoutId + ". It is used in an experiment");
+		        throw new IllegalArgumentException("Cannot delete slide layout " + slideLayoutId + ". It is used in a printed slide");
 		    }
 		}
 	}

@@ -281,11 +281,11 @@ public class ProcessedDataParser {
                                 }
                             }
                             if (feature == null) {
-                                ErrorMessage error = new ErrorMessage("Row " + (row.getRowNum()+1) + ": feature with the glycan " + glycan.getUri() + " and linker " + linker.getName() + " cannot be found in the repository");
+                                ErrorMessage error = new ErrorMessage("Row " + (row.getRowNum()+1) + ": feature with the glycan " + glycanURI + " and linker " + linkerName + " cannot be found in the repository");
                                 error.setErrorCode(ErrorCodes.PARSE_ERROR);
                                 error.setStatus(HttpStatus.BAD_REQUEST.value());
                                 String[] codes = {(row.getRowNum()+ 1)+""};
-                                error.addError(new ObjectError("feature", codes, null, "Row " + (row.getRowNum()+1) + ": feature with the glycan " + glycan.getUri() + " and linker " + linker.getName() + " cannot be found in the repository"));
+                                error.addError(new ObjectError("feature", codes, null, "Row " + (row.getRowNum()+1) + ": feature with the glycan " + glycanURI + " and linker " + linkerName + " cannot be found in the repository"));
                                 errorList.add(error); 
                             } else {
                                 List<Feature> features = new ArrayList<Feature>();
