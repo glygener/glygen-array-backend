@@ -203,6 +203,25 @@ public class ProcessedDataParser {
                         glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
                         if (glycanURI != null) {
                             glycanURICache.put(glycoCT.trim(), glycanURI);
+                        } else {
+                            // find an alternative sequence from the error map
+                            // check errorMapFile
+                            String modified = sequenceErrorMap.get(featureString.trim());
+                            if ( modified != null && !modified.isEmpty()) {
+                                if (modified.startsWith("RES")) {
+                                    // already glycoCT
+                                    glycoCT = modified;
+                                }
+                                else {
+                                    glycoCT = parseSequence (modified, parserErrors);
+                                }
+                            } 
+                            if (glycoCT != null) {
+                                glycanURI = glycanRepository.getGlycanBySequence(glycoCT.trim(), user);
+                                if (glycanURI != null) {
+                                    glycanURICache.put(glycoCT.trim(), glycanURI);
+                                }
+                            }
                         }
                     } 
                     if (glycanURI == null) {

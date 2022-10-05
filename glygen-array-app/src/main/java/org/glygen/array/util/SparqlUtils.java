@@ -21,6 +21,7 @@ public class SparqlUtils {
             .put("]", "\\]")
             .put("{", "\\{")
             .put("}", "\\}")
+            .put("+", "\\+")
             .build();
 
     
