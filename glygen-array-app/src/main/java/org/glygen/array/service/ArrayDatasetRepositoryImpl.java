@@ -2751,7 +2751,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 if (publicIRI == null) {
                     deleteFiles(dataset.getUri(), graph);
                 } else {
-                    deleteFiles(publicURI, null);
+                    deleteFiles(publicURI, DEFAULT_GRAPH);
                 }
                 
                 for (FileWrapper file: dataset.getFiles()) {
