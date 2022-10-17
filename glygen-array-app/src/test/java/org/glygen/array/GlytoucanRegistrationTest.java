@@ -2,8 +2,11 @@ package org.glygen.array;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
 
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarExporterGlycoCTCondensed;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
@@ -62,7 +65,7 @@ public class GlytoucanRegistrationTest {
                         st.setGlyco_ct(glycoCT);
                         System.out.println("saving recoded glycoCT");
                         glycoCTRepository.save(st);
-                        GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                        /*GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
                         t_validationWURCS.start(sugar);
                         List<String> errors = t_validationWURCS.getErrors();
                         if (errors != null && !errors.isEmpty()) {
@@ -71,7 +74,7 @@ public class GlytoucanRegistrationTest {
                                 System.out.println (e);
                             }
                             continue;
-                        }
+                        }*/
                     }
 	            }
                 catch (Exception e) {
@@ -82,6 +85,13 @@ public class GlytoucanRegistrationTest {
 	                WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 	                exporter.start(glycoCT);
 	                String wurcs = exporter.getWURCS(); 
+	                System.out.println ("Validating  " + st.getStructure_id());
+	                // validate first to get errors if any
+	                String errors = GlytoucanUtil.getInstance().validateGlycan(wurcs);
+	                if (errors != null) {
+	                    System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": " + errors);
+	                    continue;
+	                }
 	                System.out.println ("getting accession number " + st.getStructure_id());
 	                String glytoucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 	                if (glytoucanId == null) {
@@ -90,7 +100,7 @@ public class GlytoucanRegistrationTest {
 	                }
 	                GlytoucanInfo g = new GlytoucanInfo();
 	                g.setId(st.getStructure_id());
-	                g.setGlytoucan_id(glytoucanId);
+	                g.setGlytoucanId(glytoucanId);
 	                glytoucanRepository.save(g);
 	                System.out.println ("Done processing!");
 	                assertTrue(true);
@@ -100,15 +110,15 @@ public class GlytoucanRegistrationTest {
 	            }
 		    }
 		    else {
-		        if (existing.get().getGlytoucan_id() == null || existing.get().getGlytoucan_id().length() > 10) {
+		        if (existing.get().getGlytoucanId() == null || existing.get().getGlytoucanId().length() > 10) {
 		            // hash
 		            String glycoCT = st.getGlyco_ct();
 	                try {
 	                    System.out.println ("Processing previously registered " + st.getStructure_id());
-	                    System.out.println ("Validating previously registered " + st.getStructure_id());
+	                    
 	                    SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();
                         Sugar sugar = importer.parse(glycoCT.trim());
-                        GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                        /*GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
                         t_validationWURCS.start(sugar);
                         List<String> errors = t_validationWURCS.getErrors();
                         if (errors != null && !errors.isEmpty()) {
@@ -117,7 +127,7 @@ public class GlytoucanRegistrationTest {
                                 System.out.println (err);
                             }
                             continue;
-                        }
+                        }*/
                         if (sugar != null) {
                             SugarExporterGlycoCTCondensed exporter = new SugarExporterGlycoCTCondensed();
                             exporter.start(sugar);
@@ -130,8 +140,15 @@ public class GlytoucanRegistrationTest {
 	                    WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 	                    exporter.start(glycoCT);
 	                    String wurcs = exporter.getWURCS(); 
+	                    System.out.println ("Validating previously registered " + st.getStructure_id());
+	                    // validate first to get errors if any
+	                    String errors = GlytoucanUtil.getInstance().validateGlycan(wurcs);
+	                    if (errors != null) {
+	                        System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": " + errors);
+	                        continue;
+	                    }
 	                    System.out.println ("getting accession number for previously registered " + st.getStructure_id());
-	                    System.out.println ("WURCS: " + wurcs + " registration hash " + existing.get().getGlytoucan_id());
+	                    System.out.println ("WURCS: " + wurcs + " registration hash " + existing.get().getGlytoucanId());
 	                    String glytoucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 	                    System.out.println ("Got " + glytoucanId);
 	                    if (glytoucanId == null) {
@@ -141,7 +158,7 @@ public class GlytoucanRegistrationTest {
 	                    } 
 	                    GlytoucanInfo g = new GlytoucanInfo();
                         g.setId(st.getStructure_id());
-                        g.setGlytoucan_id(glytoucanId);
+                        g.setGlytoucanId(glytoucanId);
                         glytoucanRepository.save(g);
 	                } catch (Exception e) {
 	                    System.out.println ("error getting accession number for previously registered " + st.getStructure_id());
@@ -157,7 +174,7 @@ public class GlytoucanRegistrationTest {
                                 st.setGlyco_ct(glycoCT);
                                 System.out.println("saving recoded glycoCT");
                                 glycoCTRepository.save(st);
-                                GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                               /* GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
                                 t_validationWURCS.start(sugar);
                                 List<String> errors = t_validationWURCS.getErrors();
                                 if (errors != null && !errors.isEmpty()) {
@@ -166,7 +183,7 @@ public class GlytoucanRegistrationTest {
                                         System.out.println (err);
                                     }
                                     continue;
-                                }
+                                }*/
                             }
 	                        
 	                    }
@@ -178,13 +195,20 @@ public class GlytoucanRegistrationTest {
 	                        WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
 	                        exporter.start(glycoCT);
 	                        String wurcs = exporter.getWURCS(); 
+	                        System.out.println ("Again, validating previously registered " + st.getStructure_id());
+	                        // validate first to get errors if any
+	                        String errors = GlytoucanUtil.getInstance().validateGlycan(wurcs);
+	                        if (errors != null) {
+	                            System.out.println ("Validation errors, skipping " + st.getStructure_id() + ": " + errors);
+	                            continue;
+	                        }
 	                        System.out.println ("Again, getting accession number for previously registered " + st.getStructure_id());
 	                        String glytoucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
 	                        System.out.println ("Got " + glytoucanId);
 	                        if (glytoucanId != null) {
 	                            GlytoucanInfo g = new GlytoucanInfo();
 	                            g.setId(st.getStructure_id());
-	                            g.setGlytoucan_id(glytoucanId);
+	                            g.setGlytoucanId(glytoucanId);
 	                            glytoucanRepository.save(g);
 	                        }
 	                    } catch (Exception e2) {
@@ -195,5 +219,21 @@ public class GlytoucanRegistrationTest {
 		        }
 		    }
 		}
+	}
+	
+	@Test
+    public void generateGlycomeDBIdForErrors() throws FileNotFoundException {
+	    File hashFile = new File ("/Users/sena/Downloads/hashkeys.txt");
+	    Scanner scanner = new Scanner(hashFile);
+	    while (scanner.hasNextLine()) {
+	        String hash = scanner.nextLine();
+	        List<GlytoucanInfo> existing = glytoucanRepository.findByGlytoucanId(hash);
+	        if (!existing.isEmpty()) {
+	            System.out.println(existing.get(0).getId());
+	        } else {
+	            System.out.println ();
+	        }
+	    }
+	    scanner.close();
 	}
 }

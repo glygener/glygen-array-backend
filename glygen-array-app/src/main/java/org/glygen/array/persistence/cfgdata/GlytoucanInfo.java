@@ -11,8 +11,8 @@ public class GlytoucanInfo {
 	
 	@Id
 	Long id;
-	@Column
-	String glytoucan_id;
+	@Column(name="glytoucan_id")
+	String glytoucanId;
 	
 	public Long getId() {
 		return id;
@@ -20,10 +20,10 @@ public class GlytoucanInfo {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public String getGlytoucan_id() {
-		return glytoucan_id;
+	public String getGlytoucanId() {
+		return glytoucanId;
 	}
-	public void setGlytoucan_id(String glytoucan_id) {
-		this.glytoucan_id = glytoucan_id;
+	public void setGlytoucanId(String glytoucanId) {
+		this.glytoucanId = glytoucanId;
 	}
 }

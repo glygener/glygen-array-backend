@@ -1,9 +1,12 @@
 package org.glygen.array.util;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +40,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,6 +55,8 @@ public class GlytoucanUtil {
 	static String glycanURL = "https://sparqlist.glycosmos.org/sparqlist/api/gtc_wurcs_by_accession?accNum=";
 	static String retrieveURL ="https://sparqlist.glyconavi.org/api/WURCS2GlyTouCan?WURCS=";
 	static String registerURL = "https://api.glytoucan.org/glycan/register";
+	static String validateURL = "wurcsframework/wurcsvalidator/1.0.1/";
+	static String apiURL = "https://api.glycosmos.org/";
 	
 	private static RestTemplate restTemplate = new RestTemplate();
 	
@@ -134,6 +141,37 @@ public class GlytoucanUtil {
 		
 		
 		return accessionNumber;
+	}
+	
+	/**
+	 * use Glycosmos validation API to validate a glycan
+	 * 
+	 * @param wurcsSequence the glycan sequence in WURCS format
+	 * @return error string if there is a validation error or an error during validation, null if there are no errors
+	 */
+	public String validateGlycan (String wurcsSequence) {
+	    try {
+            Map<String, String> uriVariables = new HashMap<>();
+            uriVariables.put("wurcs", wurcsSequence);
+            
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(apiURL)
+                    .path(validateURL)
+                    .pathSegment("{wurcs}")
+                    .buildAndExpand(uriVariables)
+                    .encode();
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(createHeaders(userId, apiKey));
+            ResponseEntity<ValidationResponse> response = restTemplate.exchange(uriComponents.toUri(), HttpMethod.GET, requestEntity, ValidationResponse.class);
+            if (response.getBody().getM_mapTypeToReports().getErrors() != null && !response.getBody().getM_mapTypeToReports().getErrors().isEmpty()) {
+                return response.getBody().getM_mapTypeToReports().getErrors().get(0).toString();
+            }
+            return null;
+        } catch (HttpClientErrorException e) {
+            logger.info("Exception validating glycan " + ((HttpClientErrorException) e).getResponseBodyAsString());
+            return "Exception validating glycan " + ((HttpClientErrorException) e).getResponseBodyAsString();
+        } catch (HttpServerErrorException e) {
+            logger.info("Exception validating glycan " + ((HttpServerErrorException) e).getResponseBodyAsString());
+            return "Exception validating glycan " + ((HttpServerErrorException) e).getResponseBodyAsString();
+        } 
 	}
 	
 	/**
@@ -414,6 +452,10 @@ public class GlytoucanUtil {
             e.printStackTrace();
         }
         
+        wurcs = "WURCS=2.0/5,10,9/[a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][][a1221m-1a_1-5]/1-1-2-3-4-4-3-4-4-5/a4-b1_a6-j1_b4-c1_c3-d1_c6-g1_d2-e0_d4-f0_g2-h0_g6-i0";
+        String errors = GlytoucanUtil.getInstance().validateGlycan(wurcs);
+        System.out.println("Validation result" + errors);
+        
         
      // temporary code to generate exclusion info json
         
@@ -672,5 +714,144 @@ class GlytoucanResponse {
 	
 	public void setMessage(String message) {
         this.message = message;
+    }
+}
+
+class ValidationResponse {
+    String m_sInputString;
+    ValidationResult m_mapTypeToReports;
+    String m_sStandardString;
+    /**
+     * @return the m_sInputString
+     */
+    public String getM_sInputString() {
+        return m_sInputString;
+    }
+    /**
+     * @param m_sInputString the m_sInputString to set
+     */
+    public void setM_sInputString(String m_sInputString) {
+        this.m_sInputString = m_sInputString;
+    }
+    /**
+     * @return the m_mapTypeToReports
+     */
+    public ValidationResult getM_mapTypeToReports() {
+        return m_mapTypeToReports;
+    }
+    /**
+     * @param m_mapTypeToReports the m_mapTypeToReports to set
+     */
+    public void setM_mapTypeToReports(ValidationResult m_mapTypeToReports) {
+        this.m_mapTypeToReports = m_mapTypeToReports;
+    }
+    /**
+     * @return the m_sStandardString
+     */
+    public String getM_sStandardString() {
+        return m_sStandardString;
+    }
+    /**
+     * @param m_sStandardString the m_sStandardString to set
+     */
+    public void setM_sStandardString(String m_sStandardString) {
+        this.m_sStandardString = m_sStandardString;
+    }
+    
+}
+
+class ValidationResult {
+    
+    @JsonProperty ("ERROR")
+    List<ValidationError> errors;
+
+    /**
+     * @return the errors
+     */
+    public List<ValidationError> getErrors() {
+        return errors;
+    }
+
+    /**
+     * @param errors the errors to set
+     */
+    public void setErrors(List<ValidationError> errors) {
+        this.errors = errors;
+    }
+}
+
+class ValidationError {
+    String strMessage;
+    ExceptionMessage exception;
+
+    /**
+     * @return the strMessage
+     */
+    public String getStrMessage() {
+        return strMessage;
+    }
+
+    /**
+     * @param strMessage the strMessage to set
+     */
+    public void setStrMessage(String strMessage) {
+        this.strMessage = strMessage;
+    }
+    
+    @Override
+    public String toString() {
+        return strMessage + " Exception: " + (exception == null ? "" :exception.toString()); 
+    }
+
+    /**
+     * @return the exception
+     */
+    public ExceptionMessage getException() {
+        return exception;
+    }
+
+    /**
+     * @param exception the exception to set
+     */
+    public void setException(ExceptionMessage exception) {
+        this.exception = exception;
+    }
+}
+
+class ExceptionMessage {
+    String m_strInput;
+    String m_strMessage;
+    
+    @Override
+    public String toString() {
+        return m_strInput + " : " + m_strMessage;
+    }
+
+    /**
+     * @return the m_strInput
+     */
+    public String getM_strInput() {
+        return m_strInput;
+    }
+
+    /**
+     * @param m_strInput the m_strInput to set
+     */
+    public void setM_strInput(String m_strInput) {
+        this.m_strInput = m_strInput;
+    }
+
+    /**
+     * @return the m_strMessage
+     */
+    public String getM_strMessage() {
+        return m_strMessage;
+    }
+
+    /**
+     * @param m_strMessage the m_strMessage to set
+     */
+    public void setM_strMessage(String m_strMessage) {
+        this.m_strMessage = m_strMessage;
     }
 }

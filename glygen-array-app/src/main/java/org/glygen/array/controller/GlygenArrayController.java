@@ -1749,7 +1749,7 @@ public class GlygenArrayController {
                                     throw new GlycanRepositoryException("SlideLayout cannot be added for user " + p.getName(), e);
                                 } 
                             });
-                            slideId.get(1000, TimeUnit.MILLISECONDS);
+                            slideId.get(10, TimeUnit.MILLISECONDS);
                         } catch (IllegalArgumentException e) {
                             slideLayout.setStatus(FutureTaskStatus.ERROR);
                             if (e.getCause() != null && e.getCause() instanceof ErrorMessage)
@@ -2257,6 +2257,9 @@ public class GlygenArrayController {
         			    errorMessage.addError(new ObjectError("probe:" + r.getItemId(), "NotFound"));
         			}
         		}
+    		} else {
+    		    // should have been there
+    		    errorMessage.addError(new ObjectError("feature:" + spot.getFeatureId(), "NotFound"));
     		}
     		s.setFeatureRatioMap(ratioMap);
     		s.setFeatureConcentrationMap(concentrationMap);

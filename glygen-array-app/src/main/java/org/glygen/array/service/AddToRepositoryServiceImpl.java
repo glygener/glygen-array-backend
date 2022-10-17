@@ -28,6 +28,7 @@ import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.massutil.IonCloud;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
+import org.glycoinfo.WURCSFramework.io.GlycoCT.GlycoVisitorValidationForWURCS;
 import org.glycoinfo.WURCSFramework.io.GlycoCT.WURCSExporterGlycoCT;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.validation.WURCSValidator;
@@ -607,8 +608,6 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 feature.getType() == FeatureType.GLYCOLIPID ||
                 feature.getType() == FeatureType.GLYCOPEPTIDE || feature.getType() == FeatureType.GLYCOPROTEIN ||
                 feature.getType() == FeatureType.GPLINKEDGLYCOPEPTIDE) {
-            if (feature.getType() == FeatureType.LINKEDGLYCAN && feature.getLinker() == null)
-                errorMessage.addError(new ObjectError("linker", "NoEmpty"));
             if (feature.getType() == FeatureType.LINKEDGLYCAN && ((LinkedGlycan) feature).getGlycans() == null) {
                 errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
             } else if (feature.getType() == FeatureType.GLYCOLIPID && ((GlycoLipid) feature).getGlycans() == null) {
@@ -1186,8 +1185,6 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                 feature.getType() == FeatureType.GLYCOLIPID ||
                 feature.getType() == FeatureType.GLYCOPEPTIDE || feature.getType() == FeatureType.GLYCOPROTEIN ||
                 feature.getType() == FeatureType.GPLINKEDGLYCOPEPTIDE) {
-            if (feature.getType() == FeatureType.LINKEDGLYCAN && feature.getLinker() == null)
-                errorMessage.addError(new ObjectError("linker", "NoEmpty"));
             if (feature.getType() == FeatureType.LINKEDGLYCAN && ((LinkedGlycan) feature).getGlycans() == null) {
                 errorMessage.addError(new ObjectError("glycan", "NoEmpty"));
             } else if (feature.getType() == FeatureType.GLYCOLIPID && ((GlycoLipid) feature).getGlycans() == null) {
@@ -2219,13 +2216,31 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             WURCSExporterGlycoCT exporter = new WURCSExporterGlycoCT();
                             exporter.start(glycan.getSequence().trim());
                             String wurcs = exporter.getWURCS();
-                            String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
-                            if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
-                                // error
-                                errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+                            // validate first
+                            WURCSValidator validator = new WURCSValidator();
+                            validator.start(glycan.getSequence().trim());
+                            if (validator.getReport().hasError()) {
+                                String [] codes = validator.getReport().getErrors().toArray(new String[0]);
+                                errorMessage.addError(new ObjectError("sequence", codes, null, "WURCS validation error"));
+                            } else {
+                                String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
+                                if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
+                                    // error
+                                    errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+                                }
                             }
                         } catch (WURCSException | SugarImporterException | GlycoVisitorException e) {
                             logger.warn ("cannot convert sequence into Wurcs to check glytoucan", e);
+                            String [] codes;
+                            if (sugar != null) {
+                                // run the validator to get the detailed error messages
+                                GlycoVisitorValidationForWURCS t_validationWURCS = new GlycoVisitorValidationForWURCS();
+                                t_validationWURCS.start(sugar);
+                                codes = t_validationWURCS.getErrors().toArray(new String[0]);
+                            } else {
+                                codes = new String[] {e.getMessage()};
+                            }
+                            errorMessage.addError(new ObjectError("sequence", codes, null, "WURCS conversion error"));
                         }
                     }
                     if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
