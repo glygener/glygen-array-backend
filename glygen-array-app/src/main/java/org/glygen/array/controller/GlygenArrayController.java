@@ -1744,7 +1744,7 @@ public class GlygenArrayController {
                                     } else {
                                         slideLayout.setStatus(FutureTaskStatus.DONE);    
                                     }
-                                    repository.updateStatus (uriString, slideLayout, user);
+                                    repository.updateStatus (slideLayout.getUri(), slideLayout, user);
                                 } catch (SparqlException | SQLException ex) {
                                     throw new GlycanRepositoryException("SlideLayout cannot be added for user " + p.getName(), e);
                                 } 
@@ -2257,7 +2257,7 @@ public class GlygenArrayController {
         			    errorMessage.addError(new ObjectError("probe:" + r.getItemId(), "NotFound"));
         			}
         		}
-    		} else {
+    		} else if (spot.getFeatureId() != null){
     		    // should have been there
     		    errorMessage.addError(new ObjectError("feature:" + spot.getFeatureId(), "NotFound"));
     		}
