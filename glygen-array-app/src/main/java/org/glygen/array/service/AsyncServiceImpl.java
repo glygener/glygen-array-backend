@@ -363,6 +363,10 @@ public class AsyncServiceImpl implements AsyncService {
                                     }
                                 }
                             }
+                            
+                            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                                return CompletableFuture.failedFuture(new IllegalArgumentException("error adding molecules! Reason: " + errorMessage.toString(), errorMessage));
+                            }
                            
                             try {
                                 String id = addService.addFeature(feature, user);
@@ -388,6 +392,11 @@ public class AsyncServiceImpl implements AsyncService {
                             }
                         }
                     }
+                    
+                    if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                        return CompletableFuture.failedFuture(new IllegalArgumentException("error adding features! Reason: " + errorMessage.toString(), errorMessage));
+                    }
+                    
                     String id = addService.addBlockLayout(block.getBlockLayout(), false, user);
                     block.getBlockLayout().setId(id);
                     block.getBlockLayout().setUri(GlygenArrayRepositoryImpl.uriPrefix + id);

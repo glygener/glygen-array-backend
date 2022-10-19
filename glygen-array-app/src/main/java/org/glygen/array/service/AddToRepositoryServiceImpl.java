@@ -2144,10 +2144,13 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         }
                     }
                 }
-                if (parseError)
-                    errorMessage.addError(new ObjectError("sequence", "NotValid"));
+                if (parseError) {
+                    String[] codes = {glycan.getName()};
+                    errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
+                }
             } else {
-                errorMessage.addError(new ObjectError("sequence", "NoEmpty"));
+                String[] codes = {glycan.getName()};
+                errorMessage.addError(new ObjectError("sequence", codes, null, "NoEmpty"));
             }
             Glycan local = null;
             // check if internalid and label are unique
@@ -2170,6 +2173,9 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Glycan cannot be added for user " + user.getUsername(), e);
         }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
+            throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
         
         try {   
             // no errors add the glycan
