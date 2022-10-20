@@ -808,11 +808,17 @@ public class AsyncServiceImpl implements AsyncService {
                     String glycoCT = SequenceUtils.parseSequence(e, sequence, format);
                     if (glycoCT == null || glycoCT.isEmpty()) {
                         if (e.getErrors() != null && !e.getErrors().isEmpty()) {
-                            String[] codes = new String[] {count+"", sequence};
+                            ArrayList<String> errorCodes = new ArrayList<>();
+                            for (ObjectError err: e.getErrors()) {
+                                if (err.getCodes() != null)
+                                    errorCodes.addAll(Arrays.asList(err.getCodes()));
+                            }
+                            String[] codes = errorCodes.toArray(new String[errorCodes.size()+1]);
+                            codes[codes.length-1] = "Row: " + count;
                             errorMessage.addError(new ObjectError("sequence", codes, null, e.getErrors().get(0).getDefaultMessage()));
                             //result.addWrongSequence(null, count, sequence, e.getErrors().get(0).getDefaultMessage());
                         } else {
-                            String[] codes = new String[] {count+"", sequence};
+                            String[] codes = new String[] {"Row: " +count, sequence};
                             errorMessage.addError(new ObjectError("sequence", codes, null, "Cannot parse the sequence"));
                             //result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
                         }

@@ -351,6 +351,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
                         wurcs = g.getSequence();
                     }
                     if (wurcs != null) {
+                        //TODO validate first and give validation error!
     					glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
     					logger.info("Got glytoucan id for new glycan:" + glyToucanId);
     					if (glyToucanId == null || glyToucanId.length() > 10) {

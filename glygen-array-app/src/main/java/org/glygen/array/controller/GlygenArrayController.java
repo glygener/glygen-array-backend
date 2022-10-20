@@ -496,10 +496,10 @@ public class GlygenArrayController {
                     confirmation = parserAsyncService.addGlycanFromCSVFile(contents, noGlytoucanRegistration, user, errorMessage, config);
                     break;
                 case GWS:
-                    parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.GWS.getLabel(), ";");
+                    confirmation = parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.GWS.getLabel(), ";");
                     break;
                 case WURCS:
-                    parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.WURCS.getLabel(), "\\n");
+                    confirmation = parserAsyncService.addGlycanFromTextFile(contents, noGlytoucanRegistration, user, errorMessage, GlycanSequenceFormat.WURCS.getLabel(), "\\n");
                     break;
                 case XML:
                     confirmation = parserAsyncService.addGlycanFromLibraryFile(contents, noGlytoucanRegistration, user, errorMessage);
@@ -510,7 +510,7 @@ public class GlygenArrayController {
                     throw new IllegalArgumentException("File is not acceptable", errorMessage);
                 }
                 
-                if (confirmation.isCompletedExceptionally()) {
+                if (confirmation != null && confirmation.isCompletedExceptionally()) {
                     logger.error("glycan upload completed with exception!!");
                 }
                 confirmation.whenComplete((conf, e) -> {
@@ -921,7 +921,7 @@ public class GlygenArrayController {
             @RequestParam("uploadtype") final String type, 
             @ApiParam(required=false, value="type of the molecule", 
             allowableValues="SMALLMOLECULE, LIPID, PEPTIDE, PROTEIN, OTHER")
-            @RequestParam(required=false, value="moleculetype") final String moleculeType,
+            @RequestParam(required=false, value="moleculetype") String moleculeType,
             Principal principal) throws SparqlException, SQLException {
 
         UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
@@ -930,9 +930,24 @@ public class GlygenArrayController {
                         !(GlygenArrayRepository.ontPrefix + type).contains(GlygenArrayRepositoryImpl.batchLinkerTypePredicate) &&
                         !(GlygenArrayRepository.ontPrefix + type).equalsIgnoreCase(GlygenArrayRepositoryImpl.batchFeatureTypePredicate))) {
             ErrorMessage errorMessage = new ErrorMessage("upload type is not in the list of accepted values");
-            errorMessage.addError(new ObjectError("uploadType", "NotValid"));
+            String[] codes = {type};
+            errorMessage.addError(new ObjectError("uploadType", codes, null, "NotValid"));
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             throw new IllegalArgumentException("Type is invalid", errorMessage);
+        }
+        
+        if (moleculeType != null) {
+            if (!moleculeType.equalsIgnoreCase("SMALLMOLECULE") &&
+                    !moleculeType.equalsIgnoreCase("LIPID") &&
+                    !moleculeType.equalsIgnoreCase("PEPTIDE") &&
+                    !moleculeType.equalsIgnoreCase("PROTEIN") &&
+                    !moleculeType.equalsIgnoreCase("OTHER")) {
+                ErrorMessage errorMessage = new ErrorMessage("molecule type is not in the list of accepted values");
+                String[] codes = {moleculeType};
+                errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                throw new IllegalArgumentException("Molecule Type is invalid", errorMessage);
+            }
         }
         
         List<AsyncBatchUploadResult> results = repository.getActiveBatchUploadByType((GlygenArrayRepository.ontPrefix + type + (moleculeType == null ? "" : moleculeType)), user);

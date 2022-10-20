@@ -5,6 +5,7 @@ import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondense
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.IonCloud;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.glycoinfo.GlycanFormatconverter.io.GlycoCT.WURCSToGlycoCT;
@@ -102,11 +103,15 @@ public class SequenceUtils {
                 org.eurocarbdb.application.glycanbuilder.Glycan.fromString(sequence.trim());
             if (glycanObject != null) {
                 searchSequence = glycanObject.toGlycoCTCondensed(); 
+                if (searchSequence == null || searchSequence.isEmpty()) {
+                    String[] codes = {LogUtils.getLastError()};
+                    errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
+                }
             }
             break;
         }
         
-        if (searchSequence == null && (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())) {
+        if ((searchSequence == null || searchSequence.isEmpty()) && (errorMessage.getErrors() == null || errorMessage.getErrors().isEmpty())) {
             errorMessage.addError(new ObjectError("sequence", "NotValid"));
         }
         
