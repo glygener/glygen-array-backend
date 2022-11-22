@@ -2227,7 +2227,13 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             validator.start(glycan.getSequence().trim());
                             if (validator.getReport().hasError()) {
                                 String [] codes = validator.getReport().getErrors().toArray(new String[0]);
-                                errorMessage.addError(new ObjectError("sequence", codes, null, "WURCS validation error"));
+                                String [] errorCodes = new String[codes.length + 1];
+                                errorCodes[0] = g.getName() != null ? g.getName() : g.getInternalId();
+                                int i=1;
+                                for (String c: codes) {
+                                    errorCodes [i++] = c;
+                                }
+                                errorMessage.addError(new ObjectError("sequence", errorCodes, null, "WURCS validation error"));
                             } else {
                                 String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
                                 if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
