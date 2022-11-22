@@ -515,9 +515,16 @@ public class UserController {
         		throw new UserNotFoundException ("A user with loginId " + loginId + " does not exist", errorMessage);
     	    }
     	}
-    	emailManager.sendPasswordReminder(user);
-    	logger.info("Password reminder email is sent to {}", loginId);
-		return new Confirmation("Password reminder email is sent", HttpStatus.OK.value());
+    	try {
+    	    emailManager.sendPasswordReminder(user);
+    	    logger.info("Password recovery email is sent to {}", user.getEmail());
+    	    return new Confirmation("Password recovery email is sent", HttpStatus.OK.value());
+    	} catch (Exception e) {
+    	    ErrorMessage errorMessage = new ErrorMessage("Password recovery email failed to send");
+    	    errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+    	    errorMessage.addError(new ObjectError ("email", e.getMessage()));
+    	    throw new IllegalArgumentException("Password recovery email failed to send", errorMessage);
+    	}
     	
     }
     
@@ -586,7 +593,7 @@ public class UserController {
     		logger.error("Current Password is not valid!");
     		ErrorMessage errorMessage = new ErrorMessage("Current Password is not valid. Please try again!");
 			errorMessage.addError(new ObjectError("currentPassword", "Invalid"));
-			throw new IllegalArgumentException("Current password s invalid", errorMessage);
+			throw new IllegalArgumentException("Current password is invalid", errorMessage);
     	}
     	return new Confirmation("Password changed successfully", HttpStatus.OK.value()); 
     }
