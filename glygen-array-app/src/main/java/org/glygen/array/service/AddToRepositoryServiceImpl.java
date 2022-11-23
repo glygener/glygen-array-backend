@@ -2088,7 +2088,13 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             validator.start(glycan.getSequence().trim());
                             if (validator.getReport().hasError()) {
                                 String [] codes = validator.getReport().getErrors().toArray(new String[0]);
-                                errorMessage.addError(new ObjectError("sequence", codes, null, "NotValid"));
+                                String [] errorCodes = new String[codes.length + 1];
+                                errorCodes[0] = g.getName() != null ? g.getName() : g.getInternalId();
+                                int i=1;
+                                for (String c: codes) {
+                                    errorCodes [i++] = c;
+                                }
+                                errorMessage.addError(new ObjectError("sequence", errorCodes, null, "NotValid"));
                             } else {
                                 g.setSequence(validator.getReport().getStandardString());
                                 g.setSequenceType(GlycanSequenceFormat.WURCS);
@@ -2224,7 +2230,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             String wurcs = exporter.getWURCS();
                             // validate first
                             WURCSValidator validator = new WURCSValidator();
-                            validator.start(glycan.getSequence().trim());
+                            validator.start(wurcs);
                             if (validator.getReport().hasError()) {
                                 String [] codes = validator.getReport().getErrors().toArray(new String[0]);
                                 String [] errorCodes = new String[codes.length + 1];
@@ -2238,7 +2244,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                                 String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
                                 if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
                                     // error
-                                    errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+                                    errorMessage.addError(new ObjectError("glytoucanId", null, null, "NoMatch"));
                                 }
                             }
                         } catch (WURCSException | SugarImporterException | GlycoVisitorException e) {

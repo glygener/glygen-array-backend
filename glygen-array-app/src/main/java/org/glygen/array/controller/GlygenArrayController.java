@@ -1276,8 +1276,9 @@ public class GlygenArrayController {
 		return null;
 	}
 	
+	
 	@SuppressWarnings("rawtypes")
-    SlideLayout getFullLayoutFromLibrary (File libraryFile, SlideLayout layout) {
+    public static SlideLayout getFullLayoutFromLibrary (File libraryFile, SlideLayout layout, MetadataTemplateRepository templateRepository, boolean layoutOnly) {
 		try {
 			FileInputStream inputStream2 = new FileInputStream(libraryFile);
 	        InputStreamReader reader2 = new InputStreamReader(inputStream2, "UTF-8");
@@ -1307,101 +1308,103 @@ public class GlygenArrayController {
 	        		int width = 0;
 	        		int height = 0;
 	        		
-	        		// create a SpotMetadata with no information since we don't get the information from the library file
-	                SpotMetadata spotMetadata = new SpotMetadata();
-	                spotMetadata.setName(slideLayout.getName() + "-spotMetadata");
-	                try {
-	        	        String uri = templateRepository.getTemplateByName("Default Spot", MetadataTemplateType.SPOT);
-	        	        if (uri != null) {
-	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
-	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Dispenses", template);
-	        	        	DescriptorGroup group = new DescriptorGroup();
-	        	            group.setKey(descT);
-	        	            group.setNotRecorded(true);
-	        	            spotMetadata.setDescriptorGroups(new ArrayList<>());
-	        	            spotMetadata.getDescriptorGroups().add(group);
-	        	            spotMetadata.setTemplate(template.getName());
-	        	        } else {
-	        	        	errorMessage.addError(new ObjectError("spot template", "NotFound"));
-	        	        }
-	                } catch (SparqlException | SQLException e) {
-	                	errorMessage.addError(new ObjectError("spot template", "NotValid"));
-	                }
-	                
-	                FeatureMetadata featureMetadata = new FeatureMetadata();
-	                featureMetadata.setName(slideLayout.getName() + "-featureMetadata");
-	                try {
-	        	        String uri = templateRepository.getTemplateByName("Default Feature", MetadataTemplateType.FEATURE);
-	        	        if (uri != null) {
-	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
-	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Commercial source", template);
-	        	        	DescriptorGroup group = new DescriptorGroup();
-	        	            group.setKey(descT);
-	        	            group.setNotRecorded(true);
-	        	            DescriptionTemplate descT2 = ExtendedGalFileParser.getKeyFromTemplate("Non-commercial", template);
-                            DescriptorGroup group2 = new DescriptorGroup();
-                            group2.setKey(descT2);
-                            group2.setNotRecorded(true);
-	        	            featureMetadata.setDescriptorGroups(new ArrayList<>());
-	        	            featureMetadata.getDescriptorGroups().add(group);
-	        	            featureMetadata.getDescriptorGroups().add(group2);
-	        	            featureMetadata.setTemplate(template.getName());
-	        	        } else {
-	        	        	errorMessage.addError(new ObjectError("feature template", "NotFound"));
-	        	        }
-	                } catch (SparqlException | SQLException e) {
-	                	errorMessage.addError(new ObjectError("feature template", "NotValid"));
-	                }
-	                
-	        		for (Block block: slideLayout.getBlock()) {
-	        			org.glygen.array.persistence.rdf.Block myBlock = new org.glygen.array.persistence.rdf.Block();
-	        			myBlock.setColumn(block.getColumn());
-	        			myBlock.setRow(block.getRow());
-	        			if (block.getColumn() > width)
-	        				width = block.getColumn();
-	        			if (block.getRow() > height)
-	        				height = block.getRow();
-	        			Integer blockLayoutId = block.getLayoutId();
-	        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
-	        			if (blockLayout == null) {
-	        			    // it should have been in the file
-	        	            errorMessage.addError(new ObjectError("blockLayout:" + blockLayoutId, "NotFound"));
-	        	            continue;
-	        			}
-	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
-	        			String name = null;
-	        			if (blockLayout.getName() != null) {
-	        				name = blockLayout.getName();
-	        				if (name.length() >= ValidationConstants.NAME_LIMIT) {
-	        					name = name.substring(0, ValidationConstants.NAME_LIMIT-1);
-	        				}
-	        			}
-	        			myLayout.setName(name);
-	        			myLayout.setWidth(blockLayout.getColumnNum());
-	        			myLayout.setHeight(blockLayout.getRowNum());
-	        			String comment = null;
-	        			if (blockLayout.getComment() != null) {
-	        				comment = blockLayout.getComment().replaceAll("\\r", " ").replaceAll("\\n", " ");
-	        				if (comment.length() >= ValidationConstants.DESCRIPTION_LIMIT) {
-	        					comment = comment.substring(0, ValidationConstants.DESCRIPTION_LIMIT-1);
-	        				}
-	        			}
-	        			myLayout.setDescription(comment);
-	        			myBlock.setBlockLayout(myLayout); 
-	        			try {
-    	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout, spotMetadata, featureMetadata);
-    	        			//myBlock.setSpots(spots);
-    	        			myLayout.setSpots(spots);
-    	        			blocks.add(myBlock);
-	        			} catch (Exception e) {
-	        			    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-	                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
-	                                errorMessage.addError(err);
-	                            }
-	                        } else {
-	                            errorMessage.addError(new ObjectError("file", e.getMessage()));
-	                        }
-	        			}
+	        		if (!layoutOnly) {
+    	        		// create a SpotMetadata with no information since we don't get the information from the library file
+    	                SpotMetadata spotMetadata = new SpotMetadata();
+    	                spotMetadata.setName(slideLayout.getName() + "-spotMetadata");
+    	                try {
+    	        	        String uri = templateRepository.getTemplateByName("Default Spot", MetadataTemplateType.SPOT);
+    	        	        if (uri != null) {
+    	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
+    	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Dispenses", template);
+    	        	        	DescriptorGroup group = new DescriptorGroup();
+    	        	            group.setKey(descT);
+    	        	            group.setNotRecorded(true);
+    	        	            spotMetadata.setDescriptorGroups(new ArrayList<>());
+    	        	            spotMetadata.getDescriptorGroups().add(group);
+    	        	            spotMetadata.setTemplate(template.getName());
+    	        	        } else {
+    	        	        	errorMessage.addError(new ObjectError("spot template", "NotFound"));
+    	        	        }
+    	                } catch (SparqlException | SQLException e) {
+    	                	errorMessage.addError(new ObjectError("spot template", "NotValid"));
+    	                }
+    	                
+    	                FeatureMetadata featureMetadata = new FeatureMetadata();
+    	                featureMetadata.setName(slideLayout.getName() + "-featureMetadata");
+    	                try {
+    	        	        String uri = templateRepository.getTemplateByName("Default Feature", MetadataTemplateType.FEATURE);
+    	        	        if (uri != null) {
+    	        	        	MetadataTemplate template = templateRepository.getTemplateFromURI(uri);
+    	        	        	DescriptionTemplate descT = ExtendedGalFileParser.getKeyFromTemplate("Commercial source", template);
+    	        	        	DescriptorGroup group = new DescriptorGroup();
+    	        	            group.setKey(descT);
+    	        	            group.setNotRecorded(true);
+    	        	            DescriptionTemplate descT2 = ExtendedGalFileParser.getKeyFromTemplate("Non-commercial", template);
+                                DescriptorGroup group2 = new DescriptorGroup();
+                                group2.setKey(descT2);
+                                group2.setNotRecorded(true);
+    	        	            featureMetadata.setDescriptorGroups(new ArrayList<>());
+    	        	            featureMetadata.getDescriptorGroups().add(group);
+    	        	            featureMetadata.getDescriptorGroups().add(group2);
+    	        	            featureMetadata.setTemplate(template.getName());
+    	        	        } else {
+    	        	        	errorMessage.addError(new ObjectError("feature template", "NotFound"));
+    	        	        }
+    	                } catch (SparqlException | SQLException e) {
+    	                	errorMessage.addError(new ObjectError("feature template", "NotValid"));
+    	                }
+    	                
+    	        		for (Block block: slideLayout.getBlock()) {
+    	        			org.glygen.array.persistence.rdf.Block myBlock = new org.glygen.array.persistence.rdf.Block();
+    	        			myBlock.setColumn(block.getColumn());
+    	        			myBlock.setRow(block.getRow());
+    	        			if (block.getColumn() > width)
+    	        				width = block.getColumn();
+    	        			if (block.getRow() > height)
+    	        				height = block.getRow();
+    	        			Integer blockLayoutId = block.getLayoutId();
+    	        			org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout = LibraryInterface.getBlockLayout(library, blockLayoutId);
+    	        			if (blockLayout == null) {
+    	        			    // it should have been in the file
+    	        	            errorMessage.addError(new ObjectError("blockLayout:" + blockLayoutId, "NotFound"));
+    	        	            continue;
+    	        			}
+    	        			org.glygen.array.persistence.rdf.BlockLayout myLayout = new org.glygen.array.persistence.rdf.BlockLayout();
+    	        			String name = null;
+    	        			if (blockLayout.getName() != null) {
+    	        				name = blockLayout.getName();
+    	        				if (name.length() >= ValidationConstants.NAME_LIMIT) {
+    	        					name = name.substring(0, ValidationConstants.NAME_LIMIT-1);
+    	        				}
+    	        			}
+    	        			myLayout.setName(name);
+    	        			myLayout.setWidth(blockLayout.getColumnNum());
+    	        			myLayout.setHeight(blockLayout.getRowNum());
+    	        			String comment = null;
+    	        			if (blockLayout.getComment() != null) {
+    	        				comment = blockLayout.getComment().replaceAll("\\r", " ").replaceAll("\\n", " ");
+    	        				if (comment.length() >= ValidationConstants.DESCRIPTION_LIMIT) {
+    	        					comment = comment.substring(0, ValidationConstants.DESCRIPTION_LIMIT-1);
+    	        				}
+    	        			}
+    	        			myLayout.setDescription(comment);
+    	        			myBlock.setBlockLayout(myLayout); 
+    	        			try {
+        	        			List<org.glygen.array.persistence.rdf.Spot> spots = getSpotsFromBlockLayout(library, blockLayout, spotMetadata, featureMetadata);
+        	        			//myBlock.setSpots(spots);
+        	        			myLayout.setSpots(spots);
+        	        			blocks.add(myBlock);
+    	        			} catch (Exception e) {
+    	        			    if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+    	                            for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+    	                                errorMessage.addError(err);
+    	                            }
+    	                        } else {
+    	                            errorMessage.addError(new ObjectError("file", e.getMessage()));
+    	                        }
+    	        			}
+    	        		}
 	        		}
 	        		
 	        		mySlideLayout.setHeight(slideLayout.getHeight() == null ? height: slideLayout.getHeight());
@@ -1723,10 +1726,11 @@ public class GlygenArrayController {
 				}
 				
 				try {
-				    SlideLayout slideLayout = getFullLayoutFromLibrary (libraryFile, input.getSlideLayout());
+				    SlideLayout slideLayout = getFullLayoutFromLibrary (libraryFile, input.getSlideLayout(), templateRepository, true);
 				    if (searchName != null) {
                         slideLayout.setName(searchName);
-                    }
+                    } 
+				    
                     CompletableFuture<String> slideId = null;
                     if (slideLayout != null) {
                         // save slide layout without its blocks and update its status to "processing"
@@ -1740,7 +1744,7 @@ public class GlygenArrayController {
                         repository.updateStatus (uri, slideLayout, user);
                         
                         try {
-                            slideId = parserAsyncService.importSlideLayout(slideLayout, errorMessage, user);
+                            slideId = parserAsyncService.importSlideLayout(slideLayout, libraryFile, errorMessage, user);
                             if (slideId.isCompletedExceptionally()) {
                                 logger.error("slide upload completed with exception!!");
                             }
@@ -2144,7 +2148,7 @@ public class GlygenArrayController {
 	}
 	
 	
-	List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout, SpotMetadata spotMetadata, FeatureMetadata featureMetadata) {
+	public static List<org.glygen.array.persistence.rdf.Spot> getSpotsFromBlockLayout (ArrayDesignLibrary library, org.grits.toolbox.glycanarray.library.om.layout.BlockLayout blockLayout, SpotMetadata spotMetadata, FeatureMetadata featureMetadata) {
 		List<org.glygen.array.persistence.rdf.Spot> spots = new ArrayList<>();
 		ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -3961,7 +3965,7 @@ public class GlygenArrayController {
         return t_image;
     }
 	
-	private ReducingEndType getReducingEnd (String glycoCT) {
+	private static  ReducingEndType getReducingEnd (String glycoCT) {
 	    ReducingEndType type = ReducingEndType.UNKNOWN;
 	    try {
 	        SugarImporterGlycoCTCondensed importer = new SugarImporterGlycoCTCondensed();

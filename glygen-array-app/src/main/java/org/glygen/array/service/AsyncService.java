@@ -1,5 +1,6 @@
 package org.glygen.array.service;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -16,7 +17,7 @@ import org.glygen.array.view.ErrorMessage;
 public interface AsyncService {
 
     CompletableFuture<List<Intensity>> parseProcessDataFile(String datasetId, FileWrapper file, Slide slide, UserEntity user);
-    CompletableFuture<String> importSlideLayout (SlideLayout slideLayout, ErrorMessage errorMessage, UserEntity user);
+    CompletableFuture<String> importSlideLayout (SlideLayout slideLayout, File libraryFile, ErrorMessage errorMessage, UserEntity user);
     CompletableFuture<Confirmation> addGlycansFromExportFile(byte[] contents,
             Boolean noGlytoucanRegistration, UserEntity user, ErrorMessage errorMessage);
     CompletableFuture<Confirmation> addGlycanFromCSVFile(byte[] contents, Boolean noGlytoucanRegistration,

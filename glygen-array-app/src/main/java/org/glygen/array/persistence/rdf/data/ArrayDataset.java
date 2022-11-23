@@ -40,6 +40,10 @@ public class ArrayDataset extends FutureTask implements ChangeTrackable {
     List<ChangeLog> changes = new ArrayList<>();
     
     FutureTaskStatus uploadStatus = FutureTaskStatus.NOTSTARTED;
+    
+    public ArrayDataset() {
+        this.status = FutureTaskStatus.NOTSTARTED;
+    }
 
     /**
      * @return the id

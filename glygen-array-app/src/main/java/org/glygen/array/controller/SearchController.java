@@ -972,7 +972,7 @@ public class SearchController {
     public DatasetSearchResultView listDatasetsForSearch (
             @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @ApiParam(required=false, value="limit of the number of datasets to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
             @ApiParam(required=false, value="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 

@@ -20,6 +20,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.glygen.array.controller.GlygenArrayController;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.UserEntity;
@@ -89,6 +90,9 @@ public class AsyncServiceImpl implements AsyncService {
     
     @Autowired
     UserRepository userRepository;
+    
+    @Autowired
+    MetadataTemplateRepository templateRepository;
     
     @Autowired
     Validator validator;
@@ -258,8 +262,13 @@ public class AsyncServiceImpl implements AsyncService {
 
     @Override
     @Async("GlygenArrayAsyncExecutor")
-    public CompletableFuture<String> importSlideLayout(SlideLayout slideLayout, ErrorMessage errorMessage,
+    public CompletableFuture<String> importSlideLayout(SlideLayout slideLayout, File libraryFile, ErrorMessage errorMessage,
             UserEntity user) {
+        try {
+            slideLayout = GlygenArrayController.getFullLayoutFromLibrary(libraryFile, slideLayout, templateRepository, false);
+        } catch (Exception e) {
+            return CompletableFuture.failedFuture(e);
+        }
         // find all block layouts, glycans, linkers and add them first
         for (org.glygen.array.persistence.rdf.Block block: slideLayout.getBlocks()) {
             if (block.getBlockLayout() != null) { 
@@ -557,7 +566,7 @@ public class AsyncServiceImpl implements AsyncService {
                         // this is not a glycan, it is either control or a flag
                         // do not create a glycan
                         // give an error message
-                        String[] codes = new String[] {count+""};
+                        String[] codes = new String[] {"Row: " + (count+1)};
                         errorMessage.addError(new ObjectError("sequence", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + " Not a glycan"));
                         
                         //result.addWrongSequence ((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, null, "Not a glycan");
@@ -569,7 +578,7 @@ public class AsyncServiceImpl implements AsyncService {
                     } 
                     if (glycan.getFilterSetting() != null) {
                         // there is a glycan with composition, TODO we don't handle that right now
-                        String[] codes = new String[] {count+"", glycan.getSequence()};
+                        String[] codes = new String[] {"Row: " + (count+1), glycan.getSequence()};
                         errorMessage.addError(new ObjectError("sequence", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + " Glycan Type not supported"));
                         
                         //result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count, glycan.getSequence(), "Glycan Type not supported");
@@ -583,7 +592,7 @@ public class AsyncServiceImpl implements AsyncService {
                     ((SequenceDefinedGlycan) view).setSequenceType(GlycanSequenceFormat.GLYCOCT);
                 }
                 if (view == null) {
-                    String[] codes = new String[] {count+"", glycan.getSequence()};
+                    String[] codes = new String[] {"Row: " + (count+1), glycan.getSequence()};
                     errorMessage.addError(new ObjectError("sequence", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + " not added"));
                     //result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), "Not a glycan");
                     continue;
@@ -614,7 +623,7 @@ public class AsyncServiceImpl implements AsyncService {
                                      //       byte[] image = GlygenArrayController.getCartoonForGlycan(duplicateGlycan.getId(), imageLocation);
                                     //        duplicateGlycan.setCartoon(image);
                                    //     }
-                                        String[] codes = new String[] {count+"", err.getCodes()[0]};
+                                        String[] codes = new String[] {"Row: " + (count+1), err.getCodes()[0]};
                                         errorMessage.addError(new ObjectError ("duplicate", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + " is a duplicate"));
                                         //result.addDuplicateSequence(duplicateGlycan);
                                    // } catch (SparqlException | SQLException e1) {
@@ -623,13 +632,13 @@ public class AsyncServiceImpl implements AsyncService {
                                 }
                             } 
                         } else {
-                            String[] codes = new String[] {count+"", glycan.getSequence()};
+                            String[] codes = new String[] {"Row: " + (count+1), glycan.getSequence()};
                             errorMessage.addError(new ObjectError("sequence", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + "-" + ((ErrorMessage)e.getCause()).toString()));
                             //result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
                         }
                     } else { 
                         logger.error ("Exception adding the glycan: " + glycan.getName(), e);
-                        String[] codes = new String[] {count+"", glycan.getSequence()};
+                        String[] codes = new String[] {"Row: " + (count+1), glycan.getSequence()};
                         errorMessage.addError(new ObjectError("sequence", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + "-" + ((ErrorMessage)e.getCause()).toString()));
                         
                         //result.addWrongSequence((glycan.getName() == null ? glycan.getId()+"" : glycan.getName()), count , glycan.getSequence(), ((ErrorMessage)e.getCause()).toString());
@@ -688,14 +697,14 @@ public class AsyncServiceImpl implements AsyncService {
                             ((MassOnlyGlycan) glycan).setMass(Double.parseDouble(mass.trim()));
                         } catch (NumberFormatException e) {
                             // add to error list
-                            String[] codes = new String[] {count+""};
+                            String[] codes = new String[] {"Row: " + (count+1)};
                             errorMessage.addError(new ObjectError("sequence", codes, null, glycanName + "-" + e.getMessage()));
                             //result.addWrongSequence(glycanName, count, null, e.getMessage());
                         }
                     } else {
                         // ERROR
                         // add to error list
-                        String[] codes = new String[] {count+"", sequence};
+                        String[] codes = new String[] {"Row: " + (count+1), sequence};
                         errorMessage.addError(new ObjectError("sequence", codes, null, glycanName + " No sequence and mass information found"));
                         //result.addWrongSequence(glycanName, count, sequence, "No sequence and mass information found");
                     }
@@ -744,7 +753,7 @@ public class AsyncServiceImpl implements AsyncService {
                                     //        byte[] image = GlygenArrayController.getCartoonForGlycan(duplicateGlycan.getId(), imageLocation);
                                     //        duplicateGlycan.setCartoon(image);
                                    //     }
-                                        String[] codes = new String[] {count+"", err.getCodes()[0]};
+                                        String[] codes = new String[] {"Row: " + (count+1), err.getCodes()[0]};
                                         errorMessage.addError(new ObjectError ("duplicate", codes, null, (glycan.getName() == null ? glycan.getId()+"" : glycan.getName()) + " is a duplicate"));
                                      
                                    //     result.addDuplicateSequence(duplicateGlycan);
@@ -754,12 +763,12 @@ public class AsyncServiceImpl implements AsyncService {
                                 }
                             } 
                         } else {
-                            String[] codes = new String[] {count+"", sequence};
+                            String[] codes = new String[] {"Row: " + (count+1), sequence};
                             errorMessage.addError(new ObjectError("sequence", codes, null, glycanName + " " + ((ErrorMessage)e.getCause()).toString()));
                             //result.addWrongSequence(glycan.getName(), count, sequence, ((ErrorMessage)e.getCause()).toString());
                         }
                     } else { 
-                        String[] codes = new String[] {count+"", sequence};
+                        String[] codes = new String[] {"Row: " + (count+1), sequence};
                         errorMessage.addError(new ObjectError("sequence", codes, null, glycanName + " " + e.getMessage()));
                         //result.addWrongSequence(glycan.getName(), count, sequence, e.getMessage());
                     }
@@ -814,11 +823,11 @@ public class AsyncServiceImpl implements AsyncService {
                                     errorCodes.addAll(Arrays.asList(err.getCodes()));
                             }
                             String[] codes = errorCodes.toArray(new String[errorCodes.size()+1]);
-                            codes[codes.length-1] = "Row: " + count;
+                            codes[codes.length-1] = "Row: " + (count+1);
                             errorMessage.addError(new ObjectError("sequence", codes, null, e.getErrors().get(0).getDefaultMessage()));
                             //result.addWrongSequence(null, count, sequence, e.getErrors().get(0).getDefaultMessage());
                         } else {
-                            String[] codes = new String[] {"Row: " +count, sequence};
+                            String[] codes = new String[] {"Row: " + (count+1), sequence};
                             errorMessage.addError(new ObjectError("sequence", codes, null, "Cannot parse the sequence"));
                             //result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
                         }
@@ -841,7 +850,7 @@ public class AsyncServiceImpl implements AsyncService {
                             //    glycan.setCartoon(image);
                            // }
                            // if (glycan != null) {
-                                String[] codes = new String[] {count+"", id};
+                                String[] codes = new String[] {"Row: " + (count+1), id};
                                 errorMessage.addError(new ObjectError ("duplicate", codes, null, "Glycan is a duplicate"));
                                 //result.addDuplicateSequence(glycan);
                             //} else {
@@ -851,7 +860,7 @@ public class AsyncServiceImpl implements AsyncService {
                             String id = addService.addGlycan(g, user, noGlytoucanRegistration, false);
                             if (id == null) {
                                 // cannot be added
-                                String[] codes = new String[] {count+"", sequence};
+                                String[] codes = new String[] {"Row: " + (count+1), sequence};
                                 errorMessage.addError(new ObjectError("sequence", codes, null, "Cannot parse the sequence"));
                                 //result.addWrongSequence(null, count, sequence, "Cannot parse the sequence");
                             } else {
@@ -867,7 +876,7 @@ public class AsyncServiceImpl implements AsyncService {
                 } catch (Exception e) {
                     logger.error ("Exception adding the sequence: " + sequence, e);
                     // sequence is not valid
-                    String[] codes = new String[] {count+"", sequence};
+                    String[] codes = new String[] {"Row: " + (count+1), sequence};
                     errorMessage.addError(new ObjectError("sequence", codes, null, e.getMessage()));
                     //result.addWrongSequence(null, count, sequence, e.getMessage());
                 }
@@ -924,14 +933,14 @@ public class AsyncServiceImpl implements AsyncService {
                                     //try {
                                         //org.glygen.array.persistence.rdf.Feature duplicate = featureRepository.getFeatureById(err.getCodes()[0], user);
                                         //result.getDuplicateFeatures().add(duplicate);
-                                        String[] codes = new String[] {i+"", err.getCodes()[0]};
+                                        String[] codes = new String[] {"Row: " + (i+1), err.getCodes()[0]};
                                         errorMessage.addError(new ObjectError ("duplicate", codes, null, feature.getInternalId() + " is a duplicate"));
                                      
                                     //} catch (SparqlException | SQLException e1) {
                                     //    logger.error("Error retrieving duplicate feature", e1);
                                     //}
                                 } else {
-                                    String[] codes = new String[] {i+""};
+                                    String[] codes = new String[] {"Row: " + (i+1)};
                                     errorMessage.addError(new ObjectError ("duplicate", codes, null, feature.getInternalId() + " is a duplicate"));
                                     //result.getDuplicateFeatures().add(feature);
                                 }
@@ -946,7 +955,7 @@ public class AsyncServiceImpl implements AsyncService {
                             //result.getErrors().add((ErrorMessage)e.getCause());
                         }
                     } else { 
-                        String[] codes = new String[] {i+""};
+                        String[] codes = new String[] {"Row: " + (i+1)};
                         errorMessage.addError(new ObjectError ("duplicate", codes, null, e.getMessage()));
                         //ErrorMessage error = new ErrorMessage(e.getMessage());
                         //result.getErrors().add(error);
@@ -1010,10 +1019,10 @@ public class AsyncServiceImpl implements AsyncService {
                                         //} catch (SparqlException | SQLException e1) {
                                        //     logger.error("Error retrieving duplicate linker", e1);
                                         //}
-                                        String[] codes = new String[] {i+"", err.getCodes()[0]};
+                                        String[] codes = new String[] {"Row: " + (i+1), err.getCodes()[0]};
                                         errorMessage.addError(new ObjectError ("duplicate", codes, null, linker.getName() + " is a duplicate"));
                                     } else {
-                                        String[] codes = new String[] {i+""};
+                                        String[] codes = new String[] {"Row: " + (i+1)};
                                         errorMessage.addError(new ObjectError ("duplicate", codes, null, linker.getName() + " is a duplicate"));
                                         //result.getDuplicateLinkers().add(linker);
                                     }
@@ -1031,7 +1040,7 @@ public class AsyncServiceImpl implements AsyncService {
                         } else { 
                             logger.error ("Exception adding the linker: " + linker.getName(), e);
                             //ErrorMessage error = new ErrorMessage(e.getMessage());
-                            String[] codes = new String[] {i+""};
+                            String[] codes = new String[] {"Row: " + (i+1)};
                             errorMessage.addError(new ObjectError ("duplicate", codes, null, e.getMessage()));
                             //result.getErrors().add(error);
                         }
