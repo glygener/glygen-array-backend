@@ -1,0 +1,116 @@
+sampledata
+Swiss_Prot	Swiss Prot
+-546303161	Species in which antibody originated (human, mouse, etc) and Scientific Name Ex Human; Homo sapiens
+-1790003555	If immunizations were performed, Gender of Subject
+Primary_Sequence	Primary Sequence
+Further_Info1	Further Info
+27291108	Antibody Subtype (1/2/3/4)
+-2015455063	If Influenza virus, Primary Amino Acid Sequence of HA, the GBP 
+Condition_of_storage	Condition of storage
+-782475580	Antibody Name (ex clone name, B11)
+Name	Name
+Gene_Symbol	Gene Symbol
+Organism_Cells	Organism/Cells
+Species	Species
+-861196869	When was sample placed in storage (month/year)
+Status	Status
+Synonyms	Synonyms
+-1051843856	Schedule of immunization (weekly, bi-weekly, etc)
+790714772	Species in which your serum originated (human, mouse, etc) with Scientific Name and Strain Type Age and Gender (if Human , type 1Race/ethnicity 2ABO Blood Type 3 Diagnosis/disease)
+-188920193	Dilution in what diluent
+443812426	Experiment title and rationale for assay
+Further_Info	Further Info
+1943838091	Describe the organism by entering information that a person skilled in this field would expect to see to accurately identify the organism
+Sub_Family	Sub Family
+1281541380	If a commercial antibody, provide Vendor and Catalog Number
+-100409677	Serum collection and processing information type 1Anti-coagulant 2Dilution in what diluent 3Condition of storage 4Time in storage 5Post collection processing (IgG depletion, ammonium sulfate precipitated, etc)
+953343693	Dose (immunogen and adjuvant) and route of immunization
+65299273	Antibody Type (example Monoclonal or Polyclonal (mention how it was purified)) 
+Complete_Name	Complete Name
+Spec_Sci_Name	Spec Sci Name
+-227934913	Describe variant or mutant organism by entering information that a person skilled in this field would expect to see to accurately identify the organism
+Mutation_Chimera	Mutation/Chimera
+-677687632	If the epitope(s) is known, please describe here 
+2102082671	Sample Name (serum sample)
+-116683742	Species in which your Organism originated (human, mouse, etc) and Scientific Name
+-1020686480	Serum collection and processing information Anti-coagulant
+Gen_Bank	Gen Bank
+69234834	Source of your material; ie, natural, what expression system, or commercial source) 
+1799653750	If immunizations were performed, Age of Subject 
+Adjuvant	Adjuvant
+207605457	Post collection processing (ex IgG depleted, ammonium sulfate precipitated, etc)
+1001016772	Entry Date [mm/dd/yyyy]
+-1801243311	Time of blood draws after immunization (1 week after immunization, etc)
+Estimated_purity	Estimated purity
+987326654	Potential contaminants in the sample that could influence binding 
+75611650	If conjugated immunogen, what was the carrier protein
+-1356324269	Comments or additional information that will aid in assay design 
+Comments	Comments
+-728300322	Method(s) by which the sample was tested for activity
+-1958838658	Description of Experiment including detection method, suggested concentration to assay, suggested buffers if different from below 
+-436221455	Known Sites of Expression
+2119431185	Antibody Isotype (IgG/IgM/IgA/IgE)
+473641455	If recombinant antibody, describe details of expression; ie construct, expression system, etc
+114605882	Literature reference for this preparation and its GBP 
+PDB_	PDB 
+-1726439334	Method(s) for testing the activity of the sample 
+-1585180357	Immunogen (structure, concentration, etc)
+Family	Family
+Sample_Name	Sample Name
+-1396494765	Describe immunization protocol used type 1Immunogen (structure, concentration, etc) 2If conjugated immunogen, what was the carrier protein 3Dose (immunogen and adjuvant) and route of immunization 4Schedule of immunization (weekly, biweekly, et
+
+experimentdata
+Status	Status
+Brief_Comments	Brief Comments
+1505767802	Protein/Sample Concentrtaion
+-491792363	Supplying Investigator
+Title	Title
+-1183338289	Experiment Date [mm/dd/yyyy]
+Glycan_Array_Version	Glycan Array Version
+1635439566	Protein Sample Analyzed 
+1137989877	Raw Files for this Primary Screen
+Annotation	Annotation
+819836718	Enhanced Glycan Array Data Browser (New Feature)
+Protocol_Id	Protocol Id
+Result_Nature	Result Nature
+-1100022276	Associated Resource Requests
+Assay_Information	Assay Information
+-1069682899	Readout for this primary screen
+-786589929	Investigator Sample Analyzed
+Replicate_Number	Replicate Number
+
+requestdata
+Amount_Requested	Amount Requested
+1339104825	Head of Lab Last Name
+Assigned_First_Name	Assigned First Name
+CFG_Member?	CFG Member?
+Institution	Institution
+-643239159	Experiment to be conducted
+447911925	Head of Lab First Name
+Project_Description	Project Description
+Material_Requested	Material Requested
+Shipping_Address	Shipping Address
+Requester_Last_Name	Requester Last Name
+Requester_Email	Requester Email
+2039874986	Within Scope of Consortium
+Status	Status
+Request_ID	Request ID
+Comments	Comments
+-1475790216	Date that your RNA/GBP samples will be sent to the core
+Requester_First_Name	Requester First Name
+GBP_being_Addressed	GBP being Addressed
+Assigned_Last_Name	Assigned Last Name
+-1235327866	if yes, indicate the person responsible for inputing data into core B
+Request_Date	Request Date
+5943919	Specific aims being addressed
+Requester_Interest	Requester Interest
+CFG_Core	CFG Core
+Resource_Type	Resource Type
+
+protocoldata
+Category	Category
+Date [mm/dd/yyyy]	Date__mm_dd_yyyy_
+Keyword	Keyword
+Title	Title
+Overview	Overview
+Core	Core
