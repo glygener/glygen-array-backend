@@ -1307,6 +1307,14 @@ public class GlygenArrayController {
 	        		List<org.glygen.array.persistence.rdf.Block> blocks = new ArrayList<>();
 	        		int width = 0;
 	        		int height = 0;
+	        		// keep the original values if already set
+	        		mySlideLayout.setDateAddedToLibrary(layout.getDateAddedToLibrary());
+	        		mySlideLayout.setDateCreated(layout.getDateCreated());
+	        		mySlideLayout.setDateModified(layout.getDateModified());
+	        		mySlideLayout.setUri(layout.getUri());
+	        		mySlideLayout.setStatus(layout.getStatus());
+	        		mySlideLayout.setStartDate(layout.getStartDate());
+	        		mySlideLayout.setError(layout.getError());
 	        		
 	        		if (!layoutOnly) {
     	        		// create a SpotMetadata with no information since we don't get the information from the library file
@@ -2193,7 +2201,12 @@ public class GlygenArrayController {
         		        					((SequenceDefinedGlycan) myGlycan).setSequenceType(GlycanSequenceFormat.GLYCOCT);
         		        					//determine the reducing end type
         		        					ReducingEndConfiguration redEnd = new ReducingEndConfiguration();
-        	                                redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
+        		        					// special handling of 183 Sp8 (CFG data)
+        		        					if (glycan.getName().equals("183 Sp8")) {
+        		        					    redEnd.setType(ReducingEndType.OPENSRING);
+        		        					} else {
+        		        					    redEnd.setType(getReducingEnd (glycan.getSequence().trim()));
+        		        					}
         	                                glycanFeature.setReducingEndConfiguration(redEnd);
         		        				} else {
         		        					myGlycan = new UnknownGlycan();

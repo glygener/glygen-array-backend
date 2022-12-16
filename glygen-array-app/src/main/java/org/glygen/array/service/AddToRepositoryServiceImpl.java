@@ -768,7 +768,8 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                                     errorMessage = new ErrorMessage();
                                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                                     errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                                    errorMessage.addError(new ObjectError("glycan", "NotBaseType"));
+                                    String[] codes = new String[] {baseGlycan.getName()};
+                                    errorMessage.addError(new ObjectError("glycan", codes, null, "NotBaseType"));
                                     throw new IllegalArgumentException("Invalid Input: Not a valid glycan information", errorMessage);
                                 }
                                 gf.setGlycan(baseGlycan);

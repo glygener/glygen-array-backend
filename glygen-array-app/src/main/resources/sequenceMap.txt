@@ -22,4 +22,4 @@ Fuca1-2Galb1-4 GlcNAcb1-2Mana1-6(Fuca1-2Galb1-4GlcNAcb1-2(Fuca1-2Galb1-4GlcNAcb1
 G-ol-Sp8	RES\n1b:o-dglc-HEX-0:0|1:aldi
 MurNAcb1-4GlcNAcb-Sp10	RES\n1b:b-dglc-HEX-1:5\n2s:n-acetyl\n3b:b-dglc-HEX-1:5\n4s:n-acetyl\n5s:(r)-carboxyethyl\nLIN\n1:1d(2+1)2n\n2:1o(4+1)3d\n3:3d(2+1)4n\n4:3o(3+1)5n
 GlcNAcb1-4-MDPLys	RES\n1b:b-dglc-HEX-1:5\n2s:n-acetyl\n3s:(r)-carboxyethyl\n4b:b-dglc-HEX-1:5\n5s:n-acetyl\nLIN\n1:1d(2+1)2n\n2:1o(3+1)3n\n3:1d(4+1)4o\n4:4d(2+1)5n	
-Neu5Aca2-3Galb1-3GalNAcb1-4Galb1-4Glcb-Sp0	Neu5Aca2-3Galb1-3GlcNAcb1-4Galb1-4Glcb-Sp0
+Gala1-3Fuca1-2Galb1-4GlcNAcb1-6(Gala1-3Fuca1-2Galb1-4GlcNAcb1-3)GalNAc-Sp14	Gala1-3(Fuca1-2)Galb1-4GlcNAcb1-6(Gala1-3(Fuca1-2)Galb1-4GlcNAcb1-3)GalNAc-Sp14	
