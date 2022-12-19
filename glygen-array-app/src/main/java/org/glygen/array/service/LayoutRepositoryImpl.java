@@ -1744,8 +1744,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	                        // need to get the public uri
 	                        g.setUri(publicURI);
 	                    }
+	                    publicGlycans.add(gf);
                         if (!processedGlycans.containsKey(g.getUri())) {
-                            publicGlycans.add(gf); 
                             processedGlycans.put(g.getUri(), g);
                         }
 	                } else {
@@ -1778,8 +1778,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
                             // need to get the public uri
                             g.setUri(getPublicUri(g.getUri(), user));
                         }
+    	                publicGlycans.add(gf); 
     	                if (!processedGlycans.containsKey(g.getUri())) {
-    	                    publicGlycans.add(gf); 
     	                    processedGlycans.put(g.getUri(), g);
     	                }
     	            } else {
@@ -1814,8 +1814,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 	        for (LinkedGlycan f: ((GlycoLipid)feature).getGlycans()) {
 	            if (f.getUri() != null && f.getUri().contains("public")) {
 	                // already public
+	                publicFeatures.add(f);
 	                if (!processedFeatures.containsKey(f.getUri())) {
-	                    publicFeatures.add(f);
 	                    processedFeatures.put(f.getUri(), f);
 	                }
 	            } else {
@@ -1857,8 +1857,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             for (LinkedGlycan f: ((GlycoPeptide)feature).getGlycans()) {
                 if (f.getUri() != null && f.getUri().contains("public")) {
                     // already public
+                    publicFeatures.add(f);
                     if (!processedFeatures.containsKey(f.getUri())) {
-                        publicFeatures.add(f);
                         processedFeatures.put(f.getUri(), f);
                     }
                 } else {
@@ -1900,8 +1900,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             for (LinkedGlycan f: ((GlycoProtein)feature).getGlycans()) {
                 if (f.getUri() != null && f.getUri().contains("public")) {
                     // already public
+                    publicFeatures.add(f);
                     if (!processedFeatures.containsKey(f.getUri())) {
-                        publicFeatures.add(f);
                         processedFeatures.put(f.getUri(), f);
                     }
                 } else {
@@ -1943,8 +1943,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
             for (GlycoPeptide f: ((GPLinkedGlycoPeptide)feature).getPeptides()) {
                 if (f.getUri() != null && f.getUri().contains("public")) {
                     // already public
+                    publicFeatures2.add(f);
                     if (!processedFeatures.containsKey(f.getUri())) {
-                        publicFeatures2.add(f);
                         processedFeatures.put(f.getUri(), f);
                     }
                 } else {
