@@ -1577,6 +1577,14 @@ public class PublicGlygenArrayController {
                         if (feature != null) {
                             GlygenArrayController.populateFeatureGlycanImages(feature, imageLocation);
                         }
+                        if (feature instanceof LinkedGlycan) {
+                        	if (((LinkedGlycan) feature).getGlycans() == null ||
+                        			((LinkedGlycan) feature).getGlycans().isEmpty() ||
+                        			((LinkedGlycan) feature).getGlycans().get(0).getGlycan() == null) {
+                        		logger.info("feature "
+                        				+ feature.getName() + " is missing its glycans");
+                        	}
+                        }
                     }
                     result.setRows(dataList);
                     result.setFilteredTotal(dataList.size());
