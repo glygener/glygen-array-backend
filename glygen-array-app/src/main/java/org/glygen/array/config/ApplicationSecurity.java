@@ -69,6 +69,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CompositeFilter;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -135,6 +136,11 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
+	
+	@Bean
+	ForwardedHeaderFilter forwardedHeaderFilter() {
+	   return new ForwardedHeaderFilter();
+	}
 	
 	@Bean
 	@ConfigurationProperties("google")
