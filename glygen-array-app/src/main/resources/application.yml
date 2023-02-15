@@ -55,6 +55,9 @@ glygen:
       loginPage: login.html
       emailVerificationPage: emailConfirmation
 
+springdoc:
+  swagger-ui:
+    config-url: /v3/api-docs/swagger-config
 
    
 server:
