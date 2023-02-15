@@ -20,7 +20,6 @@ import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.UserRepository;
-import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
 import org.glygen.array.persistence.rdf.GPLinkedGlycoPeptide;
@@ -91,10 +90,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -145,23 +146,25 @@ public class PublicGlygenArrayController {
     @Autowired
     ExtendedGalFileParser galFileParser;
     
-    @ApiOperation(value = "List all public glycans")
+    @Operation(summary = "List all public glycans")
     @RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanListResultView.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans retrieved successfully", content = {
+            @Content( schema = @Schema(implementation = GlycanListResultView.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public GlycanListResultView listGlycans (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         GlycanListResultView result = new GlycanListResultView();
         
@@ -219,15 +222,15 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "Retrieve glycan with the given id")
+    @Operation(summary = "Retrieve glycan with the given id")
     @RequestMapping(value="/getglycan/{glycanId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
-            @ApiResponse(code=404, message="Gycan with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycan retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Gycan with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Glycan getGlycan (
-            @ApiParam(required=true, value="id of the glycan to retrieve") 
+            @Parameter(required=true, description="id of the glycan to retrieve") 
             @PathVariable("glycanId") String glycanId) {
         try {
             
@@ -246,23 +249,23 @@ public class PublicGlygenArrayController {
         
     }
     
-    @ApiOperation(value = "Retrieve glycan with the given id")
+    @Operation(summary = "Retrieve glycan with the given id")
     @RequestMapping(value="/getdatasetforglycan/{glycanId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycan retrieved successfully"), 
-            @ApiResponse(code=404, message="Gycan with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycan retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Gycan with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ArrayDatasetListView getDatasetsForGlycan (
-            @ApiParam(required=true, value="id of the glycan to retrieve") 
+            @Parameter(required=true, description="id of the glycan to retrieve") 
             @PathVariable("glycanId") String glycanId,
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         
@@ -299,15 +302,15 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Retrieve linker with the given id")
+    @Operation(summary = "Retrieve linker with the given id")
     @RequestMapping(value="/getlinker/{linkerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
-            @ApiResponse(code=404, message="Linker with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Linker retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Linker with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Linker getLinker (
-            @ApiParam(required=true, value="id of the linker to retrieve") 
+            @Parameter(required=true, description="id of the linker to retrieve") 
             @PathVariable("linkerId") String linkerId) {
         try {
             Linker linker = linkerRepository.getLinkerById(linkerId.trim(), null);
@@ -321,23 +324,24 @@ public class PublicGlygenArrayController {
         
     }
     
-    @ApiOperation(value = "List all linkers for the user")
+    @Operation(summary = "List all linkers for the user")
     @RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Linkers retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Linkers retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public LinkerListResultView listLinkers (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of linkers to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of linkers to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         LinkerListResultView result = new LinkerListResultView();
         try {
@@ -371,25 +375,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all slide layouts for the user")
+    @Operation(summary = "List all slide layouts for the user")
     @RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide layouts retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide layouts retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public SlideLayoutResultView listSlideLayouts (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of layouts to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
+            @Parameter (required=false, schema = @Schema(type = "boolean", defaultValue="true"), description="if false, do not load block details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         SlideLayoutResultView result = new SlideLayoutResultView();
         try {
@@ -422,25 +427,27 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all block layouts for the user")
+    @Operation(summary = "List all block layouts for the user")
     @RequestMapping(value="/listBlocklayouts", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Block layouts retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments", response = ErrorMessage.class),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Block layouts retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))}),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public BlockLayoutResultView listBlockLayouts (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of layouts to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of layouts to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam (required=false, defaultValue = "true", value="if false, do not load spot details. Default is true (to load all)")
+            @Parameter (required=false, schema = @Schema(type = "boolean", defaultValue="true"), description="if false, do not load spot details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         BlockLayoutResultView result = new BlockLayoutResultView();
         
@@ -474,23 +481,23 @@ public class PublicGlygenArrayController {
         return result;
     }
 
-    @ApiOperation(value = "List all features for the user")
+    @Operation(summary = "List all features for the user")
     @RequestMapping(value="/listFeatures", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Features retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Features retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public FeatureListResultView listFeature (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of features to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of features to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         FeatureListResultView result = new FeatureListResultView();
        
@@ -525,27 +532,28 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all public datasets")
+    @Operation(summary = "List all public datasets")
     @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ArrayDatasetListView listArrayDataset (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         //logger.info("getting the list of array datasets");
@@ -586,29 +594,30 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all public datasets submitted by the given user")
+    @Operation(summary = "List all public datasets submitted by the given user")
     @RequestMapping(value="/listArrayDatasetByUser", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ArrayDatasetListView listArrayDatasetByUser (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
-            @ApiParam(required=true, value="user name") 
+            @Parameter(required=true, description="user name") 
             @RequestParam("user") String username) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         try {
@@ -687,29 +696,30 @@ public class PublicGlygenArrayController {
     }
     
     
-    @ApiOperation(value = "List all public datasets submitted by the given user as a coowner")
+    @Operation(summary = "List all public datasets submitted by the given user as a coowner")
     @RequestMapping(value="/listArrayDatasetByCoOwner", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ArrayDatasetListView listArrayDatasetByCoOwner (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="false") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
-            @ApiParam(required=true, value="coowner name") 
+            @Parameter(required=true, description="coowner name") 
             @RequestParam("user") String username) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         try {
@@ -787,25 +797,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all printed slides for the user")
+    @Operation(summary = "List all printed slides for the user")
     @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slides retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public PrintedSlideListView listPrintedSlide (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         PrintedSlideListView result = new PrintedSlideListView();
         try {
@@ -852,25 +863,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all data processing software metadata for the user")
+    @Operation(summary = "List all data processing software metadata for the user")
     @RequestMapping(value="/listDataProcessingSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Data processing software metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listDataProcessingSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -906,25 +918,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all image analysis software metadata for the user")
+    @Operation(summary = "List all image analysis software metadata for the user")
     @RequestMapping(value="/listImageAnalysisSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image analysis software metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listImageAnalysisSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -960,25 +973,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all printer metadata for the user")
+    @Operation(summary = "List all printer metadata for the user")
     @RequestMapping(value="/listPrinters", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listPrinters (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -1014,25 +1028,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all samples for the user")
+    @Operation(summary = "List all samples for the user")
     @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Samples retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Samples retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listSamples (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -1068,25 +1083,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all scanner metadata for the user")
+    @Operation(summary = "List all scanner metadata for the user")
     @RequestMapping(value="/listScanners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listScanners (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -1122,25 +1138,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all slide metadata for the user")
+    @Operation(summary = "List all slide metadata for the user")
     @RequestMapping(value="/listSlideMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listSlideMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -1176,25 +1193,26 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "List all assay metadata for the user")
+    @Operation(summary = "List all assay metadata for the user")
     @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listAssayMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue) {
         MetadataListResultView result = new MetadataListResultView();
         try {
@@ -1230,17 +1248,17 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @ApiOperation(value = "Retrieve block layout with the given id")
+    @Operation(summary = "Retrieve block layout with the given id")
     @RequestMapping(value="/getblocklayout/{layoutId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Block Layout retrieved successfully"), 
-            @ApiResponse(code=404, message="Block layout with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Block Layout retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Block layout with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public BlockLayout getBlockLayout (
-            @ApiParam(required=true, value="id of the block layout to retrieve") 
+            @Parameter(required=true, description="id of the block layout to retrieve") 
             @PathVariable("layoutId") String layoutId, 
-            @ApiParam (required=false, defaultValue = "true", value="if false, do not load block details. Default is true (to load all)")
+            @Parameter (required=false, schema = @Schema(type = "boolean", defaultValue="true"), description="if false, do not load block details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll) {
         try {
             
@@ -1255,17 +1273,17 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Retrieve slide layout with the given id")
+    @Operation(summary = "Retrieve slide layout with the given id")
     @RequestMapping(value="/getslidelayout/{layoutId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide Layout retrieved successfully"), 
-            @ApiResponse(code=404, message="Slide layout with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide Layout retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Slide layout with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public SlideLayout getSlideLayout (
-            @ApiParam(required=true, value="id of the slide layout to retrieve") 
+            @Parameter(required=true, description="id of the slide layout to retrieve") 
             @PathVariable("layoutId") String layoutId, 
-            @ApiParam (required=false, defaultValue = "true", value="if false, do not load slide details. Default is true (to load all)")
+            @Parameter (required=false, schema = @Schema(type = "boolean", defaultValue="true"), description="if false, do not load slide details. Default is true (to load all)")
             @RequestParam(required=false, defaultValue = "true", value="loadAll") Boolean loadAll) {
         try {
             SlideLayout layout = layoutRepository.getSlideLayoutById(layoutId.trim(), null, loadAll);
@@ -1279,15 +1297,15 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Retrieve feature with the given id")
+    @Operation(summary = "Retrieve feature with the given id")
     @RequestMapping(value="/getfeature/{featureId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Feature retrieved successfully"), 
-            @ApiResponse(code=404, message="Feature with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Feature retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Feature with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public org.glygen.array.persistence.rdf.Feature getFeature (
-            @ApiParam(required=true, value="id of the feature to retrieve") 
+            @Parameter(required=true, description="id of the feature to retrieve") 
             @PathVariable("featureId") String featureId) {
         try {
             org.glygen.array.persistence.rdf.Feature feature = featureRepository.getFeatureById(featureId.trim(), null);
@@ -1301,17 +1319,17 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Retrieve dataset with the given id")
+    @Operation(summary = "Retrieve dataset with the given id")
     @RequestMapping(value="/getarraydataset/{datasetid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset retrieved successfully"), 
-            @ApiResponse(code=404, message="Dataset with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Dataset retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Dataset with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ArrayDataset getArrayDataset (
-            @ApiParam(required=true, value="id of the array dataset to retrieve") 
+            @Parameter(required=true, description="id of the array dataset to retrieve") 
             @PathVariable("datasetid") String id, 
-            @ApiParam(required=false, value="load rawdata and processed data measurements or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data measurements or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll) {
         try {
             ArrayDataset dataset = datasetRepository.getArrayDataset(id.trim(), loadAll, null);
@@ -1325,15 +1343,15 @@ public class PublicGlygenArrayController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve sample with the given id")
+    @Operation(summary = "Retrieve sample with the given id")
     @RequestMapping(value="/getsample/{sampleId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
-            @ApiResponse(code=404, message="Sample with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Sample retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Sample with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Sample getSample (
-            @ApiParam(required=true, value="id of the sample to retrieve") 
+            @Parameter(required=true, description="id of the sample to retrieve") 
             @PathVariable("sampleId") String id) {
         try {
             Sample sample = metadataRepository.getSampleFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
@@ -1346,15 +1364,15 @@ public class PublicGlygenArrayController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve printer with the given id")
+    @Operation(summary = "Retrieve printer with the given id")
     @RequestMapping(value="/getPrinter/{printerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer retrieved successfully"), 
-            @ApiResponse(code=404, message="Printer with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Printer getPrinter (
-            @ApiParam(required=true, value="id of the printer to retrieve") 
+            @Parameter(required=true, description="id of the printer to retrieve") 
             @PathVariable("printerId") String id) {
         try {
             Printer metadata = metadataRepository.getPrinterFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
@@ -1367,15 +1385,15 @@ public class PublicGlygenArrayController {
         }   
     }
 
-    @ApiOperation(value = "Retrieve printrun with the given id")
+    @Operation(summary = "Retrieve printrun with the given id")
     @RequestMapping(value="/getPrintrun/{printrunId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun retrieved successfully"), 
-            @ApiResponse(code=404, message="Printer with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printrun retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public PrintRun getPrintrun (
-            @ApiParam(required=true, value="id of the printrun to retrieve") 
+            @Parameter(required=true, description="id of the printrun to retrieve") 
             @PathVariable("printrunId") String id) {
         try {
             PrintRun metadata = metadataRepository.getPrintRunFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
@@ -1388,15 +1406,15 @@ public class PublicGlygenArrayController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve scanner with the given id")
+    @Operation(summary = "Retrieve scanner with the given id")
     @RequestMapping(value="/getScanner/{scannerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner retrieved successfully"), 
-            @ApiResponse(code=404, message="ScannerMetadata with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="ScannerMetadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ScannerMetadata getScanner (
-            @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
+            @Parameter(required=true, description="id of the ScannerMetadata to retrieve") 
             @PathVariable("scannerId") String id) {
         try {
             ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
@@ -1408,15 +1426,15 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("ScannerMetadata cannot be retrieved", e);
         }   
     }
-    @ApiOperation(value = "Retrieve SlideMetadata with the given id")
+    @Operation(summary = "Retrieve SlideMetadata with the given id")
     @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="SlideMetadata retrieved successfully"), 
-            @ApiResponse(code=404, message="Printer with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="SlideMetadata retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public SlideMetadata getSlideMetadata (
-            @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
+            @Parameter(required=true, description="id of the SlideMetadata to retrieve") 
             @PathVariable("slideId") String id) {
         try {
             SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
@@ -1428,15 +1446,15 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("SlideMetadata cannot be retrieved" , e);
         }   
     }
-    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id")
+    @Operation(summary = "Retrieve ImageAnalysisSoftware with the given id")
     @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="ImageAnalysisSoftware retrieved successfully"), 
-            @ApiResponse(code=404, message="ImageAnalysisSoftware with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="ImageAnalysisSoftware retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="ImageAnalysisSoftware with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ImageAnalysisSoftware getImageAnaylsisSoftware (
-            @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
+            @Parameter(required=true, description="id of the ImageAnalysisSoftware to retrieve") 
             @PathVariable("imagesoftwareId") String id) {
         try {
             ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic 
@@ -1450,15 +1468,15 @@ public class PublicGlygenArrayController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id")
+    @Operation(summary = "Retrieve DataProcessingSoftware with the given id")
     @RequestMapping(value="/getDataProcessingSoftware/{dataprocessingId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware retrieved successfully"), 
-            @ApiResponse(code=404, message="DataProcessingSoftware with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="DataProcessingSoftware retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="DataProcessingSoftware with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public DataProcessingSoftware getDataProcessingSoftware (
-            @ApiParam(required=true, value="id of the DataProcessingSoftware to retrieve") 
+            @Parameter(required=true, description="id of the DataProcessingSoftware to retrieve") 
             @PathVariable("dataprocessingId") String id) {
         try {
             
@@ -1473,15 +1491,15 @@ public class PublicGlygenArrayController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve assay metadata with the given id")
+    @Operation(summary = "Retrieve assay metadata with the given id")
     @RequestMapping(value="/getAssayMetadata/{assayId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
-            @ApiResponse(code=404, message="Assay metadata with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Assay metadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public AssayMetadata getAssayMetadata (
-            @ApiParam(required=true, value="id of the Assay metadata to retrieve") 
+            @Parameter(required=true, description="id of the Assay metadata to retrieve") 
             @PathVariable("assayId") String id) {
         try {
             
@@ -1496,29 +1514,30 @@ public class PublicGlygenArrayController {
     }
     
     
-    @ApiOperation(value = "List all features with intensities for the given processed data")
+    @Operation(summary = "List all features with intensities for the given processed data")
     @RequestMapping(value="/listIntensityData", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Intensities retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Intensities retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public IntensityDataResultView listIntensityData (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
-            @ApiParam(required=true, value="id of the processed data from which the intensities should be retrieved") 
+            @Parameter(required=true, description="id of the processed data from which the intensities should be retrieved") 
             @RequestParam(value="processedDataId", required=true)
             String processedDataId, 
             @RequestParam(value="datasetId", required=true)
-            @ApiParam(required=true, value="id of the dataset for which the intensities should be retrieved")
+            @Parameter(required=true, description="id of the dataset for which the intensities should be retrieved")
             String datasetId) {
         try {
             if (offset == null)
@@ -1605,13 +1624,13 @@ public class PublicGlygenArrayController {
         
     }
     
-    @ApiOperation(value = "List of all glytoucanIDs in a given block layout")
+    @Operation(summary = "List of all glytoucanIDs in a given block layout")
     @RequestMapping(value="/listGlycoucanidsByblockLayout", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved sucessfully"), 
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans retrieved sucessfully"), 
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Set<String> listGlycansByBlockLayout (
-            @ApiParam(required=true, value="the id of the block layout") 
+            @Parameter(required=true, description="the id of the block layout") 
             @RequestParam String blockLayoutId) {
         Set<String> ids = new HashSet<String>();
         BlockLayout layout = getBlockLayout(blockLayoutId, true);
@@ -1692,18 +1711,19 @@ public class PublicGlygenArrayController {
         return ids;
     }
     
-    @ApiOperation(value = "Download the given file")
+    @Operation(summary = "Download the given file")
     @RequestMapping(value="/download", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
-            @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File downloaded successfully"), 
+            @ApiResponse(responseCode="400", description="File not found, or not accessible publicly", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))}),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
-            @ApiParam(required=true, value="the folder of the file") 
+            @Parameter(required=true, description="the folder of the file") 
             @RequestParam String fileFolder, 
-            @ApiParam(required=true, value="the identifier of the file to be downloaded") 
+            @Parameter(required=true, description="the identifier of the file to be downloaded") 
             @RequestParam String fileIdentifier,
-            @ApiParam(required=false, value="filename to save the downloaded file as. If not provided, the original file name is used if available") 
+            @Parameter(required=false, description="filename to save the downloaded file as. If not provided, the original file name is used if available") 
             @RequestParam(value="filename", required=false)
             String originalName) {
         
@@ -1751,17 +1771,17 @@ public class PublicGlygenArrayController {
     }
     
     
-    @ApiOperation(value = "Export slide layout in extended GAL format")
+    @Operation(summary = "Export slide layout in extended GAL format")
     @RequestMapping(value = "/downloadSlideLayout", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> exportSlideLayout (
-            @ApiParam(required=true, value="id of the slide layout") 
+            @Parameter(required=true, description="id of the slide layout") 
             @RequestParam("slidelayoutid")
             String slidelayoutid,
-            @ApiParam(required=false, value="the name for downloaded file") 
+            @Parameter(required=false, description="the name for downloaded file") 
             @RequestParam(value="filename", required=false)
             String fileName) {
         
@@ -1797,17 +1817,17 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @ApiOperation(value = "Export processed data in glygen array data file format")
+    @Operation(summary = "Export processed data in glygen array data file format")
     @RequestMapping(value = "/downloadProcessedData", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> exportProcessedData (
-            @ApiParam(required=true, value="id of the processed data") 
+            @Parameter(required=true, description="id of the processed data") 
             @RequestParam("processeddataid")
             String processedDataId,
-            @ApiParam(required=false, value="the name for downloaded file") 
+            @Parameter(required=false, description="the name for downloaded file") 
             @RequestParam(value="filename", required=false)
             String fileName) {
         

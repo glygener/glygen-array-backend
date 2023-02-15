@@ -1,13 +1,12 @@
 package org.glygen.array.view;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(value = "LoginRequest", description = "Login request")
+@Schema(name = "LoginRequest", description = "Login request")
 public class LoginRequest {
-	@ApiModelProperty
+	@Schema
 	public String username;
-	@ApiModelProperty
+	@Schema
     public String password;
 	
     public String getUsername() {

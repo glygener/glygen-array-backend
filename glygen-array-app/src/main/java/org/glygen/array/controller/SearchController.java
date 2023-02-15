@@ -44,6 +44,7 @@ import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.util.SequenceUtils;
 import org.glygen.array.view.CompareByGlytoucanId;
 import org.glygen.array.view.CompareByMass;
+import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.DatasetSearchInput;
 import org.glygen.array.view.DatasetSearchResultView;
 import org.glygen.array.view.DatasetSearchType;
@@ -72,10 +73,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -106,12 +109,15 @@ public class SearchController {
     @Autowired
     QueryHelper queryHelper;
     
-    @ApiOperation(value = "Retrieve glycan search initialization values")
+    @Operation(summary = "Retrieve glycan search initialization values")
     @RequestMapping(value="/initGlycanSearch", method = RequestMethod.GET, produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="The initial search parameters", response = SearchInitView.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The initial search parameters", content = {
+            @Content( schema = @Schema(implementation = SearchInitView.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = Confirmation.class))}
+            )})
     public SearchInitView initGlycanSearch () {
         SearchInitView view = new SearchInitView();
         try {
@@ -131,14 +137,16 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "Perform search on glycans that match all of the given criteria")
+    @Operation(summary = "Perform search on glycans that match all of the given criteria")
     @RequestMapping(value="/searchGlycans", method = RequestMethod.POST)
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String searchGlycans (
-            @ApiParam(required=true, value="search terms") 
+            @Parameter(required=true, description="search terms") 
             @RequestBody GlycanSearchInput searchInput) {
         
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
@@ -217,14 +225,16 @@ public class SearchController {
         } 
     }
     
-    @ApiOperation(value = "Perform search on glycans that match one of the given glytoucan ids")
+    @Operation(summary = "Perform search on glycans that match one of the given glytoucan ids")
     @RequestMapping(value="/searchGlycansByGlytoucanIds", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public String listGlycansByGlytoucanIds (
-            @ApiParam(required=true, value="list of glytoucan ids to match") 
+            @Parameter(required=true, description="list of glytoucan ids to match") 
             @RequestParam(value="glytoucanids", required=true) List<String> ids) {
         try {
             List<String> matches = glycanRepository.getGlycanByGlytoucanIds(null, ids);
@@ -264,16 +274,18 @@ public class SearchController {
         return null;
     }
     
-    @ApiOperation(value = "Perform search on glycans that have masses in the given range")
+    @Operation(summary = "Perform search on glycans that have masses in the given range")
     @RequestMapping(value="/searchGlycansByMass", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String listGlycansByMassRange (
-            @ApiParam(required=true, value="minimum mass", example="0.0") 
+            @Parameter(required=true, description="minimum mass", example="0.0") 
             @RequestParam(value="min", required=true) Double min,
-            @ApiParam(required=true, value="maximum mass", example="1000.0") 
+            @Parameter(required=true, description="maximum mass", example="1000.0") 
             @RequestParam(value="max", required=true) Double max) {
         try {
             List<String> matches = glycanRepository.getGlycanByMass(null, min, max);
@@ -315,17 +327,19 @@ public class SearchController {
         return null;
     }
     
-    @ApiOperation(value = "Perform search on glycans that match the given structure")
+    @Operation(summary = "Perform search on glycans that match the given structure")
     @RequestMapping(value="/searchGlycansByStructure", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String listGlycansByStructure (
-            @ApiParam(required=true, value="structure to match") 
+            @Parameter(required=true, description="structure to match") 
             @RequestBody String sequence,
-            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GlycoWorkbench") 
+            @Parameter(required=true, description="sequence format", schema = @Schema(type = "string", allowableValues= {"Wurcs", "GlycoCT", "IUPAC", "GlycoWorkbench"})) 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat) {
         
         try {
@@ -382,19 +396,21 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "Perform search on glycans that match the given substructure and return the search id")
+    @Operation(summary = "Perform search on glycans that match the given substructure and return the search id")
     @RequestMapping(value="/searchGlycansBySubstructure", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String listGlycanBySubstructure (
-            @ApiParam(required=true, value="substructure to match") 
+            @Parameter(required=true, description="substructure to match") 
             @RequestBody String sequence,
-            @ApiParam(required=true, value="sequence format", allowableValues="Wurcs, GlycoCT, IUPAC, GlycoWorkbench") 
+            @Parameter(required=true, description="sequence format", schema = @Schema(type = "string", allowableValues = {"Wurcs", "GlycoCT", "IUPAC", "GlycoWorkbench"})) 
             @RequestParam(value="sequenceFormat", required=true) String sequenceFormat, 
-            @ApiParam(required=false, defaultValue = "false", value="restrict search to reducing end") 
+            @Parameter(required=false, schema = @Schema(type = "boolean", defaultValue="false"), description="restrict search to reducing end") 
             @RequestParam(value="reducingEnd", defaultValue = "false", required=false)
             Boolean reducingEnd) {
         
@@ -455,23 +471,25 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "List glycans from the given search")
+    @Operation(summary = "List glycans from the given search")
     @RequestMapping(value="/listGlycansForSearch", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans retrieved successfully", response = GlycanSearchResultView.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans retrieved successfully", content = {
+            @Content(schema = @Schema(implementation = GlycanSearchResultView.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public GlycanSearchResultView listGlycansForSearch (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
+            @Parameter(required=true, description="the search query id retrieved earlier by the corresponding search") 
             @RequestParam(value="searchId", required=true) String searchId) {
         GlycanSearchResultView result = new GlycanSearchResultView();
         try {
@@ -648,14 +666,16 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "Perform search on datasets that match all of the given criteria")
+    @Operation(summary = "Perform search on datasets that match all of the given criteria")
     @RequestMapping(value="/searchDatasets", method = RequestMethod.POST)
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String searchDatasets (
-            @ApiParam(required=true, value="search terms") 
+            @Parameter(required=true, description="search terms") 
             @RequestBody DatasetSearchInput searchInput) {
         
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
@@ -758,14 +778,16 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "Perform search on datasets that match all of the given user criteria")
+    @Operation(summary = "Perform search on datasets that match all of the given user criteria")
     @RequestMapping(value="/searchDatasetsByUser", method = RequestMethod.POST)
-    @ApiResponses (value ={@ApiResponse(code=200, message="The search id to be used to retrieve search results", response = String.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="The search id to be used to retrieve search results", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public String searchDatasetsByUser (
-            @ApiParam(required=true, value="search terms") 
+            @Parameter(required=true, description="search terms") 
             @RequestBody DatasetSearchInput searchInput) {
         
         Map<String, List<String>> searchResultMap = new HashMap<String, List<String>>();
@@ -962,23 +984,25 @@ public class SearchController {
     }
     
     
-    @ApiOperation(value = "List datasets from the given search")
+    @Operation(summary = "List datasets from the given search")
     @RequestMapping(value="/listDatasetsForSearch", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Datasets retrieved successfully", response = DatasetSearchResultView.class), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Datasets retrieved successfully", content = {
+            @Content(schema = @Schema(implementation = DatasetSearchResultView.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
     public DatasetSearchResultView listDatasetsForSearch (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of datasets to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of datasets to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=true, value="the search query id retrieved earlier by the corresponding search") 
+            @Parameter(required=true, description="the search query id retrieved earlier by the corresponding search") 
             @RequestParam(value="searchId", required=true) String searchId) {
         DatasetSearchResultView result = new DatasetSearchResultView();
         try {

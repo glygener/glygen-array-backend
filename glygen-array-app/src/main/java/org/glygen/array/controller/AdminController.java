@@ -33,11 +33,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -57,11 +57,11 @@ public class AdminController {
     ArrayDatasetRepository datasetRepository;
      
 
-    @ApiOperation(value = "Deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
-            + "It is therefore necessary to restart the triple store after executing this web service.", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Deletes everything in the repository. It also removes the required initial data/settings in the triple store. "
+            + "It is therefore necessary to restart the triple store after executing this web service.", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/reset", method=RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation resetRepository (Principal p) {
         try {
             repository.resetRepository();
@@ -71,7 +71,7 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Deletes templates for metadata", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Deletes templates for metadata", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteTemplates", method = RequestMethod.POST)
     public void deleteTemplates (Principal p) { 
         try {
@@ -84,7 +84,8 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Delete and recreate templates using the current version of the template ontology.", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete and recreate templates using the current version of the template ontology.", 
+            security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/populateTemplates", method = RequestMethod.POST)
     public void populateTemplates (Principal p) { 
         try {
@@ -97,16 +98,16 @@ public class AdminController {
         }
     }
     
-    @ApiOperation(value = "Delete the given array dataset from public repository", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given array dataset from public repository", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletepublicdataset/{datasetId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Dataset deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteArrayDataset (
-            @ApiParam(required=true, value="id of the array dataset to delete") 
+            @Parameter(required=true, description="id of the array dataset to delete") 
             @PathVariable("datasetId") String id) {
         try {
             
@@ -141,9 +142,9 @@ public class AdminController {
     }
     
     public Confirmation deleteSlide (
-            @ApiParam(required=true, value="id of the slide to delete") 
+            @Parameter(required=true, description="id of the slide to delete") 
             @PathVariable("slideId") String id, 
-            @ApiParam(required=true, value="id of the array dataset this slide belongs to") 
+            @Parameter(required=true, description="id of the array dataset this slide belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId) {
         try {

@@ -16,3 +16,5 @@ INSERT INTO settings (name, value) SELECT 'token.expiration', '8640000' WHERE NO
 INSERT INTO settings (name, value) SELECT 'timeDelay', '3600' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'timeDelay'); 
 INSERT INTO settings (name, value) SELECT 'apiVersion', '1.0.0' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'apiVersion'); 
 INSERT INTO settings (name, value) SELECT 'portalVersion', '1.0.0' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'portalVersion');
+INSERT INTO settings (name, value) SELECT 'apiReleaseDate', 'Feb 1, 2023' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'apiReleaseDate'); 
+INSERT INTO settings (name, value) SELECT 'portalReleaseDate', 'Feb 1, 2023' WHERE NOT EXISTS (SELECT value FROM settings WHERE name = 'portalReleaseDate');

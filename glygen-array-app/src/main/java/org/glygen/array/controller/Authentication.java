@@ -6,11 +6,8 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.glygen.array.config.SecurityConstants;
-import org.glygen.array.persistence.GlygenUser;
-import org.glygen.array.security.MyUsernamePasswordAuthenticationFilter;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.LoginRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,22 +15,21 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Authentication API specification for Swagger documentation and Code Generation.
  * Implemented by Spring Security.
  */
-@Api("Authentication")
+@Tag(name="Authentication")
 @Controller
 @RequestMapping(value = "/", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class Authentication {
@@ -44,8 +40,8 @@ public class Authentication {
     /**
      * Implemented by Spring Security
      */
-    @ApiOperation(value = "Login", notes = "Login with the given credentials.")
-    @ApiResponses({@ApiResponse(code = 200, message = "")})
+    @Operation(summary = "Login", description = "Login with the given credentials.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "")})
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public void login(@RequestBody LoginRequest loginRequest)
     {
@@ -55,14 +51,14 @@ public class Authentication {
     /**
      * Implemented by Spring Security
      */
-    @ApiOperation(value = "Logout", notes = "Logout the current user.")
-    @ApiResponses({@ApiResponse(code = 200, message = "")})
+    @Operation(summary = "Logout", description = "Logout the current user.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "")})
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
     public void logout() {
         throw new IllegalStateException("Add Spring Security to handle authentication");
     }
     
-    @ApiOperation(value = "Refresh", notes = "Refreshes the token required for authentication.")
+    @Operation(summary = "Refresh", description = "Refreshes the token required for authentication.")
     @RequestMapping(value="/refreshtoken", method = RequestMethod.POST) 
     public ResponseEntity<Confirmation> refresh(HttpServletRequest request, Principal p) {
         String token = request.getHeader(SecurityConstants.HEADER_STRING);

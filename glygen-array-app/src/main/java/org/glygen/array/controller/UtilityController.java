@@ -67,10 +67,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @RestController
 @RequestMapping("/util")
@@ -105,14 +107,14 @@ public class UtilityController {
     }
 	
 
-	@ApiOperation(value = "Convert given glycan sequence (in NCFG format) into GlycoCT")
+	@Operation(summary = "Convert given glycan sequence (in NCFG format) into GlycoCT")
 	@RequestMapping(value="/parseSequence", method = RequestMethod.GET)
-	@ApiResponses (value ={@ApiResponse(code=200, message="Successfully converted into GlycoCT"), 
-			@ApiResponse(code=400, message="Invalid request, validation error"),
-    		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+	@ApiResponses (value ={@ApiResponse(responseCode="200", description="Successfully converted into GlycoCT"), 
+			@ApiResponse(responseCode="400", description="Invalid request, validation error"),
+    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
 	public String parseCFGNameString (
-			@ApiParam(required=true, value="Sequence string (in NCFG format) to be parsed into GlycoCT. Please use a and b for alpha and beta respectively")
+			@Parameter(required=true, description="Sequence string (in NCFG format) to be parsed into GlycoCT. Please use a and b for alpha and beta respectively")
 			@RequestParam String sequenceString) {
 		
 		CFGMasterListParser parser = new CFGMasterListParser();
@@ -120,15 +122,15 @@ public class UtilityController {
 		return parser.translateSequence(SequenceUtils.cleanupSequence(sequenceString.trim()));
 	}
 	
-	@ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
+	@Operation(summary = "Retrieve publication details from Pubmed with the given pubmed id")
     @RequestMapping(value="/getPublicationFromPubmed/{pubmedid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Publication retrieved successfully"), 
-            @ApiResponse(code=404, message="Publication with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Publication retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Publication with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Publication getPublicationDetailsFromPubMed (
-            @ApiParam(required=true, value="pubmed id for the publication", example="111") 
+            @Parameter(required=true, description="pubmed id for the publication", example="111") 
             @PathVariable("pubmedid") Integer pubmedid) {
         if (pubmedid == null) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -166,15 +168,15 @@ public class UtilityController {
         return publication;
     }
     
-    @ApiOperation(value = "Retrieve publication details from Pubmed with the given pubmed id")
+    @Operation(summary = "Retrieve publication details from Pubmed with the given pubmed id")
     @RequestMapping(value="/pubmedToWiki/{pubmedid}", method = RequestMethod.GET, 
             produces={"text/plain"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Publication retrieved successfully"), 
-            @ApiResponse(code=404, message="Publication with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Publication retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Publication with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String getPublicationTextFromPubMed (
-            @ApiParam(required=true, value="pubmed id for the publication", example="111") 
+            @Parameter(required=true, description="pubmed id for the publication", example="111") 
             @PathVariable("pubmedid") Integer pubmedid) {
         if (pubmedid == null) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -242,14 +244,14 @@ public class UtilityController {
         return wikiText.toString();
     }
     
-    @ApiOperation(value = "Retrieve protein sequence from UniProt with the given uniprot id")
+    @Operation(summary = "Retrieve protein sequence from UniProt with the given uniprot id")
     @RequestMapping(value="/getSequenceFromUniprot/{uniprotid}", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sequence retrieved successfully"), 
-            @ApiResponse(code=404, message="Sequence with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Sequence retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Sequence with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String getSequenceFromUniProt (
-            @ApiParam(required=true, value="uniprotid such as P12345") 
+            @Parameter(required=true, description="uniprotid such as P12345") 
             @PathVariable("uniprotid") String uniprotId) {
         if (uniprotId == null || uniprotId.trim().isEmpty()) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -274,15 +276,15 @@ public class UtilityController {
         }
     }
     
-    @ApiOperation(value = "Retrieve linker details from Pubchem with the given pubchem compound id or inchikey")
+    @Operation(summary = "Retrieve linker details from Pubchem with the given pubchem compound id or inchikey")
     @RequestMapping(value="/getlinkerFromPubChem/{pubchemid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Linker retrieved successfully"), 
-            @ApiResponse(code=404, message="Linker details with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Linker retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Linker details with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Linker getLinkerDetailsFromPubChem (
-            @ApiParam(required=true, value="pubchemid or the inchikey or the smiles of the linker to retrieve") 
+            @Parameter(required=true, description="pubchemid or the inchikey or the smiles of the linker to retrieve") 
             @PathVariable("pubchemid") String pubchemid) {
         if (pubchemid == null || pubchemid.trim().isEmpty()) {
             ErrorMessage errorMessage = new ErrorMessage();
@@ -343,11 +345,12 @@ public class UtilityController {
         }
     }
     
-    @ApiOperation(value = "retrieves list of possible linker classifications", response = List.class)
+    @Operation(summary = "retrieves list of possible linker classifications")
     @RequestMapping(value = "/getLinkerClassifications", method = RequestMethod.GET)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "list returned successfully"),
-            @ApiResponse(code = 415, message = "Media type is not supported"),
-            @ApiResponse(code = 500, message = "Internal Server Error") })
+    @ApiResponses(value = { @ApiResponse(responseCode= "200", description = "list returned successfully" , content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = List.class))}),
+            @ApiResponse(responseCode = "415", description = "Media type is not supported"),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error") })
     public List<LinkerClassification> getLinkerClassifications () throws SparqlException, SQLException {
         List<LinkerClassification> classificationList = new ArrayList<LinkerClassification>();
         
@@ -377,10 +380,10 @@ public class UtilityController {
         
     }
     
-    @ApiOperation(value="Retrieving Unit of Levels")
+    @Operation(summary="Retrieving Unit of Levels")
     @RequestMapping(value="/unitLevels", method=RequestMethod.GET, 
             produces={"application/json"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="500", description="Internal Server Error")})
     public List<EnumerationView> getUnitLevels(){
 
         List<EnumerationView> unitLevels=new ArrayList<EnumerationView>();        
@@ -400,10 +403,10 @@ public class UtilityController {
         return unitLevels;
     }
     
-    @ApiOperation(value="Retrieving statistical methods")
+    @Operation(summary="Retrieving statistical methods")
     @RequestMapping(value="/statisticalmethods", method=RequestMethod.GET, 
             produces={"application/json"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="500", description="Internal Server Error")})
     public List<StatisticalMethod> getStatisticalMethods(){
         try {
             return templateRepository.getAllStatisticalMethods();
@@ -416,10 +419,10 @@ public class UtilityController {
         }
     }
     
-    @ApiOperation(value="Retrieve supported raw data formats")
+    @Operation(summary="Retrieve supported raw data formats")
     @RequestMapping(value="/supportedrawfileformats", method=RequestMethod.GET, 
             produces={"application/json"})
-    @ApiResponses(value= {@ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="500", description="Internal Server Error")})
     public List<String> getRawDataFileFormats(){
         List<String> fileFormats = new ArrayList<String>();
         fileFormats.add("GenePix Results 2");
@@ -431,7 +434,7 @@ public class UtilityController {
         return fileFormats;
     }
     
-    @ApiOperation(value="Retrieve supported processed data formats")
+    @Operation(summary="Retrieve supported processed data formats")
     @RequestMapping(value="/supportedprocessedfileformats", method=RequestMethod.GET, 
             produces={"application/json"})
     public List<String> getProcessedDataFileFormats(){
@@ -450,15 +453,15 @@ public class UtilityController {
         return fileFormats;
     }
     
-    @ApiOperation(value = "Retrieve descriptor with the given id")
+    @Operation(summary = "Retrieve descriptor with the given id")
     @RequestMapping(value="/getDescriptor/{descriptorId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Return the details of the given descriptor"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Return the details of the given descriptor"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public DescriptionTemplate getDescriptorTemplate (
-            @ApiParam(required=true, value="Id if the descriptor or descriptor group") 
+            @Parameter(required=true, description="Id if the descriptor or descriptor group") 
             @PathVariable("descriptorId")
             String id) {
         
@@ -472,15 +475,15 @@ public class UtilityController {
         }
     }
     
-    @ApiOperation(value = "Retrieve list of templates for the given type")
+    @Operation(summary = "Retrieve list of templates for the given type")
     @RequestMapping(value="/listTemplates", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Return a list of metadata templates"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Return a list of metadata templates"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public List<MetadataTemplate> getAllTemplatesByType (
-            @ApiParam(required=true, value="Type of the metadatatemplate") 
+            @Parameter(required=true, description="Type of the metadatatemplate") 
             @RequestParam("type")
             MetadataTemplateType type) {
         
@@ -539,15 +542,15 @@ public class UtilityController {
         } 
     }
     
-    @ApiOperation(value = "Retrieve the template by id")
+    @Operation(summary = "Retrieve the template by id")
     @RequestMapping(value="/getTemplate/{id}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Return the metadata template, if exists"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Return the metadata template, if exists"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public MetadataTemplate getTemplate (
-            @ApiParam(required=true, value="Id of the metadata template") 
+            @Parameter(required=true, description="Id of the metadata template") 
             @PathVariable("id")
             String id) {
         
@@ -574,22 +577,22 @@ public class UtilityController {
     }
     
     
-    @ApiOperation(value = "Retrieve type ahead suggestions")
+    @Operation(summary = "Retrieve type ahead suggestions")
     @RequestMapping(value="/getTypeAhead", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Return the matches, if any"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Return the matches, if any"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public List<String> getTypeAheadSuggestions (
-            @ApiParam(required=true, value="Name of the namespace to retrieve matches "
+            @Parameter(required=true, description="Name of the namespace to retrieve matches "
                     + "(dataset, printedslide, pmid, username, organization, group, lastname, firstname, or any other namespace that is registered in the repository ontology)")
             @RequestParam("namespace")
             String namespace, 
-            @ApiParam(required=true, value="value to match") 
+            @Parameter(required=true, description="value to match") 
             @RequestParam("value")
             String key, 
-            @ApiParam(required=false, value="limit of number of matches", example="10") 
+            @Parameter(required=false, description="limit of number of matches", example="10") 
             @RequestParam(name="limit", required=false)
             Integer limit) {
         
@@ -678,11 +681,11 @@ public class UtilityController {
         return result;
     }
     
-    @ApiOperation(value = "Retrieve the setting for time delay before restarting asyncronous processes (in seconds)")
+    @Operation(summary = "Retrieve the setting for time delay before restarting asyncronous processes (in seconds)")
     @RequestMapping(value = "/delaysetting", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Return the setting (in seconds)"), 
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Return the setting (in seconds)"), 
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Long getDelaySetting() {
         SettingEntity entity = settingsRepository.findByName("timeDelay");
         if (entity != null) {
@@ -693,13 +696,14 @@ public class UtilityController {
     
     
     @RequestMapping(value="/getuserdetails/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the information for the given user", response=User.class)
-    @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
-            @ApiResponse(code=404, message="User with given login name does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Retrieve the information for the given user")
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="User retrieved successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))}), 
+            @ApiResponse(responseCode="404", description="User with given login name does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody User getUser (
-            @ApiParam(required=true, value="login name of the user")
+            @Parameter(required=true, description="login name of the user")
             @PathVariable("userName")
             String userName) {
         
@@ -722,10 +726,11 @@ public class UtilityController {
     }
     
     @RequestMapping(value="/getstatistics", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the stats of the repository", response=StatisticsView.class)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Stats retrieved successfully"), 
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Retrieve the stats of the repository")
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Stats retrieved successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = StatisticsView.class))}), 
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody StatisticsView getStatistics () {
         
         StatisticsView stats = new StatisticsView();

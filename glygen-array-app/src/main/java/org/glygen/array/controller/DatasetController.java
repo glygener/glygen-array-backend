@@ -136,11 +136,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.media.MediaHttpUploader.UploadState;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -198,17 +200,17 @@ public class DatasetController {
     @Autowired
     AsyncService parserAsyncService;
     
-    @ApiOperation(value = "Add given array dataset  for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given array dataset  for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addDataset", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added array dataset"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register array datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added array dataset"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register array datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addDataset (
-            @ApiParam(required=true, value="Array dataset to be added") 
+            @Parameter(required=true, description="Array dataset to be added") 
             @RequestBody ArrayDataset dataset, Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -374,19 +376,19 @@ public class DatasetController {
         }
     } 
     
-    @ApiOperation(value = "Add given publication to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given publication to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addPublication", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added publication"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add publications"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added publication"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add publications"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addPublication (
-            @ApiParam(required=true, value="Publication to be added.")
+            @Parameter(required=true, description="Publication to be added.")
             @RequestBody Publication publication, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the publication") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the publication") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -462,19 +464,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given file to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given file to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addFile", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"}, produces= {"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add files"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return confirmation"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add files"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation addFile (
-            @ApiParam(required=true, value="File to be added.")
+            @Parameter(required=true, description="File to be added.")
             @RequestBody FileWrapper file, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the file") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the file") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -551,19 +553,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given grant to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given grant to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addGrant", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added grant"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add grants"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added grant"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add grants"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addGrant (
-            @ApiParam(required=true, value="Grant to be added.")
+            @Parameter(required=true, description="Grant to be added.")
             @RequestBody Grant grant, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the grant") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the grant") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -620,15 +622,15 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value="Retrieving all keywords from the repository", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary="Retrieving all keywords from the repository", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getallkeywords", method=RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses(value= {@ApiResponse(code=200, message="list of existing keywords in the repository"),
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve keywords"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="200", description="list of existing keywords in the repository"),
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve keywords"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Set<String> getKeywords(){
         try {
             Set<String> keywords = new HashSet<String>();
@@ -647,15 +649,15 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value="Retrieving all funding organizations from the repository", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary="Retrieving all funding organizations from the repository", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getallfundingorganizations", method=RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses(value= {@ApiResponse(code=200, message="list of existing funding organizations in the repository"),
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve funding organizations"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses(value= {@ApiResponse(responseCode="200", description="list of existing funding organizations in the repository"),
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve funding organizations"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Set<String> getFundingOrganizations(){
         try {
             Set<String> orgs = new HashSet<String>();
@@ -673,19 +675,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given keyword to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given keyword to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addKeyword", method = RequestMethod.POST, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add keywords"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return confirmation"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add keywords"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation addKeyword (
-            @ApiParam(required=true, value="Keyword to be added.")
+            @Parameter(required=true, description="Keyword to be added.")
             @RequestParam("keyword") String keyword, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the keyword") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the keyword") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -738,19 +740,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given collaborator to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given collaborator to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addCollaborator", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add collaborators"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return confirmation"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add collaborators"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation addCollaborator (
-            @ApiParam(required=true, value="Collaborator user to be added.")
+            @Parameter(required=true, description="Collaborator user to be added.")
             @RequestBody User collab, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the collaborator") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the collaborator") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -818,19 +820,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add the given user as a co-owner to the given dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add the given user as a co-owner to the given dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addCoowner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation message"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add co-owners"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return confirmation message"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add co-owners"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation addCoownerToDataset (
-            @ApiParam(required=true, value="User to be added.")
+            @Parameter(required=true, description="User to be added.")
             @RequestBody User coowner, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the co-owner") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the co-owner") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -871,20 +873,20 @@ public class DatasetController {
         return new Confirmation("Co-owner added successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Delete the given user as a co-owner from the given dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given user as a co-owner from the given dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteCoowner/{username}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return confirmation if co-owner deleted successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete co-owners"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return confirmation if co-owner deleted successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete co-owners"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation removeCoownerFromDataset (
-            @ApiParam(required=true, value="User to be removed.")
+            @Parameter(required=true, description="User to be removed.")
 //            @RequestBody User coowner,
             @PathVariable("username") String coowner,
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to remove the co-owner") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to remove the co-owner") 
             @RequestParam("datasetId")
             String datasetId,  
             Principal p) {
@@ -920,22 +922,22 @@ public class DatasetController {
         return new Confirmation("Co-owner deleted successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Add given slide to the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given slide to the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added slide"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addSlide (
-            @ApiParam(required=true, value="Slide to be added. Slide"
+            @Parameter(required=true, description="Slide to be added. Slide"
                     + " should have an existing printedSlide (specified by name or uri or id), "
                     + "and it should have an existing AssayMetadata (specified by name, id or uri, "
                     + " images are ignored. You should use addImage to add the images and other data")
             @RequestBody Slide slide, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the slide") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the slide") 
             @RequestParam("arraydatasetId")
             String datasetId,  
             Principal p) {
@@ -1238,25 +1240,25 @@ public class DatasetController {
         return null;
     }
     
-    @ApiOperation(value = "Add given Image to the slide of the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given Image to the slide of the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addImage", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added image"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add images to a dataset"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added image"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add images to a dataset"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addImage (
-            @ApiParam(required=true, value="Image to be added. Image"
+            @Parameter(required=true, description="Image to be added. Image"
                     + " should have a filename (already uploaded), "
                     + "and it should have an existing ScannerMetadata (specified by name, id or uri), "
                     + " Raw data are ignored. You should be using addRawData to add those")
             @RequestBody Image image, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the image") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the image") 
             @RequestParam("arraydatasetId")
             String datasetId,  
-            @ApiParam(required=true, value="id of the slide (must already be in the repository) to add the image") 
+            @Parameter(required=true, description="id of the slide (must already be in the repository) to add the image") 
             @RequestParam("slideId")
             String slideId,  
             Principal p) {
@@ -1489,25 +1491,25 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given Rawdata to the image of the dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given Rawdata to the image of the dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addRawdata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added rawdata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add rawdata to a dataset"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added rawdata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add rawdata to a dataset"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addRawData (
-            @ApiParam(required=true, value="Raw Data to be added. Raw data"
+            @Parameter(required=true, description="Raw Data to be added. Raw data"
                     + " should have a filename (already uploaded), slide information with printed slide id/uri, "
                     + "and it should have an existing ImageAnalysisMetadata (specified by name, id or uri)"
                     + " Processed data are ignored. You should use addProcessedDataFromExcel to add the processed data")
             @RequestBody RawData rawData, 
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the raw data") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the raw data") 
             @RequestParam("arraydatasetId")
             String datasetId,  
-            @ApiParam(required=true, value="id of the image (must already be in the repository) to add the raw data") 
+            @Parameter(required=true, description="id of the image (must already be in the repository) to add the raw data") 
             @RequestParam("imageId")
             String imageId,  
             Principal p) {
@@ -1875,17 +1877,17 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Add given printed slide set for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given printed slide set for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addPrintedSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added printed slide"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register slides"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added printed slide"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register slides"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addPrintedSlide (
-            @ApiParam(required=true, value="Printed slide to be added") 
+            @Parameter(required=true, description="Printed slide to be added") 
             @RequestBody PrintedSlide slide, Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -2068,17 +2070,17 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add given data processing software for the user, authorizations = { @Authorization(value=\"Authorization\") }")
+    @Operation(summary = "Add given data processing software for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addDataProcessingSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added data processing metadata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register data processing metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added data processing metadata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register data processing metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addDataProcessingSoftware (
-            @ApiParam(required=true, value="Data processing software metadata to be added") 
+            @Parameter(required=true, description="Data processing software metadata to be added") 
             @RequestBody DataProcessingSoftware metadata, 
             Principal p) {
         
@@ -2161,17 +2163,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given image analysis software for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given image analysis software for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addImageAnalysis", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added image analysis metadata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register image analysis metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added image analysis metadata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register image analysis metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addImageAnalysisSoftware (
-            @ApiParam(required=true, value="Image Analysis metadata to be added") 
+            @Parameter(required=true, description="Image Analysis metadata to be added") 
             @RequestBody ImageAnalysisSoftware metadata, 
             Principal p) {
         
@@ -2254,17 +2256,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given printer metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addPrinter", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added printer"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register printers"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added printer"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register printers"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addPrinter (
-            @ApiParam(required=true, value="Printer metadata to be added") 
+            @Parameter(required=true, description="Printer metadata to be added") 
             @RequestBody Printer printer, 
             Principal p) {
         
@@ -2347,17 +2349,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given print run metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given print run metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addPrintrun", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added print run"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register print runs"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added print run"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register print runs"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addPrintrun (
-            @ApiParam(required=true, value="Print run metadata to be added") 
+            @Parameter(required=true, description="Print run metadata to be added") 
             @RequestBody PrintRun printer, 
             Principal p) {
         
@@ -2440,17 +2442,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given assay metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addAssayMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added assay metadata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register assay metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added assay metadata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register assay metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addAssayMetadata (
-            @ApiParam(required=true, value="Assay metadata to be added") 
+            @Parameter(required=true, description="Assay metadata to be added") 
             @RequestBody AssayMetadata metadata, 
             Principal p) {
         
@@ -2533,17 +2535,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given spot metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addSpotMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added spot metadata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register spot metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added spot metadata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register spot metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addSpotMetadata (
-            @ApiParam(required=true, value="Spot metadata to be added") 
+            @Parameter(required=true, description="Spot metadata to be added") 
             @RequestBody SpotMetadata metadata, 
             Principal p) {
         
@@ -2625,32 +2627,32 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Import processed data results from uploaded excel file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Import processed data results from uploaded excel file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/addProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given raw data of the given array dataset"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to modify array datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added processed data for the given raw data of the given array dataset"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to modify array datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addProcessedDataFromExcel (
-            @ApiParam(required=true, value="processed data file details such as name, original name, folder, format") 
+            @Parameter(required=true, description="processed data file details such as name, original name, folder, format") 
             @RequestBody
             FileWrapper file,
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,  
-            @ApiParam(required=true, value="id of the raw data (must already be in the repository) to add the processed data") 
+            @Parameter(required=true, description="id of the raw data (must already be in the repository) to add the processed data") 
             @RequestParam("rawdataId")
             String rawDataId,  
-            @ApiParam(required=false, value="Data processing software metadata id (must already be in the repository)") 
+            @Parameter(required=false, description="Data processing software metadata id (must already be in the repository)") 
             @RequestParam(value="metadataId", required=false)
             String metadataId,
-            @ApiParam(required=true, value="the statistical method used (eg. eliminate, average etc.") 
+            @Parameter(required=true, description="the statistical method used (eg. eliminate, average etc.") 
             @RequestParam("methodName")
             String methodName,
-            @ApiParam(required=false, value="uploaded file with the exclusion information")
+            @Parameter(required=false, description="uploaded file with the exclusion information")
             @RequestParam(value="exclusionFile", required=false) String exclusionFile,
             Principal p) {
         
@@ -2892,22 +2894,22 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Download exclusion lists for the processed data to a file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Download exclusion lists for the processed data to a file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/downloadProcessedDataExclusionInfo", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File downloaded successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add array datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> downloadProcessedDataExclusionInfo (
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to retrieve the exclusion info") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to retrieve the exclusion info") 
             @RequestParam("arraydatasetId")
             String datasetId,
-            @ApiParam(required=true, value="the name for downloaded file") 
+            @Parameter(required=true, description="the name for downloaded file") 
             @RequestParam("filename")
             String fileName,        
-            @ApiParam(required=true, value="an existing processed data id") 
+            @Parameter(required=true, description="an existing processed data id") 
             @RequestParam("processedDataId")
             String processedDataId,
             Principal p) {
@@ -2966,21 +2968,21 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add the exclusion info given in the file to the given processed data", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add the exclusion info given in the file to the given processed data", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/addExclusionInfoFromFile", method=RequestMethod.POST)
-    @ApiResponses (value ={@ApiResponse(code=200, message="return an (otherwise) empty processed data object containing only the exclusion lists"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return an (otherwise) empty processed data object containing only the exclusion lists"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addExclusionInfoFromFile (
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId, 
-            @ApiParam(required=true, value="uploaded file with the exclusion information")
+            @Parameter(required=true, description="uploaded file with the exclusion information")
             @RequestParam("file") String uploadedFileName,
-            @ApiParam(required=true, value="processed data to add the exclusion information")
+            @Parameter(required=true, description="processed data to add the exclusion information")
             @RequestParam("processeddataid") String processedDataId,
             Principal p) {
         
@@ -3041,24 +3043,24 @@ public class DatasetController {
         return null;
     }
     
-    @ApiOperation(value = "Update processed data with results from uploaded excel file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update processed data with results from uploaded excel file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateProcessedDataFromExcel", method=RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added processed data for the given array dataset"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add array datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added processed data for the given array dataset"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add array datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String updateProcessedDataFromExcel (
-            @ApiParam(required=true, value="id of the array dataset (must already be in the repository) to add the processed data") 
+            @Parameter(required=true, description="id of the array dataset (must already be in the repository) to add the processed data") 
             @RequestParam("arraydatasetId")
             String datasetId,      
-            @ApiParam(required=true, value="id of the raw data (must already be in the repository) to add the processed data") 
+            @Parameter(required=true, description="id of the raw data (must already be in the repository) to add the processed data") 
             @RequestParam("rawdataId")
             String rawDataId, 
-            @ApiParam(required=true, value="processed data with an existing id/uri. If file is provided, the new file information is used. "
+            @Parameter(required=true, description="processed data with an existing id/uri. If file is provided, the new file information is used. "
                     + "If not, existing file is used for processing") 
             @RequestBody
             ProcessedData processedData,
@@ -3218,19 +3220,19 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given sample metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given sample metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added sample"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register samples"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added sample"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register samples"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addSample (
-            @ApiParam(required=true, value="Sample metadata to be added") 
+            @Parameter(required=true, description="Sample metadata to be added") 
             @RequestBody Sample sample, 
-            @ApiParam(required=false, defaultValue = "true", value="bypass mandatory/multiplicty validation checks if set to false (not recommended)") 
+            @Parameter(required=false, schema = @Schema(type = "boolean", defaultValue="true"), description="bypass mandatory/multiplicty validation checks if set to false (not recommended)") 
             Principal p) {   
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -3316,17 +3318,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Add given scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given scanner metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addScanner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added scanner"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register scanners"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added scanner"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register scanners"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addScanner (
-            @ApiParam(required=true, value="Scanner metadata to be added") 
+            @Parameter(required=true, description="Scanner metadata to be added") 
             @RequestBody ScannerMetadata metadata, 
             Principal p) {
         
@@ -3411,17 +3413,17 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Add given slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add given slide metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/addSlideMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="return id for the newly added slide metadata"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to register slides"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="return id for the newly added slide metadata"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to register slides"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String addSlideMetadata (
-            @ApiParam(required=true, value="Slide metadata to be added") 
+            @Parameter(required=true, description="Slide metadata to be added") 
             @RequestBody SlideMetadata metadata, 
             Principal p) {
         
@@ -3505,12 +3507,13 @@ public class DatasetController {
     }
     
     @GetMapping("/availableMetadataname")
-    @ApiOperation(value="Checks whether the given name is available to be used (returns true if available, false if already in use", response=Boolean.class, authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Checks whether the given name is available to be used (returns true if available, false if already in use", security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Check performed successfully", content = {
+            @Content( schema = @Schema(implementation = Boolean.class))}), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Boolean checkMetadataName(@RequestParam("name") final String name, 
             @RequestParam("metadatatype")
             MetadataTemplateType type, Principal p) {
@@ -3559,13 +3562,14 @@ public class DatasetController {
     }
     
     @GetMapping("/isMirageCompliant/{id}")
-    @ApiOperation(value="Checks whether the given metadata contains all MIRAGE recommended descriptors", response=Boolean.class, authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
-            @ApiResponse(code=400, message="Not mirage compliant, error message contains the missing (required) fields"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Checks whether the given metadata contains all MIRAGE recommended descriptors", security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Check performed successfully", content = {
+            @Content( schema = @Schema(implementation = Boolean.class))}), 
+            @ApiResponse(responseCode="400", description="Not mirage compliant, error message contains the missing (required) fields"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Boolean checkMirageCompliance(
             @PathVariable("id")
             String metadataId, 
@@ -3730,27 +3734,28 @@ public class DatasetController {
         return errorMessage;
     }
 
-    @ApiOperation(value = "List all datasets for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all datasets for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listArrayDataset", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ArrayDatasetListView listArrayDataset (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -3800,27 +3805,28 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all datasets for the user (as a coowner)", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all datasets for the user (as a coowner)", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listArrayDatasetCoowner", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array datasets retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ArrayDatasetListView listArrayDatasetByCoowner (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load rawdata and processed data details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, Principal p) {
         ArrayDatasetListView result = new ArrayDatasetListView();
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -3871,17 +3877,18 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List co-owners for the dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List co-owners for the dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listcoowners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Co-owners retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Co-owners retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public List<User> listCoownersForDataset(
-            @ApiParam(required=true, value="id of the array dataset for which to retrive the applicable coowners") 
+            @Parameter(required=true, description="id of the array dataset for which to retrive the applicable coowners") 
             @RequestParam(value="arraydatasetId", required=true)
             String datasetId,
             Principal p) {
@@ -3902,27 +3909,28 @@ public class DatasetController {
         return users;  
     }
     
-    @ApiOperation(value = "List all printed slides for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all printed slides for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slides retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public PrintedSlideListView listPrintedSlide (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -3995,29 +4003,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printed slides for the user and the public ones", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all printed slides for the user and the public ones", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listAllPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slides retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slides retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public PrintedSlideListView listAllPrintedSlides (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load slide layout details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load slide layout details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4107,29 +4116,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all data processing software metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all data processing software metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listDataProcessingSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Data processing software metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listDataProcessingSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4191,29 +4201,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all image analysis software metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all image analysis software metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listImageAnalysisSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image analysis software metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listImageAnalysisSoftware (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4275,29 +4286,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all printer metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listPrinters", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listPrinters (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4359,29 +4371,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all printer metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all printer metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listPrintruns", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listPrintRuns (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4443,29 +4456,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all samples for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all samples for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Samples retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Samples retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listSamples (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable samples") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable samples") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4527,29 +4541,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all scanner metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listScanners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listScanners (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4611,29 +4626,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all slide metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listSlideMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listSlideMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4695,29 +4711,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all assay metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listAssayMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -4779,29 +4796,30 @@ public class DatasetController {
         return result;
     }
     
-    @ApiOperation(value = "List all spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "List all spot metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/listSpotMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Spot metadata list retrieved successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error for arguments"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error", response = ErrorMessage.class)})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Spot metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public MetadataListResultView listSpotMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam("offset") Integer offset,
-            @ApiParam(required=false, value="limit of the number of items to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="name of the sort field, defaults to id") 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
             @RequestParam(value="sortBy", required=false) String field, 
-            @ApiParam(required=false, value="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
             @RequestParam(value="order", required=false) Integer order, 
-            @ApiParam(required=false, value="load descriptor details or not, default= true to load all the details") 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -5042,18 +5060,18 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Delete given printed slide from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given printed slide from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteprintedslide/{slideId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete slides"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete slides"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deletePrintedSlide (
-            @ApiParam(required=true, value="id of the printed slide to delete") 
+            @Parameter(required=true, description="id of the printed slide to delete") 
             @PathVariable("slideId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -5096,16 +5114,16 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete the given array dataset from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given array dataset from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletedataset/{datasetId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Dataset deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteArrayDataset (
-            @ApiParam(required=true, value="id of the array dataset to delete") 
+            @Parameter(required=true, description="id of the array dataset to delete") 
             @PathVariable("datasetId") String id, Principal principal) {
         try {
             UserEntity user = userRepository.findByUsernameIgnoreCase(principal.getName());
@@ -5178,18 +5196,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given raw data from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given raw data from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleterawdata/{rawdataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="RawData deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete rawdata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="RawData deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete rawdata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteRawData (
-            @ApiParam(required=true, value="id of the rawdata to delete") 
+            @Parameter(required=true, description="id of the rawdata to delete") 
             @PathVariable("rawdataId") String id, 
-            @ApiParam(required=true, value="id of the array dataset this rawdata belongs to") 
+            @Parameter(required=true, description="id of the array dataset this rawdata belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5311,18 +5329,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given processed data from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given processed data from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteprocesseddata/{processeddataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="ProcessedData deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete ProcessedData"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="ProcessedData deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete ProcessedData"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteProcessedData (
-            @ApiParam(required=true, value="id of the ProcessedData to delete") 
+            @Parameter(required=true, description="id of the ProcessedData to delete") 
             @PathVariable("processeddataId") String id, 
-            @ApiParam(required=true, value="id of the array dataset this ProcessedData belongs to") 
+            @Parameter(required=true, description="id of the array dataset this ProcessedData belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5416,18 +5434,18 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Delete the given slide from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given slide from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteslide/{slideId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete slide"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete slide"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteSlide (
-            @ApiParam(required=true, value="id of the slide to delete") 
+            @Parameter(required=true, description="id of the slide to delete") 
             @PathVariable("slideId") String id, 
-            @ApiParam(required=true, value="id of the array dataset this slide belongs to") 
+            @Parameter(required=true, description="id of the array dataset this slide belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5559,18 +5577,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given image from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given image from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteimage/{imageId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Image deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete image"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete image"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteImage (
-            @ApiParam(required=true, value="id of the image to delete") 
+            @Parameter(required=true, description="id of the image to delete") 
             @PathVariable("imageId") String id, 
-            @ApiParam(required=true, value="id of the array dataset this image belongs to") 
+            @Parameter(required=true, description="id of the array dataset this image belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5698,18 +5716,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given publication from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given publication from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletepublication/{publicationid}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Publication deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete publication"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Publication deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete publication"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deletePublication (
-            @ApiParam(required=true, value="id of the publication to delete") 
+            @Parameter(required=true, description="id of the publication to delete") 
             @PathVariable("publicationid") String id, 
-            @ApiParam(required=true, value="id of the array dataset this publication belongs to") 
+            @Parameter(required=true, description="id of the array dataset this publication belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5774,18 +5792,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given grant from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given grant from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletegrant/{grantid}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="grant deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete grant"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="grant deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete grant"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteGrant (
-            @ApiParam(required=true, value="id of the grant to delete") 
+            @Parameter(required=true, description="id of the grant to delete") 
             @PathVariable("grantid") String id, 
-            @ApiParam(required=true, value="id of the array dataset this grant belongs to") 
+            @Parameter(required=true, description="id of the array dataset this grant belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5850,18 +5868,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given keyword from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given keyword from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletekeyword/{keyword}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="keyword deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete keywords"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="keyword deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete keywords"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteKeyword (
-            @ApiParam(required=true, value="id of the file to delete") 
+            @Parameter(required=true, description="id of the file to delete") 
             @PathVariable("keyword") String keyword, 
-            @ApiParam(required=true, value="id of the array dataset this keyword belongs to") 
+            @Parameter(required=true, description="id of the array dataset this keyword belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -5923,18 +5941,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given file from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given file from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletefile/{fileidentifier}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="file deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete file"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="file deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete file"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteFile (
-            @ApiParam(required=true, value="id of the file to delete") 
+            @Parameter(required=true, description="id of the file to delete") 
             @PathVariable("fileidentifier") String id, 
-            @ApiParam(required=true, value="id of the array dataset this file belongs to") 
+            @Parameter(required=true, description="id of the array dataset this file belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -6005,18 +6023,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete the given collaborator from the given array dataset", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete the given collaborator from the given array dataset", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletecollaborator/{username}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Collaborator deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete collaborator"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Collaborator deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete collaborator"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteCollaborator (
-            @ApiParam(required=true, value="username of the collaborator to delete") 
+            @Parameter(required=true, description="username of the collaborator to delete") 
             @PathVariable("username") String username, 
-            @ApiParam(required=true, value="id of the array dataset this collaborator belongs to") 
+            @Parameter(required=true, description="id of the array dataset this collaborator belongs to") 
             @RequestParam(name="datasetId", required=true)
             String datasetId,
             Principal principal) {
@@ -6079,18 +6097,18 @@ public class DatasetController {
         } 
     }
     
-    @ApiOperation(value = "Delete given sample from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given sample from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletesample/{sampleId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sample deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete samples"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Sample deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete samples"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteSample (
-            @ApiParam(required=true, value="id of the sample to delete") 
+            @Parameter(required=true, description="id of the sample to delete") 
             @PathVariable("sampleId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6133,18 +6151,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given image analysis software from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given image analysis software from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteimagemetadata/{imageAnaysisMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete image analysis software"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image analysis software deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete image analysis software"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteImageAnalysisSoftware (
-            @ApiParam(required=true, value="id of the image analysis software to delete") 
+            @Parameter(required=true, description="id of the image analysis software to delete") 
             @PathVariable("imageAnaysisMetadataId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6187,18 +6205,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given slide metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given slide metadata from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteslidemetadata/{slideMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide metadata deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete slide metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide metadata deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete slide metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteSlideMetadata (
-            @ApiParam(required=true, value="id of the slide metadata to delete") 
+            @Parameter(required=true, description="id of the slide metadata to delete") 
             @PathVariable("slideMetadataId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6241,18 +6259,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given data processing software from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given data processing software from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletedataprocessingmetadata/{dataProcessingMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Data processing software deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete data processing software"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Data processing software deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete data processing software"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteDataProcessingSoftware (
-            @ApiParam(required=true, value="id of the data processing software to delete") 
+            @Parameter(required=true, description="id of the data processing software to delete") 
             @PathVariable("dataProcessingMetadataId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6295,18 +6313,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given scanner from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given scanner from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletescannermetadata/{scannerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete scanner"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete scanner"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteScanner (
-            @ApiParam(required=true, value="id of the scanner to delete") 
+            @Parameter(required=true, description="id of the scanner to delete") 
             @PathVariable("scannerId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6349,18 +6367,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given printer from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given printer from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteprintermetadata/{printerId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete printer"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete printer"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deletePrinter (
-            @ApiParam(required=true, value="id of the printer metadata to delete") 
+            @Parameter(required=true, description="id of the printer metadata to delete") 
             @PathVariable("printerId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6403,18 +6421,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given printrun from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given printrun from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteprintrunmetadata/{printrunId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete printer"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete printer"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deletePrintRun (
-            @ApiParam(required=true, value="id of the printrun metadata to delete") 
+            @Parameter(required=true, description="id of the printrun metadata to delete") 
             @PathVariable("printrunId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6457,18 +6475,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given assay metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given assay metadata from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deleteassaymetadata/{assayId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete assay metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete assay metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteAssayMetadata (
-            @ApiParam(required=true, value="id of the assay metadata to delete") 
+            @Parameter(required=true, description="id of the assay metadata to delete") 
             @PathVariable("assayId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6511,18 +6529,18 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Delete given spot metadata from the user's list", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Delete given spot metadata from the user's list", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/deletespotmetadata/{spotMetadataId}", method = RequestMethod.DELETE, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata deleted successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to delete spot metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata deleted successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to delete spot metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation deleteSpotMetadata (
-            @ApiParam(required=true, value="id of the spot metadata to delete") 
+            @Parameter(required=true, description="id of the spot metadata to delete") 
             @PathVariable("spotMetadataId") String id, 
-            @ApiParam(required=false, value="id of the array dataset (to check for permissions)") 
+            @Parameter(required=false, description="id of the array dataset (to check for permissions)") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal principal) {
@@ -6565,22 +6583,22 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Export metadata into a file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Export metadata into a file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/exportmetadata", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="confirmation message"), 
-            @ApiResponse(code=400, message="Invalid request, file not found, not writable etc."),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to export metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="confirmation message"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file not found, not writable etc."),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to export metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody String exportMetadata (
-            @ApiParam(required=true, value="offset for pagination, start from 0", example="0") 
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
             @RequestParam(value="offset", required=false) Integer offset,
-            @ApiParam(required=false, value="limit of the number of glycans to be retrieved", example="10") 
+            @Parameter(required=false, description="limit of the number of glycans to be retrieved", example="10") 
             @RequestParam(value="limit", required=false) Integer limit, 
-            @ApiParam(required=false, value="a filter value to match") 
+            @Parameter(required=false, description="a filter value to match") 
             @RequestParam(value="filter", required=false) String searchValue,
-            @ApiParam(required=true, value="type of metadata to export") 
+            @Parameter(required=true, description="type of metadata to export") 
             @RequestParam("type")
             MetadataTemplateType type,
             Principal p) {
@@ -6643,21 +6661,21 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Add all metadata listed in a file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Add all metadata listed in a file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/importmetadata", method=RequestMethod.POST, 
             consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Glycans processed successfully"), 
-            @ApiResponse(code=400, message="Invalid request if file is not a valid file"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to add metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans processed successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request if file is not a valid file"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation addMetadataFromFile (
-            @ApiParam(required=true, name="file", value="details of the uploded file") 
+            @Parameter(required=true, name="file", description="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
             @RequestParam Boolean noGlytoucanRegistration,
-            @ApiParam(required=true, name="filetype", value="type of the file", allowableValues="Repository Export (.json)") 
+            @Parameter(required=true, name="filetype", description="type of the file", schema = @Schema(type = "string", allowableValues= {"Repository Export (.json)"})) 
             @RequestParam(required=true, value="filetype") String fileType) {
         
         if (fileType.contains("json")) {
@@ -6767,19 +6785,19 @@ public class DatasetController {
         }
     }
     
-    @ApiOperation(value = "Retrieve slide with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve slide with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getprintedslide/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printed Slide retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Printed slide with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed Slide retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Printed slide with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public PrintedSlide getPrintedSlide (
-            @ApiParam(required=true, value="id of the printed slide to retrieve") 
+            @Parameter(required=true, description="id of the printed slide to retrieve") 
             @PathVariable("slideId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable slides") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable slides") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -6836,19 +6854,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve dataset with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve dataset with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getarraydataset/{datasetid}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Dataset retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve the dataset"),
-            @ApiResponse(code=404, message="Dataset with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Dataset retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve the dataset"),
+            @ApiResponse(responseCode="404", description="Dataset with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ArrayDataset getArrayDataset (
-            @ApiParam(required=true, value="id of the array dataset to retrieve") 
+            @Parameter(required=true, description="id of the array dataset to retrieve") 
             @PathVariable("datasetid") String id, 
-            @ApiParam(required=false, value="load rawdata and processed data measurements or not, default= true to load all the details") 
+            @Parameter(required=false, description="load rawdata and processed data measurements or not, default= true to load all the details") 
             @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
             Principal p) {
         try {
@@ -6875,19 +6893,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve processed data with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve processed data with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getprocesseddata/{id}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Processed data retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve the dataset"),
-            @ApiResponse(code=404, message="Processed data with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Processed data retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve the dataset"),
+            @ApiResponse(responseCode="404", description="Processed data with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ProcessedData getProcessedData (
-            @ApiParam(required=true, value="id of the processed data to retrieve") 
+            @Parameter(required=true, description="id of the processed data to retrieve") 
             @PathVariable("id") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the processed data") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the processed data") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -6933,19 +6951,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve sample with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve sample with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getsample/{sampleId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sample retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Sample with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Sample retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Sample with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Sample getSample (
-            @ApiParam(required=true, value="id of the sample to retrieve") 
+            @Parameter(required=true, description="id of the sample to retrieve") 
             @PathVariable("sampleId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -6987,19 +7005,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve printer with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve printer with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getPrinter/{printerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Printer with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Printer getPrinter (
-            @ApiParam(required=true, value="id of the printer to retrieve") 
+            @Parameter(required=true, description="id of the printer to retrieve") 
             @PathVariable("printerId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7043,19 +7061,19 @@ public class DatasetController {
     }
     
     
-    @ApiOperation(value = "Retrieve print run with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve print run with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getPrintRun/{printRunId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Printrun with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printrun retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Printrun with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public PrintRun getPrintRun (
-            @ApiParam(required=true, value="id of the print run to retrieve") 
+            @Parameter(required=true, description="id of the print run to retrieve") 
             @PathVariable("printRunId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7099,19 +7117,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve scanner with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve scanner with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getScanner/{scannerId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="ScannerMetadata with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="ScannerMetadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ScannerMetadata getScanner (
-            @ApiParam(required=true, value="id of the ScannerMetadata to retrieve") 
+            @Parameter(required=true, description="id of the ScannerMetadata to retrieve") 
             @PathVariable("scannerId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7149,19 +7167,19 @@ public class DatasetController {
             throw new GlycanRepositoryException("ScannerMetadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
-    @ApiOperation(value = "Retrieve SlideMetadata with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve SlideMetadata with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="SlideMetadata retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Printer with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="SlideMetadata retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public SlideMetadata getSlideMetadata (
-            @ApiParam(required=true, value="id of the SlideMetadata to retrieve") 
+            @Parameter(required=true, description="id of the SlideMetadata to retrieve") 
             @PathVariable("slideId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7203,19 +7221,19 @@ public class DatasetController {
             throw new GlycanRepositoryException("SlideMetadata cannot be retrieved for user " + p.getName(), e);
         }   
     }
-    @ApiOperation(value = "Retrieve ImageAnalysisSoftware with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve ImageAnalysisSoftware with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="ImageAnalysisSoftware retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="ImageAnalysisSoftware with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="ImageAnalysisSoftware retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="ImageAnalysisSoftware with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ImageAnalysisSoftware getImageAnaylsisSoftware (
-            @ApiParam(required=true, value="id of the ImageAnalysisSoftware to retrieve") 
+            @Parameter(required=true, description="id of the ImageAnalysisSoftware to retrieve") 
             @PathVariable("imagesoftwareId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7254,19 +7272,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve DataProcessingSoftware with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve DataProcessingSoftware with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getDataProcessingSoftware/{dataprocessingId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="DataProcessingSoftware with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="DataProcessingSoftware retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="DataProcessingSoftware with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public DataProcessingSoftware getDataProcessingSoftware (
-            @ApiParam(required=true, value="id of the DataProcessingSoftware to retrieve") 
+            @Parameter(required=true, description="id of the DataProcessingSoftware to retrieve") 
             @PathVariable("dataprocessingId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7305,19 +7323,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve assay metadata with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve assay metadata with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getAssayMetadata/{assayId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Assay metadata with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Assay metadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public AssayMetadata getAssayMetadata (
-            @ApiParam(required=true, value="id of the Assay metadata to retrieve") 
+            @Parameter(required=true, description="id of the Assay metadata to retrieve") 
             @PathVariable("assayId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7356,19 +7374,19 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Retrieve spot metadata with the given id", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Retrieve spot metadata with the given id", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/getSpotMetadata/{spotMetadataId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Assay metadata retrieved successfully"), 
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve"),
-            @ApiResponse(code=404, message="Spot metadata with given id does not exist"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata retrieved successfully"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve"),
+            @ApiResponse(responseCode="404", description="Spot metadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public SpotMetadata getSpotMetadata (
-            @ApiParam(required=true, value="id of the Spot metadata to retrieve") 
+            @Parameter(required=true, description="id of the Spot metadata to retrieve") 
             @PathVariable("spotMetadataId") String id, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) {
@@ -7407,20 +7425,20 @@ public class DatasetController {
         }   
     }
     
-    @ApiOperation(value = "Update given printed slide for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given printed slide for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updatePrintedSlide", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printed slide updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update slides"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slide updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update slides"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updatePrintedSlide(
-            @ApiParam(required=true, value="Printed slide with updated fields, only name and description can be changed") 
+            @Parameter(required=true, description="Printed slide with updated fields, only name and description can be changed") 
             @RequestBody PrintedSlide printedSlide, 
-            @ApiParam(required=false, value="id of the array dataset that uses this printed slide") 
+            @Parameter(required=false, description="id of the array dataset that uses this printed slide") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -7622,25 +7640,25 @@ public class DatasetController {
         return new Confirmation("Printed slide updated successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Update given array dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given array dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updatearraydataset", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array dataset updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array dataset updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateDataset(
-            @ApiParam(required=true, value="Array dataset with updated fields. You can change name, description, keywords, publications, grants, coowners, collaborators and files"
+            @Parameter(required=true, description="Array dataset with updated fields. You can change name, description, keywords, publications, grants, coowners, collaborators and files"
                     + ". Whatever is included in these fields would be reflected in the repository. Therefore, if you don't want the existing keywords to be deleted, for example,"
                     + " you need to have the existing ones listed as part of the object") 
             @RequestBody ArrayDataset dataset, 
-            @ApiParam(required=false, value="summary of the changes") 
+            @Parameter(required=false, description="summary of the changes") 
             @RequestParam(value="changeSummary", required=false)
             String changeSummary,
-            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @Parameter(required=false, description="field that has changed, can provide multiple") 
             @RequestParam(value="changedField", required=false)
             List<String> changedFields,
             Principal p) throws SQLException {
@@ -7762,23 +7780,23 @@ public class DatasetController {
         return new Confirmation("Array dataset updated successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Update given array dataset for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given array dataset for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updatedatasetnamedescription", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Array dataset updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update datasets"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array dataset updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update datasets"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateDatasetGeneralDetails(
-            @ApiParam(required=true, value="Array dataset with updated fields. You can change name and description. If there is no description provided, it would be removed in the repository as well.") 
+            @Parameter(required=true, description="Array dataset with updated fields. You can change name and description. If there is no description provided, it would be removed in the repository as well.") 
             @RequestBody ArrayDataset dataset, 
-            @ApiParam(required=false, value="summary of the changes") 
+            @Parameter(required=false, description="summary of the changes") 
             @RequestParam(value="changeSummary", required=false)
             String changeSummary,
-            @ApiParam(required=false, value="field that has changed, can provide multiple") 
+            @Parameter(required=false, description="field that has changed, can provide multiple") 
             @RequestParam(value="changedField", required=false)
             List<String> changedFields,
             Principal p) throws SQLException {
@@ -7869,20 +7887,20 @@ public class DatasetController {
         return new Confirmation("Array dataset updated successfully", HttpStatus.OK.value());
     }
     
-    @ApiOperation(value = "Update given sample for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given sample for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateSample", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Sample updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update samples"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Sample updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update samples"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateSample(
-            @ApiParam(required=true, value="Sample with updated fields") 
+            @Parameter(required=true, description="Sample with updated fields") 
             @RequestBody Sample metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -7890,20 +7908,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given printer for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given printer for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updatePrinter", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printer updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update printers"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update printers"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updatePrinter(
-            @ApiParam(required=true, value="Printer with updated fields") 
+            @Parameter(required=true, description="Printer with updated fields") 
             @RequestBody Printer metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam("arraydatasetId")
             String datasetId,
             Principal p) throws SQLException {
@@ -7911,20 +7929,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given printrun for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given printrun for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updatePrintrun", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Printrun updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update printruns"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printrun updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update printruns"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updatePrintrun(
-            @ApiParam(required=true, value="Printer with updated fields") 
+            @Parameter(required=true, description="Printer with updated fields") 
             @RequestBody Printer metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam("arraydatasetId")
             String datasetId,
             Principal p) throws SQLException {
@@ -7932,20 +7950,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given scanner metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given scanner metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateScanner", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Scanner metadata updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update scanners"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner metadata updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update scanners"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateScanner(
-            @ApiParam(required=true, value="Scanner with updated fields") 
+            @Parameter(required=true, description="Scanner with updated fields") 
             @RequestBody ScannerMetadata metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -7953,20 +7971,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given slide metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given slide metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateSlideMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Slide Metadata updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update slide metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide Metadata updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update slide metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateSlideMetadata(
-            @ApiParam(required=true, value="Slide metadata with updated fields") 
+            @Parameter(required=true, description="Slide metadata with updated fields") 
             @RequestBody SlideMetadata metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -7974,20 +7992,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given image analysis software for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given image analysis software for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateImageAnalysisSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="Image analysis software updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update image analysis software"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image analysis software updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update image analysis software"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateImageAnalysisSoftware(
-            @ApiParam(required=true, value="Image analysis software with updated fields") 
+            @Parameter(required=true, description="Image analysis software with updated fields") 
             @RequestBody ImageAnalysisSoftware metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -7995,20 +8013,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given data processing software for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given data processing software for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateDataProcessingSoftware", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="DataProcessingSoftware updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update data processing software"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="DataProcessingSoftware updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update data processing software"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateDataProcessingSoftware(
-            @ApiParam(required=true, value="Data processing software with updated fields") 
+            @Parameter(required=true, description="Data processing software with updated fields") 
             @RequestBody DataProcessingSoftware metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -8016,20 +8034,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given assay metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given assay metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateAssayMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="assay metadata updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update assay metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="assay metadata updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update assay metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateAssayMetadata(
-            @ApiParam(required=true, value="Assay metadata with updated fields") 
+            @Parameter(required=true, description="Assay metadata with updated fields") 
             @RequestBody AssayMetadata metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -8037,20 +8055,20 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Update given spot metadata for the user", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Update given spot metadata for the user", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/updateSpotMetadata", method = RequestMethod.POST, 
             consumes={"application/json", "application/xml"},
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(code=200, message="assay metadata updated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to update spot metadata"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="assay metadata updated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to update spot metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation updateSpotMetadata(
-            @ApiParam(required=true, value="Spot metadata with updated fields") 
+            @Parameter(required=true, description="Spot metadata with updated fields") 
             @RequestBody SpotMetadata metadata, 
-            @ApiParam(required=false, value="id of the array dataset for which to retrive the applicable metadata") 
+            @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
             @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
@@ -8205,17 +8223,17 @@ public class DatasetController {
         
     }
     
-    @ApiOperation(value = "Make the given array dataset public", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Make the given array dataset public", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/makearraydatasetpublic/{datasetid}", method = RequestMethod.POST)
     @ApiResponses (value = {
-            @ApiResponse(code=200, message="id of the public array dataset"), 
-            @ApiResponse(code=400, message="Invalid request, validation error"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to modify the dataset"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+            @ApiResponse(responseCode="200", description="id of the public array dataset"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to modify the dataset"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public String makeArrayDatasetPublic (
-            @ApiParam(required=true, value="id of the dataset to make public") 
+            @Parameter(required=true, description="id of the dataset to make public") 
             @PathVariable("datasetid") String datasetId, Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         UserEntity owner = user;
@@ -8430,20 +8448,21 @@ public class DatasetController {
         return status;
     }
 
-    @ApiOperation(value = "Download the given file", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Download the given file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value="/download", method = RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File downloaded successfully"), 
-            @ApiResponse(code=400, message="File not found, or not accessible publicly", response = ErrorMessage.class),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to download files of the dataset"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File downloaded successfully"), 
+            @ApiResponse(responseCode="400", description="File not found, or not accessible publicly", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))}),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to download files of the dataset"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> downloadFile(
-            @ApiParam(required=true, value="the folder of the file") 
+            @Parameter(required=true, description="the folder of the file") 
             @RequestParam String fileFolder, 
-            @ApiParam(required=true, value="the identifier of the file to be downloaded") 
+            @Parameter(required=true, description="the identifier of the file to be downloaded") 
             @RequestParam String fileIdentifier,
-            @ApiParam(required=false, value="filename to save the downloaded file as. If not provided, the original file name is used if available") 
+            @Parameter(required=false, description="filename to save the downloaded file as. If not provided, the original file name is used if available") 
             @RequestParam(value="filename", required=false)
             String originalName, Principal p) {
         
@@ -8526,19 +8545,19 @@ public class DatasetController {
         );
     }
     
-    @ApiOperation(value = "Export processed data in glygen array data file format", authorizations = { @Authorization(value="Authorization") })
+    @Operation(summary = "Export processed data in glygen array data file format", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/downloadProcessedData", method=RequestMethod.GET)
-    @ApiResponses (value ={@ApiResponse(code=200, message="File generated successfully"), 
-            @ApiResponse(code=400, message="Invalid request, file cannot be found"),
-            @ApiResponse(code=401, message="Unauthorized"),
-            @ApiResponse(code=403, message="Not enough privileges to retrieve processed data"),
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve processed data"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public ResponseEntity<Resource> exportProcessedData (
-            @ApiParam(required=true, value="id of the processed data") 
+            @Parameter(required=true, description="id of the processed data") 
             @RequestParam("processeddataid")
             String processedDataId,
-            @ApiParam(required=false, value="the name for downloaded file") 
+            @Parameter(required=false, description="the name for downloaded file") 
             @RequestParam(value="filename", required=false)
             String fileName,        
             Principal p) {
@@ -8583,10 +8602,11 @@ public class DatasetController {
     }
     
     @RequestMapping(value="/getstatistics", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the stats of the repository for the user", response=UserStatisticsView.class, authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="Stats retrieved successfully"), 
-            @ApiResponse(code=415, message="Media type is not supported"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Retrieve the stats of the repository for the user", security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Stats retrieved successfully", content = {
+            @Content( schema = @Schema(implementation = UserStatisticsView.class))}), 
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody UserStatisticsView getStatistics (Principal p) {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         UserStatisticsView stats = new UserStatisticsView();

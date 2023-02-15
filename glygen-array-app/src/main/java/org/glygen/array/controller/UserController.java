@@ -2,9 +2,7 @@ package org.glygen.array.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -12,7 +10,6 @@ import javax.persistence.EntityExistsException;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
-import org.apache.commons.collections4.trie.PatriciaTrie;
 import org.glygen.array.exception.EmailExistsException;
 import org.glygen.array.exception.LinkExpiredException;
 import org.glygen.array.exception.UserNotFoundException;
@@ -24,7 +21,6 @@ import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.UserManager;
 import org.glygen.array.service.UserManagerImpl;
-import org.glygen.array.typeahead.NamespaceHandler;
 import org.glygen.array.view.ChangePassword;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
@@ -53,13 +49,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
-import io.swagger.annotations.AuthorizationScope;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
 @RequestMapping("/users")
@@ -91,13 +87,14 @@ public class UserController {
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	@ApiOperation(value="Adds the given user to the system. \"username\", \"email\" and \"password\" cannot be left blank", response=Confirmation.class)
-	@ApiResponses (value ={@ApiResponse(code=201, message="User added successfully"), 
-			    @ApiResponse(code=400, message="Username, email or password cannot be left blank (ErrorCode=4002 Invalid Input"),
-	    		@ApiResponse(code=409, message="User with given login name already exists "
+	@Operation(summary="Adds the given user to the system. \"username\", \"email\" and \"password\" cannot be left blank")
+	@ApiResponses (value ={@ApiResponse(responseCode="201", description="User added successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Confirmation.class))}), 
+			    @ApiResponse(responseCode="400", description="Username, email or password cannot be left blank (ErrorCode=4002 Invalid Input"),
+	    		@ApiResponse(responseCode="409", description="User with given login name already exists "
 	    				+ "or user with the given email already exists (ErrorCode=4006 Not Allowed)"),
-	    		@ApiResponse(code=415, message="Media type is not supported"),
-	    		@ApiResponse(code=500, message="Internal Server Error (Mail cannot be sent)")})
+	    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+	    		@ApiResponse(responseCode="500", description="Internal Server Error (Mail cannot be sent)")})
 	public Confirmation signup (@RequestBody(required=true) User user) {
 		if (validator != null) {
 			ErrorMessage errorMessage = new ErrorMessage();
@@ -237,15 +234,16 @@ public class UserController {
 	
 	@RequestMapping(value = "/update/{userName}", method = RequestMethod.POST, 
     		consumes={"application/xml", "application/json"})
-	@ApiOperation(value="Updates the information for the given user. Only the non-empty fields will be updated. "
-			+ "\"username\" cannot be changed", response=Confirmation.class, authorizations = { @Authorization(value="Authorization") })
-	@ApiResponses (value ={@ApiResponse(code=200, message="User updated successfully"), 
-			 	@ApiResponse(code=400, message="Illegal arguments, username should match the submitted user info"),
-				@ApiResponse(code=401, message="Unauthorized"),
-				@ApiResponse(code=403, message="Not enough privileges to update users"),
-	    		@ApiResponse(code=404, message="User with given login name does not exist"),
-	    		@ApiResponse(code=415, message="Media type is not supported"),
-	    		@ApiResponse(code=500, message="Internal Server Error")})
+	@Operation(summary="Updates the information for the given user. Only the non-empty fields will be updated. "
+			+ "\"username\" cannot be changed", security = { @SecurityRequirement(name = "bearer-key") })
+	@ApiResponses (value ={@ApiResponse(responseCode="200", description="User updated successfully" , content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Confirmation.class))}), 
+			 	@ApiResponse(responseCode="400", description="Illegal arguments, username should match the submitted user info"),
+				@ApiResponse(responseCode="401", description="Unauthorized"),
+				@ApiResponse(responseCode="403", description="Not enough privileges to update users"),
+	    		@ApiResponse(responseCode="404", description="User with given login name does not exist"),
+	    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+	    		@ApiResponse(responseCode="500", description="Internal Server Error")})
 	public Confirmation updateUser (@RequestBody(required=true) User user, @PathVariable("userName") String loginId) {
 		UserEntity userEntity = userRepository.findByUsernameIgnoreCase(loginId.trim());
 		if (userEntity == null) {
@@ -372,11 +370,12 @@ public class UserController {
 	}
 	
 	@GetMapping(value = "/registrationConfirm")
-	@ApiOperation(value="Enables the user by checking the confirmation token, removes the user if token is expired already", response=Confirmation.class)
-	@ApiResponses (value ={@ApiResponse(code=200, message="User is confirmed successfully"), 
-    		@ApiResponse(code=400, message="Link already expired (ErrorCode=4050 Expired)"),
-    		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+	@Operation(summary="Enables the user by checking the confirmation token, removes the user if token is expired already")
+	@ApiResponses (value ={@ApiResponse(responseCode="200", description="User is confirmed successfully" , content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Confirmation.class))}), 
+    		@ApiResponse(responseCode="400", description="Link already expired (ErrorCode=4050 Expired)"),
+    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
     public Confirmation confirmRegistration(@RequestParam("token") final String token) throws UnsupportedEncodingException, LinkExpiredException {
         final String result = userManager.validateVerificationToken(token.trim());
         if (result.equals(UserManagerImpl.TOKEN_VALID)) {
@@ -399,10 +398,11 @@ public class UserController {
     }
 	
 	@GetMapping("/availableUsername")
-	@ApiOperation(value="Checks whether the given username is available to be used (returns true if available, false if alredy in use", response=Boolean.class)
-	@ApiResponses (value ={@ApiResponse(code=200, message="Check performed successfully"), 
-    		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+	@Operation(summary="Checks whether the given username is available to be used (returns true if available, false if alredy in use")
+	@ApiResponses (value ={@ApiResponse(responseCode="200", description="Check performed successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))}), 
+    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
 	public Boolean checkUserName(@RequestParam("username") final String username) {
 		userManager.cleanUpExpiredSignup(); // to make sure we are not holding onto any user name which is not verified and expired
 		UserEntity user = userRepository.findByUsernameIgnoreCase(username.trim());
@@ -414,22 +414,23 @@ public class UserController {
 		return user == null;
 	}
 
-	@ApiIgnore
+	@Operation(hidden = true)
 	@GetMapping("/signin")
 	public @ResponseBody Confirmation signin() {
 		return new Confirmation("User is authorized", HttpStatus.OK.value());
 	}
 
 	@RequestMapping(value="/get/{userName}", method=RequestMethod.GET, produces={"application/xml", "application/json"})
-    @ApiOperation(value="Retrieve the information for the given user", response=User.class, authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="User retrieved successfully"), 
-    		@ApiResponse(code=401, message="Unauthorized"),
-    		@ApiResponse(code=403, message="Not enough privileges"),
-    		@ApiResponse(code=404, message="User with given login name does not exist"),
-    		@ApiResponse(code=415, message="Media type is not supported"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Retrieve the information for the given user", security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="User retrieved successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))}), 
+    		@ApiResponse(responseCode="401", description="Unauthorized"),
+    		@ApiResponse(responseCode="403", description="Not enough privileges"),
+    		@ApiResponse(responseCode="404", description="User with given login name does not exist"),
+    		@ApiResponse(responseCode="415", description="Media type is not supported"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody User getUser (
-    		@io.swagger.annotations.ApiParam(required=true, value="login name of the user")
+    		@Parameter(required=true, description="login name of the user")
     		@PathVariable("userName")
     		String userName) {
     	UserEntity user = null;
@@ -478,11 +479,12 @@ public class UserController {
     }
 	
 	@RequestMapping(value="/recover", method = RequestMethod.GET)
-    @ApiOperation(value="Recovers the user's username. Sends an email to the email provided by the user if it has valid account", response=String.class)
-    @ApiResponses (value ={@ApiResponse(code=200, message="Username recovered successfully"), 
-    		@ApiResponse(code=400, message="Illegal argument - valid email has to be provided"),
-            @ApiResponse(code=404, message="User with given email does not exist"),
-            @ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Recovers the user's username. Sends an email to the email provided by the user if it has valid account")
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Username recovered successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))}), 
+    		@ApiResponse(responseCode="400", description="Illegal argument - valid email has to be provided"),
+            @ApiResponse(responseCode="404", description="User with given email does not exist"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody Confirmation recoverUsername (@RequestParam(value="email", required=true) String email) {
 		UserEntity user = userManager.recoverLogin(email.trim());
     	
@@ -500,10 +502,12 @@ public class UserController {
     }
     
     @RequestMapping(value="/{userName}/password", method = RequestMethod.GET)
-    @ApiOperation(value="Recovers the user's password. Sends an email to the registered email of the user", response=Confirmation.class, authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="Password recovered successfully"), 
-    		@ApiResponse(code=404, message="User with given login name does not exist"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Recovers the user's password. Sends an email to the registered email of the user",
+            security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Password recovered successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Confirmation.class))}), 
+    		@ApiResponse(responseCode="404", description="User with given login name does not exist"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody Confirmation recoverPassword (
     		@PathVariable("userName") String loginId) {
     	UserEntity user = userRepository.findByUsernameIgnoreCase(loginId.trim());
@@ -529,17 +533,18 @@ public class UserController {
     }
     
     @RequestMapping(value="/{userName}/password", method = RequestMethod.PUT)
-    @ApiOperation(value="Changes the password for the given user", response=Confirmation.class, 
-        notes="Only authenticated user can change his/her password", authorizations = { @Authorization(value="Authorization") })
-    @ApiResponses (value ={@ApiResponse(code=200, message="Password changed successfully"), 
-    		@ApiResponse(code=400, message="Illegal argument - new password should be valid"),
-    		@ApiResponse(code=401, message="Unauthorized"),
-    		@ApiResponse(code=403, message="Not enough privileges to update password"),
-    		@ApiResponse(code=404, message="User with given login name does not exist"),
-    		@ApiResponse(code=500, message="Internal Server Error")})
+    @Operation(summary="Changes the password for the given user", 
+        description="Only authenticated user can change his/her password", security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Password changed successfully", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Confirmation.class))}), 
+    		@ApiResponse(responseCode="400", description="Illegal argument - new password should be valid"),
+    		@ApiResponse(responseCode="401", description="Unauthorized"),
+    		@ApiResponse(responseCode="403", description="Not enough privileges to update password"),
+    		@ApiResponse(responseCode="404", description="User with given login name does not exist"),
+    		@ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody Confirmation changePassword (
     		Principal p,
-    		@ApiParam(value = "your password", type = "string", format = "password")
+    		@Parameter(description = "your password", schema = @Schema(type = "string", format = "password"))
     		@RequestBody(required=true) 
     		ChangePassword changePassword, 
     		@PathVariable("userName") String userName) {
