@@ -1,7 +1,10 @@
 version: '3.4'
 services:
   httpd:
-    image: httpd:alpine
+    build:
+      context: .
+      args:
+        - GLYGEN_BASEPATH
     ports:
       - 9980:80
     volumes:
