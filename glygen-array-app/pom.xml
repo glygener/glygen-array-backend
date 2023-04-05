@@ -292,13 +292,6 @@
 						</goals>
 					</execution>
 				</executions>
-			    <configuration>
-            		<executable>true</executable>
-		            <jvmArguments>
-		                -Xms1024m
-		                -Xmx6g
-		            </jvmArguments>
-		        </configuration>
 			</plugin>
 
 		</plugins>
