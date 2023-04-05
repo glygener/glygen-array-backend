@@ -11,7 +11,7 @@ services:
       - ./ontology:/ontology
       - .:/workspace
     working_dir: /workspace/
-    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run -Dspring-boot.run.jvmArguments="-Xms2048m -Xmx6144m""
+    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"
     environment:
       - JASYPT_SECRET
       - GOOGLE_CLIENT_CLIENT-ID
