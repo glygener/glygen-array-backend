@@ -121,7 +121,7 @@ public class PubChemAPI {
 			linker.setMass(prop.getMass());
 			linker.setMolecularFormula(prop.getMolecularFormula());
 			linker.setIupacName(prop.getIUPACName());
-			Long pubChemId = new Long(prop.getCID());
+			Long pubChemId = prop.getCID().longValue();
 			linker.setImageURL(url + pubChemId + "/PNG");
 			linker.setPubChemId(pubChemId);
 			linker.setSmiles(prop.getSmiles());

@@ -148,19 +148,16 @@ public class AsyncServiceImpl implements AsyncService {
                         errorMessage.addError(new ObjectError("mapFile", "NotFound"));
                         throw new IllegalArgumentException("Mapping file cannot be found in resources", errorMessage);
                     }
-                    try {
-                        ProcessedResultConfiguration config = createConfigForVersion(file.getFileFormat(), user);
-                        if (config == null) {
-                            errorMessage.addError(new ObjectError ("format", "NotValid"));
-                            throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
-                        }
-                        config.setSlideLayoutUri(slide.getPrintedSlide().getLayout().getUri());
-                        intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
-                                config, user);
-                    } catch (SparqlException | SQLException e) {
+                    
+                    ProcessedResultConfiguration config = createConfigForVersion(file.getFileFormat());
+                    if (config == null) {
                         errorMessage.addError(new ObjectError ("format", "NotValid"));
-                        throw new IllegalArgumentException("Config for the given format cannot be found", errorMessage);
+                        throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
                     }
+                    config.setSlideLayoutUri(slide.getPrintedSlide().getLayout().getUri());
+                    intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
+                            config, user);
+                    
                     return CompletableFuture.completedFuture(intensities);
                 } else {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
@@ -194,7 +191,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
     }
     
-    ProcessedResultConfiguration createConfigForVersion (String fileFormat, UserEntity user) throws SparqlException, SQLException {
+    ProcessedResultConfiguration createConfigForVersion (String fileFormat) {
         // decide on the configuration based on fileFormat
         ProcessedResultConfiguration config = new ProcessedResultConfiguration();
         if (fileFormat.equalsIgnoreCase("CFG_V5.2")) {

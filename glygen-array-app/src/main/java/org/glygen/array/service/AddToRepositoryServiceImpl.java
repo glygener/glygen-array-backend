@@ -2216,7 +2216,10 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                         String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(glycan.getSequence().trim());
                         if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
                             // error
-                            errorMessage.addError(new ObjectError("glytoucanId", null, null, "NotValid"));
+                            String[] codes = new String[] {"Given " + g.getGlytoucanId(), 
+                                    "Got from Glytoucan " + glyToucanId, 
+                                    "Glycan " + glycan.getName()};
+                            errorMessage.addError(new ObjectError("glytoucanId", codes, null, "NotValid"));
                         }
                     }
                     if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) 
@@ -2244,8 +2247,11 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             } else {
                                 String glyToucanId = GlytoucanUtil.getInstance().getAccessionNumber(wurcs);
                                 if (glyToucanId == null || !glyToucanId.equals(glycan.getGlytoucanId().trim())) {
+                                    String[] codes = new String[] {"Given " + g.getGlytoucanId(), 
+                                            "Got from Glytoucan " + glyToucanId, 
+                                            "Glycan " + glycan.getName()};
                                     // error
-                                    errorMessage.addError(new ObjectError("glytoucanId", null, null, "NoMatch"));
+                                    errorMessage.addError(new ObjectError("glytoucanId", codes, null, "NoMatch"));
                                 }
                             }
                         } catch (WURCSException | SugarImporterException | GlycoVisitorException e) {
