@@ -60,6 +60,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -104,6 +105,11 @@ public class UtilityController {
     static {
         BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
         glycanWorkspace.initData();
+    }
+    
+    @GetMapping("memory-status")
+    public Long getMemoryStatistics() {
+        return Runtime.getRuntime().maxMemory(); 
     }
 	
 
