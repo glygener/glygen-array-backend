@@ -846,21 +846,25 @@ public class ExtendedGalFileParser {
             String group = groups[0];
             String descriptor = groups[1];
             for (DescriptorGroup descG: metadata.getDescriptorGroups()) {
-                if (descG.getName().equals(group)) {
-                    for (Description d: descG.getDescriptors()) {
-                        if (d instanceof Descriptor && d.getName().equals(descriptor)) {
-                            return ((Descriptor)d).getValue();
+                if ((descG.getName() != null && descG.getName().equals(group)) ||
+                        descG.getKey() != null && descG.getKey().getName().equals(group)) {
+                    if (descG.getDescriptors() != null) {
+                        for (Description d: descG.getDescriptors()) {
+                            if (d instanceof Descriptor && d.getName().equals(descriptor)) {
+                                return ((Descriptor)d).getValue();
+                            }
                         }
                     }
                 }
             }
         } else {
-            for (Descriptor desc: metadata.getDescriptors()) {
-                if (desc.getName().equals(descriptorInfo)) {
-                    return desc.getValue();
-                }
-             }
-            
+            if (metadata.getDescriptors() != null) {
+                for (Descriptor desc: metadata.getDescriptors()) {
+                    if (desc.getName().equals(descriptorInfo)) {
+                        return desc.getValue();
+                    }
+                 }
+            }
         }
         return null;
     }

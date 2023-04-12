@@ -1840,9 +1840,11 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
         IRI hasMin = f.createIRI(hasMinPredicate);
 		Literal date = f.createLiteral(new Date());
 		IRI hasFeatureType = f.createIRI(hasTypePredicate);
+		IRI hasInternalId = f.createIRI(ontPrefix + "has_internal_id");
         Literal type = f.createLiteral(feature.getType().name());
 		Literal label = feature.getName() == null ? null: f.createLiteral(feature.getName());
 		Literal comment = feature.getDescription() == null ? null : f.createLiteral(feature.getDescription());
+		Literal internalId = feature.getInternalId() == null ? null : f.createLiteral(feature.getInternalId().trim());
 		
 		List<Statement> statements = new ArrayList<Statement>();
 		
@@ -1853,6 +1855,7 @@ public class FeatureRepositoryImpl extends GlygenArrayRepositoryImpl implements 
 		statements.add(f.createStatement(feat, hasAddedToLibrary, date, graphIRI));
 		statements.add(f.createStatement(feat, hasModifiedDate, date, graphIRI));
 		statements.add(f.createStatement(feat, hasFeatureType, type, graphIRI));
+		if (internalId != null) statements.add(f.createStatement(feat, hasInternalId, internalId, graphIRI));
 		
 		if (feature.getLinker() != null) {
 			IRI linkerIRI = f.createIRI(feature.getLinker().getUri());
