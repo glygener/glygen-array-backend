@@ -10,6 +10,10 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.Image;
+import org.glygen.array.persistence.rdf.data.ProcessedData;
+import org.glygen.array.persistence.rdf.data.RawData;
+import org.glygen.array.persistence.rdf.data.Slide;
 import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
@@ -20,6 +24,46 @@ public class MetadataImportExportUtil {
     public void exportIntoExcel (ArrayDataset dataset, String outputFile) throws IOException {
         Workbook workbook = new XSSFWorkbook();
         createMetadataSheet (dataset.getSample(), "Sample", workbook);
+        int slideCount = 1;
+        for (Slide slide: dataset.getSlides()) {
+            if (slide.getMetadata() != null) {
+                createMetadataSheet(slide.getMetadata(), "AssayMetadata-" + slideCount, workbook);
+            }
+            if (slide.getPrintedSlide().getMetadata() != null) {
+                createMetadataSheet(slide.getPrintedSlide().getMetadata(), "SlideMetadata-" + slideCount, workbook);
+            }
+            if (slide.getPrintedSlide().getPrinter() != null) {
+                createMetadataSheet(slide.getPrintedSlide().getPrinter(), "PrinterMetadata-" + slideCount, workbook);
+            }
+            if (slide.getPrintedSlide().getPrintRun() != null) {
+                createMetadataSheet(slide.getPrintedSlide().getPrintRun(), "PrintrunMetadata-" + slideCount, workbook);
+            }
+            if (slide.getPrintedSlide().getMetadata() != null || slide.getMetadata() != null
+                    || slide.getPrintedSlide().getPrinter() != null || slide.getPrintedSlide().getPrintRun() != null) {
+                slideCount++;
+            }
+            int imageCount = 1;
+            for (Image image: slide.getImages()) {
+                if (image.getScanner() != null) {
+                    createMetadataSheet(image.getScanner(), "ScannerMetadata-" + imageCount, workbook);
+                    imageCount++;
+                }
+                int rawDataCount = 1;
+                for (RawData rawData: image.getRawDataList()) {
+                    if (rawData.getMetadata() != null) {
+                        createMetadataSheet(rawData.getMetadata(), "ImageAnalysisMetadata-" + rawDataCount, workbook);
+                        rawDataCount++;
+                    }
+                    int processedCount=1;
+                    for (ProcessedData processed: rawData.getProcessedDataList()) {
+                        if (processed.getMetadata() != null) {
+                            createMetadataSheet(processed.getMetadata(), "DataProcessingSoftwareMetadata-" + processedCount, workbook);
+                            processedCount++;
+                        }
+                    }
+                }
+            }
+        }
         
         FileOutputStream os = new FileOutputStream(outputFile);
         workbook.write(os);
