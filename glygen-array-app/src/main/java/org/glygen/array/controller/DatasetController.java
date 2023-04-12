@@ -88,6 +88,7 @@ import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.util.ExclusionInfoParser;
+import org.glygen.array.util.MetadataImportExportUtil;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
@@ -8640,5 +8641,59 @@ public class DatasetController {
             throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
         }
         return stats;
+    }
+    
+    @Operation(summary = "Export metadata into Excel", security = { @SecurityRequirement(name = "bearer-key") })
+    @RequestMapping(value = "/downloadMetadata", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to retrieve array dataset"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public ResponseEntity<Resource> exportAllMetadata (
+            @Parameter(required=true, description="id of the array dataset") 
+            @RequestParam("datasetId")
+            String datasetId,
+            @Parameter(required=false, description="the name for downloaded file") 
+            @RequestParam(value="filename", required=false)
+            String fileName,        
+            Principal p) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = datasetId + ".xlsx";
+        }
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, user);
+            if (data == null) {
+                // check if it is public
+                data = datasetRepository.getArrayDataset(datasetId, true, null);
+                if (data == null) {
+                    errorMessage.addError(new ObjectError("datasetId", "NotFound"));
+                }
+            }
+          
+            if (data != null) {
+                try {
+                    new MetadataImportExportUtil().exportIntoExcel(data, newFile.getAbsolutePath());  
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                }
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return download (newFile, fileName);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
     }
 }
