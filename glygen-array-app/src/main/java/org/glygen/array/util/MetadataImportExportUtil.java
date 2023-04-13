@@ -105,12 +105,16 @@ public class MetadataImportExportUtil {
         Cell cell6 = header.createCell(5, Cell.CELL_TYPE_STRING);
         cell6.setCellValue("Mirage?");
         
-        for (Description description: metadata.getDescriptors()) {
-            idx = addMetadataRow(description, sheet, idx, 0);
+        if (metadata.getDescriptors() != null) {
+            for (Description description: metadata.getDescriptors()) {
+                idx = addMetadataRow(description, sheet, idx, 0);
+            }
         }
         
-        for (Description description: metadata.getDescriptorGroups()) {
-            idx = addMetadataRow(description, sheet, idx, 0);
+        if (metadata.getDescriptorGroups() != null) {
+            for (Description description: metadata.getDescriptorGroups()) {
+                idx = addMetadataRow(description, sheet, idx, 0);
+            }
         }
     }
     
@@ -130,13 +134,15 @@ public class MetadataImportExportUtil {
         } else if (level == 2) {
             level3.setCellValue(description.getName());
         }
+        
+        if (description.getNotApplicable()) {
+            value.setCellValue("Not Applicable");
+        }
+        if (description.getNotRecorded()) {
+            value.setCellValue("Not Recorded");
+        }
+        
         if (description instanceof Descriptor) {
-            if (description.getNotApplicable()) {
-                value.setCellValue("Not Applicable");
-            }
-            if (description.getNotRecorded()) {
-                value.setCellValue("Not Recorded");
-            }
             if (((Descriptor) description).getValue() != null && !((Descriptor) description).getValue().isEmpty()) 
                 value.setCellValue(((Descriptor) description).getValue());
             if (((Descriptor) description).getUnit() != null) {
@@ -148,8 +154,10 @@ public class MetadataImportExportUtil {
         }
         
         if (description instanceof DescriptorGroup) {
-            for (Description sub: ((DescriptorGroup) description).getDescriptors()) {
-                rowIdx = addMetadataRow(sub, sheet, rowIdx, level+1);
+            if (((DescriptorGroup) description).getDescriptors() != null) {
+                for (Description sub: ((DescriptorGroup) description).getDescriptors()) {
+                    rowIdx = addMetadataRow(sub, sheet, rowIdx, level+1);
+                }
             }
         }
         
