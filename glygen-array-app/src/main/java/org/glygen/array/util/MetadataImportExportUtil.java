@@ -1,14 +1,18 @@
 package org.glygen.array.util;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.glygen.array.persistence.rdf.Block;
+import org.glygen.array.persistence.rdf.SlideLayout;
+import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -25,6 +29,8 @@ public class MetadataImportExportUtil {
         Workbook workbook = new XSSFWorkbook();
         createMetadataSheet (dataset.getSample(), "Sample", workbook);
         int slideCount = 1;
+        Set<String> spotMetadataList = new HashSet<>();
+        int spotMetadataCount = 1;
         for (Slide slide: dataset.getSlides()) {
             if (slide.getMetadata() != null) {
                 createMetadataSheet(slide.getMetadata(), "AssayMetadata-" + slideCount, workbook);
@@ -41,6 +47,20 @@ public class MetadataImportExportUtil {
             if (slide.getPrintedSlide().getMetadata() != null || slide.getMetadata() != null
                     || slide.getPrintedSlide().getPrinter() != null || slide.getPrintedSlide().getPrintRun() != null) {
                 slideCount++;
+            }
+            SlideLayout layout = slide.getPrintedSlide().getLayout();
+            for (Block block: layout.getBlocks()) {
+            	for (Spot spot: block.getBlockLayout().getSpots()) {
+            		if (spot != null) {
+	            		if (spot.getMetadata() != null) {
+	            			if (!spotMetadataList.contains(spot.getMetadata().getName())) {
+	            				spotMetadataList.add(spot.getMetadata().getName());
+	            				createMetadataSheet(spot.getMetadata(), "SpotMetadata-" + spotMetadataCount, workbook);
+	            				spotMetadataCount++;
+	            			}
+	            		}
+            		}
+            	}
             }
             int imageCount = 1;
             for (Image image: slide.getImages()) {
