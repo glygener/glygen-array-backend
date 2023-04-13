@@ -92,29 +92,33 @@ public class MetadataImportExportUtil {
     }
     
     public void createMetadataSheet (MetadataCategory metadata, String sheetName, Workbook workbook) {
-        Sheet sheet = workbook.createSheet(sheetName);
-        int idx = 0;
-        Row header = sheet.createRow(idx++);
-        header.createCell(0, Cell.CELL_TYPE_STRING);
-        header.createCell(1, Cell.CELL_TYPE_STRING);
-        header.createCell(2, Cell.CELL_TYPE_STRING);
-        Cell cell4 = header.createCell(3, Cell.CELL_TYPE_STRING);
-        cell4.setCellValue("Value");
-        Cell cell5 = header.createCell(4, Cell.CELL_TYPE_STRING);
-        cell5.setCellValue("Unit");
-        Cell cell6 = header.createCell(5, Cell.CELL_TYPE_STRING);
-        cell6.setCellValue("Mirage?");
-        
-        if (metadata.getDescriptors() != null) {
-            for (Description description: metadata.getDescriptors()) {
-                idx = addMetadataRow(description, sheet, idx, 0);
+        try {
+            Sheet sheet = workbook.createSheet(sheetName);
+            int idx = 0;
+            Row header = sheet.createRow(idx++);
+            header.createCell(0, Cell.CELL_TYPE_STRING);
+            header.createCell(1, Cell.CELL_TYPE_STRING);
+            header.createCell(2, Cell.CELL_TYPE_STRING);
+            Cell cell4 = header.createCell(3, Cell.CELL_TYPE_STRING);
+            cell4.setCellValue("Value");
+            Cell cell5 = header.createCell(4, Cell.CELL_TYPE_STRING);
+            cell5.setCellValue("Unit");
+            Cell cell6 = header.createCell(5, Cell.CELL_TYPE_STRING);
+            cell6.setCellValue("Mirage?");
+            
+            if (metadata.getDescriptors() != null) {
+                for (Description description: metadata.getDescriptors()) {
+                    idx = addMetadataRow(description, sheet, idx, 0);
+                }
             }
-        }
-        
-        if (metadata.getDescriptorGroups() != null) {
-            for (Description description: metadata.getDescriptorGroups()) {
-                idx = addMetadataRow(description, sheet, idx, 0);
+            
+            if (metadata.getDescriptorGroups() != null) {
+                for (Description description: metadata.getDescriptorGroups()) {
+                    idx = addMetadataRow(description, sheet, idx, 0);
+                }
             }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException (e.getMessage() + " sheet:" + sheetName);
         }
     }
     
