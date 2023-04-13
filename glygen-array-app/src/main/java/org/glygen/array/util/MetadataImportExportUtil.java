@@ -30,58 +30,61 @@ public class MetadataImportExportUtil {
         createMetadataSheet (dataset.getSample(), "Sample", workbook);
         int slideCount = 1;
         Set<String> spotMetadataList = new HashSet<>();
-        int spotMetadataCount = 1;
-        int imageCount = 1;
-        int rawDataCount = 1;
-        int processedCount=1;
+        
         for (Slide slide: dataset.getSlides()) {
             if (slide.getMetadata() != null) {
-                createMetadataSheet(slide.getMetadata(), "AssayMetadata-" + slideCount, workbook);
+                createMetadataSheet(slide.getMetadata(), "Slide-" + slideCount + "-AssayMetadata", workbook);
             }
             if (slide.getPrintedSlide().getMetadata() != null) {
-                createMetadataSheet(slide.getPrintedSlide().getMetadata(), "SlideMetadata-" + slideCount, workbook);
+                createMetadataSheet(slide.getPrintedSlide().getMetadata(), "Slide-" + slideCount + "-SlideMetadata", workbook);
             }
             if (slide.getPrintedSlide().getPrinter() != null) {
-                createMetadataSheet(slide.getPrintedSlide().getPrinter(), "PrinterMetadata-" + slideCount, workbook);
+                createMetadataSheet(slide.getPrintedSlide().getPrinter(), "Slide-" + slideCount + "-PrinterMetadata", workbook);
             }
             if (slide.getPrintedSlide().getPrintRun() != null) {
-                createMetadataSheet(slide.getPrintedSlide().getPrintRun(), "PrintrunMetadata-" + slideCount, workbook);
+                createMetadataSheet(slide.getPrintedSlide().getPrintRun(), "Slide-" + slideCount + "-PrintrunMetadata", workbook);
             }
-            if (slide.getPrintedSlide().getMetadata() != null || slide.getMetadata() != null
-                    || slide.getPrintedSlide().getPrinter() != null || slide.getPrintedSlide().getPrintRun() != null) {
-                slideCount++;
-            }
+            
             SlideLayout layout = slide.getPrintedSlide().getLayout();
+            int spotMetadataCount = 1;
             for (Block block: layout.getBlocks()) {
             	for (Spot spot: block.getBlockLayout().getSpots()) {
             		if (spot != null) {
 	            		if (spot.getMetadata() != null) {
 	            			if (!spotMetadataList.contains(spot.getMetadata().getName())) {
 	            				spotMetadataList.add(spot.getMetadata().getName());
-	            				createMetadataSheet(spot.getMetadata(), "SpotMetadata-" + spotMetadataCount, workbook);
+	            				createMetadataSheet(spot.getMetadata(), "Slide-" + slideCount + "-SpotMetadata-" + spotMetadataCount, workbook);
 	            				spotMetadataCount++;
 	            			}
 	            		}
             		}
             	}
             }
+            int imageCount = 1;
             for (Image image: slide.getImages()) {
                 if (image.getScanner() != null) {
-                    createMetadataSheet(image.getScanner(), "ScannerMetadata-" + imageCount, workbook);
+                    createMetadataSheet(image.getScanner(), "Slide-" + slideCount + "-ScannerMetadata-" + imageCount, workbook);
                     imageCount++;
                 }
+                int rawDataCount = 1;
                 for (RawData rawData: image.getRawDataList()) {
                     if (rawData.getMetadata() != null) {
-                        createMetadataSheet(rawData.getMetadata(), "ImageAnalysisMetadata-" + rawDataCount, workbook);
+                        createMetadataSheet(rawData.getMetadata(), "Slide-" + slideCount + "-ImageAnalysisMetadata-" + rawDataCount, workbook);
                         rawDataCount++;
                     }
+                    int processedCount=1;
                     for (ProcessedData processed: rawData.getProcessedDataList()) {
                         if (processed.getMetadata() != null) {
-                            createMetadataSheet(processed.getMetadata(), "DataProcessingSoftwareMetadata-" + processedCount, workbook);
+                            createMetadataSheet(processed.getMetadata(), "Slide-" + slideCount + "-DataProcessingSoftwareMetadata-" + processedCount, workbook);
                             processedCount++;
                         }
                     }
                 }
+            }
+            
+            if (slide.getPrintedSlide().getMetadata() != null || slide.getMetadata() != null
+                    || slide.getPrintedSlide().getPrinter() != null || slide.getPrintedSlide().getPrintRun() != null) {
+                slideCount++;
             }
         }
         
