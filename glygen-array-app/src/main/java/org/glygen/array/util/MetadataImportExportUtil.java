@@ -31,6 +31,9 @@ public class MetadataImportExportUtil {
         int slideCount = 1;
         Set<String> spotMetadataList = new HashSet<>();
         int spotMetadataCount = 1;
+        int imageCount = 1;
+        int rawDataCount = 1;
+        int processedCount=1;
         for (Slide slide: dataset.getSlides()) {
             if (slide.getMetadata() != null) {
                 createMetadataSheet(slide.getMetadata(), "AssayMetadata-" + slideCount, workbook);
@@ -62,19 +65,16 @@ public class MetadataImportExportUtil {
             		}
             	}
             }
-            int imageCount = 1;
             for (Image image: slide.getImages()) {
                 if (image.getScanner() != null) {
                     createMetadataSheet(image.getScanner(), "ScannerMetadata-" + imageCount, workbook);
                     imageCount++;
                 }
-                int rawDataCount = 1;
                 for (RawData rawData: image.getRawDataList()) {
                     if (rawData.getMetadata() != null) {
                         createMetadataSheet(rawData.getMetadata(), "ImageAnalysisMetadata-" + rawDataCount, workbook);
                         rawDataCount++;
                     }
-                    int processedCount=1;
                     for (ProcessedData processed: rawData.getProcessedDataList()) {
                         if (processed.getMetadata() != null) {
                             createMetadataSheet(processed.getMetadata(), "DataProcessingSoftwareMetadata-" + processedCount, workbook);
