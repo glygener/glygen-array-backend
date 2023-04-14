@@ -6,11 +6,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.glygen.array.persistence.rdf.Block;
+import org.glygen.array.persistence.rdf.Publication;
 import org.glygen.array.persistence.rdf.SlideLayout;
 import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
@@ -25,8 +32,20 @@ import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
 
 public class MetadataImportExportUtil {
     
+    String baseURL = "http://localhost:3000"; // base URL of the repository application
+    String privateURL = "experiments/editExperiment/";
+    String publicURL = "data/dataset/";
+    
+    public MetadataImportExportUtil() {
+    }
+    
+    public MetadataImportExportUtil(String baseURL) {
+        this.baseURL = baseURL;
+    }
+    
     public void exportIntoExcel (ArrayDataset dataset, String outputFile) throws IOException {
         Workbook workbook = new XSSFWorkbook();
+        createDatasetSheet (dataset, "DatasetInfo", workbook);
         createMetadataSheet (dataset.getSample(), "Sample", workbook);
         int slideCount = 1;
         Set<String> spotMetadataList = new HashSet<>();
@@ -94,6 +113,95 @@ public class MetadataImportExportUtil {
         
     }
     
+    private void createDatasetSheet(ArrayDataset dataset, String sheetName, Workbook workbook) {
+        Sheet sheet = workbook.createSheet(sheetName);
+        CreationHelper createHelper = workbook.getCreationHelper();
+        CellStyle rowStyle = workbook.createCellStyle();
+        rowStyle.setWrapText(true);
+        
+        XSSFCellStyle hlinkstyle = ((XSSFWorkbook)workbook).createCellStyle();
+        XSSFFont hlinkfont = ((XSSFWorkbook)workbook).createFont();
+        hlinkfont.setUnderline(XSSFFont.U_SINGLE);
+        hlinkfont.setColor(IndexedColors.BLUE.index);
+        hlinkstyle.setFont(hlinkfont);
+        
+        Row header = sheet.createRow(0);
+        Cell headerCell = header.createCell(0);
+        headerCell.setCellValue("Dataset URL");
+        headerCell = header.createCell(1);
+        XSSFHyperlink link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_URL);
+        if (dataset.getIsPublic()) {
+            if (dataset.getUri().contains("public")) {
+                headerCell.setCellValue(baseURL + publicURL + dataset.getId());
+                link.setAddress(baseURL + publicURL + dataset.getId());
+            } else {
+                headerCell.setCellValue(baseURL + publicURL + dataset.getPublicId());
+                link.setAddress(baseURL + publicURL + dataset.getPublicId());
+            }
+        } else {
+            headerCell.setCellValue(baseURL + privateURL + dataset.getId());
+            link.setAddress(baseURL + privateURL + dataset.getId());
+        }
+       
+        headerCell.setHyperlink((XSSFHyperlink) link);
+        headerCell.setCellStyle(hlinkstyle);
+            
+        Row name = sheet.createRow(1);
+        Cell cell = name.createCell(0);
+        cell.setCellValue("Name");
+        cell = name.createCell(1);
+        cell.setCellValue(dataset.getName());
+        
+        Row description = sheet.createRow(2);
+        description.setRowStyle(rowStyle);
+        cell = description.createCell(0);
+        cell.setCellValue("Description");
+        cell = description.createCell(1);
+        cell.setCellValue(dataset.getDescription());
+        
+        Row createdDate = sheet.createRow(3);
+        cell = createdDate.createCell(0);
+        cell.setCellValue("Submission Date");
+        cell = createdDate.createCell(1);
+        cell.setCellValue(dataset.getDateAddedToLibrary().toString());
+        
+        Row publicDate = sheet.createRow(4);
+        cell = publicDate.createCell(0);
+        cell.setCellValue("Release Date");
+        cell = publicDate.createCell(1);
+        if (dataset.getIsPublic()) {
+            cell.setCellValue(dataset.getDateCreated().toString());
+        }
+        
+        int rownum = 5;
+        for (String keyword: dataset.getKeywords()) {
+           Row row = sheet.createRow(rownum++);
+           cell = row.createCell(0);
+           cell.setCellValue("Keyword");
+           cell = row.createCell(1);
+           cell.setCellValue(keyword);
+        }
+        for (Publication pub: dataset.getPublications()) {
+            Row row = sheet.createRow(rownum++);
+            row.setRowStyle(rowStyle);
+            cell = row.createCell(0);
+            cell.setCellValue("Publication");
+            cell = row.createCell(1);
+            StringBuffer pubString = new StringBuffer();
+            pubString.append(pub.getTitle() + "\n");
+            pubString.append(pub.getAuthors() + "\n");
+            pubString.append(pub.getJournal());
+            if (pub.getYear() != null) {
+                pubString.append(" (" + pub.getYear() + ")");
+            } 
+            if (pub.getPubmedId() != null) 
+                pubString.append("\nPMID: " + pub.getPubmedId());
+            else if (pub.getDoiId() != null)
+                pubString.append("\nDOI: " + pub.getDoiId());
+            cell.setCellValue(pubString.toString());
+        }
+    }
+
     public void createMetadataSheet (MetadataCategory metadata, String sheetName, Workbook workbook) {
         try {
             Sheet sheet = workbook.createSheet(sheetName);

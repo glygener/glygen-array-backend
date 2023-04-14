@@ -3,6 +3,7 @@ package org.glygen.array.controller;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,6 +62,7 @@ import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
 import org.glygen.array.service.QueryHelper;
 import org.glygen.array.util.ExtendedGalFileParser;
+import org.glygen.array.util.MetadataImportExportUtil;
 import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
@@ -96,6 +98,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @Import(SesameTransactionConfig.class)
 @RestController
@@ -145,6 +148,15 @@ public class PublicGlygenArrayController {
     
     @Autowired
     ExtendedGalFileParser galFileParser;
+    
+    @Value("${glygen.frontend.scheme}")
+    String scheme;
+    
+    @Value("${glygen.frontend.host}")
+    String host;
+    
+    @Value("${glygen.frontend.basePath}")
+    String basePath;
     
     @Operation(summary = "List all public glycans")
     @RequestMapping(value="/listGlycans", method = RequestMethod.GET, 
@@ -1861,6 +1873,52 @@ public class PublicGlygenArrayController {
             return DatasetController.download (newFile, fileName);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve processed data from the repository", e);
+        }
+    }
+    
+    @Operation(summary = "Export metadata into Excel")
+    @RequestMapping(value = "/downloadMetadata", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public ResponseEntity<Resource> exportAllMetadata (
+            @Parameter(required=true, description="id of the array dataset") 
+            @RequestParam("datasetId")
+            String datasetId,
+            @Parameter(required=false, description="the name for downloaded file") 
+            @RequestParam(value="filename", required=false)
+            String fileName) {
+        
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        
+        if (fileName == null || fileName.isEmpty()) {
+            fileName = datasetId + ".xlsx";
+        }
+        File newFile = new File (uploadDir, "tmp" + fileName);
+        
+        try {
+            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, null);
+            if (data == null) {
+              errorMessage.addError(new ObjectError("datasetId", "NotFound"));
+            }
+          
+            if (data != null) {
+                try {
+                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath());  
+                } catch (IOException e) {
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                }
+            }
+            
+            if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return DatasetController.download (newFile, fileName);
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
         }
     }
 }

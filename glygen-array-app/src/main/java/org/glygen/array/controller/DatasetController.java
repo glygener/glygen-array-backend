@@ -192,6 +192,15 @@ public class DatasetController {
     @Value("${spring.file.imagedirectory}")
     String imageLocation;
     
+    @Value("${glygen.frontend.scheme}")
+    String scheme;
+    
+    @Value("${glygen.frontend.host}")
+    String host;
+    
+    @Value("${glygen.frontend.basePath}")
+    String basePath;
+    
     @Autowired
     ResourceLoader resourceLoader;
     
@@ -8681,7 +8690,7 @@ public class DatasetController {
           
             if (data != null) {
                 try {
-                    new MetadataImportExportUtil().exportIntoExcel(data, newFile.getAbsolutePath());  
+                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath());  
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
                 }
