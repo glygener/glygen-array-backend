@@ -7170,7 +7170,11 @@ public class DatasetController {
             }
             ScannerMetadata metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getScannerMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("ScannerMetadata with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -7274,7 +7278,12 @@ public class DatasetController {
             }
             ImageAnalysisSoftware metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getImageAnalysisSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("ImageAnalysisSoftware with id : " + id + " does not exist in the repository");
+                }
+                
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -7325,7 +7334,11 @@ public class DatasetController {
             }
             DataProcessingSoftware metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getDataProcessingSoftwareFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("DataProcessingSoftware with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -7376,7 +7389,11 @@ public class DatasetController {
             }
             AssayMetadata metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getAssayMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("Assay metadata with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
@@ -7427,7 +7444,11 @@ public class DatasetController {
             }
             SpotMetadata metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefix + id, owner);
             if (metadata == null) {
-                throw new EntityNotFoundException("Spot metadata with id : " + id + " does not exist in the repository");
+                // check the public ones
+                metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id, null);
+                if (metadata == null) {
+                    throw new EntityNotFoundException("Spot metadata with id : " + id + " does not exist in the repository");
+                }
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
