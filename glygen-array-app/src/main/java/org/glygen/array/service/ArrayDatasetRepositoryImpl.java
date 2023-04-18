@@ -1029,7 +1029,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
-        return getArrayDataset(datasetId, loadAll, true, user);
+        return getArrayDataset(datasetId, loadAll, loadAll, user);
     }
     
     @Override
@@ -1052,7 +1052,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     }
     
     private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll,  UserEntity user) throws SparqlException, SQLException {
-        return getDatasetFromURI(uri, loadAll, true, user);
+        return getDatasetFromURI(uri, loadAll, loadAll, user);
     }
         
     private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException {
@@ -1640,7 +1640,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
-        return getSlideFromURI(uri, loadAll, true, user);
+        return getSlideFromURI(uri, loadAll, loadAll, user);
     }
 
     @Override
@@ -2202,7 +2202,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
-        return getPrintedSlideFromURI(uri, loadAll, true, user);
+        return getPrintedSlideFromURI(uri, loadAll, loadAll, user);
     }
         
     @Override

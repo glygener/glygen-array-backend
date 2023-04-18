@@ -214,6 +214,10 @@ public class MetadataImportExportUtil {
             cell = row.createCell(1);
             if (slide.getMetadata() != null) {
                 cell.setCellValue("Slide-" + slideCount + "-AssayMetadata");
+                /*link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                link.setAddress("'Slide-" + slideCount + "-AssayMetadata" + "'!A1");
+                cell.setHyperlink((XSSFHyperlink) link);
+                cell.setCellStyle(hlinkstyle);*/
             } else {
                 cell.setCellValue("No Assay Metadata provided");
             }
@@ -222,6 +226,10 @@ public class MetadataImportExportUtil {
             cell = row.createCell(1);
             if (slide.getPrintedSlide().getMetadata() != null) {
                 cell.setCellValue("Slide-" + slideCount + "-SlideMetadata");
+               /* link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                link.setAddress("'Slide-" + slideCount + "-SlideMetadata" + "'!A1");
+                cell.setHyperlink((XSSFHyperlink) link);
+                cell.setCellStyle(hlinkstyle);*/
             } else {
                 cell.setCellValue("No Slide Metadata provided");
             }
@@ -230,6 +238,10 @@ public class MetadataImportExportUtil {
             cell = row.createCell(1);
             if (slide.getPrintedSlide().getPrinter() != null) {
                 cell.setCellValue("Slide-" + slideCount + "-PrinterMetadata");
+              /*  link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                link.setAddress("'Slide-" + slideCount + "-PrinterMetadata"+ "'!A1");
+                cell.setHyperlink((XSSFHyperlink) link);
+                cell.setCellStyle(hlinkstyle);*/
             } else {
                 cell.setCellValue("No Printer Metadata provided");
             }
@@ -238,6 +250,10 @@ public class MetadataImportExportUtil {
             cell = row.createCell(1);
             if (slide.getPrintedSlide().getPrintRun() != null) {
                 cell.setCellValue("Slide-" + slideCount + "-PrintrunMetadata");
+             /*   link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                link.setAddress("'Slide-" + slideCount + "-PrintrunMetadata" + "'!A1");
+                cell.setHyperlink((XSSFHyperlink) link);
+                cell.setCellStyle(hlinkstyle);*/
             } else {
                 cell.setCellValue("No Printrun Metadata provided");
             }
@@ -254,6 +270,10 @@ public class MetadataImportExportUtil {
                 cell = row.createCell(2);
                 if (image.getScanner() != null) {
                     cell.setCellValue("Slide-" + slideCount + "-ScannerMetadata-" + imageCount);
+                    /*link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                    link.setAddress("'Slide-" + slideCount + "-ScannerMetadata-" + imageCount + "'!A1");
+                    cell.setHyperlink((XSSFHyperlink) link);
+                    cell.setCellStyle(hlinkstyle);*/
                 } else {
                     cell.setCellValue("No Scanner Metadata provided");
                 }
@@ -271,6 +291,10 @@ public class MetadataImportExportUtil {
                     cell = row.createCell(3);
                     if (rawData.getMetadata() != null) {
                         cell.setCellValue("Slide-" + slideCount + "-ImageAnalysisMetadata-" + rawDataCount);
+                       /* link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                        link.setAddress("'Slide-" + slideCount + "-ImageAnalysisMetadata-" + rawDataCount+ "'!A1");
+                        cell.setHyperlink((XSSFHyperlink) link);
+                        cell.setCellStyle(hlinkstyle);*/
                     } else {
                         cell.setCellValue("No Image Analysis Metadata provided");
                     }
@@ -290,6 +314,10 @@ public class MetadataImportExportUtil {
                         cell = row.createCell(4);
                         if (processed.getMetadata() != null) {
                             cell.setCellValue("Slide-" + slideCount + "-DataProcessingSoftwareMetadata-" + processedCount);
+                           /* link = (XSSFHyperlink)createHelper.createHyperlink(XSSFHyperlink.LINK_DOCUMENT);
+                            link.setAddress("'Slide-" + slideCount + "-DataProcessingSoftwareMetadata-" + processedCount + "'!A1");
+                            cell.setHyperlink((XSSFHyperlink) link);
+                            cell.setCellStyle(hlinkstyle);*/
                         } else {
                             cell.setCellValue("No Data Processing Software Metadata provided");
                         }
