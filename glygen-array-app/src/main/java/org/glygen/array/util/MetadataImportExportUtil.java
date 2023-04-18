@@ -2,8 +2,7 @@ package org.glygen.array.util;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -16,10 +15,7 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.glygen.array.persistence.rdf.Block;
 import org.glygen.array.persistence.rdf.Publication;
-import org.glygen.array.persistence.rdf.SlideLayout;
-import org.glygen.array.persistence.rdf.Spot;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -48,7 +44,7 @@ public class MetadataImportExportUtil {
         createDatasetSheet (dataset, "DatasetInfo", workbook);
         createMetadataSheet (dataset.getSample(), "Sample", workbook);
         int slideCount = 1;
-        Set<String> spotMetadataList = new HashSet<>();
+      //  Set<String> spotMetadataList = new HashSet<>();
         
         for (Slide slide: dataset.getSlides()) {
             if (slide.getMetadata() != null) {
@@ -64,7 +60,7 @@ public class MetadataImportExportUtil {
                 createMetadataSheet(slide.getPrintedSlide().getPrintRun(), "Slide-" + slideCount + "-PrintrunMetadata", workbook);
             }
             
-            SlideLayout layout = slide.getPrintedSlide().getLayout();
+        /*    SlideLayout layout = slide.getPrintedSlide().getLayout();
             int spotMetadataCount = 1;
             for (Block block: layout.getBlocks()) {
             	for (Spot spot: block.getBlockLayout().getSpots()) {
@@ -78,33 +74,30 @@ public class MetadataImportExportUtil {
 	            		}
             		}
             	}
-            }
+            }*/
             int imageCount = 1;
             for (Image image: slide.getImages()) {
                 if (image.getScanner() != null) {
                     createMetadataSheet(image.getScanner(), "Slide-" + slideCount + "-ScannerMetadata-" + imageCount, workbook);
-                    imageCount++;
                 }
                 int rawDataCount = 1;
                 for (RawData rawData: image.getRawDataList()) {
                     if (rawData.getMetadata() != null) {
                         createMetadataSheet(rawData.getMetadata(), "Slide-" + slideCount + "-ImageAnalysisMetadata-" + rawDataCount, workbook);
-                        rawDataCount++;
                     }
+                    
                     int processedCount=1;
                     for (ProcessedData processed: rawData.getProcessedDataList()) {
                         if (processed.getMetadata() != null) {
                             createMetadataSheet(processed.getMetadata(), "Slide-" + slideCount + "-DataProcessingSoftwareMetadata-" + processedCount, workbook);
-                            processedCount++;
                         }
+                        processedCount++;
                     }
+                    rawDataCount++;
                 }
+                imageCount++;
             }
-            
-            if (slide.getPrintedSlide().getMetadata() != null || slide.getMetadata() != null
-                    || slide.getPrintedSlide().getPrinter() != null || slide.getPrintedSlide().getPrintRun() != null) {
-                slideCount++;
-            }
+            slideCount++;
         }
         
         FileOutputStream os = new FileOutputStream(outputFile);
@@ -173,6 +166,15 @@ public class MetadataImportExportUtil {
             cell.setCellValue(dataset.getDateCreated().toString());
         }
         
+        Row submitter = sheet.createRow(4);
+        cell = submitter.createCell(0);
+        cell.setCellValue("Submitted By");
+        cell = submitter.createCell(1);
+        if (dataset.getUser().getFirstName() != null && dataset.getUser().getLastName() != null)
+            cell.setCellValue(dataset.getUser().getName() + ": " + dataset.getUser().getFirstName() + " " + dataset.getUser().getLastName());
+        else 
+            cell.setCellValue(dataset.getUser().getName());
+        
         int rownum = 5;
         for (String keyword: dataset.getKeywords()) {
            Row row = sheet.createRow(rownum++);
@@ -200,6 +202,105 @@ public class MetadataImportExportUtil {
                 pubString.append("\nDOI: " + pub.getDoiId());
             cell.setCellValue(pubString.toString());
         }
+        
+        // print out the hierarchy
+        int slideCount = 1;
+        for (Slide slide: dataset.getSlides()) {
+            Row slideRow = sheet.createRow(rownum++);
+            cell = slideRow.createCell(0);
+            cell.setCellValue("Slide-" + slideCount);
+            Row row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell = row.createCell(1);
+            if (slide.getMetadata() != null) {
+                cell.setCellValue("Slide-" + slideCount + "-AssayMetadata");
+            } else {
+                cell.setCellValue("No Assay Metadata provided");
+            }
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell = row.createCell(1);
+            if (slide.getPrintedSlide().getMetadata() != null) {
+                cell.setCellValue("Slide-" + slideCount + "-SlideMetadata");
+            } else {
+                cell.setCellValue("No Slide Metadata provided");
+            }
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell = row.createCell(1);
+            if (slide.getPrintedSlide().getPrinter() != null) {
+                cell.setCellValue("Slide-" + slideCount + "-PrinterMetadata");
+            } else {
+                cell.setCellValue("No Printer Metadata provided");
+            }
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell = row.createCell(1);
+            if (slide.getPrintedSlide().getPrintRun() != null) {
+                cell.setCellValue("Slide-" + slideCount + "-PrintrunMetadata");
+            } else {
+                cell.setCellValue("No Printrun Metadata provided");
+            }
+            
+            int imageCount = 1;
+            for (Image image: slide.getImages()) {
+                Row imageRow = sheet.createRow(rownum++);
+                cell = imageRow.createCell(0);
+                cell = imageRow.createCell(1);
+                cell.setCellValue("Image-" + imageCount);
+                row = sheet.createRow(rownum++);
+                cell = row.createCell(0);
+                cell = row.createCell(1);
+                cell = row.createCell(2);
+                if (image.getScanner() != null) {
+                    cell.setCellValue("Slide-" + slideCount + "-ScannerMetadata-" + imageCount);
+                } else {
+                    cell.setCellValue("No Scanner Metadata provided");
+                }
+                int rawDataCount = 1;
+                for (RawData rawData: image.getRawDataList()) {
+                    Row rawdataRow = sheet.createRow(rownum++);
+                    cell = rawdataRow.createCell(0);
+                    cell = rawdataRow.createCell(1);
+                    cell = rawdataRow.createCell(2);
+                    cell.setCellValue("RawData-" + rawDataCount);
+                    row = sheet.createRow(rownum++);
+                    cell = row.createCell(0);
+                    cell = row.createCell(1);
+                    cell = row.createCell(2);
+                    cell = row.createCell(3);
+                    if (rawData.getMetadata() != null) {
+                        cell.setCellValue("Slide-" + slideCount + "-ImageAnalysisMetadata-" + rawDataCount);
+                    } else {
+                        cell.setCellValue("No Image Analysis Metadata provided");
+                    }
+                    int processedCount=1;
+                    for (ProcessedData processed: rawData.getProcessedDataList()) {
+                        Row processedRow = sheet.createRow(rownum++);
+                        cell = processedRow.createCell(0);
+                        cell = processedRow.createCell(1);
+                        cell = processedRow.createCell(2);
+                        cell = processedRow.createCell(3);
+                        cell.setCellValue("ProcessedData-" + processedCount);
+                        row = sheet.createRow(rownum++);
+                        cell = row.createCell(0);
+                        cell = row.createCell(1);
+                        cell = row.createCell(2);
+                        cell = row.createCell(3);
+                        cell = row.createCell(4);
+                        if (processed.getMetadata() != null) {
+                            cell.setCellValue("Slide-" + slideCount + "-DataProcessingSoftwareMetadata-" + processedCount);
+                        } else {
+                            cell.setCellValue("No Data Processing Software Metadata provided");
+                        }
+                        processedCount++;
+                    }
+                    rawDataCount++;
+                }
+                imageCount++;
+            }
+            slideCount++;
+        }
     }
 
     public void createMetadataSheet (MetadataCategory metadata, String sheetName, Workbook workbook) {
@@ -218,12 +319,15 @@ public class MetadataImportExportUtil {
             cell6.setCellValue("Mirage?");
             
             if (metadata.getDescriptors() != null) {
+                // sort them according to their order
+                Collections.sort(metadata.getDescriptors());
                 for (Description description: metadata.getDescriptors()) {
                     idx = addMetadataRow(description, sheet, idx, 0);
                 }
             }
             
             if (metadata.getDescriptorGroups() != null) {
+                Collections.sort(metadata.getDescriptorGroups());
                 for (Description description: metadata.getDescriptorGroups()) {
                     idx = addMetadataRow(description, sheet, idx, 0);
                 }
@@ -240,7 +344,7 @@ public class MetadataImportExportUtil {
         Cell level3 = row.createCell(2, Cell.CELL_TYPE_STRING);
         Cell value = row.createCell(3, Cell.CELL_TYPE_STRING);
         Cell unit = row.createCell(4, Cell.CELL_TYPE_STRING);
-        Cell mirage = row.createCell(5, Cell.CELL_TYPE_BOOLEAN);
+        Cell mirage = row.createCell(5, Cell.CELL_TYPE_STRING);
         
         if (level == 0) {
             level1.setCellValue(description.getName());
@@ -265,7 +369,7 @@ public class MetadataImportExportUtil {
             }
         }
         if (description.getKey() != null) {
-            mirage.setCellValue(description.getKey().isMirage());
+            mirage.setCellValue(description.getKey().isMirage() ? "Yes" : "No");
         }
         
         if (description instanceof DescriptorGroup) {

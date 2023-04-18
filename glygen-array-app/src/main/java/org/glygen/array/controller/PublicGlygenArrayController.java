@@ -1906,6 +1906,12 @@ public class PublicGlygenArrayController {
           
             if (data != null) {
                 try {
+                    UserEntity user = userRepository.findByUsernameIgnoreCase(data.getUser().getName());
+                    if (user != null) {
+                        // update user info
+                        data.getUser().setFirstName(user.getFirstName());
+                        data.getUser().setLastName(user.getLastName());
+                    }
                     new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath());  
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));

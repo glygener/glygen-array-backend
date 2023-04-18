@@ -8711,6 +8711,11 @@ public class DatasetController {
           
             if (data != null) {
                 try {
+                    // update user info
+                    if (user != null) {
+                        data.getUser().setFirstName(user.getFirstName());
+                        data.getUser().setLastName(user.getLastName());
+                    }
                     new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath());  
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
