@@ -8700,10 +8700,10 @@ public class DatasetController {
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
-            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, user);
+            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, false, user);
             if (data == null) {
                 // check if it is public
-                data = datasetRepository.getArrayDataset(datasetId, true, null);
+                data = datasetRepository.getArrayDataset(datasetId, true, false, null);
                 if (data == null) {
                     errorMessage.addError(new ObjectError("datasetId", "NotFound"));
                 }

@@ -1029,6 +1029,11 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     
     @Override
     public ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        return getArrayDataset(datasetId, loadAll, true, user);
+    }
+    
+    @Override
+    public ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         String uriPre = uriPrefix;
         if (user == null) {
@@ -1042,11 +1047,15 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
            return null;
         }
         else {
-            return getDatasetFromURI(uriPre + datasetId, loadAll, user);
+            return getDatasetFromURI(uriPre + datasetId, loadAll, slideLoadAll, user);
         }
     }
+    
+    private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll,  UserEntity user) throws SparqlException, SQLException {
+        return getDatasetFromURI(uri, loadAll, true, user);
+    }
         
-    private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+    private ArrayDataset getDatasetFromURI(String uri, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException {
         
         ArrayDataset datasetObject = null;
         
@@ -1149,7 +1158,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                 datasetObject.getKeywords().add(keyword.stringValue());
             } else if (st.getPredicate().equals(hasSlide)) {
                 Value uriValue = st.getObject();
-                datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, user));            
+                datasetObject.getSlides().add(getSlideFromURI(uriValue.stringValue(), loadAll, slideLoadAll, user));            
             } else if (st.getPredicate().equals(hasPub)) {
                 Value uriValue = st.getObject();
                 datasetObject.getPublications().add(getPublicationFromURI(uriValue.stringValue(), user));            
@@ -1628,9 +1637,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         return info;
     }
-
+    
     @Override
     public Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        return getSlideFromURI(uri, loadAll, true, user);
+    }
+
+    @Override
+    public Slide getSlideFromURI(String uri, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException {
         String graph = null;
         if (uri.contains("public"))
             graph = DEFAULT_GRAPH;
@@ -1664,7 +1678,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             Statement st = statements.next();
             if (st.getPredicate().equals(hasPrintedSlide)) {
                 Value uriValue = st.getObject();
-                slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), loadAll, user));   
+                slideObject.setPrintedSlide(getPrintedSlideFromURI(uriValue.stringValue(), loadAll, slideLoadAll, user));   
             } else if (st.getPredicate().equals(hasAssay)) {
                 Value uriValue = st.getObject();
                 slideObject.setMetadata(metadataRepository.getAssayMetadataFromURI(uriValue.stringValue(), loadAll, user));
@@ -2185,9 +2199,14 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
     public PrintedSlide getPrintedSlideFromURI(String uri, UserEntity user) throws SparqlException, SQLException {
         return getPrintedSlideFromURI(uri, true, user);
     }
-        
+    
     @Override
     public PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        return getPrintedSlideFromURI(uri, loadAll, true, user);
+    }
+        
+    @Override
+    public PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException {
         PrintedSlide slideObject = new PrintedSlide();
         
         String graph = null;
@@ -2271,7 +2290,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             } else if (st.getPredicate().equals(hasSlideLayout)) {
                 Value uriValue = st.getObject();
                 String layoutURI = uriValue.stringValue();
-                SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, loadAll, user);
+                SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, slideLoadAll, user);
                 slideObject.setLayout(layout);
             } else if (st.getPredicate().equals(hasSlideMetadata)) {
                 Value value = st.getObject();
@@ -2298,7 +2317,7 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
                     if (stPublic.getPredicate().equals(hasSlideLayout)) {
                         uriValue = stPublic.getObject();
                         String layoutURI = uriValue.stringValue();
-                        SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, loadAll, user);
+                        SlideLayout layout = layoutRepository.getSlideLayoutFromURI(layoutURI, slideLoadAll, user);
                         slideObject.setLayout(layout);
                     } else if (stPublic.getPredicate().equals(RDFS.LABEL)) {
                         Value label = stPublic.getObject();

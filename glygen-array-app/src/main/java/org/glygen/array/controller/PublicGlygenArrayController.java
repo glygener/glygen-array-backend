@@ -1899,7 +1899,7 @@ public class PublicGlygenArrayController {
         File newFile = new File (uploadDir, "tmp" + fileName);
         
         try {
-            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, null);
+            ArrayDataset data = datasetRepository.getArrayDataset(datasetId, true, false, null);
             if (data == null) {
               errorMessage.addError(new ObjectError("datasetId", "NotFound"));
             }

@@ -27,6 +27,8 @@ public interface ArrayDatasetRepository {
     ArrayDataset getArrayDataset (String datasetId, UserEntity user) throws SparqlException, SQLException;
     ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    ArrayDataset getArrayDataset(String datasetId, Boolean loadAll, Boolean loaddAllLayout, UserEntity user)
+            throws SparqlException, SQLException;
     
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user) throws SparqlException, SQLException;
     List<ArrayDataset> getArrayDatasetByUser (UserEntity user, int offset, int limit, String field, int order) throws SparqlException, SQLException;
@@ -83,11 +85,14 @@ public interface ArrayDatasetRepository {
     CompletableFuture<String> makePublicArrayDataset(ArrayDataset dataset, UserEntity user) throws SparqlException, SQLException;
     PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, UserEntity user)
             throws SparqlException, SQLException;
+    PrintedSlide getPrintedSlideFromURI(String uri, Boolean loadAll, Boolean loaddAllLayout, UserEntity user)
+            throws SparqlException, SQLException;
     CompletableFuture<String> addMeasurementsToRawData(RawData rawData, UserEntity user)
             throws SparqlException, SQLException;
     List<IntensityData> getIntensityDataList(String processedDataId, UserEntity user, int offset, int limit,
             String field, int order, String searchValue) throws SparqlException, SQLException;
     Slide getSlideFromURI(String uri, Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    Slide getSlideFromURI(String uri, Boolean loadAll, Boolean slideLoadAll, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
             String searchValue, Boolean loadAll) throws SparqlException, SQLException;
     List<PrintedSlide> getPrintedSlideByUser(UserEntity user, int offset, int limit, String field, int order,
