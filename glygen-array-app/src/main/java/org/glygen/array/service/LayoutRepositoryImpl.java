@@ -724,12 +724,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?o \n");
+		queryBuf.append ("SELECT * \n");
 		//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n");
-		queryBuf.append ( "<" +  uriPre + blockLayoutId + "> rdfs:label ?o . }\n");
+		//queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#block_layout>. \n");
+		queryBuf.append ( "<" +  uriPre + blockLayoutId + "> rdf:type  <http://purl.org/gadr/template#block_layout> . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
