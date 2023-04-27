@@ -1037,12 +1037,12 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
 		StringBuffer queryBuf = new StringBuffer();
 		queryBuf.append (prefix + "\n");
-		queryBuf.append ("SELECT DISTINCT ?o \n");
+		queryBuf.append ("SELECT * \n");
 		//queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
 		queryBuf.append ("FROM <" + graph + ">\n");
 		queryBuf.append ("WHERE {\n");
-		queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n");
-		queryBuf.append ( "<" +  uriPre + slideLayoutId.trim() + "> rdfs:label ?o . }\n");
+		//queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/template#slide_layout>. \n");
+		queryBuf.append ( "<" +  uriPre + slideLayoutId.trim() + "> rdf:type  <http://purl.org/gadr/template#slide_layout> . }\n");
 		List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
 		if (results.isEmpty())
 			return null;
@@ -1672,6 +1672,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI blockLayoutType = f.createIRI(MetadataTemplateRepository.templatePrefix + "block_layout");
         Literal dateCreated = blockLayout.getDateCreated() == null ? f.createLiteral(date) : f.createLiteral(blockLayout.getDateCreated());
 		
+        Literal blockLayoutLabel = f.createLiteral(blockLayout.getName().trim());
 		if (blockLayoutURI == null) {
 			blockLayoutURI = generateUniqueURI(uriPrefixPublic + "BL", allGraphs);
 			IRI publicGraphIRI = f.createIRI(DEFAULT_GRAPH);
@@ -1679,8 +1680,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 			IRI hasSpot = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_spot");
 			IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
 			IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
-			
-			Literal blockLayoutLabel = f.createLiteral(blockLayout.getName().trim());
 			Literal blockLayoutComment = blockLayout.getDescription() == null ? null: f.createLiteral(blockLayout.getDescription().trim());
 			Literal blockLayoutWidth = blockLayout.getWidth() == null ? null : f.createLiteral(blockLayout.getWidth());
 			Literal blockLayoutHeight = blockLayout.getHeight() == null ? null : f.createLiteral(blockLayout.getHeight());
@@ -1714,6 +1713,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         statements2.add(f.createStatement(local, hasModifiedDate, dateModified, userGraphIRI));
         statements2.add(f.createStatement(local, hasCreatedDate, dateCreated, userGraphIRI));
         statements2.add(f.createStatement(local, RDF.TYPE, blockLayoutType, userGraphIRI));
+        statements2.add(f.createStatement(local, RDFS.LABEL, blockLayoutLabel, userGraphIRI));
         sparqlDAO.addStatements(statements2, userGraphIRI);
 		
 		return blockLayoutURI;
@@ -2253,8 +2253,8 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
 		Literal dateCreated = f.createLiteral(date);
 		Literal dateAdded = s.getDateAddedToLibrary() == null ? f.createLiteral(date) : f.createLiteral(s.getDateAddedToLibrary());
 		IRI local = f.createIRI(s.getUri());
+		Literal slideLayoutLabel = f.createLiteral(s.getName().trim());
 		if (!existing) {
-			Literal slideLayoutLabel = f.createLiteral(s.getName().trim());
 			Literal slideLayoutComment = s.getDescription() == null ? null: f.createLiteral(s.getDescription().trim());
 			Literal slideLayoutWidth = s.getWidth() == null ? null : f.createLiteral(s.getWidth());
 			Literal slideLayoutHeight = s.getHeight() == null ? null : f.createLiteral(s.getHeight());
@@ -2289,6 +2289,7 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         statements2.add(f.createStatement(local, hasModifiedDate, dateCreated, userGraphIRI));
         statements2.add(f.createStatement(local, hasAddedToLibrary, dateAdded, userGraphIRI));
         statements2.add(f.createStatement(local, RDF.TYPE, slideLayoutType, userGraphIRI));
+        statements2.add(f.createStatement(local, RDFS.LABEL, slideLayoutLabel, userGraphIRI));
         sparqlDAO.addStatements(statements2, userGraphIRI);
         
         
