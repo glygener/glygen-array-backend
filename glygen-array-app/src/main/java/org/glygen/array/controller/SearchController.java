@@ -514,6 +514,7 @@ public class SearchController {
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
             
             List<GlycanSearchResult> searchGlycans = new ArrayList<>();
+            List<GlycanSearchResult> filteredSearchGlycans = new ArrayList<>();
             List<String> matches = null;
             
             String idList = null;
@@ -574,46 +575,95 @@ public class SearchController {
                         loadedGlycans.sort(Comparator.comparing(Glycan::getId));
                     else 
                         loadedGlycans.sort(Comparator.comparing(Glycan::getId).reversed());
-                }
-                int i=0;
-                int added = 0;
-                for (Glycan glycan: loadedGlycans) {
-                    i++;
-                    if (i <= offset) continue;
-                    int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
-                    GlycanSearchResult r = new GlycanSearchResult();
-                    r.setDatasetCount(count);
-                    r.setGlycan(glycan);
-                    searchGlycans.add(r);
-                    added ++;
-                    if (glycan instanceof SequenceDefinedGlycan) {
-                        byte[] image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
-                        if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
-                            BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
-                            if (t_image != null) {
-                                String filename = glycan.getId() + ".png";
-                                //save the image into a file
-                                logger.debug("Adding image to " + imageLocation);
-                                File imageFile = new File(imageLocation + File.separator + filename);
-                                try {
-                                    ImageIO.write(t_image, "png", imageFile);
-                                } catch (IOException e) {
-                                    logger.error ("Glycan image cannot be written", e);
-                                }
-                            }
-                            image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
-                        }
-                        glycan.setCartoon(image);
+                } 
+                
+                if (field.equalsIgnoreCase("datasetCount")) {
+                    // need to get all datasetCounts and sort before applying offset and limit
+                    for (Glycan glycan: loadedGlycans) {
+                        int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                        GlycanSearchResult r = new GlycanSearchResult();
+                        r.setDatasetCount(count);
+                        r.setGlycan(glycan);
+                        searchGlycans.add(r);
                     }
                     
-                    if (limit != -1 && added >= limit) break;
+                    if (order == 1)
+                        searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDatasetCount));
+                    else 
+                        searchGlycans.sort(Comparator.comparing(GlycanSearchResult::getDatasetCount).reversed());
                     
+                
+                    int i=0;
+                    int added = 0;
+                    for (GlycanSearchResult r: searchGlycans) {
+                        i++;
+                        if (i <= offset) continue;
+                        filteredSearchGlycans.add(r);
+                        added ++;
+                        if (r.getGlycan() instanceof SequenceDefinedGlycan) {
+                            byte[] image = GlygenArrayController.getCartoonForGlycan(r.getGlycan().getId(), imageLocation);
+                            if (image == null && ((SequenceDefinedGlycan) r.getGlycan()).getSequence() != null) {
+                                BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) r.getGlycan());
+                                if (t_image != null) {
+                                    String filename = r.getGlycan().getId() + ".png";
+                                    //save the image into a file
+                                    logger.debug("Adding image to " + imageLocation);
+                                    File imageFile = new File(imageLocation + File.separator + filename);
+                                    try {
+                                        ImageIO.write(t_image, "png", imageFile);
+                                    } catch (IOException e) {
+                                        logger.error ("Glycan image cannot be written", e);
+                                    }
+                                }
+                                image = GlygenArrayController.getCartoonForGlycan(r.getGlycan().getId(), imageLocation);
+                            }
+                            r.getGlycan().setCartoon(image);
+                        }
+                        
+                        if (limit != -1 && added >= limit) break;
+                        
+                    }
+                } else {
+                    int i=0;
+                    int added = 0;
+                    for (Glycan glycan: loadedGlycans) {
+                        i++;
+                        if (i <= offset) continue;
+                        int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                        GlycanSearchResult r = new GlycanSearchResult();
+                        r.setDatasetCount(count);
+                        r.setGlycan(glycan);
+                        filteredSearchGlycans.add(r);
+                        added ++;
+                        if (glycan instanceof SequenceDefinedGlycan) {
+                            byte[] image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
+                            if (image == null && ((SequenceDefinedGlycan) glycan).getSequence() != null) {
+                                BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) glycan);
+                                if (t_image != null) {
+                                    String filename = glycan.getId() + ".png";
+                                    //save the image into a file
+                                    logger.debug("Adding image to " + imageLocation);
+                                    File imageFile = new File(imageLocation + File.separator + filename);
+                                    try {
+                                        ImageIO.write(t_image, "png", imageFile);
+                                    } catch (IOException e) {
+                                        logger.error ("Glycan image cannot be written", e);
+                                    }
+                                }
+                                image = GlygenArrayController.getCartoonForGlycan(glycan.getId(), imageLocation);
+                            }
+                            glycan.setCartoon(image);
+                        }
+                        
+                        if (limit != -1 && added >= limit) break;
+                        
+                    }
                 }
             }
             
-            result.setRows(searchGlycans);
+            result.setRows(filteredSearchGlycans);
             result.setTotal(total);
-            result.setFilteredTotal(searchGlycans.size());
+            result.setFilteredTotal(filteredSearchGlycans.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }

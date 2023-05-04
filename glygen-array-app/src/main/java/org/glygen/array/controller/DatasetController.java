@@ -3597,35 +3597,41 @@ public class DatasetController {
         
         if (datasetId != null)
             datasetId = datasetId.trim();
-        switch (type) {
-        case SAMPLE:
-            metadata = getSample(metadataId, datasetId, p);
-            break;
-        case DATAPROCESSINGSOFTWARE:
-            metadata = getDataProcessingSoftware(metadataId, datasetId, p);
-            break;
-        case IMAGEANALYSISSOFTWARE:
-            metadata = getImageAnaylsisSoftware(metadataId, datasetId, p);
-            break;
-        case PRINTER:
-            metadata = getPrinter(metadataId, datasetId, p);
-            break;
-        case SCANNER:
-            metadata = getScanner(metadataId, datasetId, p);
-            break;
-        case SLIDE:
-            metadata = getSlideMetadata(metadataId, datasetId, p);
-            break;
-        case ASSAY:
-            metadata = getAssayMetadata(metadataId, datasetId, p);
-        case SPOT:
-            metadata = getSpotMetadata(metadataId, datasetId, p);
-            break;
-        case PRINTRUN:
-            metadata = getPrintRun(metadataId, datasetId, p);
-            break;
-        case FEATURE:
-            throw new IllegalArgumentException("Feature metadata compliance check is not supported");
+        try {
+            switch (type) {
+            case SAMPLE:
+                metadata = getSample(metadataId, datasetId, p);
+                break;
+            case DATAPROCESSINGSOFTWARE:
+                metadata = getDataProcessingSoftware(metadataId, datasetId, p);
+                break;
+            case IMAGEANALYSISSOFTWARE:
+                metadata = getImageAnaylsisSoftware(metadataId, datasetId, p);
+                break;
+            case PRINTER:
+                metadata = getPrinter(metadataId, datasetId, p);
+                break;
+            case SCANNER:
+                metadata = getScanner(metadataId, datasetId, p);
+                break;
+            case SLIDE:
+                metadata = getSlideMetadata(metadataId, datasetId, p);
+                break;
+            case ASSAY:
+                metadata = getAssayMetadata(metadataId, datasetId, p);
+            case SPOT:
+                metadata = getSpotMetadata(metadataId, datasetId, p);
+                break;
+            case PRINTRUN:
+                metadata = getPrintRun(metadataId, datasetId, p);
+                break;
+            case FEATURE:
+                throw new IllegalArgumentException("Feature metadata compliance check is not supported");
+            }
+        } catch (Exception e) {
+            if (e instanceof IllegalArgumentException) 
+                throw e;
+            errorMessage.addError(new ObjectError("type", "NotValid"));
         }
         
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
@@ -3644,7 +3650,7 @@ public class DatasetController {
                 if (template == null) {
                     errorMessage.addError(new ObjectError("type", "NotValid"));
                 } else {
-                ErrorMessage err = checkMirage (metadata, template);
+                    ErrorMessage err = checkMirage (metadata, template);
                     if (err != null) {
                         for (ObjectError error: err.getErrors())
                             errorMessage.addError(error);
@@ -3679,13 +3685,22 @@ public class DatasetController {
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         
         //TODO need to consider mandateGroups, even if both is marked as "mirage", one should satisfy the requirement
+        Map<Integer, List<Description>> mandateGroups = new HashMap<>();
         
         for (DescriptionTemplate descTemplate: template.getDescriptors()) {
             boolean exists = false;
             if (descTemplate.isGroup() && descTemplate.isMirage()) {
+                if (descTemplate.getMandateGroup() != null) {
+                    if (mandateGroups.get(descTemplate.getMandateGroup().getId()) == null) {
+                        mandateGroups.put(descTemplate.getMandateGroup().getId(), new ArrayList<Description>());
+                    }
+                }
                 // check if it is provided in metadata
                 for (DescriptorGroup g: metadata.getDescriptorGroups()) {
                     if (g.getKey().equals(descTemplate)) {
+                        if (descTemplate.getMandateGroup() != null) {
+                            mandateGroups.get (descTemplate.getMandateGroup().getId()).add(g);
+                        }
                         exists = true;
                         ErrorMessage error = checkMirageDescriptorGroup((DescriptorGroup)g, descTemplate);
                         if (error != null) {
@@ -3696,14 +3711,32 @@ public class DatasetController {
                 }
                 
             } else if (descTemplate.isMirage()) {
+                if (descTemplate.getMandateGroup() != null) {
+                    if (mandateGroups.get(descTemplate.getMandateGroup().getId()) == null) {
+                        mandateGroups.put(descTemplate.getMandateGroup().getId(), new ArrayList<Description>());
+                    }
+                }
                 for (Descriptor d: metadata.getDescriptors()) {
-                    if (d.getKey().equals(descTemplate))
+                    if (d.getKey().equals(descTemplate)) {
+                        if (descTemplate.getMandateGroup() != null) {
+                            mandateGroups.get (descTemplate.getMandateGroup().getId()).add(d);
+                        }
                         exists = true;
+                    }
                 }
             }
             if (descTemplate.isMirage() && !exists) {
-                // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
+                // but if there is another descriptorgroup in the mandategroup, it is still fine
+                if (descTemplate.getMandateGroup() != null) {
+                    if (mandateGroups.get(descTemplate.getMandateGroup().getId()) == null ||
+                            mandateGroups.get(descTemplate.getMandateGroup().getId()).isEmpty()  ) {
+                        // violation
+                        errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
+                    }
+                } else {
+                    // violation
+                    errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
+                }
             }
         }
         
@@ -3717,25 +3750,45 @@ public class DatasetController {
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
         
+        Map<Integer, List<Description>> mandateGroups = new HashMap<>();
+        
         for (DescriptionTemplate descTemplate: ((DescriptorGroupTemplate)descGroupTemplate).getDescriptors()) {
             boolean exists = false;
+            if (descTemplate.getMandateGroup() != null) {
+                if (mandateGroups.get(descTemplate.getMandateGroup().getId()) == null) {
+                    mandateGroups.put(descTemplate.getMandateGroup().getId(), new ArrayList<Description>());
+                }
+            }
             for (Description d: descGroup.getDescriptors()) {
                 if (d.getKey().equals(descTemplate)) {
                     exists = true;
-                 
+                    if (descTemplate.getMandateGroup() != null) {
+                        mandateGroups.get (descTemplate.getMandateGroup().getId()).add(d);
+                    }
                     if (d.isGroup()) {
                         ErrorMessage error = checkMirageDescriptorGroup((DescriptorGroup)d, descTemplate);
                         if (error != null) {
-                            for (ObjectError err: error.getErrors())
-                                errorMessage.addError(err);
+                            for (ObjectError err: error.getErrors()) {
+                                ObjectError o = new ObjectError (descGroupTemplate.getName() + ":" + err.getObjectName(), err.getDefaultMessage());
+                                errorMessage.addError(o);
+                            }
                         } 
                     }
                 }
             }
 
             if (descTemplate.isMirage() && !exists) {
-                // violation
-                errorMessage.addError(new ObjectError (descTemplate.getName(), "NotFound"));
+             // but if there is another descriptorgroup in the mandategroup, it is still fine
+                if (descTemplate.getMandateGroup() != null) {
+                    if (mandateGroups.get(descTemplate.getMandateGroup().getId()) == null ||
+                            mandateGroups.get(descTemplate.getMandateGroup().getId()).isEmpty()  ) {
+                        // violation
+                        errorMessage.addError(new ObjectError (descGroupTemplate.getName() + ":" + descTemplate.getName(), "NotFound"));
+                    }
+                } else {
+                    // violation
+                    errorMessage.addError(new ObjectError (descGroupTemplate.getName() + ":" + descTemplate.getName(), "NotFound"));
+                }
             }
         }
         
