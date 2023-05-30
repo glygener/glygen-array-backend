@@ -996,7 +996,8 @@ public class AsyncServiceImpl implements AsyncService {
                 if (linker.getType() != type && !linker.getType().name().equals("UNKNOWN_"+type.name())) {
                     // incorrect type
                     String[] codes = new String[] {"selected type=" + type.name(), "type in file=" + linker.getType().name(), "linker=" + linker.getName()};
-                    errorMessage.addError(new ObjectError("type", codes, null, "NotValid"));
+                    errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
+                    break;
                 } else {
                     try {  
                         String id = addService.addLinker(linker, linker.getType().name().contains("UNKNOWN"), user);

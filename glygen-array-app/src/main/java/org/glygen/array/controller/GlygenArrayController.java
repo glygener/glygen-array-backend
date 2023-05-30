@@ -646,17 +646,22 @@ public class GlygenArrayController {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("Error uploading glycans from the given file", e);
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
-                for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
-                    errorMessage.addError(err);
-                }
+            if (e.getCause() instanceof IllegalArgumentException){
+                throw (IllegalArgumentException)e.getCause();
             } else {
-                errorMessage.addError(new ObjectError("file", e.getMessage()));
+                logger.error("Error uploading glycans from the given file", e);
+                ErrorMessage errorMessage = new ErrorMessage("Error uploading " + (linker ? "Linkers": "Features") +  " from the given file");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                if (e.getCause() != null && e.getCause() instanceof ErrorMessage) {
+                    for (ObjectError err: ((ErrorMessage) e.getCause()).getErrors()) {
+                        errorMessage.addError(err);
+                    }
+                } else {
+                    String[] codes = new String[] {e.getMessage()};
+                    errorMessage.addError(new ObjectError ("file", codes, null, " NotValid"));
+                }
+                throw new IllegalArgumentException("Error uploading " + (linker ? "Linkers": "Features") +  " from the given file", errorMessage);
             }
-            throw new IllegalArgumentException("Error uploading " + (linker ? "Linkers": "Features") +  " from the given file", errorMessage);
         }
     }
     
@@ -684,7 +689,7 @@ public class GlygenArrayController {
             if (linkerType == null) {
                 ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-                String[] codes = new String[] {moleculeType};
+                String[] codes = new String[] {"Molecule Type:", moleculeType};
                 errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
                 errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                 throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
@@ -692,7 +697,7 @@ public class GlygenArrayController {
         } catch (Exception e) {
             ErrorMessage errorMessage = new ErrorMessage("Incorrect molecule type");
             errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            String[] codes = new String[] {moleculeType};
+            String[] codes = new String[] {"Molecule Type:", moleculeType};
             errorMessage.addError(new ObjectError("moleculeType", codes, null, "NotValid"));
             errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
             throw new IllegalArgumentException("Incorrect molecule type", errorMessage);
@@ -719,7 +724,16 @@ public class GlygenArrayController {
                     errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                     throw new IllegalArgumentException("File is not acceptable", errorMessage);
                 }
-            } catch (IOException e) {
+            } catch (IllegalArgumentException e) {
+              if (e.getCause() instanceof ErrorMessage) 
+                  throw e;
+              else {
+                  ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+                  errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                  errorMessage.addError(new ObjectError("file", "NotValid"));
+                  throw new IllegalArgumentException("File cannot be read", errorMessage);
+              }
+            } catch (Exception e) {
                 ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
                 errorMessage.addError(new ObjectError("file", "NotValid"));

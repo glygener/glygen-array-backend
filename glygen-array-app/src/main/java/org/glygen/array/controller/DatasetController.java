@@ -8297,7 +8297,7 @@ public class DatasetController {
                 metadata.setIsMirage(isMirage);
             } catch (IllegalArgumentException e) {
                 metadata.setIsMirage(false);
-                logger.error("Error checking for mirage compliance", e);
+                logger.error("Checking for mirage compliance", e);
             }
             metadataRepository.updateMetadataMirage(metadata, owner);
         } catch (SparqlException | SQLException e) {

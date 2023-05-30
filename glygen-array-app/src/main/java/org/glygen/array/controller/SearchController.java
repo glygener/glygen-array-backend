@@ -656,7 +656,6 @@ public class SearchController {
                         }
                         
                         if (limit != -1 && added >= limit) break;
-                        
                     }
                 }
             }
