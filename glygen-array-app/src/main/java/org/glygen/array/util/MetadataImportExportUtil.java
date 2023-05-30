@@ -61,7 +61,7 @@ public class MetadataImportExportUtil {
         boldStyle = workbook.createCellStyle();
         boldStyle.setFont(font);
         
-        createDatasetSheet (dataset, "DatasetInfo", workbook);
+        createDatasetSheet (dataset, "DatasetInfo", workbook, mirageOnly, singleSheet);
         createMetadataSheet (dataset.getSample(), "Sample", workbook, mirageOnly);
         
         Set<String> alreadyCreatedSheets = new HashSet<>();
@@ -151,7 +151,7 @@ public class MetadataImportExportUtil {
         
     }
     
-    private void createDatasetSheet(ArrayDataset dataset, String sheetName, Workbook workbook) {
+    private void createDatasetSheet(ArrayDataset dataset, String sheetName, Workbook workbook, Boolean mirageOnly, Boolean singleSheet) {
         Sheet sheet = workbook.createSheet(sheetName);
         CreationHelper createHelper = workbook.getCreationHelper();
         CellStyle rowStyle = workbook.createCellStyle();
@@ -163,7 +163,14 @@ public class MetadataImportExportUtil {
         hlinkfont.setColor(IndexedColors.BLUE.index);
         hlinkstyle.setFont(hlinkfont);
         
-        Row header = sheet.createRow(0);
+        Row name = sheet.createRow(0);
+        Cell cell = name.createCell(0);
+        cell.setCellValue("Name");
+        cell.setCellStyle(boldStyle);
+        cell = name.createCell(1);
+        cell.setCellValue(dataset.getName());
+        
+        Row header = sheet.createRow(1);
         Cell headerCell = header.createCell(0);
         headerCell.setCellValue("Dataset URL");
         headerCell.setCellStyle(boldStyle);
@@ -184,15 +191,17 @@ public class MetadataImportExportUtil {
        
         headerCell.setHyperlink((XSSFHyperlink) link);
         headerCell.setCellStyle(hlinkstyle);
-            
-        Row name = sheet.createRow(1);
-        Cell cell = name.createCell(0);
-        cell.setCellValue("Name");
-        cell.setCellStyle(boldStyle);
-        cell = name.createCell(1);
-        cell.setCellValue(dataset.getName());
         
-        Row description = sheet.createRow(2);
+        Row exportOptions = sheet.createRow(2);
+        exportOptions.setRowStyle(rowStyle);
+        cell = exportOptions.createCell(0);
+        cell.setCellValue("Export Options");
+        cell.setCellStyle(boldStyle);
+        cell = exportOptions.createCell(1);
+        cell.setCellValue("Mirage Only? " + (mirageOnly != null && mirageOnly ? "yes" : "no") + 
+                " Single Sheet? " + (singleSheet != null && singleSheet ? "yes" : "no"));
+        
+        Row description = sheet.createRow(3);
         description.setRowStyle(rowStyle);
         cell = description.createCell(0);
         cell.setCellValue("Description");
@@ -204,14 +213,14 @@ public class MetadataImportExportUtil {
         cell = description.createCell(4);
         sheet.addMergedRegion(new CellRangeAddress(description.getRowNum(), description.getRowNum(), 1, 4));
         
-        Row createdDate = sheet.createRow(3);
+        Row createdDate = sheet.createRow(4);
         cell = createdDate.createCell(0);
         cell.setCellValue("Submission Date");
         cell.setCellStyle(boldStyle);
         cell = createdDate.createCell(1);
         cell.setCellValue(dataset.getDateAddedToLibrary().toString());
         
-        Row publicDate = sheet.createRow(4);
+        Row publicDate = sheet.createRow(5);
         cell = publicDate.createCell(0);
         cell.setCellValue("Release Date");
         cell.setCellStyle(boldStyle);
@@ -220,7 +229,7 @@ public class MetadataImportExportUtil {
             cell.setCellValue(dataset.getDateCreated().toString());
         }
         
-        Row submitter = sheet.createRow(4);
+        Row submitter = sheet.createRow(6);
         cell = submitter.createCell(0);
         cell.setCellValue("Submitted By");
         cell.setCellStyle(boldStyle);
@@ -230,7 +239,7 @@ public class MetadataImportExportUtil {
         else 
             cell.setCellValue(dataset.getUser().getName());
         
-        Row sample = sheet.createRow(5);
+        Row sample = sheet.createRow(7);
         cell = sample.createCell(0);
         cell.setCellValue("Sample");
         cell.setCellStyle(boldStyle);
@@ -241,7 +250,7 @@ public class MetadataImportExportUtil {
         cell.setHyperlink((XSSFHyperlink) link);
         cell.setCellStyle(hlinkstyle);
         
-        int rownum = 6;
+        int rownum = 8;
         for (String keyword: dataset.getKeywords()) {
            Row row = sheet.createRow(rownum++);
            cell = row.createCell(0);
@@ -424,13 +433,27 @@ public class MetadataImportExportUtil {
         }
         
         sheet.setColumnWidth(0, getColumnWidth(15f));
-        sheet.setColumnWidth(1, getColumnWidth(30f));
+        sheet.setColumnWidth(1, getColumnWidth(28f));
+        sheet.setColumnWidth(2, getColumnWidth(28f));
+        sheet.setColumnWidth(3, getColumnWidth(28f));
+        sheet.setColumnWidth(4, getColumnWidth(28f));
     }
 
     public void createMetadataSheet (MetadataCategory metadata, String sheetName, Workbook workbook, Boolean mirageOnly) {
         try {
             Sheet sheet = workbook.createSheet(sheetName);
-            int idx = 0;
+            Row headline = sheet.createRow(0);
+            Cell cell = headline.createCell(0);
+            cell.setCellValue(sheetName);
+            cell.setCellStyle(boldStyle);
+            headline.createCell(1);
+            headline.createCell(2);
+            headline.createCell(3);
+            headline.createCell(4);
+            headline.createCell(5);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
+            
+            int idx = 1;
             Row header = sheet.createRow(idx++);
             Cell cell1 = header.createCell(0, Cell.CELL_TYPE_STRING);
             cell1.setCellValue("Parameter");
