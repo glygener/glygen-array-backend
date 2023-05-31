@@ -8740,7 +8740,13 @@ public class DatasetController {
             String datasetId,
             @Parameter(required=false, description="the name for downloaded file") 
             @RequestParam(value="filename", required=false)
-            String fileName,        
+            String fileName,   
+            @Parameter(required=false, description="mirage metadata only") 
+            @RequestParam(value="mirageOnly", required=false)
+            Boolean mirageOnly,
+            @Parameter(required=false, description="single sheet") 
+            @RequestParam(value="singleSheet", required=false)
+            Boolean singleSheet,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -8769,7 +8775,7 @@ public class DatasetController {
                         data.getUser().setFirstName(user.getFirstName());
                         data.getUser().setLastName(user.getLastName());
                     }
-                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath());  
+                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath(), mirageOnly, singleSheet);  
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
                 }
