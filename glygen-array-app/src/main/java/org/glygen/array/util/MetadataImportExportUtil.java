@@ -380,8 +380,8 @@ public class MetadataImportExportUtil {
         cell.setCellValue("Export Options");
         cell.setCellStyle(boldStyle);
         cell = exportOptions.createCell(1);
-        cell.setCellValue("Mirage Only? " + (mirageOnly != null && mirageOnly ? "Yes" : "No") + 
-                " Single Sheet? " + (singleSheet != null && singleSheet ? "Yes" : "No"));
+        cell.setCellValue("Mirage Only: " + (mirageOnly != null && mirageOnly ? "Yes" : "No") + 
+                " Single Sheet: " + (singleSheet != null && singleSheet ? "Yes" : "No"));
         
         Row description = sheet.createRow(3);
         cell = description.createCell(0);
@@ -434,40 +434,45 @@ public class MetadataImportExportUtil {
         rowNumbers.get("Sample - " + dataset.getSample().getName()).add(7);
         
         int rownum = 8;
-        for (String keyword: dataset.getKeywords()) {
-           Row row = sheet.createRow(rownum++);
-           cell = row.createCell(0);
-           cell.setCellValue("Keyword");
-           cell.setCellStyle(boldStyle);
-           cell = row.createCell(1);
-           cell.setCellValue(keyword);
-        }
-        
-        Row row = sheet.createRow(rownum++);
+        Row row = sheet.createRow(rownum);
         cell = row.createCell(0);
-        cell.setCellValue("Publication");
+        cell.setCellValue("Keyword");
         cell.setCellStyle(boldStyle);
-        boolean first = true;
-        for (Publication pub: dataset.getPublications()) {
-            if (!first) {
-                row = sheet.createRow(rownum++);
-                row.createCell(0);
-            } else 
-                first = false;
-            cell = row.createCell(1);
-            cell.setCellStyle(wrapTextStyle);
-            StringBuffer pubString = new StringBuffer();
-            pubString.append(pub.getTitle() + "\n");
-            pubString.append(pub.getAuthors() + "\n");
-            pubString.append(pub.getJournal());
-            if (pub.getYear() != null) {
-                pubString.append(" (" + pub.getYear() + ")");
-            } 
-            if (pub.getPubmedId() != null) 
-                pubString.append("\nPMID: " + pub.getPubmedId());
-            else if (pub.getDoiId() != null)
-                pubString.append("\nDOI: " + pub.getDoiId());
-            cell.setCellValue(pubString.toString());
+        String keywordString = "";
+        for (String keyword: dataset.getKeywords()) {
+           keywordString += keyword + ", ";
+        }
+        rownum++;
+        cell = row.createCell(1);
+        cell.setCellValue(keywordString.trim().substring(0, keywordString.length()-1));
+        
+        if (!dataset.getPublications().isEmpty()) {
+            row = sheet.createRow(rownum++);
+            cell = row.createCell(0);
+            cell.setCellValue("Publication");
+            cell.setCellStyle(boldStyle);
+            boolean first = true;
+            for (Publication pub: dataset.getPublications()) {
+                if (!first) {
+                    row = sheet.createRow(rownum++);
+                    row.createCell(0);
+                } else 
+                    first = false;
+                cell = row.createCell(1);
+                cell.setCellStyle(wrapTextStyle);
+                StringBuffer pubString = new StringBuffer();
+                pubString.append(pub.getTitle() + "\n");
+                pubString.append(pub.getAuthors() + "\n");
+                pubString.append(pub.getJournal());
+                if (pub.getYear() != null) {
+                    pubString.append(" (" + pub.getYear() + ")");
+                } 
+                if (pub.getPubmedId() != null) 
+                    pubString.append("\nPMID: " + pub.getPubmedId());
+                else if (pub.getDoiId() != null)
+                    pubString.append("\nDOI: " + pub.getDoiId());
+                cell.setCellValue(pubString.toString());
+            }
         }
         
         row = sheet.createRow(rownum++);
