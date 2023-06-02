@@ -2256,6 +2256,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                             }
                         } catch (WURCSException | SugarImporterException | GlycoVisitorException e) {
                             logger.warn ("cannot convert sequence into Wurcs to check glytoucan", e);
+                            logger.info("Glycan sequence that failed: " + glycan.getSequence().trim());
                             String [] codes;
                             if (sugar != null) {
                                 // run the validator to get the detailed error messages
@@ -2263,7 +2264,7 @@ final static Logger logger = LoggerFactory.getLogger("event-logger");
                                 t_validationWURCS.start(sugar);
                                 codes = t_validationWURCS.getErrors().toArray(new String[0]);
                             } else {
-                                codes = new String[] {e.getMessage()};
+                                codes = new String[] {"Sequence: " + glycan.getSequence(), "Error Message: " + e.getMessage()};
                             }
                             errorMessage.addError(new ObjectError("sequence", codes, null, "WURCS conversion error"));
                         }
