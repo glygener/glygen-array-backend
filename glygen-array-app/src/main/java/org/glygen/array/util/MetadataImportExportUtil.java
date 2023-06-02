@@ -35,6 +35,7 @@ import org.glygen.array.persistence.rdf.metadata.Description;
 import org.glygen.array.persistence.rdf.metadata.Descriptor;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
 import org.glygen.array.persistence.rdf.metadata.MetadataCategory;
+import org.glygen.array.persistence.rdf.metadata.Sample;
 
 public class MetadataImportExportUtil {
     
@@ -434,20 +435,23 @@ public class MetadataImportExportUtil {
         rowNumbers.get("Sample - " + dataset.getSample().getName()).add(7);
         
         int rownum = 8;
-        Row row = sheet.createRow(rownum);
-        cell = row.createCell(0);
-        cell.setCellValue("Keyword");
-        cell.setCellStyle(boldStyle);
-        String keywordString = "";
-        for (String keyword: dataset.getKeywords()) {
-           keywordString += keyword + ", ";
+        
+        if (dataset.getKeywords() != null && !dataset.getKeywords().isEmpty()) {
+            Row row = sheet.createRow(rownum);
+            cell = row.createCell(0);
+            cell.setCellValue("Keywords");
+            cell.setCellStyle(boldStyle);
+            String keywordString = "";
+            for (String keyword: dataset.getKeywords()) {
+               keywordString += keyword + ", ";
+            }
+            rownum++;
+            cell = row.createCell(1);
+            cell.setCellValue(keywordString.trim().substring(0, keywordString.trim().length()-1));
         }
-        rownum++;
-        cell = row.createCell(1);
-        cell.setCellValue(keywordString.trim().substring(0, keywordString.length()-1));
         
         if (!dataset.getPublications().isEmpty()) {
-            row = sheet.createRow(rownum++);
+            Row row = sheet.createRow(rownum++);
             cell = row.createCell(0);
             cell.setCellValue("Publication");
             cell.setCellStyle(boldStyle);
@@ -475,7 +479,7 @@ public class MetadataImportExportUtil {
             }
         }
         
-        row = sheet.createRow(rownum++);
+        Row row = sheet.createRow(rownum++);
         row = sheet.createRow(rownum++);
         cell = row.createCell(0);
         cell.setCellValue("Slide");
@@ -686,6 +690,19 @@ public class MetadataImportExportUtil {
         Cell cell6 = header.createCell(5, Cell.CELL_TYPE_STRING);
         cell6.setCellValue("MIRAGE");
         cell6.setCellStyle(boldStyle);
+        
+        if (metadata instanceof Sample) {
+            Row row = sheet.createRow(idx++);
+            Cell level1 = row.createCell(0, Cell.CELL_TYPE_STRING);
+            row.createCell(1, Cell.CELL_TYPE_STRING);
+            row.createCell(2, Cell.CELL_TYPE_STRING);
+            Cell value = row.createCell(3, Cell.CELL_TYPE_STRING);
+            value.setCellStyle(wrapTextStyle);
+            row.createCell(4, Cell.CELL_TYPE_STRING);
+            row.createCell(5, Cell.CELL_TYPE_STRING);
+            level1.setCellValue("Sample Type");
+            value.setCellValue(metadata.getTemplate());
+        }
         
         if (metadata.getDescriptors() != null) {
             // sort them according to their order
