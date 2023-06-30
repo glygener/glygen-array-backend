@@ -16,6 +16,7 @@ import java.util.Scanner;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -89,6 +90,8 @@ public class ProcessedDataParser {
         //Create Workbook instance holding reference to .xls file
         Workbook workbook = WorkbookFactory.create(file);
         Sheet sheet = null;
+        DataFormatter dataFormatter = new DataFormatter();
+        
         // get the sheet with the masterlist numbers and structures
         if (config.getSheetNumber() != null && config.getSheetNumber() != -1) {
             sheet = workbook.getSheetAt(config.getSheetNumber());
@@ -332,7 +335,23 @@ public class ProcessedDataParser {
                     errorList.add(error); 
                 }
             } else { // repository format: repoID column contains the internal id of the feature in the repository
-                String featureString = featureCell.getStringCellValue().trim(); 
+                String featureString = dataFormatter.formatCellValue(featureCell);
+               /* if (featureCell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                    featureString = featureCell.getNumericCellValue() + "";
+                } else if (featureCell.getCellType() == Cell.CELL_TYPE_STRING) {
+                    featureString = featureCell.getStringCellValue().trim();
+                }*/
+                if (featureString == null) {
+                    // error
+                    ErrorMessage error = new ErrorMessage("RepoID is empty for row: " + row.getRowNum());
+                    error.setErrorCode(ErrorCodes.PARSE_ERROR);
+                    error.setStatus(HttpStatus.BAD_REQUEST.value());
+                    String[] codes = {(row.getRowNum()+ 1)+""};
+                    error.addError(new ObjectError("RepoID", codes, null, "Row " + (row.getRowNum()+1) + ": RepoID is empty"));
+                    errorList.add(error); 
+                    continue;
+                }
+                
                 List<Feature> features = new ArrayList<Feature>();
                 if (featureString.contains("||")) {
                     // mixture
