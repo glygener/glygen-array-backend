@@ -704,7 +704,7 @@ public class ExtendedGalFileParser {
     public void exportToFile (SlideLayout layout, String outputFile) throws IOException {
         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
         //write header
-        out.append("Block\tRow\tColumn\tID\tName\tRepoID\tGroup\tConcentration\tRatio\tBuffer\tVolume\tDispenses\tCarrier\tMethod\tReference\tComment\tPrinting Flags");
+        out.append("Block\tColumn\tRow\tID\tName\tRepoID\tGroup\tConcentration\tRatio\tBuffer\tVolume\tDispenses\tCarrier\tMethod\tReference\tComment\tPrinting Flags");
         out.append("\n");
         
         int noBlocks = 0;

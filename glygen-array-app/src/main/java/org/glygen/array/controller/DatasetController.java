@@ -675,6 +675,9 @@ public class DatasetController {
             orgs.add("FDA");
             orgs.add("DOI");
             orgs.addAll(datasetRepository.getAllFundingOrganizations());
+            if (!orgs.contains("Other")) {
+                orgs.add("Other");
+            }
             return orgs;
         } catch (SparqlException e) {
             ErrorMessage errorMessage = new ErrorMessage("Error retrieving funding organizations from the repository");
