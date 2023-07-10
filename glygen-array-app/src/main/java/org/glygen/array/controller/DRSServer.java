@@ -41,13 +41,14 @@ public class DRSServer {
         ServiceInfo info = new ServiceInfo();
         info.setId("org.glygen.array");
         info.setName("Glycan Array Repository DRS API");
+        info.setDescription("This service provides implementation of DRS specification for accessing files for the datasets within Glycan Array Repository.");
         info.setType(new ServiceType());
         Organization org = new Organization();
         org.setName("University of Georgia");
         org.setUrl("https://glygen.ccrc.uga.edu");
         info.setOrganization(org);
         info.setVersion("1.0.0");
-        info.setDocumentationUrl(scheme+host+basePath+"swagger-ui/index.html#/drs-server/");
+        info.setDocumentationUrl(scheme+host+basePath+"/swagger-ui/index.html#/drs-server/");
         info.setContactUrl("mailto:glygenarray.api@gmail.com");
         return info;
     }
