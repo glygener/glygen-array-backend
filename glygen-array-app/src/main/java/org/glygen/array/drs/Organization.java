@@ -2,8 +2,8 @@ package org.glygen.array.drs;
 
 public class Organization {
     
-    String name;   //required   Name of the organization responsible for the service
-    String url;    // required  URL of the website of the organization
+    String name = "University of Georgia";   //required   Name of the organization responsible for the service
+    String url = "https://ccrc.uga.edu/";    // required  URL of the website of the organization
     /**
      * @return the name
      */

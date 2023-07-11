@@ -1,8 +1,6 @@
 package org.glygen.array.controller;
 
-import org.glygen.array.drs.Organization;
 import org.glygen.array.drs.ServiceInfo;
-import org.glygen.array.drs.ServiceType;
 import org.glygen.array.view.ErrorMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +28,8 @@ public class DRSServer {
     
     
     @Operation(summary = "DRS API service information")
-    @RequestMapping(value="/service-info", method = RequestMethod.GET)
+    @RequestMapping(value="/service-info", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="service information retrieved successfully", content = {
             @Content( schema = @Schema(implementation = ServiceInfo.class))}), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
@@ -39,17 +38,7 @@ public class DRSServer {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
     public ServiceInfo getServiceInfo() {
         ServiceInfo info = new ServiceInfo();
-        info.setId("org.glygen.array");
-        info.setName("Glycan Array Repository DRS API");
-        info.setDescription("This service provides implementation of DRS specification for accessing files for the datasets within Glycan Array Repository.");
-        info.setType(new ServiceType());
-        Organization org = new Organization();
-        org.setName("University of Georgia");
-        org.setUrl("https://glygen.ccrc.uga.edu");
-        info.setOrganization(org);
-        info.setVersion("1.0.0");
         info.setDocumentationUrl(scheme+host+basePath+"/swagger-ui/index.html#/drs-server/");
-        info.setContactUrl("mailto:glygenarray.api@gmail.com");
         return info;
     }
 }

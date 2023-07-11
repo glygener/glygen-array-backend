@@ -1,23 +1,25 @@
 package org.glygen.array.drs;
 
+import java.util.Calendar;
 import java.util.Date;
+
 
 public class ServiceInfo {
     
     //Unique ID of this service. Reverse domain name notation is recommended, though not required. 
     //The identifier should attempt to be globally unique so it can be used in downstream aggregator services e.g. Service Registry.
-    String id;          // required  example: org.ga4gh.myservice
-    String name;        // required
-    ServiceType type;   // required
-    String description;
+    String id = "org.glygen.array";          // required  example: org.ga4gh.myservice
+    String name = "Glycan Array Repository DRS API";        // required
+    ServiceType type = new ServiceType();   // required
+    String description = "This service provides implementation of DRS specification for accessing files for the datasets within Glycan Array Repository.";
     Organization organization;   // required
-    String contactUrl;    //example: mailto:support@example.com
+    String contactUrl = "mailto:glygenarray.api@gmail.com";    //example: mailto:support@example.com
     //URL of the documentation of this service (RFC 3986 format).
     String documentationUrl;
-    Date createdAt;
-    Date updatedAt;
-    String environment;    // prod, test, dev, staging etc. not enforced
-    String version; // required
+    Date createdAt = new java.util.GregorianCalendar(2023, Calendar.JULY, 8).getTime();
+    Date updatedAt = new java.util.GregorianCalendar(2023, Calendar.JULY, 8).getTime();
+    String environment = "test";    // prod, test, dev, staging etc. not enforced
+    String version = "1.0.0"; // required
     /**
      * @return the id
      */
