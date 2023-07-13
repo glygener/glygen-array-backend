@@ -377,6 +377,8 @@ public class DatasetController {
                     } 
                     file.setFileFolder(experimentFolder.getAbsolutePath());
                     file.setFileSize(newFile.length());
+                    file.setCreatedDate(new Date());
+                    GlygenArrayController.calculateChecksum (file);
                 
             }
             datasetRepository.updateArrayDataset(dataset, user);
@@ -554,6 +556,8 @@ public class DatasetController {
             } 
             file.setFileFolder(experimentFolder.getAbsolutePath());
             file.setFileSize(newFile.length());
+            file.setCreatedDate(new Date());
+            GlygenArrayController.calculateChecksum (file);
             dataset.getFiles().add(file);
                 
             datasetRepository.updateArrayDataset(dataset, owner);
@@ -1347,6 +1351,8 @@ public class DatasetController {
                 } 
                 image.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 image.getFile().setFileSize(newFile.length());
+                image.getFile().setCreatedDate(new Date());
+                GlygenArrayController.calculateChecksum (image.getFile());
             }
             
         } else {
@@ -1659,6 +1665,8 @@ public class DatasetController {
                 } 
                 rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 rawData.getFile().setFileSize(newFile.length());
+                rawData.getFile().setCreatedDate(new Date());
+                GlygenArrayController.calculateChecksum (rawData.getFile());
             }
         }
         

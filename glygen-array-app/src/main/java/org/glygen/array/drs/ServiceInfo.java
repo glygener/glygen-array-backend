@@ -3,7 +3,10 @@ package org.glygen.array.drs;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_NULL)
 public class ServiceInfo {
     
     //Unique ID of this service. Reverse domain name notation is recommended, though not required. 
@@ -17,7 +20,7 @@ public class ServiceInfo {
     //URL of the documentation of this service (RFC 3986 format).
     String documentationUrl;
     Date createdAt = new java.util.GregorianCalendar(2023, Calendar.JULY, 8).getTime();
-    Date updatedAt = new java.util.GregorianCalendar(2023, Calendar.JULY, 8).getTime();
+    Date updatedAt;
     String environment = "test";    // prod, test, dev, staging etc. not enforced
     String version = "1.0.0"; // required
     /**

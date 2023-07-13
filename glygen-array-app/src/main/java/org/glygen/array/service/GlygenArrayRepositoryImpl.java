@@ -30,6 +30,7 @@ import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeTrackable;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.persistence.rdf.data.Checksum;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTask;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
@@ -698,6 +699,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI hasFile = f.createIRI(hasFilePredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
         IRI data = f.createIRI(dataURI);
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasChecksum = f.createIRI(ontPrefix + "has_checksum");
+        IRI hasChecksumType = f.createIRI(ontPrefix + "has_checksum_type");
         
         if (file.getIdentifier() == null) 
             return;  // nothing to add
@@ -712,14 +716,22 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
             Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
             Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
+            Literal date = file.getCreatedDate() == null ? f.createLiteral(new Date()) : f.createLiteral(file.getCreatedDate());
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasCreatedDate, date, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
             if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
             if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
             if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
+            if (file.getChecksum() != null) {
+                Literal checksumType = f.createLiteral(file.getChecksum().getType());
+                Literal checksum = f.createLiteral(file.getChecksum().getChecksum());
+                statements.add(f.createStatement(fileIRI, hasChecksum, checksum, graphIRI));
+                statements.add(f.createStatement(fileIRI, hasChecksumType, checksumType, graphIRI));
+            }
             
         }
         
@@ -806,6 +818,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI hasFolder = f.createIRI(hasFolderPredicate);
         IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
         IRI hasSize = f.createIRI(hasSizePredicate);
+        IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
+        IRI hasChecksum = f.createIRI(ontPrefix + "has_checksum");
+        IRI hasChecksumType = f.createIRI(ontPrefix + "has_checksum_type");
         IRI graphIRI = f.createIRI(graph);
         // retrieve file details
         FileWrapper file = new FileWrapper();
@@ -836,6 +851,25 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             } else if (st2.getPredicate().equals(RDFS.COMMENT)) {
                 Value val = st2.getObject();
                 file.setDescription(val.stringValue());
+            } else if (st2.getPredicate().equals(hasCreatedDate)) {
+                Value value = st2.getObject();
+                if (value instanceof Literal) {
+                    Literal literal = (Literal)value;
+                    XMLGregorianCalendar calendar = literal.calendarValue();
+                    Date date = calendar.toGregorianCalendar().getTime();
+                    file.setCreatedDate(date);
+                }
+            } else if (st2.getPredicate().equals(hasChecksum)) {
+                if (file.getChecksum() == null) {
+                    file.setChecksum(new Checksum());
+                }
+                file.getChecksum().setChecksum(st2.getObject().stringValue());
+                
+            } else if (st2.getPredicate().equals(hasChecksumType)) {
+                if (file.getChecksum() == null) {
+                    file.setChecksum(new Checksum());
+                }
+                file.getChecksum().setType(st2.getObject().stringValue());
             }
         }
         

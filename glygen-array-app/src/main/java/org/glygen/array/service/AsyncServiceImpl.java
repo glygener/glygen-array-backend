@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -140,6 +141,8 @@ public class AsyncServiceImpl implements AsyncService {
                     }
                     file.setFileFolder(uploadDir + File.separator + datasetId);
                     file.setFileSize(newFile.length());
+                    file.setCreatedDate(new Date());
+                    GlygenArrayController.calculateChecksum (file);
                     
                     ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
                     

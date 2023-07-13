@@ -322,7 +322,7 @@ public class ParseCFGUtil {
                 final HtmlTable table = (HtmlTable) page.getFirstByXPath("//table[@class='mainTable']");
                 if (table != null) {
                     // get elements
-                    List<HtmlElement> keys = (List<HtmlElement>) table.getByXPath("//tr/td[@class='webSiteBodyDark']");
+                    List<HtmlElement> keys = table.getByXPath("//tr/td[@class='webSiteBodyDark']");
                     if (keys != null) {
                         for (HtmlElement key: keys) {
                             Data data = new Data();
@@ -340,7 +340,7 @@ public class ParseCFGUtil {
                         }
                     }
                     int i=0;
-                    List<HtmlElement> values = (List<HtmlElement>) table.getByXPath("//tr/td[@class='WebSiteBodyNormal']");
+                    List<HtmlElement> values = table.getByXPath("//tr/td[@class='WebSiteBodyNormal']");
                     if (values != null) {
                         for (HtmlElement val: values) {
                             list.get(i).setValue(val.getTextContent());

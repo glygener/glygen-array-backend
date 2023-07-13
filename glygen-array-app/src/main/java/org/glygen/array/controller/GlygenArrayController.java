@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.eurocarbdb.MolecularFramework.io.SugarImporterException;
 import org.eurocarbdb.MolecularFramework.io.GlycoCT.SugarImporterGlycoCTCondensed;
@@ -86,6 +88,7 @@ import org.glygen.array.persistence.rdf.Source;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.persistence.rdf.data.ChangeType;
+import org.glygen.array.persistence.rdf.data.Checksum;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.metadata.DescriptorGroup;
@@ -1619,8 +1622,10 @@ public class GlygenArrayController {
                     }
                     fileWrapper.setFileFolder(uploadDir + File.separator + id);
                     fileWrapper.setFileSize(newFile.length());
+                    GlygenArrayController.calculateChecksum (fileWrapper);
                     fileWrapper.setIdentifier(uploadedFileName);
                     fileWrapper.setFileFormat("GAL");    //TODO do we need to standardize this?
+                    fileWrapper.setCreatedDate(new Date());
                     
                     importResult.getLayout().setFile(fileWrapper);
                     layoutRepository.updateSlideLayout(importResult.getLayout(), user);
@@ -4010,6 +4015,19 @@ public class GlygenArrayController {
         }
         return t_image;
     }
+	
+	public static void calculateChecksum (FileWrapper file) {
+	    // calculate checksum
+        try (InputStream istream = Files.newInputStream(Paths.get(file.getFileFolder() + File.separator + file.getIdentifier()))) {
+            String md5 = DigestUtils.sha256Hex(istream);
+            Checksum checksum = new Checksum();
+            checksum.setChecksum(md5);
+            checksum.setType("sha-256");
+            file.setChecksum(checksum);
+        } catch (IOException e) {
+            logger.error("Failed to calculate checksum for file " + file.getIdentifier());
+        }
+	}
 	
 	private static  ReducingEndType getReducingEnd (String glycoCT) {
 	    ReducingEndType type = ReducingEndType.UNKNOWN;

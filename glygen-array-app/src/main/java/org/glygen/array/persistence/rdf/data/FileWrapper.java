@@ -1,5 +1,7 @@
 package org.glygen.array.persistence.rdf.data;
 
+import java.util.Date;
+
 public class FileWrapper {
     
     String id;
@@ -10,6 +12,8 @@ public class FileWrapper {
     String fileFormat;
     Long fileSize;
     String description;
+    Checksum checksum;
+    Date createdDate;
     
     /**
      * @return the identifier
@@ -106,6 +110,30 @@ public class FileWrapper {
      */
     public void setUri(String uri) {
         this.uri = uri;
+    }
+    /**
+     * @return the checksum
+     */
+    public Checksum getChecksum() {
+        return checksum;
+    }
+    /**
+     * @param checksum the checksum to set
+     */
+    public void setChecksum(Checksum checksum) {
+        this.checksum = checksum;
+    }
+    /**
+     * @return the createdDate
+     */
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+    /**
+     * @param createdDate the createdDate to set
+     */
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
     
     
