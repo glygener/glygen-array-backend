@@ -104,7 +104,7 @@ public class DRSServer {
             checksums.add(file.getChecksum());
             drs.setChecksums(checksums);
             AccessMethod method = new AccessMethod();
-            method.setType(scheme);
+            method.setType("https");
             method.setAccess_id(identifier);
             List<AccessMethod> accessMethods = new ArrayList<AccessMethod>();
             accessMethods.add(method);
