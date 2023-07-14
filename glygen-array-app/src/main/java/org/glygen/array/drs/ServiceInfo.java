@@ -15,7 +15,7 @@ public class ServiceInfo {
     String name = "Glycan Array Repository DRS API";        // required
     ServiceType type = new ServiceType();   // required
     String description = "This service provides implementation of DRS specification for accessing files for the datasets within Glycan Array Repository.";
-    Organization organization;   // required
+    Organization organization = new Organization();   // required
     String contactUrl = "mailto:glygenarray.api@gmail.com";    //example: mailto:support@example.com
     //URL of the documentation of this service (RFC 3986 format).
     String documentationUrl;
