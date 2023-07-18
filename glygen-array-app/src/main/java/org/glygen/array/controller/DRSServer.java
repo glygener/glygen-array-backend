@@ -109,7 +109,7 @@ public class DRSServer {
             List<AccessMethod> accessMethods = new ArrayList<AccessMethod>();
             accessMethods.add(method);
             drs.setAccessMethods(accessMethods);
-            drs.setSelf_uri("drs://"+host+basePath+identifier);
+            drs.setSelf_uri("drs://"+host+basePath+(basePath.endsWith("/") ? "" : "/") + identifier);
             return new ResponseEntity<>(drs, HttpStatus.OK);
         } catch (Exception e) {
             DrsError error = new DrsError(e.getMessage(), 500);
