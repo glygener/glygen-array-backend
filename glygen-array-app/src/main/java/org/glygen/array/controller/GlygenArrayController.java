@@ -1626,7 +1626,8 @@ public class GlygenArrayController {
                     fileWrapper.setIdentifier(uploadedFileName);
                     fileWrapper.setFileFormat("GAL");    //TODO do we need to standardize this?
                     fileWrapper.setCreatedDate(new Date());
-                    
+                    fileWrapper.setDrsId(fileWrapper.getIdentifier().substring(0, fileWrapper.getIdentifier().lastIndexOf(".")));
+                    fileWrapper.setExtension(fileWrapper.getIdentifier().substring(fileWrapper.getIdentifier().lastIndexOf(".")+1));
                     importResult.getLayout().setFile(fileWrapper);
                     layoutRepository.updateSlideLayout(importResult.getLayout(), user);
                     
@@ -3951,6 +3952,8 @@ public class GlygenArrayController {
         file.setOriginalName(resumableFilename);
         file.setFileFolder(uploadDir);
         file.setFileSize(read);
+        file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+        file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
         result.setFile(file);
         
         if (info.checkIfUploadFinished()) { //Check if all chunks uploaded, and change filename

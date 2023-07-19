@@ -61,4 +61,6 @@ public interface GlygenArrayRepository {
     String getPublicUri(String uri, UserEntity user) throws SQLException, SparqlException;
 
     FileWrapper getFileByIdentifier(String fileIdentifier, UserEntity user) throws SQLException, SparqlException;
+
+    FileWrapper getFileByDrsID(String drsID, UserEntity user) throws SQLException, SparqlException;
 }

@@ -142,6 +142,8 @@ public class AsyncServiceImpl implements AsyncService {
                     file.setFileFolder(uploadDir + File.separator + datasetId);
                     file.setFileSize(newFile.length());
                     file.setCreatedDate(new Date());
+                    file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+                    file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
                     GlygenArrayController.calculateChecksum (file);
                     
                     ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);

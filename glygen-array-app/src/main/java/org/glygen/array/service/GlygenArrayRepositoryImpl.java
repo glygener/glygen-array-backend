@@ -702,6 +702,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
         IRI hasChecksum = f.createIRI(ontPrefix + "has_checksum");
         IRI hasChecksumType = f.createIRI(ontPrefix + "has_checksum_type");
+        IRI hasDrsId = f.createIRI(ontPrefix + "has_drsid");
         
         if (file.getIdentifier() == null) 
             return;  // nothing to add
@@ -717,10 +718,13 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
             Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
             Literal date = file.getCreatedDate() == null ? f.createLiteral(new Date()) : f.createLiteral(file.getCreatedDate());
+            Literal drsId = file.getDrsId() != null ? f.createLiteral(file.getDrsId()) : 
+                f.createLiteral(file.getIdentifier().substring(0,file.getIdentifier().lastIndexOf(".")));
             IRI fileIRI = f.createIRI(fileURI);
             statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasCreatedDate, date, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
+            statements.add(f.createStatement(fileIRI, hasDrsId, drsId, graphIRI));
             if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
             if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
             if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
@@ -832,6 +836,8 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             if (st2.getPredicate().equals(hasFileName)) {
                 Value val = st2.getObject();
                 file.setIdentifier(val.stringValue());
+                file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+                file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
             } else if (st2.getPredicate().equals(hasFileFormat)) {
                 Value val = st2.getObject();
                 file.setFileFormat(val.stringValue());
@@ -891,6 +897,33 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         queryBuf.append ("FROM <" + graph + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s gadr:has_filename \"\"\"" + fileIdentifier + "\"\"\"^^xsd:string . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        if (!results.isEmpty()) {
+            for (SparqlEntity result: results) {
+                String uri = result.getValue("s");
+                return getFileFromURI(uri, graph);
+            }
+        }
+        return null;
+        
+    }
+    
+    @Override
+    public FileWrapper getFileByDrsID (String drsID, UserEntity user) throws SQLException, SparqlException {
+        String graph = null;
+        if (user == null)
+            graph = DEFAULT_GRAPH;
+        else {
+            graph = getGraphForUser(user);
+        }
+         
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s\n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s gadr:has_drsid \"\"\"" + drsID + "\"\"\"^^xsd:string . }");
         
         List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
         if (!results.isEmpty()) {

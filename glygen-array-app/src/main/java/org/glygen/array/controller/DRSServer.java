@@ -84,20 +84,20 @@ public class DRSServer {
             DrsError error = new DrsError("Invalid object id", 400);
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
-        String identifier = id;
+        String drsId = id;
         if (id.contains("-")) {
             // separate dataset id and file identifier
-            identifier = id.split("-")[1];
+            drsId = id.split("-")[1];
         }
         try {
-            FileWrapper file = repository.getFileByIdentifier(identifier, null);
+            FileWrapper file = repository.getFileByDrsID(drsId, null);
             if (file == null) {
                 DrsError error = new DrsError("The requested object is not found in the repository", 404);
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
             }
             DrsObject drs = new DrsObject();
-            drs.setId(identifier);
-            drs.setName("File_" + identifier);
+            drs.setId(drsId);
+            drs.setName(file.getOriginalName() != null ? file.getOriginalName() : file.getIdentifier());
             drs.setCreated_time(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(file.getCreatedDate() != null ? file.getCreatedDate() : new Date()));
             drs.setDescription(file.getDescription());
             drs.setSize(file.getFileSize().intValue());
@@ -109,11 +109,11 @@ public class DRSServer {
             drs.setChecksums(checksums);
             AccessMethod method = new AccessMethod();
             method.setType("https");
-            method.setAccess_id(identifier);
+            method.setAccess_id(drsId);
             List<AccessMethod> accessMethods = new ArrayList<AccessMethod>();
             accessMethods.add(method);
             drs.setAccessMethods(accessMethods);
-            drs.setSelf_uri("drs://"+host+basePath+(basePath.endsWith("/") ? "" : "/") + identifier);
+            drs.setSelf_uri("drs://"+host+basePath+(basePath.endsWith("/") ? "" : "/") + drsId);
             return new ResponseEntity<>(drs, HttpStatus.OK);
         } catch (Exception e) {
             DrsError error = new DrsError(e.getMessage(), 500);
@@ -149,7 +149,7 @@ public class DRSServer {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
             }
             AccessURL accessURL = new AccessURL();
-            accessURL.setUrl(scheme+host+basePath+(basePath.endsWith("/") ? "" : "/")+"array/public/download?fileFolder=" + file.getFileFolder() + "&fileIdentifier=" + accessId);
+            accessURL.setUrl(scheme+host+basePath+(basePath.endsWith("/") ? "" : "/")+"array/public/download?fileFolder=" + file.getFileFolder() + "&fileIdentifier=" + file.getIdentifier());
             return new ResponseEntity<>(accessURL, HttpStatus.OK);
         } catch (Exception e) {
             DrsError error = new DrsError(e.getMessage(), 500);

@@ -378,6 +378,8 @@ public class DatasetController {
                     file.setFileFolder(experimentFolder.getAbsolutePath());
                     file.setFileSize(newFile.length());
                     file.setCreatedDate(new Date());
+                    file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+                    file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
                     GlygenArrayController.calculateChecksum (file);
                 
             }
@@ -557,6 +559,8 @@ public class DatasetController {
             file.setFileFolder(experimentFolder.getAbsolutePath());
             file.setFileSize(newFile.length());
             file.setCreatedDate(new Date());
+            file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+            file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
             GlygenArrayController.calculateChecksum (file);
             dataset.getFiles().add(file);
                 
@@ -1352,6 +1356,8 @@ public class DatasetController {
                 image.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 image.getFile().setFileSize(newFile.length());
                 image.getFile().setCreatedDate(new Date());
+                image.getFile().setDrsId(image.getFile().getIdentifier().substring(0, image.getFile().getIdentifier().lastIndexOf(".")));
+                image.getFile().setExtension(image.getFile().getIdentifier().substring(image.getFile().getIdentifier().lastIndexOf(".")+1));
                 GlygenArrayController.calculateChecksum (image.getFile());
             }
             
@@ -1666,6 +1672,8 @@ public class DatasetController {
                 rawData.getFile().setFileFolder(uploadDir + File.separator + datasetId);
                 rawData.getFile().setFileSize(newFile.length());
                 rawData.getFile().setCreatedDate(new Date());
+                rawData.getFile().setDrsId(rawData.getFile().getIdentifier().substring(0, rawData.getFile().getIdentifier().lastIndexOf(".")));
+                rawData.getFile().setExtension(rawData.getFile().getIdentifier().substring(rawData.getFile().getIdentifier().lastIndexOf(".")+1));
                 GlygenArrayController.calculateChecksum (rawData.getFile());
             }
         }

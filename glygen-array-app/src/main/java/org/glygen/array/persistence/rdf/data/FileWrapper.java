@@ -7,9 +7,11 @@ public class FileWrapper {
     String id;
     String uri;
     String identifier;
+    String drsId;
     String originalName;
     String fileFolder;
     String fileFormat;
+    String extension;
     Long fileSize;
     String description;
     Checksum checksum;
@@ -134,6 +136,30 @@ public class FileWrapper {
      */
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
+    }
+    /**
+     * @return the drsId
+     */
+    public String getDrsId() {
+        return drsId;
+    }
+    /**
+     * @param drsId the drsId to set
+     */
+    public void setDrsId(String drsId) {
+        this.drsId = drsId;
+    }
+    /**
+     * @return the extension
+     */
+    public String getExtension() {
+        return extension;
+    }
+    /**
+     * @param extension the extension to set
+     */
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
     
     
