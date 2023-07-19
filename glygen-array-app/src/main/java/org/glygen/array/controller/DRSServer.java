@@ -143,7 +143,7 @@ public class DRSServer {
         }
         
         try {
-            FileWrapper file = repository.getFileByIdentifier(accessId, null);
+            FileWrapper file = repository.getFileByDrsID(accessId, null);
             if (file == null) {
                 DrsError error = new DrsError("The requested file is not found in the repository", 404);
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
