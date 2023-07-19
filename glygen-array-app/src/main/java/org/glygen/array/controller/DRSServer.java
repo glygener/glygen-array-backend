@@ -14,6 +14,8 @@ import org.glygen.array.persistence.rdf.data.Checksum;
 import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.view.ErrorMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RestController
 @RequestMapping("/ga4gh/drs/v1")
 public class DRSServer {
+    
+    final static Logger logger = LoggerFactory.getLogger("event-logger");
     
     @Value("${glygen.scheme}")
     String scheme;
@@ -122,7 +126,7 @@ public class DRSServer {
     @RequestMapping(value="/objects/{object_id}/access/{access_id}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Access URL retrieved successfully", content = {
-            @Content( schema = @Schema(implementation = DrsObject.class))}), 
+            @Content( schema = @Schema(implementation = AccessURL.class))}), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
@@ -145,7 +149,7 @@ public class DRSServer {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
             }
             AccessURL accessURL = new AccessURL();
-            accessURL.setUrl(scheme+host+basePath+"array/public/download?fileFolder=" + file.getFileFolder() + "&fileIdentifier=" + accessId);
+            accessURL.setUrl(scheme+host+basePath+(basePath.endsWith("/") ? "" : "/")+"array/public/download?fileFolder=" + file.getFileFolder() + "&fileIdentifier=" + accessId);
             return new ResponseEntity<>(accessURL, HttpStatus.OK);
         } catch (Exception e) {
             DrsError error = new DrsError(e.getMessage(), 500);
