@@ -207,7 +207,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	String addBasicInfoForGlycan (Glycan g, String graph) throws SparqlException, SQLException {
 	    String[] allGraphs = (String[]) getAllUserGraphs().toArray(new String[0]);
 		ValueFactory f = sparqlDAO.getValueFactory();
-		String glycanURI = generateUniqueURI(uriPrefix, allGraphs) + "GAR";
+		String glycanURI = generateUniqueURI(uriPrefix, "GAR", allGraphs);
 		IRI glycan = f.createIRI(glycanURI);
 		Literal date = f.createLiteral(new Date());
 		IRI hasCreatedDate = f.createIRI(ontPrefix + "has_date_created");
@@ -402,7 +402,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			String publicURI = existing;
 			IRI glycan = f.createIRI(publicURI);
 			
-			glycanURI = generateUniqueURI(uriPrefix, allGraphs) + "GAR";
+			glycanURI = generateUniqueURI(uriPrefix, "GAR", allGraphs);
 			IRI localGlycan = f.createIRI(glycanURI);
 			IRI graphIRI = f.createIRI(graph);
 			IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
@@ -1252,7 +1252,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         boolean existing = publicURI != null;
         if (publicURI == null) {
-            publicURI = generateUniqueURI(uriPrefixPublic, allGraphs) + "GAR";  
+            publicURI = generateUniqueURI(uriPrefixPublic, "GAR", allGraphs);  
         }
         IRI publicGlycan = f.createIRI(publicURI);
         IRI graphIRI = f.createIRI(userGraph);

@@ -717,7 +717,7 @@ public class ExtendedGalFileParser {
                 if (s.getFeatures() != null && !s.getFeatures().isEmpty()) {
                     int i=0;
                     for (Feature f: s.getFeatures()) {
-                        row.append(f.getInternalId());
+                        row.append(f.getInternalId() != null ? f.getInternalId() : f.getId());
                         if (i < s.getFeatures().size()-1) {
                             row.append("||");
                             

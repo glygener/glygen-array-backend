@@ -56,3 +56,4 @@ Galb1-(Fuca1-3)GlcNAcb1-2Mana-Sp0	Galb1-4(Fuca1-3)GlcNAcb1-2Mana-Sp0
 (3S)Galb1-4(Fuca1-3)(6S)GlcNAc-Sp8	(3S)Galb1-4(Fuca1-3)(6S)GlcNAcb-Sp8
 Galb1-4GlcNAcb1-3Galb1-4(Fuca1-3)GlcNAcb1-3Galb1-(Fuca1-3)GlcNAcb-Sp0	Galb1-4GlcNAcb1-3Galb1-4(Fuca1-3)GlcNAcb1-3Galb1-4(Fuca1-3)GlcNAcb-Sp0
 Galb1-3GlcNAcb1-6(Galb1-3)GalNAc-Sp21	Galb1-3GlcNAcb1-6(Galb1-3)GalNAc-Sp14
+Fuca1-3[NeuAca2-3Galb1-4]GlcNAcb1-3GalNAc-Sp14	Neu5Aca2-3Galb1-4(Fuca1-3)GlcNAcb1-3GalNAca-Sp14

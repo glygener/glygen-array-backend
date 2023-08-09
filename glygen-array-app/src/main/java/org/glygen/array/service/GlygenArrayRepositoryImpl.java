@@ -203,6 +203,7 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 		return generateUniqueURI(pre, (String[])null);
 	}
 	
+	
 	/**
 	 * generate a random number and check it against existing ids in public graph (DEFAULT) and all the graphs provided if any
 	 * 
@@ -212,11 +213,24 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
 	 * @throws SparqlException if sparql query fails to execute
 	 */
 	protected String generateUniqueURI (String pre, String... graph) throws SparqlException {
+	    return generateUniqueURI(pre, null, graph);
+	}
+	
+	/**
+	 * generate a random number and check it against existing ids in public graph (DEFAULT) and all the graphs provided if any
+	 * 
+	 * @param pre prefix to add to the beginning to the random number generated
+	 * @param suffix suffix to add to the end of the random number generated 
+	 * @param graph graphs to search against, public graph is searched by default
+	 * @return a unique id string starting with the pre and ending with suffix
+	 * @throws SparqlException if sparql query fails to execute
+	 */
+	protected String generateUniqueURI (String pre, String suffix, String... graph) throws SparqlException {
 		// check the repository to see if the generated URI is unique
 		boolean unique = false;
 		String newURI = null;
 		do {
-			newURI = pre + (1000000 + random.nextInt(9999999));
+			newURI = pre + (1000000 + random.nextInt(9999999)) + (suffix != null ? suffix : "");
 			StringBuffer queryBuf = new StringBuffer();
 			queryBuf.append (prefix + "\n");
 			queryBuf.append ("SELECT DISTINCT ?o\n");
@@ -710,7 +724,12 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
         List<Statement> statements = new ArrayList<Statement>();
         
         if (file != null) {
-            String fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
+            String fileURI = null;
+            if (file.getUri() != null) {
+                fileURI = file.getUri();
+            } else {
+                fileURI = generateUniqueURI(uriPre + "FILE", allGraphs);
+            }
             Literal fileName = f.createLiteral(file.getIdentifier());
             Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
             Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
@@ -721,6 +740,9 @@ public class GlygenArrayRepositoryImpl implements GlygenArrayRepository {
             Literal drsId = file.getDrsId() != null ? f.createLiteral(file.getDrsId()) : 
                 f.createLiteral(file.getIdentifier().substring(0,file.getIdentifier().lastIndexOf(".")));
             IRI fileIRI = f.createIRI(fileURI);
+            // remove any previous triples
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(data, hasFile, null, graphIRI)), graphIRI);
+            sparqlDAO.removeStatements(Iterations.asList(sparqlDAO.getStatements(fileIRI, null, null, graphIRI)), graphIRI);
             statements.add(f.createStatement(data, hasFile, fileIRI, graphIRI));
             statements.add(f.createStatement(fileIRI, hasCreatedDate, date, graphIRI));
             statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));

@@ -513,7 +513,7 @@ public class ProcessedDataParser {
                 String featureString = "";
                 int i=0;
                 for (Feature f: spot.getFeatures()) {
-                    featureString += f.getInternalId();
+                    featureString += f.getInternalId() != null ? f.getInternalId() : f.getId();
                     if (i < spot.getFeatures().size()-1) {
                         featureString += "||";
                     }

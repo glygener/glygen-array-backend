@@ -2779,7 +2779,44 @@ public class DatasetController {
         }
         ProcessedData processedData = new ProcessedData();     
         processedData.setMetadata(metadata);
-        processedData.setFile(file);
+        if (file == null) {
+            // error
+            errorMessage.addError(new ObjectError("file", "NotValid"));
+            errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        } else {
+            String folder = uploadDir;
+            if (file.getFileFolder() != null) {
+                folder = file.getFileFolder();
+            }
+            File excelFile = new File(folder, file.getIdentifier());
+            if (excelFile.exists()) {
+                // move the file to the experiment folder
+                // create a folder for the experiment, if it does not exists, and move the file into that folder
+                File experimentFolder = new File (uploadDir + File.separator + datasetId);
+                if (!experimentFolder.exists()) {
+                    experimentFolder.mkdirs();
+                }
+                File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
+                if(excelFile.renameTo (newFile)) { 
+                         // if file copied successfully then delete the original file 
+                    excelFile.delete(); 
+                } else { 
+                    throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
+                }
+                file.setFileFolder(uploadDir + File.separator + datasetId);
+                file.setFileSize(newFile.length());
+                file.setCreatedDate(new Date());
+                file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
+                file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
+                GlygenArrayController.calculateChecksum (file);
+                processedData.setFile(file);
+            } else {
+                // error
+                errorMessage.addError(new ObjectError("file", "NotFound"));
+                errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+            }
+        }
+        
         try {
             List<StatisticalMethod> methods = templateRepository.getAllStatisticalMethods();
             StatisticalMethod found = null;

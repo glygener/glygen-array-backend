@@ -120,32 +120,8 @@ public class AsyncServiceImpl implements AsyncService {
         
         try {
             if (file != null) {
-                String folder = uploadDir;
-                if (file.getFileFolder() != null) {
-                    folder = file.getFileFolder();
-                }
-                File excelFile = new File(folder, file.getIdentifier());
+                File excelFile = new File(file.getFileFolder(), file.getIdentifier());
                 if (excelFile.exists()) {
-                    // move the file to the experiment folder
-                    // create a folder for the experiment, if it does not exists, and move the file into that folder
-                    File experimentFolder = new File (uploadDir + File.separator + datasetId);
-                    if (!experimentFolder.exists()) {
-                        experimentFolder.mkdirs();
-                    }
-                    File newFile = new File(experimentFolder + File.separator + file.getIdentifier());
-                    if(excelFile.renameTo (newFile)) { 
-                             // if file copied successfully then delete the original file 
-                        excelFile.delete(); 
-                    } else { 
-                        throw new GlycanRepositoryException("File cannot be moved to the dataset folder");
-                    }
-                    file.setFileFolder(uploadDir + File.separator + datasetId);
-                    file.setFileSize(newFile.length());
-                    file.setCreatedDate(new Date());
-                    file.setDrsId(file.getIdentifier().substring(0, file.getIdentifier().lastIndexOf(".")));
-                    file.setExtension(file.getIdentifier().substring(file.getIdentifier().lastIndexOf(".")+1));
-                    GlygenArrayController.calculateChecksum (file);
-                    
                     ProcessedDataParser parser = new ProcessedDataParser(featureRepository, layoutRepository, glycanRepository, linkerRepository);
                     
                     Resource resource = resourceLoader.getResource("classpath:sequenceMap.txt");
@@ -160,7 +136,7 @@ public class AsyncServiceImpl implements AsyncService {
                         throw new IllegalArgumentException("The configuration for the given format cannot be found", errorMessage);
                     }
                     config.setSlideLayoutUri(slide.getPrintedSlide().getLayout().getUri());
-                    intensities = parser.parse(newFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
+                    intensities = parser.parse(excelFile.getAbsolutePath(), resource.getFile().getAbsolutePath(), 
                             config, user);
                     
                     return CompletableFuture.completedFuture(intensities);

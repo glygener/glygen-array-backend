@@ -1274,7 +1274,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         }
 	    ValueFactory f = sparqlDAO.getValueFactory();
         
-	    IRI graphIRI = f.createIRI(graph);
         IRI hasBlock = f.createIRI(ontPrefix + "has_block");
         IRI hasWidth = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_width");
         IRI hasHeight = f.createIRI(MetadataTemplateRepository.templatePrefix + "has_height");
@@ -1285,11 +1284,6 @@ public class LayoutRepositoryImpl extends GlygenArrayRepositoryImpl implements L
         IRI defaultGraphIRI = f.createIRI(DEFAULT_GRAPH);
         IRI hasPublicURI = f.createIRI(ontPrefix + "has_public_uri");
         IRI hasFile = f.createIRI(hasFilePredicate);
-        IRI hasFileName = f.createIRI(hasFileNamePredicate);
-        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
-        IRI hasFolder = f.createIRI(hasFolderPredicate);
-        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
-        IRI hasSize = f.createIRI(hasSizePredicate);
         
         while (statements.hasNext()) {
             Statement st = statements.next();

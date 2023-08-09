@@ -52,9 +52,11 @@ import org.glygen.array.persistence.rdf.metadata.Printer;
 import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
+import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
+import org.glygen.array.service.GlycanRepositoryImpl;
 import org.glygen.array.service.GlygenArrayRepository;
 import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
@@ -228,7 +230,7 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(glycans.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve glycans. Reason: " + e.getMessage());
         }
         
         return result;
@@ -261,10 +263,10 @@ public class PublicGlygenArrayController {
         
     }
     
-    @Operation(summary = "Retrieve glycan with the given id")
+    @Operation(summary = "Retrieve datasets that include the glycan with the given id")
     @RequestMapping(value="/getdatasetforglycan/{glycanId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycan retrieved successfully"), 
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Datasets retrieved successfully"), 
             @ApiResponse(responseCode="404", description="Gycan with given id does not exist"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
@@ -310,7 +312,7 @@ public class PublicGlygenArrayController {
             result.setFilteredTotal(resultList.size());
             return result;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve datasets. Reason: " + e.getMessage());
         }
     }
     
@@ -331,12 +333,12 @@ public class PublicGlygenArrayController {
             }
             return linker;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Linker cannot be retrieved for user ", e);
+            throw new GlycanRepositoryException("Linker cannot be retrieved", e);
         }
         
     }
     
-    @Operation(summary = "List all linkers for the user")
+    @Operation(summary = "List all public linkers")
     @RequestMapping(value="/listLinkers", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Linkers retrieved successfully"), 
@@ -387,7 +389,7 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @Operation(summary = "List all slide layouts for the user")
+    @Operation(summary = "List all public slide layouts")
     @RequestMapping(value="/listSlidelayouts", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide layouts retrieved successfully"), 
@@ -432,14 +434,35 @@ public class PublicGlygenArrayController {
             result.setRows(layouts);
             result.setTotal(total);
             result.setFilteredTotal(layouts.size());
+            
+            if (loadAll) {
+                // populate glycan images
+                for (SlideLayout layout: layouts) {
+                    if (layout.getBlocks() != null) {
+                        for (org.glygen.array.persistence.rdf.Block block: layout.getBlocks()) {
+                            if (block.getBlockLayout() != null) {
+                                if (block.getBlockLayout().getSpots() == null)
+                                    continue;
+                                for (org.glygen.array.persistence.rdf.Spot s: block.getBlockLayout().getSpots()) {
+                                    if (s.getFeatures() == null)
+                                        continue;
+                                    for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                                        GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve slide layouts for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve slide layouts. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all block layouts for the user")
+    @Operation(summary = "List all public block layouts")
     @RequestMapping(value="/listBlocklayouts", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Block layouts retrieved successfully"), 
@@ -486,14 +509,29 @@ public class PublicGlygenArrayController {
             result.setRows(layouts);
             result.setTotal(total);
             result.setFilteredTotal(layouts.size());
+            
+            if (loadAll) {
+                // populate glycan images
+                for (BlockLayout b: layouts) {
+                    if (b.getSpots() == null)
+                        continue;
+                    for (org.glygen.array.persistence.rdf.Spot s: b.getSpots()) {
+                        if (s.getFeatures() == null) 
+                            continue;
+                        for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                            GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                        }
+                    }
+                }
+            }
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve block layouts for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve block layouts. Reason: " + e.getMessage());
         }
         
         return result;
     }
 
-    @Operation(summary = "List all features for the user")
+    @Operation(summary = "List all public features")
     @RequestMapping(value="/listFeatures", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Features retrieved successfully"), 
@@ -537,8 +575,13 @@ public class PublicGlygenArrayController {
             result.setRows(features);
             result.setTotal(total);
             result.setFilteredTotal(features.size());
+            
+            // get cartoons for the glycans
+            for (org.glygen.array.persistence.rdf.Feature f: features) {
+                GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+            }
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve linkers for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve features. Reason: " + e.getMessage());
         }
         
         return result;
@@ -549,8 +592,6 @@ public class PublicGlygenArrayController {
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -599,7 +640,7 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve array datasets. Reason: " + e.getMessage());
         }
         
         //logger.info("returning the list of array datasets");
@@ -611,8 +652,6 @@ public class PublicGlygenArrayController {
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -713,8 +752,6 @@ public class PublicGlygenArrayController {
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Array datasets retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -809,13 +846,11 @@ public class PublicGlygenArrayController {
         return result;
     }
     
-    @Operation(summary = "List all printed slides for the user")
+    @Operation(summary = "List all public printed slides")
     @RequestMapping(value="/listPrintedSlide", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slides retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -869,19 +904,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(resultList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve array datasets for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve array datasets. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all data processing software metadata for the user")
+    @Operation(summary = "List all public data processing software metadata")
     @RequestMapping(value="/listDataProcessingSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Data processing software metadata list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -924,19 +957,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve data processing software for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve data processing software. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all image analysis software metadata for the user")
+    @Operation(summary = "List all public image analysis software metadata")
     @RequestMapping(value="/listImageAnalysisSoftware", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Image analysis software metadata list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -979,19 +1010,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve image analysis software for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve image analysis software. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all printer metadata for the user")
+    @Operation(summary = "List all public printer metadata")
     @RequestMapping(value="/listPrinters", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printer list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -1034,19 +1063,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve printers for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve printers. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all samples for the user")
+    @Operation(summary = "List all public samples")
     @RequestMapping(value="/listSamples", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Samples retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -1089,19 +1116,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve samples for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve samples. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all scanner metadata for the user")
+    @Operation(summary = "List all public scanner metadata")
     @RequestMapping(value="/listScanners", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Scanner list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -1144,19 +1169,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve scanners for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve scanners. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all slide metadata for the user")
+    @Operation(summary = "List all public slide metadata")
     @RequestMapping(value="/listSlideMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide metadata list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -1199,19 +1222,17 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve slide metadata for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve slide metadata. Reason: " + e.getMessage());
         }
         
         return result;
     }
     
-    @Operation(summary = "List all assay metadata for the user")
+    @Operation(summary = "List all public assay metadata")
     @RequestMapping(value="/listAssayMetadata", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Assay metadata list retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
-            @ApiResponse(responseCode="401", description="Unauthorized"),
-            @ApiResponse(responseCode="403", description="Not enough privileges"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error", content = {
                     @Content( schema = @Schema(implementation = ErrorMessage.class))})})
@@ -1254,7 +1275,62 @@ public class PublicGlygenArrayController {
             result.setTotal(total);
             result.setFilteredTotal(metadataList.size());
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Cannot retrieve assay metadata for user. Reason: " + e.getMessage());
+            throw new GlycanRepositoryException("Cannot retrieve assay metadata. Reason: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    @Operation(summary = "List all public spot metadata")
+    @RequestMapping(value="/listSpotMetadata", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Spot metadata list retrieved successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
+    public MetadataListResultView listSpotMetadata (
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
+            @RequestParam("offset") Integer offset,
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @RequestParam(value="order", required=false) Integer order, 
+            @Parameter(required=false, description="load descriptor details or not, default= true to load all the details") 
+            @RequestParam(value="loadAll", required=false, defaultValue="true") Boolean loadAll, 
+            @Parameter(required=false, description="a filter value to match") 
+            @RequestParam(value="filter", required=false) String searchValue) {
+        MetadataListResultView result = new MetadataListResultView();
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            
+            int total = metadataRepository.getSpotMetadataCountByUser(null, searchValue);
+            
+            List<SpotMetadata> metadataList = metadataRepository.getSpotMetadataByUser(null, offset, limit, field, order, searchValue, loadAll);
+            List<MetadataCategory> resultList = new ArrayList<MetadataCategory>();
+            resultList.addAll(metadataList);
+            result.setRows(resultList);
+            result.setTotal(total);
+            result.setFilteredTotal(metadataList.size());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve spot metadata. Reason: " + e.getMessage());
         }
         
         return result;
@@ -1279,9 +1355,19 @@ public class PublicGlygenArrayController {
                 throw new EntityNotFoundException("Block layout with id : " + layoutId + " does not exist in the repository");
             }
             
+            if (loadAll && layout.getSpots() != null) {        
+                for (org.glygen.array.persistence.rdf.Spot s: layout.getSpots()) {
+                    if (s.getFeatures() == null) 
+                        continue;
+                    for (org.glygen.array.persistence.rdf.Feature f: s.getFeatures()) {
+                        GlygenArrayController.populateFeatureGlycanImages(f, imageLocation);
+                    }
+                }
+            }
+            
             return layout;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Block Layout cannot be retrieved for user ", e);
+            throw new GlycanRepositoryException("Block Layout cannot be retrieved", e);
         }
     }
     
@@ -1305,7 +1391,31 @@ public class PublicGlygenArrayController {
             
             return layout;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("Slide Layout cannot be retrieved for user ", e);
+            throw new GlycanRepositoryException("Slide Layout cannot be retrieved. ", e);
+        }
+    }
+    
+    @Operation(summary = "Retrieve printed slide with the given id")
+    @RequestMapping(value="/getprintedslide/{slideId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printed slide retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Printed slide with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public PrintedSlide getPrintedSlide (
+            @Parameter(required=true, description="id of the printed slide to retrieve") 
+            @PathVariable("slideId") String slideId, 
+            @Parameter (required=false, schema = @Schema(type = "boolean", defaultValue="false"), description="if false, do not load slide details. Default is true (to load all)")
+            @RequestParam(required=false, defaultValue = "false", value="loadAll") Boolean loadAll) {
+        try {
+            PrintedSlide layout = datasetRepository.getPrintedSlideFromURI(GlycanRepositoryImpl.uriPrefixPublic + slideId.trim(), loadAll, null);
+            if (layout == null) {
+                throw new EntityNotFoundException("Printed slide with id : " + slideId + " does not exist in the repository");
+            }
+            
+            return layout;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Printed slide cannot be retrieved", e);
         }
     }
     
@@ -1325,6 +1435,7 @@ public class PublicGlygenArrayController {
                 throw new EntityNotFoundException("Feature with id : " + featureId + " does not exist in the repository");
             }
             
+            GlygenArrayController.populateFeatureGlycanImages(feature, imageLocation);
             return feature;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Feature cannot be retrieved for user " , e);
@@ -1401,7 +1512,7 @@ public class PublicGlygenArrayController {
     @RequestMapping(value="/getPrintrun/{printrunId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Printrun retrieved successfully"), 
-            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+            @ApiResponse(responseCode="404", description="Prinrun with given id does not exist"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
     public PrintRun getPrintrun (
@@ -1441,23 +1552,45 @@ public class PublicGlygenArrayController {
     @Operation(summary = "Retrieve SlideMetadata with the given id")
     @RequestMapping(value="/getSlideMetadata/{slideId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(responseCode="200", description="SlideMetadata retrieved successfully"), 
-            @ApiResponse(responseCode="404", description="Printer with given id does not exist"),
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slide Metadata retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Slide Metadata with given id does not exist"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
     public SlideMetadata getSlideMetadata (
-            @Parameter(required=true, description="id of the SlideMetadata to retrieve") 
+            @Parameter(required=true, description="id of the Slide Metadata to retrieve") 
             @PathVariable("slideId") String id) {
         try {
             SlideMetadata metadata = metadataRepository.getSlideMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
             if (metadata == null) {
-                throw new EntityNotFoundException("SlideMetadata with id : " + id + " does not exist in the repository");
+                throw new EntityNotFoundException("Slide Metadata with id : " + id + " does not exist in the repository");
             }
             return metadata;
         } catch (SparqlException | SQLException e) {
-            throw new GlycanRepositoryException("SlideMetadata cannot be retrieved" , e);
+            throw new GlycanRepositoryException("Slide Metadata cannot be retrieved" , e);
         }   
     }
+    
+    @Operation(summary = "Retrieve SpotMetadata with the given id")
+    @RequestMapping(value="/getSpotMetadata/{spotMetadataId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Spot Metadata retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Spot Metadata with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public SpotMetadata getSpotMetadata (
+            @Parameter(required=true, description="id of the Spot Metadata to retrieve") 
+            @PathVariable("spotMetadataId") String id) {
+        try {
+            SpotMetadata metadata = metadataRepository.getSpotMetadataFromURI(GlygenArrayRepository.uriPrefixPublic + id.trim(), null);
+            if (metadata == null) {
+                throw new EntityNotFoundException("Spot Metadata with id : " + id + " does not exist in the repository");
+            }
+            return metadata;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Spot Metadata cannot be retrieved" , e);
+        }   
+    }
+    
     @Operation(summary = "Retrieve ImageAnalysisSoftware with the given id")
     @RequestMapping(value="/getImageAnalysisSoftware/{imagesoftwareId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
