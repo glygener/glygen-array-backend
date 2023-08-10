@@ -263,6 +263,55 @@ public class PublicGlygenArrayController {
         
     }
     
+    @Operation(summary = "Retrieve slides that include the glycan with the given id")
+    @RequestMapping(value="/getslideforglycan/{glycanId}", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Slides retrieved successfully"), 
+            @ApiResponse(responseCode="404", description="Gycan with given id does not exist"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public PrintedSlideListView getSlidesForGlycan (
+            @Parameter(required=true, description="id of the glycan to retrieve") 
+            @PathVariable("glycanId") String glycanId,
+            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
+            @RequestParam("offset") Integer offset,
+            @Parameter(required=false, description="limit of the number of items to be retrieved", example="10") 
+            @RequestParam(value="limit", required=false) Integer limit, 
+            @Parameter(required=false, description="name of the sort field, defaults to id") 
+            @RequestParam(value="sortBy", required=false) String field, 
+            @Parameter(required=false, description="sort order, Descending = 0 (default), Ascending = 1", example="0") 
+            @RequestParam(value="order", required=false) Integer order) {
+        PrintedSlideListView result = new PrintedSlideListView();
+        
+        try {
+            if (offset == null)
+                offset = 0;
+            if (limit == null)
+                limit = -1;
+            if (field == null)
+                field = "id";
+            if (order == null)
+                order = 0; // DESC
+            
+            if (order != 0 && order != 1) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("order", "NotValid"));
+                errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                throw new IllegalArgumentException("Order should be 0 or 1", errorMessage);
+            }
+            int total = datasetRepository.getSlideCountByGlycan(glycanId.trim(), null);
+            
+            List<PrintedSlide> resultList = datasetRepository.getSlidesByGlycan (glycanId.trim(), offset, limit, field, order, false, null);
+            result.setRows(resultList); 
+            result.setTotal(total);
+            result.setFilteredTotal(resultList.size());
+            return result;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot retrieve datasets. Reason: " + e.getMessage());
+        }
+    }
+    
     @Operation(summary = "Retrieve datasets that include the glycan with the given id")
     @RequestMapping(value="/getdatasetforglycan/{glycanId}", method = RequestMethod.GET, 
             produces={"application/json", "application/xml"})
