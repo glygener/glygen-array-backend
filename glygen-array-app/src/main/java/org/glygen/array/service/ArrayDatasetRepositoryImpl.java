@@ -3687,7 +3687,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         return total;
     }
     
-    
     @Override
     public List<ArrayDataset> getDatasetByGlycan(String glycanId, int offset, int limit, String field, int order,
             Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
@@ -3734,6 +3733,93 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
             }
         }
         return datasets;
+    }
+    
+    @Override
+    public int getSlideCountByGlycan(String glycanId, UserEntity user) throws SparqlException, SQLException {
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        int total = 0;
+        
+        if (graph != null) {
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT count(DISTINCT ?ps) as ?count \n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n");
+            queryBuf.append (
+                    "?ps rdf:type <http://purl.org/gadr/data#printed_slide> . \n" +
+                    "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
+                    "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
+                    "?spot gadr:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId +"> . \n }"); 
+                   
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            for (SparqlEntity sparqlEntity : results) {
+                String count = sparqlEntity.getValue("count");
+                try {
+                    total = Integer.parseInt(count);
+                    break;
+                } catch (NumberFormatException e) {
+                    throw new SparqlException("Count query returned invalid result", e);
+                }
+                
+            }
+        }
+        return total;
+    }
+    
+    @Override
+    public List<PrintedSlide> getSlidesByGlycan(String glycanId, int offset, int limit, String field, int order,
+            Boolean loadAll, UserEntity user) throws SparqlException, SQLException {
+        List<PrintedSlide> slides = new ArrayList<PrintedSlide>();
+        String graph = null;
+        String uriPre = uriPrefix;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;
+            uriPre = uriPrefixPublic;
+        }
+        else {
+            graph = getGraphForUser(user);
+        }
+        
+        if (graph != null) {
+            String sortPredicate = getSortPredicate (field);
+            
+            String sortLine = "";
+            if (sortPredicate != null) {
+                sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+            }
+            
+            String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+            StringBuffer queryBuf = new StringBuffer();
+            queryBuf.append (prefix + "\n");
+            queryBuf.append ("SELECT distinct ?ps \n");
+            queryBuf.append ("FROM <" + graph + ">\n");
+            queryBuf.append ("WHERE {\n {");
+            queryBuf.append (
+                    "?ps rdf:type <http://purl.org/gadr/data#printed_slide> . \n" +
+                    "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" +
+                    "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" +
+                    "?spot gadr:has_feature ?f . ?f gadr:has_molecule  <" + uriPre + glycanId + ">  . \n " + sortLine + "}"); 
+            queryBuf.append ("}" + 
+                    orderByLine + 
+                   ((limit == -1) ? " " : " LIMIT " + limit) +
+                   " OFFSET " + offset);
+                   
+            List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+            for (SparqlEntity sparqlEntity : results) {
+                String slideURI = sparqlEntity.getValue("ps");
+                slides.add(getPrintedSlideFromURI(slideURI, loadAll, user));
+            }
+        }
+        return slides;
     }
 
     @Override
