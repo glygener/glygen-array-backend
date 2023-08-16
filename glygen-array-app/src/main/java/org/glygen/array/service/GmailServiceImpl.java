@@ -11,6 +11,7 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.glygen.array.persistence.FeedbackEntity;
 import org.glygen.array.persistence.UserEntity;
 import org.glygen.array.persistence.dao.VerificationTokenRepository;
 import org.glygen.array.util.RandomPasswordGenerator;
@@ -164,6 +165,39 @@ public final class GmailServiceImpl implements EmailManager {
 				throw new RuntimeException("Cannot send email.", e);
 			}
 	}
+    
+    @Override
+    public void sendFeedback(FeedbackEntity feedback, String... emails) {
+        if (emails == null) {
+            throw new IllegalArgumentException("email list cannot be null");
+        }
+        String subject = "Glycan Array Repository " + feedback.getSubject();
+        String message = "Feedback received for page: " + feedback.getPage() + "\nwith the message: " + feedback.getMessage();
+        message += "\nFrom: " + feedback.getFirstName() + 
+                " " + (feedback.getLastName() == null || feedback.getLastName().equals("not given") ? "" : feedback.getLastName()) + "\nEmail: " + feedback.getEmail();
+        for (String email: emails) {
+           try {
+               sendMessage(email, subject, message);
+           } catch (MessagingException | IOException e) {
+               throw new RuntimeException("Cannot send feedback.", e);
+           }
+        }
+        
+    }
+
+    @Override
+    public void sendFeedbackNotice(FeedbackEntity feedback) {
+        String subject = "Feedback received";
+        String message = "Your feedback for the Glycan Array Repository has been recorded. Thank you!";
+        message += "\n\nFeedback received for page: " + feedback.getPage() + "\nwith the message: " + feedback.getMessage();
+        message += "\nFrom: " + feedback.getFirstName() + 
+                " " + (feedback.getLastName() == null || feedback.getLastName().equals("not given") ? "" : feedback.getLastName()) + "\nEmail: " + feedback.getEmail();
+        try {
+            sendMessage(feedback.getEmail(), subject, message);
+        } catch (MessagingException | IOException e) {
+            throw new RuntimeException("Cannot send feedback notification to user email " + feedback.getEmail(), e);
+        }
+    }
 
 	@Override
 	public void sendPasswordReminder(UserEntity user) {
@@ -227,4 +261,6 @@ public final class GmailServiceImpl implements EmailManager {
 			throw new RuntimeException("Cannot send email.", e);
 		}
 	}
+
+    
 }

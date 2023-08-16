@@ -116,6 +116,16 @@ create table IF NOT EXISTS glycansearchresult (
   type varchar(256) not null
 );
 
+create table IF NOT EXISTS feedback (
+   id bigint not null PRIMARY KEY,
+   firstname varchar(256) NOT NULL,
+   lastname varchar(256),
+   email varchar (256)  NOT NULL,
+   page text NOT NULL,
+   subject varchar(256)  NOT NULL,
+   message text NOT NULL
+); 
+
 ALTER TABLE permissions ADD COLUMN IF NOT EXISTS additiondate date;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS groupname varchar(256);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS department varchar(256);

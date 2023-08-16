@@ -109,6 +109,16 @@ create table IF NOT EXISTS glycansearchresult (
   type varchar(256) not null
 );
 
+create table IF NOT EXISTS feedback (
+   id bigint not null PRIMARY KEY,
+   firstname varchar(256) NOT NULL,
+   lastname varchar(256),
+   email varchar (256)  NOT NULL,
+   page text NOT NULL,
+   subject varchar(256)  NOT NULL,
+   message text NOT NULL
+); 
+
 alter table verification_token 
         add constraint FK_m1eg457wh2xxe878rx5y5limo 
         foreign key (userid) 

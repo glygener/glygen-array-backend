@@ -11,7 +11,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+
 import java.util.SortedMap;
 
 import org.apache.commons.collections4.trie.PatriciaTrie;
@@ -20,8 +25,10 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.exception.UserNotFoundException;
+import org.glygen.array.persistence.FeedbackEntity;
 import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.dao.FeedbackRepository;
 import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.Linker;
@@ -34,6 +41,7 @@ import org.glygen.array.persistence.rdf.template.MandateGroup;
 import org.glygen.array.persistence.rdf.template.MetadataTemplate;
 import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
+import org.glygen.array.service.EmailManager;
 import org.glygen.array.service.GlycanRepository;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.MetadataRepository;
@@ -45,9 +53,11 @@ import org.glygen.array.util.pubchem.PubChemAPI;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.DTOPublicationAuthor;
 import org.glygen.array.util.pubmed.PubmedUtil;
+import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.EnumerationView;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.GlycanSearchInput;
 import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
 import org.glygen.array.view.Version;
@@ -62,6 +72,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -101,6 +112,15 @@ public class UtilityController {
     
     @Autowired
     GlycanRepository glycanRepository;
+    
+    @Autowired
+    FeedbackRepository feedbackRepository;
+    
+    @Autowired
+    EmailManager emailManager;
+    
+    @Autowired
+    Validator validator;
     
     static {
         BuilderWorkspace glycanWorkspace = new BuilderWorkspace(new GlycanRendererAWT());
@@ -781,5 +801,88 @@ public class UtilityController {
             throw new GlycanRepositoryException("Cannot retrieve the counts from the repository",e);
         }
         return stats;
+    }
+    
+    @Operation(summary = "Send the feedback about a page to the developers/administrators")
+    @RequestMapping(value="/sendfeedback", method = RequestMethod.POST)
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="feedback stored and forwarded successfully", content = {
+            @Content(schema = @Schema(implementation = String.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content(schema = @Schema(implementation = ErrorMessage.class))})})
+    public Confirmation saveFeedback (
+            @Parameter(required=true, description="feedback form") 
+            @RequestBody FeedbackEntity feedback) {
+        
+        ErrorMessage errorMessage = new ErrorMessage("Feedback form is invalid");
+        errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+        errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+        if (feedback == null) {
+            errorMessage.addError(new ObjectError ("feeback", "NoEmpty"));
+            throw new IllegalArgumentException("Feedback form is invalid", errorMessage);
+        }
+        
+        if (feedback.getEmail() == null || feedback.getEmail().isEmpty()) {
+            errorMessage.addError(new ObjectError ("email", "NoEmpty"));
+        } else {
+            if (validator != null) {
+                Set<ConstraintViolation<User>> violations = validator.validateValue(User.class, "email", feedback.getEmail());
+                if (!violations.isEmpty()) {
+                    errorMessage.addError(new ObjectError("email", "NotValid"));
+                }   
+            }
+        }
+        
+        if (feedback.getFirstName() == null || feedback.getFirstName().isEmpty()) {
+            errorMessage.addError(new ObjectError ("firstname", "NoEmpty"));
+        }
+        
+        if (feedback.getMessage() == null || feedback.getMessage().isEmpty()) {
+            errorMessage.addError(new ObjectError ("message", "NoEmpty"));
+        } 
+        
+        if (feedback.getSubject() == null || feedback.getSubject().isEmpty()) {
+            errorMessage.addError(new ObjectError ("message", "NoEmpty"));
+        }
+        
+        if (feedback.getPage() == null || feedback.getPage().isEmpty()) {
+            errorMessage.addError(new ObjectError ("page", "NoEmpty"));
+        }
+        
+        if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
+            throw new IllegalArgumentException("Feedback form is invalid", errorMessage);
+        }
+        
+        try {
+            feedbackRepository.save(feedback);
+            emailManager.sendFeedbackNotice(feedback);
+            List<String> emails = new ArrayList<String>();
+            try {
+                Resource classificationNamespace = new ClassPathResource("adminemails.txt");
+                final InputStream inputStream = classificationNamespace.getInputStream();
+                final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    emails.add(line.trim());
+                }
+            } catch (Exception e) {
+                logger.error("Cannot load admin emails", e);
+                ErrorMessage errorMessage2 = new ErrorMessage ("Cannot load admin emails");
+                errorMessage2.addError(new ObjectError ("feedback", e.getMessage()));
+                throw new IllegalArgumentException("Feedback not sent! Cannot load admin emails", errorMessage2);
+            }
+            emailManager.sendFeedback(feedback, emails.toArray(new String[0]));
+        } catch (IllegalArgumentException e) {
+            ErrorMessage errorMessage2 = new ErrorMessage ("Feedback form is invalid");
+            errorMessage2.addError(new ObjectError ("feedback", e.getMessage()));
+            throw new IllegalArgumentException("Error during saving the feedback", errorMessage2);
+        } catch (RuntimeException e) {
+            ErrorMessage errorMessage2 = new ErrorMessage ("Feedback message could not be send");
+            errorMessage2.addError(new ObjectError ("feedback", e.getMessage()));
+            throw new IllegalArgumentException("Error sending feedback to the admins", errorMessage2);
+        }
+        
+        return new Confirmation ("Feeedback has been received successfully", HttpStatus.OK.value());
     }
 }
