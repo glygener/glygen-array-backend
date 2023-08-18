@@ -322,12 +322,14 @@ public class QueryHelper {
    public List<SparqlEntity> retrieveByListofGlytoucanIds (List<String> ids, int limit, int offset, String field, int order, String graph) throws SparqlException {
        String list = StringUtils.join(ids, "'^^xsd:string, '");
        list = "'" + list + "'^^xsd:string";
-       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
+       
        String sortLine = "";
        String sortPredicate = getSortPredicate (field);
        if (sortPredicate != null) {
            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
        }
+       
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  (sortPredicate == null ? "(?s)": "(?sortBy)");  
        StringBuffer queryBuf = new StringBuffer();
        queryBuf.append (prefix + "\n");
        queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -353,12 +355,12 @@ public class QueryHelper {
        }
        String list = StringUtils.join(uriList, ">, <");
        list = "<" + list + ">";
-       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
        String sortLine = "";
        String sortPredicate = getSortPredicate (field);
        if (sortPredicate != null) {
            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
        }
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  (sortPredicate == null ? "(?s)": "(?sortBy)");  
        StringBuffer queryBuf = new StringBuffer();
        queryBuf.append (prefix + "\n");
        queryBuf.append ("SELECT DISTINCT ?s \n");
@@ -377,14 +379,12 @@ public class QueryHelper {
    }
    
    public List<SparqlEntity> retrieveByMassRange (double min, double max, int limit, int offset, String field, int order, String graph) throws SparqlException {
-       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
-       
        String sortLine = "";
        String sortPredicate = getSortPredicate (field);
        if (sortPredicate != null) {
            sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
        }
-       
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  (sortPredicate == null ? "(?s)": "(?sortBy)");  
        StringBuffer queryBuf = new StringBuffer();
        queryBuf.append (prefix + "\n");
        queryBuf.append ("SELECT DISTINCT ?s \n");
