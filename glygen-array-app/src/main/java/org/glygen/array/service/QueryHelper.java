@@ -1,6 +1,7 @@
 package org.glygen.array.service;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -334,6 +335,37 @@ public class QueryHelper {
        queryBuf.append ("WHERE {\n");
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
        queryBuf.append ( " {?s gadr:has_glytoucan_id ?gid FILTER (?gid IN (" + list + ")) } ");
+        
+       queryBuf.append (sortLine);
+       queryBuf.append ("}" + 
+               orderByLine + 
+              ((limit == -1) ? " " : " LIMIT " + limit) +
+              " OFFSET " + offset);
+       
+       return sparqlDAO.query(queryBuf.toString());
+   }
+   
+   public List<SparqlEntity> retrieveByListofDatasetIds (List<String> ids, int limit, int offset, String field, int order, String graph) throws SparqlException {
+       List<String> uriList = new ArrayList<String>();
+       String uriPrefix = (graph == null || graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))? GlygenArrayRepository.uriPrefixPublic : GlygenArrayRepository.uriPrefix; 
+       for (String id: ids) {
+           uriList.add(uriPrefix+id);
+       }
+       String list = StringUtils.join(uriList, ">, <");
+       list = "<" + list + ">";
+       String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  "(?s)";  
+       String sortLine = "";
+       String sortPredicate = getSortPredicate (field);
+       if (sortPredicate != null) {
+           sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+       }
+       StringBuffer queryBuf = new StringBuffer();
+       queryBuf.append (prefix + "\n");
+       queryBuf.append ("SELECT DISTINCT ?s \n");
+       queryBuf.append ("FROM <" + graph + ">\n");
+       queryBuf.append ("WHERE {\n");
+       queryBuf.append ( " { ?s rdf:type  <http://purl.org/gadr/data#array_dataset>  \n");
+       queryBuf.append ( " FILTER (?s IN (" + list + ")) }");
         
        queryBuf.append (sortLine);
        queryBuf.append ("}" + 

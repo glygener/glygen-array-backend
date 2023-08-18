@@ -1099,8 +1099,20 @@ public class SearchController {
             
             if (matches != null) {
                 total = matches.size();
-                List<ArrayDataset> loadedDatasets = new ArrayList<ArrayDataset>();
-                for (String match: matches) {
+                //List<ArrayDataset> loadedDatasets = new ArrayList<ArrayDataset>();
+                
+                List<SparqlEntity> results = queryHelper.retrieveByListofDatasetIds(matches, limit, offset, field, order, GlygenArrayRepository.DEFAULT_GRAPH);
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        String datasetId = m.substring(m.lastIndexOf("/")+1);
+                        ArrayDataset dataset = datasetRepository.getArrayDataset(datasetId, false, null);
+                        if (dataset != null)
+                            searchDatasets.add(dataset);
+                    }
+                }
+                
+               /* for (String match: matches) {
                     ArrayDataset dataset = datasetRepository.getArrayDataset(match, false, null);
                     if (dataset != null)
                         loadedDatasets.add(dataset);
@@ -1141,7 +1153,7 @@ public class SearchController {
                     
                     if (limit != -1 && added >= limit) break;
                     
-                }
+                }*/
             }
             
             result.setRows(searchDatasets);
