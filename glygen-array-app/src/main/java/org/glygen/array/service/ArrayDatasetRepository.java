@@ -138,5 +138,8 @@ public interface ArrayDatasetRepository {
     int getSlideCountByGlycan(String glycanId, UserEntity user) throws SparqlException, SQLException;
     List<PrintedSlide> getSlidesByGlycan(String glycanId, int offset, int limit, String field, int order,
             Boolean loadAll, UserEntity user) throws SparqlException, SQLException;
+    int getPublicPrintedSlideCountByUser(String userName) throws SparqlException;
+    List<PrintedSlide> getPublicPrintedSlideByUser(String userName, Integer offset, Integer limit, String field,
+            Integer order, boolean loadAll) throws SparqlException, SQLException;
     
 }

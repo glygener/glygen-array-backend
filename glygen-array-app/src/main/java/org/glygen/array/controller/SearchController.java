@@ -1099,8 +1099,7 @@ public class SearchController {
             
             if (matches != null) {
                 total = matches.size();
-                //List<ArrayDataset> loadedDatasets = new ArrayList<ArrayDataset>();
-                
+               
                 List<SparqlEntity> results = queryHelper.retrieveByListofDatasetIds(matches, limit, offset, field, order, GlygenArrayRepository.DEFAULT_GRAPH);
                 if (results != null) {
                     for (SparqlEntity r: results) {
@@ -1111,49 +1110,6 @@ public class SearchController {
                             searchDatasets.add(dataset);
                     }
                 }
-                
-               /* for (String match: matches) {
-                    ArrayDataset dataset = datasetRepository.getArrayDataset(match, false, null);
-                    if (dataset != null)
-                        loadedDatasets.add(dataset);
-                }
-                // sort the datasets by the given order
-                if (field == null || field.equalsIgnoreCase("name")) {
-                    if (order == 1)
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getName));
-                    else 
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getName).reversed());
-                } else if (field.equalsIgnoreCase("comment")) {
-                    if (order == 1)
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDescription));
-                    else 
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDescription).reversed());
-                } else if (field.equalsIgnoreCase("dateModified")) {
-                    if (order == 1)
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDateModified));
-                    else 
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getDateModified).reversed());
-                } else if (field.equalsIgnoreCase("id")) {
-                    if (order == 1)
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getId));
-                    else 
-                        loadedDatasets.sort(Comparator.comparing(ArrayDataset::getId).reversed());
-                }
-                int i=0;
-                int added = 0;
-                
-                for (ArrayDataset dataset: loadedDatasets) {
-                    i++;
-                    if (i <= offset) continue;
-                    searchDatasets.add(dataset);
-                    // need to clear unused parts
-                    dataset.setSlides(null);
-                    
-                    added ++;
-                    
-                    if (limit != -1 && added >= limit) break;
-                    
-                }*/
             }
             
             result.setRows(searchDatasets);

@@ -3957,4 +3957,69 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         
         return fundingOrganizations;
     }
+
+    @Override
+    public int getPublicPrintedSlideCountByUser(String userName) throws SparqlException {
+        int total = 0;
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT COUNT(DISTINCT ?s) as ?count \n");
+        queryBuf.append ("FROM <" + DEFAULT_GRAPH + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append (" ?s rdf:type  <" + printedSlideTypePredicate +">. ");
+        queryBuf.append (" ?s template:has_slide_layout ?layout . ?layout gadr:created_by ?owner . \n" 
+               + " FILTER (lcase(str(?owner)) = \"\"\"" + userName.toLowerCase() + "\"\"\") \n" 
+               + "}\n");
+         
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        
+        for (SparqlEntity sparqlEntity : results) {
+            String count = sparqlEntity.getValue("count");
+            if (count == null) {
+                logger.error("Cannot get the count from repository");
+            } 
+            else {
+                try {
+                    total = Integer.parseInt(count);
+                    break;
+                } catch (NumberFormatException e) {
+                    throw new SparqlException("Count query returned invalid result", e);
+                }
+            }
+            
+        }
+        return total;
+    }
+
+    @Override
+    public List<PrintedSlide> getPublicPrintedSlideByUser(String userName, Integer offset, Integer limit, String field,
+            Integer order, boolean loadAll) throws SparqlException, SQLException {
+        String sortPredicate = getSortPredicate (field);
+        
+        String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + (sortPredicate == null ? "(?s)": "(?sortBy)");  
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s");
+        queryBuf.append ("\nFROM <" + DEFAULT_GRAPH + ">\n");
+        
+        queryBuf.append ("WHERE {\n {\n");
+        queryBuf.append (" ?s rdf:type <" + printedSlideTypePredicate + "> . \n");
+        queryBuf.append (" ?s template:has_slide_layout ?layout . ?layout gadr:created_by ?owner . \n" 
+                + " FILTER (lcase(str(?owner)) = \"\"\"" + userName.toLowerCase() + "\"\"\") \n" 
+                + "}\n");
+        queryBuf.append ("}" + 
+                orderByLine + 
+               ((limit == -1) ? " " : " LIMIT " + limit) +
+               " OFFSET " + offset);
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        List<PrintedSlide> slides = new ArrayList<PrintedSlide>();
+        for (SparqlEntity sparqlEntity : results) {
+            String uri = sparqlEntity.getValue("s");
+            PrintedSlide slide = getPrintedSlideFromURI(uri, loadAll, null);
+            if (slide != null)
+                slides.add(slide);    
+        }
+        return slides;
+    }
 }
