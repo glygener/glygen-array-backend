@@ -538,7 +538,55 @@ public class SearchController {
             int total=0;
             if (matches != null) {
                 total = matches.size();
-                List<Glycan> loadedGlycans = new ArrayList<Glycan>();
+                
+                List<SparqlEntity> results = queryHelper.retrieveByListofGlycanIds(matches, limit, offset, field, order, GlygenArrayRepository.DEFAULT_GRAPH);
+                if (results != null) {
+                    for (SparqlEntity res: results) {
+                        String m = res.getValue("s");
+                        String glycanId = m.substring(m.lastIndexOf("/")+1);
+                        Glycan glycan = glycanRepository.getGlycanById(glycanId, null);
+                        if (glycan != null) {
+                            GlycanSearchResult r = new GlycanSearchResult();
+                            if (field != null && field.equalsIgnoreCase("datasetCount")) {
+                                String count = res.getValue("count");
+                                int datasetCount = 0;
+                                try {
+                                    datasetCount = Integer.parseInt(count);
+                                } catch (NumberFormatException e) {
+                                    // ignore
+                                }
+                                r.setDatasetCount(datasetCount);
+                            }
+                            else {
+                                int count = datasetRepository.getDatasetCountByGlycan(glycan.getId(), null);
+                                r.setDatasetCount(count);
+                            }
+                            r.setGlycan(glycan);
+                            if (r.getGlycan() instanceof SequenceDefinedGlycan) {
+                                byte[] image = GlygenArrayController.getCartoonForGlycan(r.getGlycan().getId(), imageLocation);
+                                if (image == null && ((SequenceDefinedGlycan) r.getGlycan()).getSequence() != null) {
+                                    BufferedImage t_image = GlygenArrayController.createImageForGlycan ((SequenceDefinedGlycan) r.getGlycan());
+                                    if (t_image != null) {
+                                        String filename = r.getGlycan().getId() + ".png";
+                                        //save the image into a file
+                                        logger.debug("Adding image to " + imageLocation);
+                                        File imageFile = new File(imageLocation + File.separator + filename);
+                                        try {
+                                            ImageIO.write(t_image, "png", imageFile);
+                                        } catch (IOException e) {
+                                            logger.error ("Glycan image cannot be written", e);
+                                        }
+                                    }
+                                    image = GlygenArrayController.getCartoonForGlycan(r.getGlycan().getId(), imageLocation);
+                                }
+                                r.getGlycan().setCartoon(image);
+                            }
+                            searchGlycans.add(r);
+                        }
+                    }
+                        
+                }
+           /*     List<Glycan> loadedGlycans = new ArrayList<Glycan>();
                 for (String match: matches) {
                     Glycan glycan = glycanRepository.getGlycanById(match, null);
                     if (glycan != null)
@@ -657,12 +705,12 @@ public class SearchController {
                         
                         if (limit != -1 && added >= limit) break;
                     }
-                }
+                }*/
             }
             
-            result.setRows(filteredSearchGlycans);
+            result.setRows(searchGlycans);
             result.setTotal(total);
-            result.setFilteredTotal(filteredSearchGlycans.size());
+            result.setFilteredTotal(searchGlycans.size());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve glycans for user. Reason: " + e.getMessage());
         }

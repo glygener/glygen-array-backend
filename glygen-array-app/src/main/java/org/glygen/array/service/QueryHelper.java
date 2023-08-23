@@ -336,6 +336,7 @@ public class QueryHelper {
        queryBuf.append ("FROM <" + graph + ">\n");
        queryBuf.append ("WHERE {\n");
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
+       queryBuf.append ( " ?ss gadr:has_molecule  ?s . \n");
        queryBuf.append ( " {?s gadr:has_glytoucan_id ?gid FILTER (?gid IN (" + list + ")) } ");
         
        queryBuf.append (sortLine);
@@ -378,6 +379,60 @@ public class QueryHelper {
        return sparqlDAO.query(queryBuf.toString());
    }
    
+   public List<SparqlEntity> retrieveByListofGlycanIds (List<String> ids, int limit, int offset, String field, int order, String graph) throws SparqlException {
+       List<String> uriList = new ArrayList<String>();
+       String uriPrefix = (graph == null || graph.equals(GlygenArrayRepository.DEFAULT_GRAPH))? GlygenArrayRepository.uriPrefixPublic : GlygenArrayRepository.uriPrefix; 
+       for (String id: ids) {
+           uriList.add(uriPrefix+id);
+       }
+       String list = StringUtils.join(uriList, ">, <");
+       list = "<" + list + ">";
+       String sortLine = "";
+       
+       if (field != null && field.equalsIgnoreCase("datasetCount")) {
+           String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") + "(?count)";  
+           StringBuffer queryBuf = new StringBuffer();
+           queryBuf.append (prefix + "\n");
+           queryBuf.append ("SELECT DISTINCT ?s count(DISTINCT ?dataset) as ?count\n");
+           queryBuf.append ("FROM <" + graph + ">\n");
+           queryBuf.append ("WHERE {\n");
+           queryBuf.append ( " { ?s rdf:type  <http://purl.org/gadr/data#Glycan>  \n");
+           queryBuf.append ( " FILTER (?s IN (" + list + ")) }\n");
+           queryBuf.append ( "OPTIONAL { ?dataset rdf:type <http://purl.org/gadr/data#array_dataset> . \n"
+               + "?dataset gadr:has_slide ?slide . ?slide gadr:has_printed_slide ?ps . \n" 
+               + "?ps template:has_slide_layout ?layout . ?layout gadr:has_block ?b . \n" 
+               + "?b template:has_block_layout ?bl . ?bl template:has_spot ?spot . \n" 
+               + "?spot gadr:has_feature ?f . ?f gadr:has_molecule ?s . \n");
+           queryBuf.append (" }\n");
+           queryBuf.append ("}" + 
+                   orderByLine + 
+                  ((limit == -1) ? " " : " LIMIT " + limit) +
+                  " OFFSET " + offset);
+           return sparqlDAO.query(queryBuf.toString());
+       } else {
+           String sortPredicate = getSortPredicate (field);
+           if (sortPredicate != null) {
+               sortLine = "OPTIONAL {?s " + sortPredicate + " ?sortBy } .\n";  
+           }
+           String orderByLine = " ORDER BY " + (order == 0 ? "DESC" : "ASC") +  (sortPredicate == null ? "(?s)": "(?sortBy)");  
+           StringBuffer queryBuf = new StringBuffer();
+           queryBuf.append (prefix + "\n");
+           queryBuf.append ("SELECT DISTINCT ?s \n");
+           queryBuf.append ("FROM <" + graph + ">\n");
+           queryBuf.append ("WHERE {\n");
+           queryBuf.append ( " { ?s rdf:type  <http://purl.org/gadr/data#Glycan>  \n");
+           queryBuf.append ( " FILTER (?s IN (" + list + ")) }");
+            
+           queryBuf.append (sortLine);
+           queryBuf.append ("}" + 
+                   orderByLine + 
+                  ((limit == -1) ? " " : " LIMIT " + limit) +
+                  " OFFSET " + offset);
+           
+           return sparqlDAO.query(queryBuf.toString());
+       }
+   }
+   
    public List<SparqlEntity> retrieveByMassRange (double min, double max, int limit, int offset, String field, int order, String graph) throws SparqlException {
        String sortLine = "";
        String sortPredicate = getSortPredicate (field);
@@ -391,6 +446,7 @@ public class QueryHelper {
        queryBuf.append ("FROM <" + graph + ">\n");
        queryBuf.append ("WHERE {\n");
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
+       queryBuf.append ( " ?ss gadr:has_molecule  ?s . \n");
        queryBuf.append ( " {?s gadr:has_mass ?mass FILTER (?mass <" +  max  + " && ?mass > " + min + ") }");
        queryBuf.append (sortLine);
        queryBuf.append ("}" + 

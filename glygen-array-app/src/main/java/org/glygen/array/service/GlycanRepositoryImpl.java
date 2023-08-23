@@ -1472,6 +1472,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         queryBuf.append ("FROM <" + GlygenArrayRepository.DEFAULT_GRAPH + ">\n");
         queryBuf.append ("WHERE {\n");
         queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan>. \n");
+        queryBuf.append ( " ?ss gadr:has_molecule  ?s . \n");
         queryBuf.append ( " ?s gadr:has_sequence ?seq . ?seq gadr:has_sequence_value ?val . ?seq gadr:has_sequence_format ?format . \n");
         queryBuf.append("}\n");
         
