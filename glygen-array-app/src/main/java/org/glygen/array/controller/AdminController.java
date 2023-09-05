@@ -146,7 +146,7 @@ public class AdminController {
     
     
     @Operation(summary = "Fix public files for DRS", security = { @SecurityRequirement(name = "bearer-key") })
-    @RequestMapping(value="/updatefiles", method = RequestMethod.DELETE, 
+    @RequestMapping(value="/updatefiles", method = RequestMethod.PATCH, 
             produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Files are updated"), 
             @ApiResponse(responseCode="401", description="Unauthorized"),
