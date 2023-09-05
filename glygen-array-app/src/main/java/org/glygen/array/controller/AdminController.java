@@ -3,11 +3,14 @@ package org.glygen.array.controller;
 import java.io.File;
 import java.security.Principal;
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
 import org.glygen.array.persistence.rdf.data.ArrayDataset;
+import org.glygen.array.persistence.rdf.data.FileWrapper;
 import org.glygen.array.persistence.rdf.data.FutureTaskStatus;
 import org.glygen.array.persistence.rdf.data.Image;
 import org.glygen.array.persistence.rdf.data.ProcessedData;
@@ -138,6 +141,78 @@ public class AdminController {
             return new Confirmation("array dataset deleted successfully", HttpStatus.OK.value());
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot delete array dataset " + id, e);
+        } 
+    }
+    
+    
+    @Operation(summary = "Fix public files for DRS", security = { @SecurityRequirement(name = "bearer-key") })
+    @RequestMapping(value="/updatefiles", method = RequestMethod.DELETE, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Files are updated"), 
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to modify the repository"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public Confirmation updateFiles () {
+        try {
+            List<ArrayDataset> datasets = datasetRepository.getArrayDatasetByUser(null, 0, -1, null, 0, null, false);
+             for (ArrayDataset dataset: datasets) {
+                for (Slide slide: dataset.getSlides()) {
+                    for (Image image: slide.getImages()) {
+                        FileWrapper file = image.getFile();
+                        if (file != null) {
+                            if (file.getChecksum() == null) {
+                                // calculate the checksum
+                                GlygenArrayController.calculateChecksum (file);
+                            } 
+                            if (file.getCreatedDate() == null) {
+                                file.setCreatedDate(new Date());
+                            }
+                            datasetRepository.addFile(file, image.getId(), null);
+                        }
+                        for (RawData rawData: image.getRawDataList()) {
+                            if (rawData.getFile() != null) {
+                                if (rawData.getFile().getChecksum() == null) {
+                                    // calculate the checksum
+                                    GlygenArrayController.calculateChecksum (rawData.getFile());
+                                }
+                                if (rawData.getFile().getCreatedDate() == null) {
+                                    rawData.getFile().setCreatedDate(new Date());
+                                }
+                                datasetRepository.addFile(rawData.getFile(), rawData.getId(), null);
+                            }
+                            for (ProcessedData processedData: rawData.getProcessedDataList()) {
+                                if (processedData.getFile() != null) {
+                                    if (processedData.getFile().getChecksum() == null) {
+                                        // calculate the checksum
+                                        GlygenArrayController.calculateChecksum (processedData.getFile());
+                                    }
+                                    if (processedData.getFile().getCreatedDate() == null) {
+                                        processedData.getFile().setCreatedDate(new Date());
+                                    }
+                                    datasetRepository.addFile(processedData.getFile(), processedData.getId(), null);
+                                }
+                            }
+                        }
+                    }
+                }
+                for (FileWrapper file: dataset.getFiles()) {
+                    if (file != null) {
+                        if (file.getChecksum() == null) {
+                            // calculate the checksum
+                            GlygenArrayController.calculateChecksum (file);
+                        }
+                        if (file.getCreatedDate() == null) {
+                            file.setCreatedDate(new Date());
+                        }
+                        datasetRepository.addFile(file, dataset.getId(), null);
+                    }
+                }
+            }
+            
+            return new Confirmation("files updated successfully", HttpStatus.OK.value());
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Cannot update files", e);
         } 
     }
     

@@ -336,36 +336,6 @@ public class ArrayDatasetRepositoryImpl extends GlygenArrayRepositoryImpl implem
         }
         
         saveFile(file, uriPre + datasetId, graph);
-        /*IRI dataset = f.createIRI(uriPre + datasetId);
-        IRI graphIRI = f.createIRI(graph);
-        IRI hasFile = f.createIRI(hasFilePredicate);
-        IRI hasFileName = f.createIRI(hasFileNamePredicate);
-        IRI hasOriginalFileName = f.createIRI(hasOriginalFileNamePredicate);
-        IRI hasFolder = f.createIRI(hasFolderPredicate);
-        IRI hasFileFormat = f.createIRI(hasFileFormatPredicate);
-        IRI hasSize = f.createIRI(hasSizePredicate);
-        
-        if (file.getIdentifier() == null) 
-            return;  // nothing to add
-        
-        List<Statement> statements = new ArrayList<Statement>();
-        String fileURI = generateUniqueURI(uriPrefix + "FILE", allGraphs);
-        Literal fileName = f.createLiteral(file.getIdentifier());
-        Literal fileFolder = file.getFileFolder() == null ? null : f.createLiteral(file.getFileFolder());
-        Literal fileFormat = file.getFileFormat() == null ? null : f.createLiteral(file.getFileFormat());
-        Literal originalName = file.getOriginalName() == null ? null : f.createLiteral(file.getOriginalName());
-        Literal description = file.getDescription() == null ? null : f.createLiteral(file.getDescription());
-        Literal size = file.getFileSize() == null ? null : f.createLiteral(file.getFileSize());
-        IRI fileIRI = f.createIRI(fileURI);
-        statements.add(f.createStatement(dataset, hasFile, fileIRI, graphIRI));
-        statements.add(f.createStatement(fileIRI, hasFileName, fileName, graphIRI));
-        if (fileFolder != null) statements.add(f.createStatement(fileIRI, hasFolder, fileFolder, graphIRI));
-        if (fileFormat != null) statements.add(f.createStatement(fileIRI, hasFileFormat, fileFormat, graphIRI));
-        if (originalName != null) statements.add(f.createStatement(fileIRI, hasOriginalFileName, originalName, graphIRI));
-        if (size != null) statements.add(f.createStatement(fileIRI, hasSize, size, graphIRI));
-        if (description != null) statements.add(f.createStatement(fileIRI, RDFS.COMMENT, description, graphIRI));
-        
-        sparqlDAO.addStatements(statements, graphIRI);*/
     }
 
 
