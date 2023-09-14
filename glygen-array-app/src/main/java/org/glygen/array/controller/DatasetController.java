@@ -8062,7 +8062,7 @@ public class DatasetController {
             @Parameter(required=true, description="Printer with updated fields") 
             @RequestBody Printer metadata, 
             @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
-            @RequestParam("arraydatasetId")
+            @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
         return updateMetadata(metadata, datasetId, MetadataTemplateType.PRINTER, p);
@@ -8083,7 +8083,7 @@ public class DatasetController {
             @Parameter(required=true, description="Printer with updated fields") 
             @RequestBody Printer metadata, 
             @Parameter(required=false, description="id of the array dataset for which to retrive the applicable metadata") 
-            @RequestParam("arraydatasetId")
+            @RequestParam(value="arraydatasetId", required=false)
             String datasetId,
             Principal p) throws SQLException {
         return updateMetadata(metadata, datasetId, MetadataTemplateType.PRINTRUN, p);
