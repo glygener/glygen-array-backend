@@ -3,6 +3,7 @@ package org.glygen.array.controller;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,8 +19,10 @@ import javax.validation.Validator;
 import org.glygen.array.config.SesameTransactionConfig;
 import org.glygen.array.exception.GlycanRepositoryException;
 import org.glygen.array.exception.SparqlException;
+import org.glygen.array.persistence.SettingEntity;
 import org.glygen.array.persistence.SparqlEntity;
 import org.glygen.array.persistence.UserEntity;
+import org.glygen.array.persistence.dao.SettingsRepository;
 import org.glygen.array.persistence.dao.UserRepository;
 import org.glygen.array.persistence.rdf.BlockLayout;
 import org.glygen.array.persistence.rdf.Feature;
@@ -53,6 +56,8 @@ import org.glygen.array.persistence.rdf.metadata.Sample;
 import org.glygen.array.persistence.rdf.metadata.ScannerMetadata;
 import org.glygen.array.persistence.rdf.metadata.SlideMetadata;
 import org.glygen.array.persistence.rdf.metadata.SpotMetadata;
+import org.glygen.array.persistence.rdf.template.MetadataTemplate;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 import org.glygen.array.service.ArrayDatasetRepository;
 import org.glygen.array.service.FeatureRepository;
 import org.glygen.array.service.GlycanRepository;
@@ -62,10 +67,12 @@ import org.glygen.array.service.GlygenArrayRepositoryImpl;
 import org.glygen.array.service.LayoutRepository;
 import org.glygen.array.service.LinkerRepository;
 import org.glygen.array.service.MetadataRepository;
+import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.service.QueryHelper;
 import org.glygen.array.util.ExtendedGalFileParser;
 import org.glygen.array.util.MetadataImportExportUtil;
 import org.glygen.array.util.parser.ProcessedDataParser;
+import org.glygen.array.view.AllMetadataView;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
@@ -92,7 +99,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -132,6 +143,12 @@ public class PublicGlygenArrayController {
     
     @Autowired
     MetadataRepository metadataRepository;
+    
+    @Autowired
+    SettingsRepository settingsRepository;
+    
+    @Autowired
+    MetadataTemplateRepository templateRepository;
     
     @Autowired
     Validator validator;
@@ -2112,7 +2129,7 @@ public class PublicGlygenArrayController {
         }
     }
     
-    @Operation(summary = "Export metadata into Excel")
+    @Operation(summary = "Export metadata into Excel or JSON file")
     @RequestMapping(value = "/downloadMetadata", method=RequestMethod.GET)
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="File generated successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request, file cannot be found"),
@@ -2130,13 +2147,18 @@ public class PublicGlygenArrayController {
             Boolean mirageOnly,
             @Parameter(required=false, description="single sheet") 
             @RequestParam(value="singleSheet", required=false)
-            Boolean singleSheet) {
+            Boolean singleSheet,
+            @Parameter(required=false, name="filetype", description="type of the file, the default is Excel", schema = @Schema(type = "string", allowableValues= {"Excel", "json" })) 
+            @RequestParam(required=false, value="filetype") String fileType) {
         
         ErrorMessage errorMessage = new ErrorMessage();
         errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
         
         if (fileName == null || fileName.isEmpty()) {
-            fileName = datasetId + ".xlsx";
+            if (fileType == null || fileType.equalsIgnoreCase("excel"))
+                fileName = datasetId + ".xlsx";
+            else 
+                fileName = datasetId + ".json";
         }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
@@ -2154,7 +2176,63 @@ public class PublicGlygenArrayController {
                         data.getUser().setFirstName(user.getFirstName());
                         data.getUser().setLastName(user.getLastName());
                     }
-                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath(), mirageOnly, singleSheet);  
+                    if (fileType == null || fileType.equalsIgnoreCase("excel")) {
+                        new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath(), mirageOnly, singleSheet);
+                    } else {
+                        // json 
+                        AllMetadataView view = new AllMetadataView();
+                        List<MetadataCategory> metadataList = new ArrayList<MetadataCategory>();
+                        metadataList.add(data.getSample());
+                        if (data.getSlides() != null) {
+                            for (Slide slide: data.getSlides()) {
+                                if (slide.getMetadata() != null) {
+                                    metadataList.add(slide.getMetadata());
+                                }
+                                if (slide.getPrintedSlide().getMetadata() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getMetadata());
+                                }
+                                if (slide.getPrintedSlide().getPrinter() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getPrinter());
+                                }
+                                if (slide.getPrintedSlide().getPrintRun() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getPrintRun());
+                                }
+                                if (slide.getImages() != null) {
+                                    for (Image image: slide.getImages()) {
+                                        if (image.getScanner() != null) {
+                                            metadataList.add(image.getScanner());
+                                        }
+                                        for (RawData rawData: image.getRawDataList()) {
+                                            if (rawData.getMetadata() != null) {
+                                                metadataList.add(rawData.getMetadata());
+                                            }
+                                            for (ProcessedData p: rawData.getProcessedDataList()) {
+                                                if (p.getMetadata() != null) {
+                                                    metadataList.add(p.getMetadata());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        view.setMetadataList(metadataList);
+                        try {
+                            SettingEntity entity = settingsRepository.findByName("apiVersion");
+                            if (entity != null) {
+                                view.setVersion(entity.getValue()); 
+                            }
+                        } catch (Exception e) {
+                            view.setVersion("1.0.0");
+                        }
+                        
+                        ObjectMapper mapper = new ObjectMapper();         
+                        String json = mapper.writeValueAsString(view);
+                        PrintWriter writer = new PrintWriter(newFile);
+                        writer.write (json);
+                        writer.close();
+                    }
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
                 }
@@ -2167,6 +2245,80 @@ public class PublicGlygenArrayController {
             return DatasetController.download (newFile, fileName);
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Cannot retrieve dataset from the repository", e);
+        }
+    }
+    
+    @Operation(summary = "Export metadata into a file")
+    @RequestMapping(value = "/exportmetadata", method=RequestMethod.GET)
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="confirmation message"), 
+            @ApiResponse(responseCode="400", description="Invalid request, file not found, not writable etc."),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public @ResponseBody String exportMetadata (
+            @Parameter(required=true, description="id of metadata to export") 
+            @RequestParam(value="metadataId", required=true) String metadataId,
+            @Parameter(required=true, description="template of metadata to export") 
+            @RequestParam("template")
+            String templateType) {
+                
+        try {
+            
+            MetadataTemplate template = templateRepository.getTemplateFromURI(MetadataTemplateRepository.templatePrefix+templateType, false);
+            if (template == null) {
+                throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
+            }
+            
+            String typePredicate;
+            switch (template.getType()) {
+            case SAMPLE: 
+                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
+                break;
+            case ASSAY:
+                typePredicate = GlygenArrayRepositoryImpl.assayTypePredicate;
+                break;
+            case DATAPROCESSINGSOFTWARE:
+                typePredicate = GlygenArrayRepositoryImpl.dataProcessingTypePredicate;
+                break;
+            case FEATURE:
+                typePredicate = GlygenArrayRepositoryImpl.featureMetadataTypePredicate;
+                break;
+            case IMAGEANALYSISSOFTWARE:
+                typePredicate = GlygenArrayRepositoryImpl.imageAnalysisTypePredicate;
+                break;
+            case PRINTER:
+                typePredicate = GlygenArrayRepositoryImpl.printerTypePredicate;
+                break;
+            case PRINTRUN:
+                typePredicate = GlygenArrayRepositoryImpl.printRunTypePredicate;
+                break;
+            case SCANNER:
+                typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
+                break;
+            case SLIDE:
+                typePredicate = GlygenArrayRepositoryImpl.slideTypePredicate;
+                break;
+            case SPOT:
+                typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
+                break;
+            default:
+                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
+            }
+            
+            MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, null);
+            if (myMetadata == null) {
+                throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found");
+            }
+            ObjectMapper mapper = new ObjectMapper();         
+            String json = mapper.writeValueAsString(myMetadata);
+            return json;
+        } catch (SparqlException | SQLException e) {
+            throw new GlycanRepositoryException("Metadata cannot be retrieved for user");
+        } catch (JsonProcessingException e) {
+            ErrorMessage errorMessage = new ErrorMessage("Cannot generate the metadata json");
+            errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            errorMessage.addError(new ObjectError("reason", e.getMessage()));
+            errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
+            throw new IllegalArgumentException("Cannot generate the metadata json", errorMessage);
         }
     }
 }

@@ -6711,26 +6711,22 @@ public class DatasetController {
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody String exportMetadata (
-            @Parameter(required=true, description="offset for pagination, start from 0", example="0") 
-            @RequestParam(value="offset", required=false) Integer offset,
-            @Parameter(required=false, description="limit of the number of glycans to be retrieved", example="10") 
-            @RequestParam(value="limit", required=false) Integer limit, 
-            @Parameter(required=false, description="a filter value to match") 
-            @RequestParam(value="filter", required=false) String searchValue,
-            @Parameter(required=true, description="type of metadata to export") 
-            @RequestParam("type")
-            MetadataTemplateType type,
+            @Parameter(required=true, description="id of metadata to export") 
+            @RequestParam(value="metadataId", required=true) String metadataId,
+            @Parameter(required=true, description="template of metadata to export") 
+            @RequestParam("template")
+            String templateType,
             Principal p) {
-        
-        if (offset == null)
-            offset = 0;
-        if (limit == null) 
-            limit = -1;
-        
+                
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         try {
+            MetadataTemplate template = templateRepository.getTemplateFromURI(MetadataTemplateRepository.templatePrefix+templateType, false);
+            if (template == null) {
+                throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
+            }
+            
             String typePredicate;
-            switch (type) {
+            switch (template.getType()) {
             case SAMPLE: 
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
                 break;
@@ -6764,8 +6760,14 @@ public class DatasetController {
             default:
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
             }
-            
-            List<MetadataCategory> myMetadata = metadataRepository.getMetadataCategoryByUser(user, offset, limit, null, 0, searchValue, typePredicate, true);
+            MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, typePredicate, true, user);
+            if (myMetadata == null) {
+                // try public graph
+                metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, user);
+            }
+            if (myMetadata == null) {
+                throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found for the user " + p.getName());
+            }
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(myMetadata);
             return json;
@@ -6776,7 +6778,7 @@ public class DatasetController {
             errorMessage.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             errorMessage.addError(new ObjectError("reason", e.getMessage()));
             errorMessage.setErrorCode(ErrorCodes.INTERNAL_ERROR);
-            throw new IllegalArgumentException("Cannot generate the metadata list", errorMessage);
+            throw new IllegalArgumentException("Cannot generate the metadata json", errorMessage);
         }
     }
     
