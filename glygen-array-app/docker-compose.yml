@@ -11,7 +11,7 @@ services:
       - ./ontology:/ontology
       - .:/workspace
     working_dir: /workspace/
-    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true spring-boot:run"
+    command: bash -c "mvn clean && mvn -U -Djasypt.encryptor.password=${JASYPT_SECRET} -DskipTests=true -Dlog4j2.version=2.17.1 spring-boot:run"
     environment:
       - MAVEN_OPTS=-Xmx6000m
       - JASYPT_SECRET
