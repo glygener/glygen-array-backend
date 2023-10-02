@@ -484,7 +484,7 @@ public class QueryHelper {
    /**
     * retrieve datasets that has the given publication
     * 
-    * @param printedSlideName printed slide name or id to search for
+    * @param pmid publication id to search for
     * @param graph graph to search for
     * @return the sparqlEntity list that contains the uris of the datasets matching the criteria
     * @throws SparqlException
@@ -499,6 +499,29 @@ public class QueryHelper {
        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
        queryBuf.append ( " ?s gadr:has_publication ?pub . ?pub gadr:has_pubmed_id ?pmid . "
                + " FILTER (lcase(str(?pmid)) = \"\"\"" + pmid.toLowerCase() + "\"\"\") \n"
+               + "}\n");
+       
+       return sparqlDAO.query(queryBuf.toString());
+   }
+   
+   /**
+    * retrieve datasets that has the given keyword
+    * 
+    * @param keyword keyword to search for
+    * @param graph graph to search for
+    * @return the sparqlEntity list that contains the uris of the datasets matching the criteria
+    * @throws SparqlException
+    */
+   public List<SparqlEntity> retrieveDatasetByKeyword(String keyword, String graph) throws SparqlException {
+       StringBuffer queryBuf = new StringBuffer();
+       queryBuf.append (prefix + "\n");
+       queryBuf.append ("SELECT DISTINCT ?s \n");
+       queryBuf.append ("FROM <" + graph + ">\n");
+       queryBuf.append ("WHERE {\n");
+       queryBuf.append ( " ?s gadr:has_date_addedtolibrary ?d . \n");
+       queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#array_dataset>. \n");
+       queryBuf.append ( " ?s gadr:has_keyword ?k . "
+               +  " FILTER (lcase(str(?k)) = \"\"\"" + keyword.toLowerCase() + "\"\"\") \n"
                + "}\n");
        
        return sparqlDAO.query(queryBuf.toString());

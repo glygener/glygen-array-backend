@@ -14,6 +14,7 @@ public class DatasetSearchInput {
     String institution;
     String groupName;
     Boolean coOwner;
+    String keyword;
     
     /**
      * @return the datasetName
@@ -122,6 +123,18 @@ public class DatasetSearchInput {
      */
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+    /**
+     * @return the keyword
+     */
+    public String getKeyword() {
+        return keyword;
+    }
+    /**
+     * @param keyword the keyword to set
+     */
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
     }
     
     

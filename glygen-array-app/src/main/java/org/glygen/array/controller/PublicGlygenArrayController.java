@@ -2308,8 +2308,19 @@ public class PublicGlygenArrayController {
             if (myMetadata == null) {
                 throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found");
             }
+            AllMetadataView view = new AllMetadataView();
+            try {
+                SettingEntity entity = settingsRepository.findByName("apiVersion");
+                if (entity != null) {
+                    view.setVersion(entity.getValue()); 
+                }
+            } catch (Exception e) {
+                view.setVersion("1.0.0");
+            }
+            view.setMetadataList(new ArrayList<MetadataCategory>());
+            view.getMetadataList().add(myMetadata);
             ObjectMapper mapper = new ObjectMapper();         
-            String json = mapper.writeValueAsString(myMetadata);
+            String json = mapper.writeValueAsString(view);
             return json;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Metadata cannot be retrieved for user");

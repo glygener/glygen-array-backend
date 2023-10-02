@@ -93,6 +93,7 @@ import org.glygen.array.util.parser.ProcessedDataParser;
 import org.glygen.array.util.parser.RawdataParser;
 import org.glygen.array.util.pubmed.DTOPublication;
 import org.glygen.array.util.pubmed.PubmedUtil;
+import org.glygen.array.view.AllMetadataView;
 import org.glygen.array.view.ArrayDatasetListView;
 import org.glygen.array.view.AsyncBatchUploadResult;
 import org.glygen.array.view.BatchGlycanFileType;
@@ -6768,8 +6769,19 @@ public class DatasetController {
             if (myMetadata == null) {
                 throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found for the user " + p.getName());
             }
+            AllMetadataView view = new AllMetadataView();
+            try {
+                SettingEntity entity = settingsRepository.findByName("apiVersion");
+                if (entity != null) {
+                    view.setVersion(entity.getValue()); 
+                }
+            } catch (Exception e) {
+                view.setVersion("1.0.0");
+            }
+            view.setMetadataList(new ArrayList<MetadataCategory>());
+            view.getMetadataList().add(myMetadata);
             ObjectMapper mapper = new ObjectMapper();         
-            String json = mapper.writeValueAsString(myMetadata);
+            String json = mapper.writeValueAsString(view);
             return json;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Metadata cannot be retrieved for user " + p.getName(), e);
@@ -6782,7 +6794,7 @@ public class DatasetController {
         }
     }
     
-    @Operation(summary = "Add all metadata listed in a file", security = { @SecurityRequirement(name = "bearer-key") })
+    @Operation(summary = "Add metadata listed in a repository export (json) file", security = { @SecurityRequirement(name = "bearer-key") })
     @RequestMapping(value = "/importmetadata", method=RequestMethod.POST, 
             consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
     @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans processed successfully"), 
@@ -6795,9 +6807,8 @@ public class DatasetController {
             @Parameter(required=true, name="file", description="details of the uploded file") 
             @RequestBody
             FileWrapper fileWrapper, Principal p, 
-            @RequestParam Boolean noGlytoucanRegistration,
-            @Parameter(required=true, name="filetype", description="type of the file", schema = @Schema(type = "string", allowableValues= {"Repository Export (.json)"})) 
-            @RequestParam(required=true, value="filetype") String fileType) {
+            @Parameter(required=false, name="template", description="type of the metadata, if not provided it will import all metadata") 
+            @RequestParam(required=false, value="template") String fileType) {
         
         if (fileType.contains("json")) {
             String fileFolder = uploadDir;
@@ -6819,63 +6830,66 @@ public class DatasetController {
                     try {
                         ByteArrayInputStream stream = new   ByteArrayInputStream(fileContent);
                         String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
-                        JSONArray inputArray = new JSONArray(fileAsString);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        AllMetadataView view = objectMapper.readValue(fileAsString, AllMetadataView.class);
                         int countSuccess = 0;
-                        for (int i=0; i < inputArray.length(); i++) {
-                            JSONObject jo = inputArray.getJSONObject(i);
-                            ObjectMapper objectMapper = new ObjectMapper();
-                            MetadataCategory metadata = objectMapper.readValue(jo.toString(), MetadataCategory.class);
-                            try {
-                                String id=null;
-                                if (metadata instanceof Sample) {
-                                    id = addSample((Sample)metadata, p);
-                                } else if (metadata instanceof AssayMetadata) {
-                                    id = addAssayMetadata((AssayMetadata)metadata, p);
-                                } else if (metadata instanceof Printer) {
-                                    id = addPrinter((Printer)metadata, p);
-                                } else if (metadata instanceof PrintRun) {
-                                    id = addPrintrun((PrintRun)metadata, p);
-                                } else if (metadata instanceof ImageAnalysisSoftware) {
-                                    id = addImageAnalysisSoftware((ImageAnalysisSoftware)metadata, p);
-                                } else if (metadata instanceof DataProcessingSoftware) {
-                                    id = addDataProcessingSoftware((DataProcessingSoftware)metadata, p);
-                                } else if (metadata instanceof ScannerMetadata) {
-                                    id = addScanner((ScannerMetadata)metadata, p);
-                                } else if (metadata instanceof SpotMetadata) {
-                                    id = addSpotMetadata((SpotMetadata)metadata, p);
-                                } else if (metadata instanceof SlideMetadata) {
-                                    id = addSlideMetadata((SlideMetadata)metadata, p);
-                                }
-                              
-                                if (id != null) {
-                                    countSuccess ++;
-                                } else {
-                                    // error
-                                    String[] codes = new String[] {i+""};
-                                    errorMessage.addError(new ObjectError("sequence", codes, null, metadata.getName() + " not added"));
-                                }
-                            } catch (Exception e) {
-                                logger.error ("Exception adding the metadata: " + metadata.getName(), e);
-                                if (e.getCause() instanceof ErrorMessage) {
-                                    if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                                        ErrorMessage error = (ErrorMessage)e.getCause();
-                                        if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                            ObjectError err = error.getErrors().get(0);
-                                            if (err.getCodes() != null && err.getCodes().length != 0) {
-                                                String[] codes = new String[] {i+"", err.getCodes()[0]};
-                                                errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
-                                            } else {
-                                                String[] codes = new String[] {i+""};
-                                                errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
-                                            }
-                                        } 
-                                    } else {
-                                        String[] codes = new String[] {i+""};
-                                        errorMessage.addError(new ObjectError("sequence", codes, null, ((ErrorMessage)e.getCause()).toString()));
+                        if (view.getMetadataList() == null || view.getMetadataList().isEmpty()) {
+                            errorMessage.addError(new ObjectError ("file", null, null, "EMPTY"));
+                        } else {
+                            for (int i=0; i < view.getMetadataList().size(); i++) {
+                                MetadataCategory metadata = view.getMetadataList().get(i);
+                                try {
+                                    String id=null;
+                                    if (metadata instanceof Sample) {
+                                        id = addSample((Sample)metadata, p);
+                                    } else if (metadata instanceof AssayMetadata) {
+                                        id = addAssayMetadata((AssayMetadata)metadata, p);
+                                    } else if (metadata instanceof Printer) {
+                                        id = addPrinter((Printer)metadata, p);
+                                    } else if (metadata instanceof PrintRun) {
+                                        id = addPrintrun((PrintRun)metadata, p);
+                                    } else if (metadata instanceof ImageAnalysisSoftware) {
+                                        id = addImageAnalysisSoftware((ImageAnalysisSoftware)metadata, p);
+                                    } else if (metadata instanceof DataProcessingSoftware) {
+                                        id = addDataProcessingSoftware((DataProcessingSoftware)metadata, p);
+                                    } else if (metadata instanceof ScannerMetadata) {
+                                        id = addScanner((ScannerMetadata)metadata, p);
+                                    } else if (metadata instanceof SpotMetadata) {
+                                        id = addSpotMetadata((SpotMetadata)metadata, p);
+                                    } else if (metadata instanceof SlideMetadata) {
+                                        id = addSlideMetadata((SlideMetadata)metadata, p);
                                     }
-                                } else { 
-                                    String[] codes = new String[] {i+""};
-                                    errorMessage.addError(new ObjectError("sequence", codes, null, e.getMessage()));
+                                  
+                                    if (id != null) {
+                                        countSuccess ++;
+                                    } else {
+                                        // error
+                                        String[] codes = new String[] {i+""};
+                                        errorMessage.addError(new ObjectError("sequence", codes, null, metadata.getName() + " not added"));
+                                    }
+                                } catch (Exception e) {
+                                    logger.error ("Exception adding the metadata: " + metadata.getName(), e);
+                                    if (e.getCause() instanceof ErrorMessage) {
+                                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                                            ErrorMessage error = (ErrorMessage)e.getCause();
+                                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
+                                                ObjectError err = error.getErrors().get(0);
+                                                if (err.getCodes() != null && err.getCodes().length != 0) {
+                                                    String[] codes = new String[] {i+"", err.getCodes()[0]};
+                                                    errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
+                                                } else {
+                                                    String[] codes = new String[] {i+""};
+                                                    errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
+                                                }
+                                            } 
+                                        } else {
+                                            String[] codes = new String[] {i+""};
+                                            errorMessage.addError(new ObjectError("sequence", codes, null, ((ErrorMessage)e.getCause()).toString()));
+                                        }
+                                    } else { 
+                                        String[] codes = new String[] {i+""};
+                                        errorMessage.addError(new ObjectError("sequence", codes, null, e.getMessage()));
+                                    }
                                 }
                             }
                         }
@@ -6883,9 +6897,9 @@ public class DatasetController {
                         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                             throw new IllegalArgumentException("Errors in the upload process", errorMessage);
                         }
-                        Confirmation confirmation = new Confirmation (countSuccess + " out of " + inputArray.length() + " glycans are added", HttpStatus.OK.value());
+                        Confirmation confirmation = new Confirmation (countSuccess + " out of " + view.getMetadataList().size() + " metadata are added", HttpStatus.OK.value());
                         return confirmation;
-                    } catch (IOException | JSONException e) {
+                    } catch (IOException e) {
                         errorMessage.addError(new ObjectError("file", "NotValid"));
                         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
                         throw new IllegalArgumentException("File is not acceptable", errorMessage);
