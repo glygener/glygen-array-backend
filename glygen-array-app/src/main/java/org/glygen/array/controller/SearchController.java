@@ -848,8 +848,9 @@ public class SearchController {
             }
             
             if ((searchInput.getDatasetName() == null || searchInput.getDatasetName().trim().isEmpty()) 
-                    && ((searchInput.getPmid() == null || searchInput.getPmid().trim().isEmpty()) 
-                            && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().trim().isEmpty()))) {
+                    && (searchInput.getPmid() == null || searchInput.getPmid().trim().isEmpty()) 
+                    && (searchInput.getKeyword() == null || searchInput.getKeyword().trim().isEmpty()) 
+                    && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().trim().isEmpty())) {
                 // no restrictions, return all datasets
                 searchKey = "alldatasets";
                 List<String> matches = datasetRepository.getAllDatasets(null);
