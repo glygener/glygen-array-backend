@@ -3,6 +3,7 @@ package org.glygen.array.controller;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.Principal;
@@ -100,8 +101,12 @@ import org.glygen.array.view.BatchGlycanFileType;
 import org.glygen.array.view.Confirmation;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
+import org.glygen.array.view.ImportMetadataResultView;
+import org.glygen.array.view.MetadataError;
+import org.glygen.array.view.MetadataImportInput;
 import org.glygen.array.view.MetadataListResultView;
 import org.glygen.array.view.PrintedSlideListView;
+import org.glygen.array.view.SlideLayoutError;
 import org.glygen.array.view.StatisticsView;
 import org.glygen.array.view.User;
 import org.glygen.array.view.UserStatisticsView;
@@ -6726,7 +6731,7 @@ public class DatasetController {
                 throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
             }
             
-            String typePredicate;
+            String typePredicate = null;
             switch (template.getType()) {
             case SAMPLE: 
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
@@ -6753,13 +6758,11 @@ public class DatasetController {
                 typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
                 break;
             case SLIDE:
-                typePredicate = GlygenArrayRepositoryImpl.slideTypePredicate;
+                typePredicate = GlygenArrayRepositoryImpl.slideTemplateTypePredicate;
                 break;
             case SPOT:
                 typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
                 break;
-            default:
-                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
             }
             MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, typePredicate, true, user);
             if (myMetadata == null) {
@@ -6794,27 +6797,35 @@ public class DatasetController {
         }
     }
     
-    @Operation(summary = "Add metadata listed in a repository export (json) file", security = { @SecurityRequirement(name = "bearer-key") })
-    @RequestMapping(value = "/importmetadata", method=RequestMethod.POST, 
+    @Operation(summary = "Retrieve metadata listed in a repository export (json) file", security = { @SecurityRequirement(name = "bearer-key") })
+    @RequestMapping(value = "/getmetadatafromfile", method=RequestMethod.GET, 
             consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
-    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans processed successfully"), 
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Metadata retrieved successfully"), 
             @ApiResponse(responseCode="400", description="Invalid request if file is not a valid file"),
             @ApiResponse(responseCode="401", description="Unauthorized"),
             @ApiResponse(responseCode="403", description="Not enough privileges to add metadata"),
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
-    public Confirmation addMetadataFromFile (
+    public List<MetadataCategory> getMetadataFromFile (
             @Parameter(required=true, name="file", description="details of the uploded file") 
-            @RequestBody
-            FileWrapper fileWrapper, Principal p, 
-            @Parameter(required=false, name="template", description="type of the metadata, if not provided it will import all metadata") 
-            @RequestParam(required=false, value="template") String fileType) {
+            @RequestParam(required=true, value="file")
+            String filename, Principal p, 
+            @Parameter(required=true, name="template", description="type of the metadata, if not provided it will retrieve all metadata") 
+            @RequestParam(required=true, value="template") MetadataTemplateType templateType,
+            @Parameter(required=false, name="filetype", description="type of the file, the default is Repository Export (.json)", schema = @Schema(type = "string", allowableValues= {"Repository Export (.json)" })) 
+            @RequestParam(required=false, value="filetype") String fileType) {
         
-        if (fileType.contains("json")) {
-            String fileFolder = uploadDir;
-            if (fileWrapper.getFileFolder() != null && !fileWrapper.getFileFolder().isEmpty())
-                fileFolder = fileWrapper.getFileFolder();
-            File file = new File (fileFolder, fileWrapper.getIdentifier());
+            List<MetadataCategory> metadataFromFile = new ArrayList<MetadataCategory>();
+            if (fileType != null && !fileType.contains ("Repository Export")) {
+                // not supported at this time
+                ErrorMessage errorMessage = new ErrorMessage("File type is not supported");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotValid"));
+                throw new IllegalArgumentException("File is not acceptable", errorMessage);
+            }
+            
+            filename = moveToTempFile (filename.trim());
+            File file = new File(uploadDir, filename);
             if (!file.exists()) {
                 ErrorMessage errorMessage = new ErrorMessage("file is not in the uploads folder");
                 errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -6832,64 +6843,14 @@ public class DatasetController {
                         String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
                         ObjectMapper objectMapper = new ObjectMapper();
                         AllMetadataView view = objectMapper.readValue(fileAsString, AllMetadataView.class);
-                        int countSuccess = 0;
+                       
                         if (view.getMetadataList() == null || view.getMetadataList().isEmpty()) {
                             errorMessage.addError(new ObjectError ("file", null, null, "EMPTY"));
                         } else {
                             for (int i=0; i < view.getMetadataList().size(); i++) {
                                 MetadataCategory metadata = view.getMetadataList().get(i);
-                                try {
-                                    String id=null;
-                                    if (metadata instanceof Sample) {
-                                        id = addSample((Sample)metadata, p);
-                                    } else if (metadata instanceof AssayMetadata) {
-                                        id = addAssayMetadata((AssayMetadata)metadata, p);
-                                    } else if (metadata instanceof Printer) {
-                                        id = addPrinter((Printer)metadata, p);
-                                    } else if (metadata instanceof PrintRun) {
-                                        id = addPrintrun((PrintRun)metadata, p);
-                                    } else if (metadata instanceof ImageAnalysisSoftware) {
-                                        id = addImageAnalysisSoftware((ImageAnalysisSoftware)metadata, p);
-                                    } else if (metadata instanceof DataProcessingSoftware) {
-                                        id = addDataProcessingSoftware((DataProcessingSoftware)metadata, p);
-                                    } else if (metadata instanceof ScannerMetadata) {
-                                        id = addScanner((ScannerMetadata)metadata, p);
-                                    } else if (metadata instanceof SpotMetadata) {
-                                        id = addSpotMetadata((SpotMetadata)metadata, p);
-                                    } else if (metadata instanceof SlideMetadata) {
-                                        id = addSlideMetadata((SlideMetadata)metadata, p);
-                                    }
-                                  
-                                    if (id != null) {
-                                        countSuccess ++;
-                                    } else {
-                                        // error
-                                        String[] codes = new String[] {i+""};
-                                        errorMessage.addError(new ObjectError("sequence", codes, null, metadata.getName() + " not added"));
-                                    }
-                                } catch (Exception e) {
-                                    logger.error ("Exception adding the metadata: " + metadata.getName(), e);
-                                    if (e.getCause() instanceof ErrorMessage) {
-                                        if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
-                                            ErrorMessage error = (ErrorMessage)e.getCause();
-                                            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
-                                                ObjectError err = error.getErrors().get(0);
-                                                if (err.getCodes() != null && err.getCodes().length != 0) {
-                                                    String[] codes = new String[] {i+"", err.getCodes()[0]};
-                                                    errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
-                                                } else {
-                                                    String[] codes = new String[] {i+""};
-                                                    errorMessage.addError(new ObjectError ("duplicate", codes, null, metadata.getName() + " is a duplicate"));
-                                                }
-                                            } 
-                                        } else {
-                                            String[] codes = new String[] {i+""};
-                                            errorMessage.addError(new ObjectError("sequence", codes, null, ((ErrorMessage)e.getCause()).toString()));
-                                        }
-                                    } else { 
-                                        String[] codes = new String[] {i+""};
-                                        errorMessage.addError(new ObjectError("sequence", codes, null, e.getMessage()));
-                                    }
+                                if (checkTemplateType(metadata, templateType)) {
+                                    metadataFromFile.add(metadata);
                                 }
                             }
                         }
@@ -6897,8 +6858,7 @@ public class DatasetController {
                         if (errorMessage.getErrors() != null && !errorMessage.getErrors().isEmpty()) {
                             throw new IllegalArgumentException("Errors in the upload process", errorMessage);
                         }
-                        Confirmation confirmation = new Confirmation (countSuccess + " out of " + view.getMetadataList().size() + " metadata are added", HttpStatus.OK.value());
-                        return confirmation;
+                        return metadataFromFile;
                     } catch (IOException e) {
                         errorMessage.addError(new ObjectError("file", "NotValid"));
                         errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
@@ -6911,13 +6871,262 @@ public class DatasetController {
                     throw new IllegalArgumentException("File cannot be read", errorMessage);
                 }
             }
-        } else {
-            // not supported
-            ErrorMessage errorMessage = new ErrorMessage("File type " + fileType + " is not supported");
-            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorMessage.addError(new ObjectError("type", "NotValid"));
-            throw new IllegalArgumentException("File type " + fileType + " is not supported", errorMessage);
+    }
+    
+    private boolean checkTemplateType(MetadataCategory metadata, MetadataTemplateType templateType) {
+        switch (templateType) {
+        case ASSAY:
+            if (metadata instanceof AssayMetadata)
+                return true;
+            break;
+        case DATAPROCESSINGSOFTWARE:
+            if (metadata instanceof DataProcessingSoftware)
+                return true;
+            break;
+        case FEATURE:
+            if (metadata instanceof FeatureMetadata)
+                return true;
+            break;
+        case IMAGEANALYSISSOFTWARE:
+            if (metadata instanceof ImageAnalysisSoftware)
+                return true;
+            break;
+        case PRINTER:
+            if (metadata instanceof Printer)
+                return true;
+            break;
+        case PRINTRUN:
+            if (metadata instanceof PrintRun)
+                return true;
+            break;
+        case SAMPLE:
+            if (metadata instanceof Sample)
+                return true;
+            break;
+        case SCANNER:
+            if (metadata instanceof ScannerMetadata)
+                return true;
+            break;
+        case SLIDE:
+            if (metadata instanceof SlideMetadata)
+                return true;
+            break;
+        case SPOT:
+            if (metadata instanceof SpotMetadata)
+                return true;
+            break;
         }
+        return false;
+    }
+
+    private String moveToTempFile(String uploadedFileName) {
+        if (uploadedFileName.startsWith("tmp"))
+            return uploadedFileName;
+        File oldFile = new File (uploadDir, uploadedFileName);
+        File newFile = new File (uploadDir, "tmp" + uploadedFileName);
+        if (newFile.exists()) {
+            // already moved to tmp
+            return "tmp" + uploadedFileName;
+        }
+        boolean b = oldFile.renameTo(newFile);
+        if (b) return "tmp" + uploadedFileName;
+        
+        return uploadedFileName;
+    }
+    
+    @Operation(summary = "Import listed metadata to the repository", security = { @SecurityRequirement(name = "bearer-key") })
+    @RequestMapping(value = "/importmetadata", method=RequestMethod.POST, 
+            consumes = {"application/json", "application/xml"}, produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Metadata processed successfully"), 
+            @ApiResponse(responseCode="400", description="Invalid request if file is not a valid file"),
+            @ApiResponse(responseCode="401", description="Unauthorized"),
+            @ApiResponse(responseCode="403", description="Not enough privileges to add metadata"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error")})
+    public ImportMetadataResultView importMetadata (
+            @Parameter(required=true, description="list of metadata to be uploaded") 
+            @RequestBody
+            MetadataImportInput input, 
+            Principal p) {
+        
+        ImportMetadataResultView result = new ImportMetadataResultView();
+        UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        FileWrapper fileWrapper = input.getFile();
+        if (fileWrapper != null && fileWrapper.getIdentifier() != null) {
+            String uploadedFileName = fileWrapper.getIdentifier();
+            String finalFileName = moveToTempFile (uploadedFileName.trim());
+            File jsonFile = new File(uploadDir, finalFileName);
+            if (jsonFile.exists()) {
+                AllMetadataView view = null;
+                byte[] fileContent;
+                try {
+                    fileContent = Files.readAllBytes(jsonFile.toPath());
+                    ByteArrayInputStream stream = new   ByteArrayInputStream(fileContent);
+                    String fileAsString = IOUtils.toString(stream, StandardCharsets.UTF_8);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    view = objectMapper.readValue(fileAsString, AllMetadataView.class);
+                } catch (IOException e) {
+                    // cannot read the file
+                    ErrorMessage errorMessage = new ErrorMessage("File cannot be found");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("file", "NotFound"));
+                    throw new IllegalArgumentException("File cannot be found", errorMessage);
+                }
+                if (input.getSelectedMetadata() == null || input.getSelectedMetadata().isEmpty()) {
+                    ErrorMessage errorMessage = new ErrorMessage("No metadata selected");
+                    errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                    errorMessage.addError(new ObjectError("selectedMetadata", "NoEmpty"));
+                    errorMessage.setErrorCode(ErrorCodes.NOT_ALLOWED);
+                    throw new IllegalArgumentException("No metadata selected", errorMessage);
+                }
+                
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                int countSuccess = 0;
+                for (int i=0; i < input.getSelectedMetadata().size(); i++) {
+                    MetadataCategory metadata = input.getSelectedMetadata().get(i);
+                    String searchName = null;
+                    if (metadata.getName() != null) {
+                        searchName = metadata.getName();
+                    }
+                    boolean duplicate = false;
+                    String typePredicate = null;
+                    try {
+                        if (metadata instanceof Sample) {
+                            typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
+                        } else if (metadata instanceof AssayMetadata) {
+                            typePredicate = GlygenArrayRepositoryImpl.assayTypePredicate;
+                        } else if (metadata instanceof DataProcessingSoftware) {
+                            typePredicate = GlygenArrayRepositoryImpl.dataProcessingTypePredicate;
+                        } else if (metadata instanceof FeatureMetadata) {
+                            typePredicate = GlygenArrayRepositoryImpl.featureMetadataTypePredicate;
+                        } else if (metadata instanceof ImageAnalysisSoftware) {
+                            typePredicate = GlygenArrayRepositoryImpl.imageAnalysisTypePredicate;
+                        } else if (metadata instanceof Printer) {
+                            typePredicate = GlygenArrayRepositoryImpl.printerTypePredicate;
+                        } else if (metadata instanceof PrintRun) {
+                            typePredicate = GlygenArrayRepositoryImpl.printRunTypePredicate;
+                        } else if (metadata instanceof ScannerMetadata) {
+                            typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
+                        } else if (metadata instanceof SlideMetadata) {
+                            typePredicate = GlygenArrayRepositoryImpl.slideTemplateTypePredicate;
+                        } else if (metadata instanceof SpotMetadata) {
+                            typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
+                        } else {
+                            // error
+                            errorMessage.addError(new ObjectError("templateType", "NotValid"));
+                            throw new IllegalArgumentException("template type is not valid", errorMessage);
+                        }
+                        if (typePredicate != null && searchName != null) {
+                            MetadataCategory existing = metadataRepository.getMetadataByLabel(searchName, typePredicate, user);
+                            if (existing != null) {
+                                //MetadataError error = new MetadataError();
+                                //error.setMetadata(metadata);
+                                //String[] codes = new String[] {metadata.getName()};
+                                //errorMessage.addError(new ObjectError("name", codes, null, "Duplicate"));
+                                //errorMessage.setErrorCode(ErrorCodes.INVALID_INPUT);
+                                //error.setError(errorMessage);
+                                result.getDuplicates().add(existing);
+                                duplicate = true;
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage.addError(new ObjectError("slideLayout", e.getMessage()));
+                        errorMessage.setErrorCode(ErrorCodes.NOT_FOUND);
+                        throw new IllegalArgumentException("metadata search failed", errorMessage);
+                    }
+                    
+                    try {
+                        if (duplicate)
+                            continue;
+                        
+                        // get full metadata from file
+                        for (MetadataCategory m: view.getMetadataList()) {
+                            if (m.getId().equalsIgnoreCase(metadata.getId())) {
+                                metadata = m;
+                                if (searchName != null) {
+                                    metadata.setName(searchName);
+                                }
+                            }
+                        }
+                        
+                        String id=null;
+                        if (metadata instanceof Sample) {
+                            id = addSample((Sample)metadata, p);
+                        } else if (metadata instanceof AssayMetadata) {
+                            id = addAssayMetadata((AssayMetadata)metadata, p);
+                        } else if (metadata instanceof Printer) {
+                            id = addPrinter((Printer)metadata, p);
+                        } else if (metadata instanceof PrintRun) {
+                            id = addPrintrun((PrintRun)metadata, p);
+                        } else if (metadata instanceof ImageAnalysisSoftware) {
+                            id = addImageAnalysisSoftware((ImageAnalysisSoftware)metadata, p);
+                        } else if (metadata instanceof DataProcessingSoftware) {
+                            id = addDataProcessingSoftware((DataProcessingSoftware)metadata, p);
+                        } else if (metadata instanceof ScannerMetadata) {
+                            id = addScanner((ScannerMetadata)metadata, p);
+                        } else if (metadata instanceof SpotMetadata) {
+                            id = addSpotMetadata((SpotMetadata)metadata, p);
+                        } else if (metadata instanceof SlideMetadata) {
+                            id = addSlideMetadata((SlideMetadata)metadata, p);
+                        }
+                      
+                        if (id != null) {
+                            countSuccess ++;
+                            result.getAddedMetadata().add(metadata);
+                        } else {
+                            // error
+                            String[] codes = new String[] {i+""};
+                            errorMessage.addError(new ObjectError("metadata", codes, null, metadata.getName() + " not added"));
+                            MetadataError error = new MetadataError();
+                            error.setMetadata(metadata);
+                            error.setError(errorMessage);
+                            result.getErrors().add(error);
+                        }
+                    } catch (Exception e) {
+                        logger.error ("Exception adding the metadata: " + metadata.getName(), e);
+                        if (e.getCause() instanceof ErrorMessage) {
+                            if (((ErrorMessage)e.getCause()).toString().contains("Duplicate")) {
+                                try {
+                                    MetadataCategory existing = metadataRepository.getMetadataByLabel(metadata.getName(), typePredicate, user);
+                                    result.getDuplicates().add(existing);
+                                } catch (Exception e1) {
+                                    logger.error("could not check for existence of metadata by name!", e1);
+                                }
+                            } else {
+                                String[] codes = new String[] {i+""};
+                                errorMessage.addError(new ObjectError("metadata", codes, null, ((ErrorMessage)e.getCause()).toString()));
+                                MetadataError error = new MetadataError();
+                                error.setMetadata(metadata);
+                                error.setError(errorMessage);
+                                result.getErrors().add(error);
+                            }
+                        } else { 
+                            String[] codes = new String[] {i+""};
+                            errorMessage.addError(new ObjectError("metadata", codes, null, e.getMessage()));
+                            MetadataError error = new MetadataError();
+                            error.setMetadata(metadata);
+                            error.setError(errorMessage);
+                            result.getErrors().add(error);
+                        }
+                    }
+                }
+                
+                result.setSuccessMessage(countSuccess + " out of " + input.getSelectedMetadata().size() + " metadata are added");
+                return result;
+            } else {
+                ErrorMessage errorMessage = new ErrorMessage("File cannot be found");
+                errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+                errorMessage.addError(new ObjectError("file", "NotFound"));
+                throw new IllegalArgumentException("File cannot be found", errorMessage);
+            }
+        } else {
+            ErrorMessage errorMessage = new ErrorMessage("File cannot be found");
+            errorMessage.setStatus(HttpStatus.BAD_REQUEST.value());
+            errorMessage.addError(new ObjectError("file", "NotFound"));
+            throw new IllegalArgumentException("File cannot be found", errorMessage);
+        }
+        
     }
     
     @Operation(summary = "Retrieve slide with the given id", security = { @SecurityRequirement(name = "bearer-key") })
@@ -8819,6 +9028,8 @@ public class DatasetController {
             @Parameter(required=false, description="single sheet") 
             @RequestParam(value="singleSheet", required=false)
             Boolean singleSheet,
+            @Parameter(required=false, name="filetype", description="type of the file, the default is Excel", schema = @Schema(type = "string", allowableValues= {"Excel", "json" })) 
+            @RequestParam(required=false, value="filetype") String fileType,
             Principal p) {
         
         ErrorMessage errorMessage = new ErrorMessage();
@@ -8826,7 +9037,10 @@ public class DatasetController {
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
         
         if (fileName == null || fileName.isEmpty()) {
-            fileName = datasetId + ".xlsx";
+            if (fileType == null || fileType.equalsIgnoreCase("excel"))
+                fileName = datasetId + ".xlsx";
+            else 
+                fileName = datasetId + ".json";
         }
         File newFile = new File (uploadDir, "tmp" + fileName);
         
@@ -8846,8 +9060,64 @@ public class DatasetController {
                     if (user != null) {
                         data.getUser().setFirstName(user.getFirstName());
                         data.getUser().setLastName(user.getLastName());
+                    }      
+                    if (fileType == null || fileType.equalsIgnoreCase("excel")) {
+                        new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath(), mirageOnly, singleSheet);
+                    } else {
+                        // json 
+                        AllMetadataView view = new AllMetadataView();
+                        List<MetadataCategory> metadataList = new ArrayList<MetadataCategory>();
+                        metadataList.add(data.getSample());
+                        if (data.getSlides() != null) {
+                            for (Slide slide: data.getSlides()) {
+                                if (slide.getMetadata() != null) {
+                                    metadataList.add(slide.getMetadata());
+                                }
+                                if (slide.getPrintedSlide().getMetadata() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getMetadata());
+                                }
+                                if (slide.getPrintedSlide().getPrinter() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getPrinter());
+                                }
+                                if (slide.getPrintedSlide().getPrintRun() != null) {
+                                    metadataList.add(slide.getPrintedSlide().getPrintRun());
+                                }
+                                if (slide.getImages() != null) {
+                                    for (Image image: slide.getImages()) {
+                                        if (image.getScanner() != null) {
+                                            metadataList.add(image.getScanner());
+                                        }
+                                        for (RawData rawData: image.getRawDataList()) {
+                                            if (rawData.getMetadata() != null) {
+                                                metadataList.add(rawData.getMetadata());
+                                            }
+                                            for (ProcessedData processed: rawData.getProcessedDataList()) {
+                                                if (processed.getMetadata() != null) {
+                                                    metadataList.add(processed.getMetadata());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        view.setMetadataList(metadataList);
+                        try {
+                            SettingEntity entity = settingsRepository.findByName("apiVersion");
+                            if (entity != null) {
+                                view.setVersion(entity.getValue()); 
+                            }
+                        } catch (Exception e) {
+                            view.setVersion("1.0.0");
+                        }
+                        
+                        ObjectMapper mapper = new ObjectMapper();         
+                        String json = mapper.writeValueAsString(view);
+                        PrintWriter writer = new PrintWriter(newFile);
+                        writer.write (json);
+                        writer.close();
                     }
-                    new MetadataImportExportUtil(scheme+host+basePath).exportIntoExcel(data, newFile.getAbsolutePath(), mirageOnly, singleSheet);  
                 } catch (IOException e) {
                     errorMessage.addError(new ObjectError("file", "NotFound"));
                 }

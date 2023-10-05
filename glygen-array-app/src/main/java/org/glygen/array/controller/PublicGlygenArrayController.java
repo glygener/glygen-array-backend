@@ -2268,7 +2268,7 @@ public class PublicGlygenArrayController {
                 throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
             }
             
-            String typePredicate;
+            String typePredicate=null;
             switch (template.getType()) {
             case SAMPLE: 
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
@@ -2295,13 +2295,11 @@ public class PublicGlygenArrayController {
                 typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
                 break;
             case SLIDE:
-                typePredicate = GlygenArrayRepositoryImpl.slideTypePredicate;
+                typePredicate = GlygenArrayRepositoryImpl.slideTemplateTypePredicate;
                 break;
             case SPOT:
                 typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
                 break;
-            default:
-                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
             }
             
             MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, null);

@@ -35,25 +35,25 @@ public enum MetadataTemplateType {
     
     @JsonCreator
     public static MetadataTemplateType forValue(String value) {
-        if (value.equals("sample_template"))
+        if (value.equals("sample_template") || value.equals("SAMPLE"))
             return SAMPLE;
-        else if (value.equals("printer_template"))
+        else if (value.equals("printer_template") || value.equals("PRINTER"))
             return PRINTER;
-        else if (value.equals("scanner_template"))
+        else if (value.equals("scanner_template") || value.equals("SCANNER"))
             return SCANNER;
-        else if (value.equals("slide_template"))
+        else if (value.equals("slide_template") || value.equals("SLIDE"))
             return SLIDE;
-        else if (value.equals("data_processing_software_template"))
+        else if (value.equals("data_processing_software_template") || value.equals("DATAPROCESSINGSOFTWARE"))
             return DATAPROCESSINGSOFTWARE;
-        else if (value.equals("image_analysis_software_template"))
+        else if (value.equals("image_analysis_software_template") || value.equals("IMAGEANALYSISSOFTWARE"))
             return IMAGEANALYSISSOFTWARE;
-        else if (value.equals("assay_template"))
+        else if (value.equals("assay_template") || value.equals("ASSAY"))
             return ASSAY;
-        else if (value.equals("spot_template"))
+        else if (value.equals("spot_template") || value.equals("SPOT"))
             return SPOT;
-        else if (value.equals("feature_template"))
+        else if (value.equals("feature_template") || value.equals("FEATURE"))
             return FEATURE;
-        else if (value.equals("printrun_template"))
+        else if (value.equals("printrun_template") || value.equals("PRINTRUN"))
             return PRINTRUN;
         return SAMPLE;
     }
