@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -2181,7 +2182,7 @@ public class PublicGlygenArrayController {
                     } else {
                         // json 
                         AllMetadataView view = new AllMetadataView();
-                        List<MetadataCategory> metadataList = new ArrayList<MetadataCategory>();
+                        Set<MetadataCategory> metadataList = new HashSet<MetadataCategory>();
                         metadataList.add(data.getSample());
                         if (data.getSlides() != null) {
                             for (Slide slide: data.getSlides()) {
@@ -2217,7 +2218,7 @@ public class PublicGlygenArrayController {
                                 }
                             }
                         }
-                        view.setMetadataList(metadataList);
+                        view.setMetadataList(new ArrayList<MetadataCategory>(metadataList));
                         try {
                             SettingEntity entity = settingsRepository.findByName("apiVersion");
                             if (entity != null) {

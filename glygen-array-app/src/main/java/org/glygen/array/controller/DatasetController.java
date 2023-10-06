@@ -9066,7 +9066,7 @@ public class DatasetController {
                     } else {
                         // json 
                         AllMetadataView view = new AllMetadataView();
-                        List<MetadataCategory> metadataList = new ArrayList<MetadataCategory>();
+                        Set<MetadataCategory> metadataList = new HashSet<MetadataCategory>();
                         metadataList.add(data.getSample());
                         if (data.getSlides() != null) {
                             for (Slide slide: data.getSlides()) {
@@ -9102,7 +9102,7 @@ public class DatasetController {
                                 }
                             }
                         }
-                        view.setMetadataList(metadataList);
+                        view.setMetadataList(new ArrayList<>(metadataList));
                         try {
                             SettingEntity entity = settingsRepository.findByName("apiVersion");
                             if (entity != null) {
