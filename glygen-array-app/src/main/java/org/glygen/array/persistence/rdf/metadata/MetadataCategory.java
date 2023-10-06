@@ -259,4 +259,20 @@ public class MetadataCategory {
     public void setType(MetadataTemplateType type) {
         this.type = type;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MetadataCategory)
+            return this.type != null && this.type.equals(((MetadataCategory)obj).type) 
+                && this.id != null && this.id.equals(((MetadataCategory) obj).id);
+        return super.equals(obj);
+    }
+    
+    @Override
+    public int hashCode() {
+        if (id != null) {
+            return id.hashCode();
+        }
+        return super.hashCode();
+    }
 }
