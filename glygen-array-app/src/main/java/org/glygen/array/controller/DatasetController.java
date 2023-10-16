@@ -6717,22 +6717,18 @@ public class DatasetController {
             @ApiResponse(responseCode="415", description="Media type is not supported"),
             @ApiResponse(responseCode="500", description="Internal Server Error")})
     public @ResponseBody String exportMetadata (
-            @Parameter(required=true, description="id of metadata to export") 
-            @RequestParam(value="metadataId", required=true) String metadataId,
-            @Parameter(required=true, description="template of metadata to export") 
-            @RequestParam("template")
-            String templateType,
+            @Parameter(required=false, description="id of metadata to export") 
+            @RequestParam(value="metadataId", required=false) String metadataId,
+            @Parameter(required=true, name="template", description="type of the metadata, if not provided it will retrieve all metadata") 
+            @RequestParam(required=true, value="template") MetadataTemplateType templateType,
             Principal p) {
                 
         UserEntity user = userRepository.findByUsernameIgnoreCase(p.getName());
+        
+        boolean exportAll = (metadataId == null);
         try {
-            MetadataTemplate template = templateRepository.getTemplateFromURI(MetadataTemplateRepository.templatePrefix+templateType, false);
-            if (template == null) {
-                throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
-            }
-            
             String typePredicate = null;
-            switch (template.getType()) {
+            switch (templateType) {
             case SAMPLE: 
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
                 break;
@@ -6764,13 +6760,19 @@ public class DatasetController {
                 typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
                 break;
             }
-            MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, typePredicate, true, user);
-            if (myMetadata == null) {
-                // try public graph
-                metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, user);
-            }
-            if (myMetadata == null) {
-                throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found for the user " + p.getName());
+            List<MetadataCategory> metadataToExport = new ArrayList<MetadataCategory>();
+            if (exportAll) {
+                metadataToExport = metadataRepository.getMetadataCategoryByUser(user, 0, -1, null, 0, null, typePredicate, true);   
+            } else {
+                MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefix + metadataId, typePredicate, true, user);
+                if (myMetadata == null) {
+                    // try public graph
+                    metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, user);
+                }
+                if (myMetadata == null) {
+                    throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found for the user " + p.getName());
+                }
+                metadataToExport.add(myMetadata);
             }
             AllMetadataView view = new AllMetadataView();
             try {
@@ -6781,8 +6783,7 @@ public class DatasetController {
             } catch (Exception e) {
                 view.setVersion("1.0.0");
             }
-            view.setMetadataList(new ArrayList<MetadataCategory>());
-            view.getMetadataList().add(myMetadata);
+            view.setMetadataList(metadataToExport);
             ObjectMapper mapper = new ObjectMapper();         
             String json = mapper.writeValueAsString(view);
             return json;
