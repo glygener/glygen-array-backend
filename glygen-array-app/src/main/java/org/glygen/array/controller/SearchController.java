@@ -815,6 +815,19 @@ public class SearchController {
                 searchResultMap.put(searchInput.getPmid().trim().hashCode()+"p", matchedIds);
             }
             
+            if (searchInput.getKeyword() != null && !searchInput.getKeyword().trim().isEmpty()) {
+                List<SparqlEntity> results = queryHelper.retrieveDatasetByKeyword(
+                        searchInput.getKeyword().trim(), GlygenArrayRepository.DEFAULT_GRAPH);
+                List<String> matchedIds = new ArrayList<String>();
+                if (results != null) {
+                    for (SparqlEntity r: results) {
+                        String m = r.getValue("s");
+                        matchedIds.add(m.substring(m.lastIndexOf("/")+1));
+                    }
+                }
+                searchResultMap.put(searchInput.getKeyword().trim().hashCode()+"k", matchedIds);
+            }
+            
             Set<String> finalMatches = new HashSet<String>();
             int i=0;
             String searchKey = "";
@@ -835,8 +848,9 @@ public class SearchController {
             }
             
             if ((searchInput.getDatasetName() == null || searchInput.getDatasetName().trim().isEmpty()) 
-                    && ((searchInput.getPmid() == null || searchInput.getPmid().trim().isEmpty()) 
-                            && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().trim().isEmpty()))) {
+                    && (searchInput.getPmid() == null || searchInput.getPmid().trim().isEmpty()) 
+                    && (searchInput.getKeyword() == null || searchInput.getKeyword().trim().isEmpty()) 
+                    && (searchInput.getPrintedSlideName() == null || searchInput.getPrintedSlideName().trim().isEmpty())) {
                 // no restrictions, return all datasets
                 searchKey = "alldatasets";
                 List<String> matches = datasetRepository.getAllDatasets(null);

@@ -637,6 +637,10 @@ public class UtilityController {
                 List<String> pmids = datasetRepository.getAllPublicPmids();
                 trie = NamespaceHandler.createNamespaceFromList(pmids);
                 
+            } else if (namespace.equalsIgnoreCase("keyword")) {
+                Set<String> keywords = datasetRepository.getAllKeywords();
+                trie = NamespaceHandler.createNamespaceFromList(new ArrayList<String>(keywords));
+                
             } else if (namespace.equalsIgnoreCase("username")) {
                 List<UserEntity> userList = userRepository.findAll();
                 List<String> userNames = new ArrayList<String>();

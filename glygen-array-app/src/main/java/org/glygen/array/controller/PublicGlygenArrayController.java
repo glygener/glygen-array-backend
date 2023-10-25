@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -2181,7 +2182,7 @@ public class PublicGlygenArrayController {
                     } else {
                         // json 
                         AllMetadataView view = new AllMetadataView();
-                        List<MetadataCategory> metadataList = new ArrayList<MetadataCategory>();
+                        Set<MetadataCategory> metadataList = new HashSet<MetadataCategory>();
                         metadataList.add(data.getSample());
                         if (data.getSlides() != null) {
                             for (Slide slide: data.getSlides()) {
@@ -2217,7 +2218,7 @@ public class PublicGlygenArrayController {
                                 }
                             }
                         }
-                        view.setMetadataList(metadataList);
+                        view.setMetadataList(new ArrayList<MetadataCategory>(metadataList));
                         try {
                             SettingEntity entity = settingsRepository.findByName("apiVersion");
                             if (entity != null) {
@@ -2268,7 +2269,7 @@ public class PublicGlygenArrayController {
                 throw new EntityNotFoundException("The given template type: " + templateType + " cannot be found in the repository");
             }
             
-            String typePredicate;
+            String typePredicate=null;
             switch (template.getType()) {
             case SAMPLE: 
                 typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
@@ -2295,21 +2296,30 @@ public class PublicGlygenArrayController {
                 typePredicate = GlygenArrayRepositoryImpl.scannerTypePredicate;
                 break;
             case SLIDE:
-                typePredicate = GlygenArrayRepositoryImpl.slideTypePredicate;
+                typePredicate = GlygenArrayRepositoryImpl.slideTemplateTypePredicate;
                 break;
             case SPOT:
                 typePredicate = GlygenArrayRepositoryImpl.spotMetadataTypePredicate;
                 break;
-            default:
-                typePredicate = GlygenArrayRepositoryImpl.sampleTypePredicate;
             }
             
             MetadataCategory myMetadata = metadataRepository.getMetadataCategoryFromURI(GlygenArrayRepositoryImpl.uriPrefixPublic + metadataId, typePredicate, true, null);
             if (myMetadata == null) {
                 throw new EntityNotFoundException("Given metadata " + metadataId + " cannot be found");
             }
+            AllMetadataView view = new AllMetadataView();
+            try {
+                SettingEntity entity = settingsRepository.findByName("apiVersion");
+                if (entity != null) {
+                    view.setVersion(entity.getValue()); 
+                }
+            } catch (Exception e) {
+                view.setVersion("1.0.0");
+            }
+            view.setMetadataList(new ArrayList<MetadataCategory>());
+            view.getMetadataList().add(myMetadata);
             ObjectMapper mapper = new ObjectMapper();         
-            String json = mapper.writeValueAsString(myMetadata);
+            String json = mapper.writeValueAsString(view);
             return json;
         } catch (SparqlException | SQLException e) {
             throw new GlycanRepositoryException("Metadata cannot be retrieved for user");

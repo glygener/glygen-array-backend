@@ -8,13 +8,38 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glygen.array.config.ValidationConstants;
 import org.glygen.array.persistence.rdf.Creator;
+import org.glygen.array.persistence.rdf.template.MetadataTemplateType;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME, 
+        include = JsonTypeInfo.As.PROPERTY, 
+        property = "type",
+        visible = true)
+    @JsonSubTypes({ 
+        @Type(value = Sample.class, name = "SAMPLE"), 
+        @Type(value = Printer.class, name = "PRINTER"),
+        @Type(value = ScannerMetadata.class, name = "SCANNER"),
+        @Type(value = SlideMetadata.class, name = "SLIDE"),
+        @Type(value = DataProcessingSoftware.class, name = "DATAPROCESSINGSOFTWARE"),
+        @Type(value = ImageAnalysisSoftware.class, name = "IMAGEANALYSISSOFTWARE"),
+        @Type(value = AssayMetadata.class, name = "ASSAY"),
+        @Type(value = FeatureMetadata.class, name = "FEATURE"),
+        @Type(value = SpotMetadata.class, name = "SPOT"),
+        @Type(value = PrintRun.class, name = "PRINTRUN")
+    })
 @XmlRootElement
 public class MetadataCategory {
     String id;
     String uri;
     String template;
     String templateType;
+    
+    MetadataTemplateType type;
 
     List<Descriptor> descriptors;
     List<DescriptorGroup> descriptorGroups;
@@ -219,5 +244,35 @@ public class MetadataCategory {
      */
     public void setIsMirage(Boolean isMirage) {
         this.isMirage = isMirage;
+    }
+
+    /**
+     * @return the type
+     */
+    public MetadataTemplateType getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(MetadataTemplateType type) {
+        this.type = type;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MetadataCategory)
+            return this.type != null && this.type.equals(((MetadataCategory)obj).type) 
+                && this.id != null && this.id.equals(((MetadataCategory) obj).id);
+        return super.equals(obj);
+    }
+    
+    @Override
+    public int hashCode() {
+        if (id != null) {
+            return id.hashCode();
+        }
+        return super.hashCode();
     }
 }
