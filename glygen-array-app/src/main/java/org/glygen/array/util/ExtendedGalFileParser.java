@@ -557,7 +557,7 @@ public class ExtendedGalFileParser {
         	if (defaultReference != null && !defaultReference.isEmpty()) {
         		subDesc4.setValue(defaultReference);	
         	} 
-        } else if (!methodValue.contains("#N/A")) {
+        } else if (!referenceValue.contains("#N/A")) {
         	subDesc4.setValue(referenceValue);
         }
         if (subDesc4.getValue() != null) {
@@ -597,7 +597,8 @@ public class ExtendedGalFileParser {
         	} 
         } else if (!dispensesValue.contains("#N/A")) {
         	desc6.setValue(dispensesValue);
-        } else {
+        } 
+        if (desc6.getValue() == null) {
         	desc6.setNotRecorded(true);
         }
         if (desc6.getValue() != null || desc6.getNotRecorded()) {
@@ -628,7 +629,8 @@ public class ExtendedGalFileParser {
         DescriptionTemplate key9 = getKeyFromTemplate (comment.getName(), this.spotMetadataTemplate);
         comment.setKey(key9);
         comment.setValue( (config.getCommentColumn() != -1 && splitted.length > config.getCommentColumn()) ? splittedRow[config.commentColumn]: "");
-        descriptors.add(comment);
+        if (!comment.getValue().isEmpty())
+            descriptors.add(comment);
         
         return spotMetadata; 
     }
