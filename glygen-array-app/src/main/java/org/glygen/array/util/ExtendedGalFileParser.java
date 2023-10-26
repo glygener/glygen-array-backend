@@ -1,8 +1,11 @@
 package org.glygen.array.util;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -32,6 +35,7 @@ import org.glygen.array.service.MetadataTemplateRepository;
 import org.glygen.array.view.ErrorMessage;
 import org.grits.toolbox.glycanarray.library.om.layout.LevelUnit;
 import org.grits.toolbox.glycanarray.om.model.UnitOfLevels;
+import org.jline.utils.InputStreamReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +82,6 @@ public class ExtendedGalFileParser {
         if (!file.exists())
             throw new FileNotFoundException(filePath + " does not exist!");
         
-        Scanner scan = new Scanner(file);
         boolean dataStarts = false;
         String type = "GenePix ArrayList V1.0";
         Integer prevBlockLocation = -1;
@@ -118,8 +121,14 @@ public class ExtendedGalFileParser {
         
         BlockLayout blockLayout=null;
         
-        while(scan.hasNext()){
-            String curLine = scan.nextLine();
+        //Scanner scan = new Scanner(file, "iso-8859-1");
+        BufferedReader br = new BufferedReader(new InputStreamReader(
+                new FileInputStream(file), "iso-8859-1"));
+        String curLine;
+        while((curLine = br.readLine()) != null) {
+        
+        //while(scan.hasNext()){
+        //    String curLine = scan.nextLine();
             String[] splitted = curLine.split("\t");
             if (splitted.length == 0)
                 continue;
@@ -323,15 +332,10 @@ public class ExtendedGalFileParser {
                                     featureConcentrationMap.put(feature, levelUnits[i]);
                                 i++;
                             }
-                            try {
-                                if (!group.isEmpty())
-                                    spot.setGroup(group.trim());
-                        	} catch (NumberFormatException e) {
-                        		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
-                                String[] codes = new String[] {"Row " + x, "Row " + y};
-                                error.addError(new ObjectError ("group", codes, null, "NotValid"));
-                                errorList.add(error);
-                        	}
+                            
+                            if (!group.isEmpty())
+                                spot.setGroup(group.trim());
+                        	
                             
                             if (ratio != null && !ratio.isEmpty()) {
                                 String[] ratios = ratio.split(":");
@@ -376,14 +380,7 @@ public class ExtendedGalFileParser {
                                     maxGroup = groupId;
                                 if (!group.isEmpty()) {
                                 	// use the group from the file
-                                	try {
-                                		spot.setGroup(group.trim());
-                                	} catch (NumberFormatException e) {
-                                		ErrorMessage error = new ErrorMessage("Group should be a number: " + group);
-                                        String[] codes = new String[] {"Row " + x, "Row " + y};
-                                        error.addError(new ObjectError ("group", codes, null, "NotValid"));
-                                        errorList.add(error);
-                                	}
+                                	spot.setGroup(group.trim());
                                 } else {
                                 	spot.setGroup("" + groupId++);
                                 }
@@ -407,13 +404,23 @@ public class ExtendedGalFileParser {
             }         
         }
         
-        scan.close();
+        //scan.close();
+        br.close();
         
-        // add the last blockLayout
-        blockLayout.setWidth(maxColumn);
-        blockLayout.setHeight(maxRow);
-        
-        layoutList.add(blockLayout);
+        if (dataStarts) {
+            // add the last blockLayout
+            blockLayout.setWidth(maxColumn);
+            blockLayout.setHeight(maxRow);
+            
+            layoutList.add(blockLayout);
+        } else {
+            // Error
+            ErrorMessage error = new ErrorMessage("Parsing of the file failes");
+            String[] codes = new String[] {"Could not locate the data table"};
+            error.addError(new ObjectError ("file", codes, null, "NotValid"));
+            errorList.add(error);
+            
+        }
         
         if (!useBlockCount) {
             // check if the total number of blocks and width/height agrees
