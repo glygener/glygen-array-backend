@@ -1695,7 +1695,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
             String glytoucanId = result.getValue("gid");
             GlycanIdView gView = new GlycanIdView();
             gView.setGadrId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
-            gView.setGadrId(glytoucanId);
+            gView.setGlytoucanId(glytoucanId);
             glycans.add(gView);
             
         }
