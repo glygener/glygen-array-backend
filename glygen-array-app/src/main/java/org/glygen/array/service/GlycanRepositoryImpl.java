@@ -34,6 +34,7 @@ import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.UnknownGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.util.GlytoucanUtil;
+import org.glygen.array.view.GlycanIdView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -1670,4 +1671,34 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
         
         return glycans;
     }
+
+	@Override
+	public List<GlycanIdView> getAllGlycanIdsWithGlytoucan(UserEntity user) throws SparqlException, SQLException {
+		List<GlycanIdView> glycans = new ArrayList<>();
+        String graph = null;
+        if (user == null) {
+            graph = DEFAULT_GRAPH;    
+        } else
+            graph = getGraphForUser(user);
+        
+        StringBuffer queryBuf = new StringBuffer();
+        queryBuf.append (prefix + "\n");
+        queryBuf.append ("SELECT DISTINCT ?s ?gid \n");
+        queryBuf.append ("FROM <" + graph + ">\n");
+        queryBuf.append ("WHERE {\n");
+        queryBuf.append ( " ?s rdf:type  <http://purl.org/gadr/data#Glycan> . \n");
+        queryBuf.append ( " ?s gadr:has_glytoucan_id ?gid . }");
+        
+        List<SparqlEntity> results = sparqlDAO.query(queryBuf.toString());
+        for (SparqlEntity result: results) {
+            String glycanURI = result.getValue("s");
+            String glytoucanId = result.getValue("gid");
+            GlycanIdView gView = new GlycanIdView();
+            gView.setGadrId(glycanURI.substring(glycanURI.lastIndexOf("/")+1));
+            gView.setGadrId(glytoucanId);
+            glycans.add(gView);
+            
+        }
+        return glycans;
+	}
 }

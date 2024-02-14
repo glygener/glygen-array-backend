@@ -9,6 +9,7 @@ import org.glygen.array.persistence.rdf.Glycan;
 import org.glygen.array.persistence.rdf.GlycanSubsumtionType;
 import org.glygen.array.persistence.rdf.SequenceDefinedGlycan;
 import org.glygen.array.persistence.rdf.data.ChangeLog;
+import org.glygen.array.view.GlycanIdView;
 
 public interface GlycanRepository {
 	
@@ -83,6 +84,7 @@ public interface GlycanRepository {
     List<String> getGlycanByMass(UserEntity user, double min, double max) throws SparqlException, SQLException;
     List<String> getGlycanByGlytoucanIds(UserEntity user, List<String> ids) throws SparqlException, SQLException;
     List<String> getAllGlycans (UserEntity user) throws SparqlException, SQLException;
+    List<GlycanIdView> getAllGlycanIdsWithGlytoucan (UserEntity user) throws SparqlException, SQLException;
     
     Double getMinMaxGlycanMass (UserEntity user, boolean min) throws SparqlException, SQLException;
     String addSequenceDefinedGlycan(SequenceDefinedGlycan g, SequenceDefinedGlycan baseGlycan, UserEntity user,

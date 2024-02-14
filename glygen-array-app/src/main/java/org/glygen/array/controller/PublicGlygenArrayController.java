@@ -79,6 +79,7 @@ import org.glygen.array.view.BlockLayoutResultView;
 import org.glygen.array.view.ErrorCodes;
 import org.glygen.array.view.ErrorMessage;
 import org.glygen.array.view.FeatureListResultView;
+import org.glygen.array.view.GlycanIdView;
 import org.glygen.array.view.GlycanListResultView;
 import org.glygen.array.view.IntensityDataResultView;
 import org.glygen.array.view.LinkerListResultView;
@@ -251,6 +252,26 @@ public class PublicGlygenArrayController {
             throw new GlycanRepositoryException("Cannot retrieve glycans. Reason: " + e.getMessage());
         }
         
+        return result;
+    }
+    
+    @Operation(summary = "Retrieve all public glycan ids with glytoucan id")
+    @RequestMapping(value="/getglycanidmap", method = RequestMethod.GET, 
+            produces={"application/json", "application/xml"})
+    @ApiResponses (value ={@ApiResponse(responseCode="200", description="Glycans retrieved successfully", content = {
+            @Content( schema = @Schema(implementation = ArrayList.class))}), 
+            @ApiResponse(responseCode="400", description="Invalid request, validation error for arguments"),
+            @ApiResponse(responseCode="415", description="Media type is not supported"),
+            @ApiResponse(responseCode="500", description="Internal Server Error", content = {
+                    @Content( schema = @Schema(implementation = ErrorMessage.class))})})
+    public List<GlycanIdView> listGlycanIds () {
+    	List<GlycanIdView> result;
+		try {
+			result = glycanRepository.getAllGlycanIdsWithGlytoucan(null);
+		} catch (SparqlException | SQLException e) {
+			throw new GlycanRepositoryException ("Failed to retrieve glycan ids. Reason: " + e.getMessage(), e);
+		}
+     
         return result;
     }
     
