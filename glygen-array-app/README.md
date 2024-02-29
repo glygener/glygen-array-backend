@@ -38,7 +38,8 @@ To execute glygen-array backend application.
          
          docker-compose up -d
          
- 3. docker-compose up -d 
+ 3. docker-compose up -d
+ 4. If this is a fresh installation, you need to add the metadata templates to the repository (virtuoso). After the backend application is up and running, go to swagger interface: http://localhost:8080/swagger-ui.html (if running locally) or \<server-url\>/api/swagger-ui.html (if on the server). Login with admin user (login-endpoint/post_login), copy/paste the authorization header for the swagger (authorization button on the top right), and then do populateTemplates (admin-controller/populateTemplates).
 --------------------------------------------------------------------------------------------
 
 If you would like to run the backend application in Eclipse, create a Java run configuration with the following VM argument:
