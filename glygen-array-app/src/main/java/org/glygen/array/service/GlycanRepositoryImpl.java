@@ -1,5 +1,12 @@
 package org.glygen.array.service;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +43,7 @@ import org.glygen.array.persistence.rdf.data.ChangeLog;
 import org.glygen.array.util.GlytoucanUtil;
 import org.glygen.array.view.GlycanIdView;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +57,65 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
     @org.springframework.beans.factory.annotation.Value("${glygen.glytoucanregistration}")
     String glytoucanregistration;
     
+    @org.springframework.beans.factory.annotation.Value("${glygen.glygenURL}")
+    String glygenURL;
+    
     static int glycanCount = 0;
+    
+    @Scheduled(fixedDelay = 604800000, initialDelay=1000)
+    public void addGlygenLink () {
+    	// add links for public glycans if they exist in Glygen
+    	// retrieve glytoucanids from Glygen
+    	try {
+	    	URL link = new URL(glygenURL);
+	        InputStream in = new BufferedInputStream(link.openStream());
+	        ByteArrayOutputStream out = new ByteArrayOutputStream();
+	        byte[] buf = new byte[1024];
+	        int n = 0;
+	        while (-1!=(n=in.read(buf))) {
+	           out.write(buf, 0, n);
+	        }
+	        out.close();
+	        in.close();
+	        byte[] response = out.toByteArray();
+	        
+	        List<String> glygenList = new ArrayList<>();
+	        try (InputStreamReader reader = new InputStreamReader(new ByteArrayInputStream(response))) {
+	        	BufferedReader br = new BufferedReader(reader);
+	        	String line;
+	        	boolean firstLine = true;
+	            while ((line = br.readLine()) != null) {
+	            	if (firstLine) {
+	            		firstLine = false;
+	            		continue;
+	            	} 
+	                String[] values = line.split(",");
+	                glygenList.add(values[0].substring(1, values[0].length()-1));   // get rid of the quotes in the string
+	            }
+	        }
+	        // find all public glycans with the glytoucanids
+	        List<GlycanIdView> glycans = getAllGlycanIdsWithGlytoucan(null);
+	    	ValueFactory f = sparqlDAO.getValueFactory();
+	    	IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
+	    	List<Statement> statements = new ArrayList<Statement>();
+	    	for (GlycanIdView g: glycans) {
+	    		if (glygenList.contains(g.getGlytoucanId())) {   // if it is in glygen, set the boolean
+	    			IRI glycan = f.createIRI(uriPrefixPublic + g.getGadrId());
+		    		IRI hasGlygenLink = f.createIRI(ontPrefix + "is_in_glygen");
+		    		Literal bool = f.createLiteral(true); //
+		    		// check if there is already a triple
+		    		RepositoryResult<Statement> results = sparqlDAO.getStatements(glycan, hasGlygenLink, null, graphIRI);
+		    		if (!results.hasNext())
+		    			statements.add(f.createStatement(glycan, hasGlygenLink, bool, graphIRI));
+	    		}
+	    	}
+	    	if (!statements.isEmpty()) sparqlDAO.addStatements(statements, graphIRI);
+	    	logger.info("updated inGlygen flags on " + new Date());
+    	} catch (Exception e) {
+    		logger.error("Failed to update in-glygen status", e);
+    	}
+    	
+    }
     
 	@Override
 	public void addAliasForGlycan(String glycanId, String alias, UserEntity user) throws SparqlException, SQLException {
@@ -807,6 +873,7 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 		IRI hasModifiedDate = f.createIRI(ontPrefix + "has_date_modified");
 		IRI createdBy= f.createIRI(ontPrefix + "created_by");
 		IRI hasSubType = f.createIRI(ontPrefix + "has_subtype");
+		IRI hasGlygenLink = f.createIRI(ontPrefix + "is_in_glygen");
 		
 		IRI hasInchiSequence = f.createIRI(hasInchiSequencePredicate);
         IRI hasInchiKey = f.createIRI(hasInchiKeyPredicate);
@@ -869,6 +936,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 			    Value glytoucanHash = st.getObject();
 			    if (glycanObject instanceof SequenceDefinedGlycan) {
                     ((SequenceDefinedGlycan)glycanObject).setGlytoucanHash(glytoucanHash.stringValue()); 
+			    }
+			} else if (st.getPredicate().equals(hasGlygenLink)) {
+			    Value val = st.getObject();
+			    if (val instanceof Literal) {
+			    	glycanObject.setInGlygen(((Literal) val).booleanValue());
 			    }
 			} else if (st.getPredicate().equals(hasMass)) {
 				Value mass = st.getObject();
@@ -985,6 +1057,11 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 						} catch (NumberFormatException e) {
 							logger.warn ("Glycan mass is invalid", e);
 						}
+					} else if (st.getPredicate().equals(hasGlygenLink)) {
+					    Value val = st.getObject();
+					    if (val instanceof Literal) {
+					    	glycanObject.setInGlygen(((Literal) val).booleanValue());
+					    }
 					} else if (stPublic.getPredicate().equals(hasInchiKey)) {
 		                Value val = stPublic.getObject();
 		                if (glycanObject instanceof OtherGlycan) {

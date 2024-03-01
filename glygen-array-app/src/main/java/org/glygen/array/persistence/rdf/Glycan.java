@@ -45,8 +45,10 @@ public class Glycan implements ChangeTrackable{
 	byte[] cartoon;
 	
 	Boolean inUse = false;
+	Boolean inGlygen = false;
 	
 	List<ChangeLog> changes = new ArrayList<>();
+	
 	
 	public Boolean getIsPublic() {
 		return isPublic;
@@ -225,4 +227,13 @@ public class Glycan implements ChangeTrackable{
     public void addChange(ChangeLog change) {
         this.changes.add(change);
     }
+
+	public Boolean getInGlygen() {
+		return inGlygen;
+	}
+
+	public void setInGlygen(Boolean inGlygen) {
+		this.inGlygen = inGlygen;
+	}
+
 }

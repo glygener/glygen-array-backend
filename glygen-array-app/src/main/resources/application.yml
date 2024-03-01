@@ -54,7 +54,7 @@ glygen:
       basePath: /
       loginPage: login.html
       emailVerificationPage: emailConfirmation
-   
+  glygenURL: https://data.glygen.org/ln2data/releases/data/current/reviewed/glycan_masterlist.csv
 server:
   port: 8080
   servlet:
