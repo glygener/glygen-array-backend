@@ -98,21 +98,30 @@ public class GlycanRepositoryImpl extends GlygenArrayRepositoryImpl implements G
 	    	ValueFactory f = sparqlDAO.getValueFactory();
 	    	IRI graphIRI = f.createIRI(DEFAULT_GRAPH);
 	    	List<Statement> statements = new ArrayList<Statement>();
+	    	List<Statement> removeStatements = new ArrayList<Statement>();
+	    	IRI hasGlygenLink = f.createIRI(ontPrefix + "is_in_glygen");
 	    	for (GlycanIdView g: glycans) {
+	    		IRI glycan = f.createIRI(uriPrefixPublic + g.getGadrId());
 	    		if (glygenList.contains(g.getGlytoucanId())) {   // if it is in glygen, set the boolean
-	    			IRI glycan = f.createIRI(uriPrefixPublic + g.getGadrId());
-		    		IRI hasGlygenLink = f.createIRI(ontPrefix + "is_in_glygen");
 		    		Literal bool = f.createLiteral(true); //
 		    		// check if there is already a triple
 		    		RepositoryResult<Statement> results = sparqlDAO.getStatements(glycan, hasGlygenLink, null, graphIRI);
 		    		if (!results.hasNext())
 		    			statements.add(f.createStatement(glycan, hasGlygenLink, bool, graphIRI));
 	    		}
+	    		else {
+	    			// if it has inGlygen link, need to remove it 
+	    			RepositoryResult<Statement> results = sparqlDAO.getStatements(glycan, hasGlygenLink, null, graphIRI);
+	    			if (results.hasNext()) 
+	    				removeStatements.addAll(Iterations.asList(results));
+	    			
+	    		}
 	    	}
 	    	if (!statements.isEmpty()) sparqlDAO.addStatements(statements, graphIRI);
-	    	logger.info("updated inGlygen flags on " + new Date());
+	    	if (!removeStatements.isEmpty()) sparqlDAO.removeStatements(removeStatements, graphIRI);
+	    	logger.info("updated in-glygen flags on " + new Date());
     	} catch (Exception e) {
-    		logger.error("Failed to update in-glygen status", e);
+    		logger.error("Failed to update in-glygen flags", e);
     	}
     	
     }
