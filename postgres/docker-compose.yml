@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   postgres:
-    image: postgres:11
+    image: postgres:16
     ports:
       - "5432:5432"
     volumes:
@@ -12,5 +12,5 @@ services:
       - POSTGRES_DB=glygen
 networks:
   default:
-      external: 
-        name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}
+     name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}
+     external: true
