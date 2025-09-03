@@ -12,5 +12,5 @@ services:
       - POSTGRES_DB=glygen
 networks:
   default:
-     name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}
-     external: true
+     external:
+       name: ${GLYGEN_ARRAY_NETWORK:-glygen-array-network}
