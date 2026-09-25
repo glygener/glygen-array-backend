@@ -1,4 +1,3 @@
-version: '3.4'
 services:
   httpd:
     build:
@@ -13,5 +12,5 @@ services:
 
 networks:
   default:
-    external:
-      name: ${NETWORK:-glygen-array-network}
+    name: ${NETWORK:-glygen-array-network}
+    external: true
