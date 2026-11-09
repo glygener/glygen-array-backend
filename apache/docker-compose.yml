@@ -7,8 +7,8 @@ services:
     ports:
       - 9980:80
     volumes:
-      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ${HOME}/workspace/glygen-array-backend/ontology/:/usr/local/apache2/htdocs/ontology/
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ${HOME}/workspace/glygen-array-backend/ontology/:/usr/local/apache2/htdocs/ontology/:ro
 
 networks:
   default:
